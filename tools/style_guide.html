@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitGalaxy // Master Style Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg: #020205;
+            --panel: rgba(10, 15, 20, 0.85);
+            --border: #334455;
+            --accent: #00f3ff;
+            --text: #ffffff;
+            --dim: #8899aa;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            overflow-x: hidden;
+        }
+
+        /* 3D CANVAS LAYER */
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 50vh;
+            z-index: 0;
+            border-bottom: 1px solid var(--accent);
+        }
+
+        /* UI LAYER */
+        #ui-layer {
+            position: relative;
+            z-index: 10;
+            margin-top: 45vh; /* Overlap canvas slightly */
+            background: linear-gradient(to bottom, transparent, var(--bg) 10%);
+            padding: 20px;
+            min-height: 60vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { font-size: 24px; letter-spacing: 4px; margin: 0; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
+        .sub { color: var(--accent); font-size: 11px; margin-top: 5px; }
+
+        /* CONTROLS */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--dim);
+            padding: 10px 20px;
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:hover { border-color: var(--accent); color: var(--text); }
+        button.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: bold; }
+
+        /* LEGEND GRID */
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .legend-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s;
+        }
+
+        .legend-card:hover { transform: translateY(-2px); border-color: var(--dim); }
+
+        .swatch {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .info h3 { margin: 0 0 5px 0; font-size: 12px; color: var(--text); }
+        .info p { margin: 0; font-size: 10px; color: var(--dim); }
+        .hex { display: block; margin-top: 5px; font-size: 9px; opacity: 0.5; font-family: sans-serif; }
+
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div class="header">
+            <h1>VISUAL TRUTH SYSTEM</h1>
+            <div class="sub">V4.1 STYLE GUIDE // INTERACTIVE LAB</div>
+        </div>
+
+        <div class="controls">
+            <button class="mode-btn active" data-mode="behavior">Behavior (Risk)</button>
+            <button class="mode-btn" data-mode="archetype">Archetype (Role)</button>
+            <button class="mode-btn" data-mode="language">Language (Stack)</button>
+            <button class="mode-btn" data-mode="timeline">Timeline (Age)</button>
+        </div>
+
+        <div id="legend-target" class="legend-grid">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <script>
+        // --- 1. COLOR REGISTRY (From js/config/colors.js) ---
+        const Colors = {
+            BEHAVIOR: {
+                'EVIL RED': { hex: 0xFF0033, desc: 'Critical Tech Debt / Danger' },
+                'SHIELD CYAN': { hex: 0x00F3FF, desc: 'High Safety / Robustness' },
+                'TEST BLUE': { hex: 0x2979FF, desc: 'Test Coverage / Verification' },
+                'PLASMA PURPLE': { hex: 0x9D00FF, desc: 'High Cognitive Load' },
+                'ELECTRIC GREEN': { hex: 0x00FF66, desc: 'High I/O / Concurrency' },
+                'STANDARD': { hex: 0xCCCCCC, desc: 'Basal State / Neutral' }
+            },
+            ARCHETYPE: {
+                'CORE': { hex: 0xFF0055, desc: 'Logic / Algorithm (Star)' },
+                'MODEL': { hex: 0x00F3FF, desc: 'Data / Schema (Hexagon)' },
+                'VIEW': { hex: 0xFFD700, desc: 'UI / Presentation (Diamond)' },
+                'CONDUIT': { hex: 0x00FF66, desc: 'Network / IO (Ring)' },
+                'ARTIFACT': { hex: 0x888888, desc: 'Config / Glue (Circle)' }
+            },
+            LANGUAGE: {
+                'JAVASCRIPT': { hex: 0xF1E05A, desc: 'Web Logic' },
+                'TYPESCRIPT': { hex: 0x2B7489, desc: 'Typed Web' },
+                'PYTHON': { hex: 0x3572A5, desc: 'Data / Scripting' },
+                'RUST': { hex: 0xDEA584, desc: 'Systems' },
+                'GO': { hex: 0x00ADD8, desc: 'Cloud Infrastructure' },
+                'COBOL': { hex: 0x005CA5, desc: 'Legacy Finance' },
+                'FORTRAN': { hex: 0x4D41B1, desc: 'Scientific' }
+            },
+            TIMELINE: {
+                'HOT (TODAY)': { hex: 0xFF5500, desc: 'Modified < 24 Hours' },
+                'WARM (RECENT)': { hex: 0xFFD700, desc: 'Modified < 1 Month' },
+                'COLD (STABLE)': { hex: 0x00F3FF, desc: 'Modified > 1 Year' },
+                'FOSSIL (LEGACY)': { hex: 0x444444, desc: 'Modified > 5 Years' }
+            }
+        };
+
+        // --- 2. THREE.JS SCENE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020205, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / (window.innerHeight/2), 1, 1000);
+        camera.position.z = 25;
+        camera.position.y = 5;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight / 2);
+        container.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambient = new THREE.AmbientLight(0x444444);
+        scene.add(ambient);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5, 5, 10);
+        scene.add(dirLight);
+        const pointLight = new THREE.PointLight(0x00f3ff, 1, 20);
+        pointLight.position.y = -5;
+        scene.add(pointLight);
+
+        // --- 3. MOCK OBJECTS (The Simulation) ---
+        // Each object has "Mock Data" simulating a real file
+        const objects = [];
+        
+        function createMock(geo, pos, mockData) {
+            const mat = new THREE.MeshStandardMaterial({ 
+                color: 0xcccccc, roughness: 0.2, metalness: 0.5, transparent: true, opacity: 0.9 
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(pos.x, pos.y, pos.z);
+            
+            // Add wireframe
+            const wire = new THREE.LineSegments(
+                new THREE.WireframeGeometry(geo),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 })
+            );
+            mesh.add(wire);
+
+            // Attach Data
+            mesh.userData = mockData;
+            
+            scene.add(mesh);
+            objects.push(mesh);
+        }
+
+        // Object 1: Jagged Logic (High Debt, JS, Core)
+        createMock(new THREE.IcosahedronGeometry(2, 0), {x:-10, y:0, z:0}, {
+            behavior: Colors.BEHAVIOR['EVIL RED'].hex,
+            archetype: Colors.ARCHETYPE['CORE'].hex,
+            language: Colors.LANGUAGE['JAVASCRIPT'].hex,
+            timeline: Colors.TIMELINE['HOT (TODAY)'].hex
+        });
+
+        // Object 2: Smooth Data (Safe, Python, Model)
+        createMock(new THREE.DodecahedronGeometry(2, 0), {x:-4, y:0, z:0}, {
+            behavior: Colors.BEHAVIOR['SHIELD CYAN'].hex,
+            archetype: Colors.ARCHETYPE['MODEL'].hex,
+            language: Colors.LANGUAGE['PYTHON'].hex,
+            timeline: Colors.TIMELINE['COLD (STABLE)'].hex
+        });
+
+        // Object 3: Plate (UI, TS, View)
+        createMock(new THREE.BoxGeometry(3, 0.2, 3), {x:2, y:0, z:0}, {
+            behavior: Colors.BEHAVIOR['STANDARD'].hex,
+            archetype: Colors.ARCHETYPE['VIEW'].hex,
+            language: Colors.LANGUAGE['TYPESCRIPT'].hex,
+            timeline: Colors.TIMELINE['WARM (RECENT)'].hex
+        });
+
+        // Object 4: Ring (IO, Go, Conduit)
+        createMock(new THREE.TorusGeometry(1.5, 0.3, 8, 24), {x:10, y:0, z:0}, {
+            behavior: Colors.BEHAVIOR['ELECTRIC GREEN'].hex,
+            archetype: Colors.ARCHETYPE['CONDUIT'].hex,
+            language: Colors.LANGUAGE['GO'].hex,
+            timeline: Colors.TIMELINE['HOT (TODAY)'].hex
+        });
+
+
+        // --- 4. LOGIC ENGINE ---
+        
+        function updateSceneColors(modeKey) {
+            objects.forEach(obj => {
+                const targetHex = obj.userData[modeKey] || 0x888888;
+                obj.material.color.setHex(targetHex);
+                obj.material.emissive.setHex(targetHex);
+                obj.material.emissiveIntensity = 0.2;
+            });
+        }
+
+        function renderLegend(modeKey) {
+            const grid = document.getElementById('legend-target');
+            grid.innerHTML = '';
+            
+            const palette = Colors[modeKey.toUpperCase()];
+            
+            for (const [name, data] of Object.entries(palette)) {
+                const hexStr = '#' + data.hex.toString(16).padStart(6, '0');
+                
+                const card = document.createElement('div');
+                card.className = 'legend-card';
+                card.innerHTML = `
+                    <div class="swatch" style="background-color:${hexStr}; color:${hexStr}"></div>
+                    <div class="info">
+                        <h3>${name}</h3>
+                        <p>${data.desc}</p>
+                        <span class="hex">${hexStr.toUpperCase()}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        // --- 5. INTERACTION ---
+        const buttons = document.querySelectorAll('.mode-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // UI Toggle
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // State Update
+                const mode = btn.dataset.mode;
+                updateSceneColors(mode);
+                renderLegend(mode);
+            });
+        });
+
+        // --- 6. ANIMATION ---
+        function animate() {
+            requestAnimationFrame(animate);
+            objects.forEach((obj, i) => {
+                obj.rotation.x += 0.005;
+                obj.rotation.y += 0.01;
+                // Ring spin
+                if(i===3) { obj.rotation.x = 1.5; obj.rotation.z += 0.01; }
+            });
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight/2);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight/2);
+        });
+
+        // Init
+        updateSceneColors('behavior');
+        renderLegend('behavior');
+        animate();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+# ========================
+# SECURITY (CRITICAL)
+# ========================
+.env
+.env.*
+*.pem
+*.key
+
+# ========================
+# PYTHON & FLASK
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+flask_session/
+
+# ========================
+# LOGS & DATABASES
+# ========================
+*.log
+gitgalaxy_dropped_orders.log
+*.sqlite3
+
+# ========================
+# FRONTEND & NODE
+# ========================
+node_modules/
+tailwindcss
+
+# ========================
+# OS & EDITOR FILES
+# ========================
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.odt
+.~lock.*
+
+# ========================
+# PROJECT-SPECIFIC SCRIPTS
+# ========================
+get_ids.py
+get_shop.py
+histogram_matcher.py
