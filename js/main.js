@@ -146,18 +146,21 @@ class AppController {
             }
 
             // Auto-Discovery: Ask the Librarian what artifacts are available
+            // Auto-Discovery: Ask the Librarian what artifacts are available
             await this.discoverGalaxies();
 
-            // Initial Teleport: Default to apollo-11 or apollo if available, else first found
-            let defaultKey = this.discoveredGalaxies[0];
-            if (this.discoveredGalaxies.includes('apollo-11')) deepKey = 'apollo-11';
-            else if (this.discoveredGalaxies.includes('apollo')) defaultKey = 'apollo';
+            // 🚨 THE FIX: Search the new object array for Apollo
+            let defaultGalaxy = this.discoveredGalaxies[0]; // Fallback to the first item
             
-            if (defaultKey) {
-                await this.fetchGalaxyData(defaultKey);
+            const apolloMatch = this.discoveredGalaxies.find(g => g.id.toLowerCase().includes('apollo'));
+            if (apolloMatch) {
+                defaultGalaxy = apolloMatch;
+            }
+            
+            if (defaultGalaxy) {
+                await this.fetchGalaxyData(defaultGalaxy);
             } else {
-                console.warn("Visualizer: No archives discovered in /backend.");
-                // Hide loader anyway if no data found so user sees the empty UI
+                console.warn("Visualizer: No archives discovered in /data.");
                 this.clearLoader();
             }
 
