@@ -33,19 +33,31 @@
 
 </head>
 <body>
-    <button onclick="window.toggleMainUI()" id="zen-btn" class="zen-master-btn" style="top: 20px; z-index: 1000;" title="Toggle HUD">✕</button>
-    <button onclick="window.toggleStoryUI()" id="story-btn" class="zen-master-btn zen-collapsed" style="top: 70px; z-index: 1000; display: none; font-size: 16px;" title="Toggle Exhibit">📖</button>
+    <div id="loading-screen" style="position:fixed;inset:0;background:#010103;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.8s;">
+        <div style="color:#00f3ff;font-family:monospace;letter-spacing:5px;margin-bottom:20px;text-transform:uppercase;">Synchronizing Neural Matrix</div>
+        <div style="width:250px;height:2px;background:#111;border-radius:2px;"><div id="load-progress" style="height:100%;background:#00f3ff;width:0%;transition:width 0.3s;"></div></div>
+    </div>
+
+    <div id="viewport"></div>
+    <div id="label-container"></div>
+
+    <button onclick="window.toggleMainUI()" id="zen-btn" class="zen-master-btn" style="top: 20px; width: 45px; z-index: 1000;" title="Toggle HUD">✕</button>
+    <button onclick="window.toggleStoryUI()" id="story-btn" class="zen-master-btn" style="top: 60px; width: 45px; z-index: 1000; display: none;" title="Toggle Exhibit"><span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span></button>
+
+    <button onclick="window.toggleAboutHUD()" id="about-btn">
+        GITGALAXY.IO
+    </button>
 
     <nav id="ui-layer" style="transition: transform 0.4s ease;">
         <header>
             <h1 id="brand-title">GitGalaxy</h1>
-            <h2>Warp Drive v17.5 // Active</h2>
+            <h2> </h2>
         </header>
 
         <div class="panel-section search-box">
             <label>Warp-Speed Search</label>
             <div style="position: relative;">
-                <input type="text" id="warp-search" placeholder="Teleport to Module...">
+                <input type="text" id="warp-search" placeholder="enter two characters for list...">
                 <div id="search-results" class="search-results-container cyber-scroll"></div>
             </div>
         </div>
@@ -127,32 +139,34 @@
     <nav id="story-layer" class="cyber-scroll" style="transform: translateX(-100%); transition: transform 0.4s ease; position: fixed; top: 0; left: 0; bottom: 0; width: 350px; max-width: 85vw; background: rgba(5, 5, 8, 0.95); border-right: 1px solid var(--panel-border); backdrop-filter: blur(10px); z-index: 999; padding: 80px 20px 20px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
         <header style="margin-bottom: 0;">
             <h1 id="story-title" style="color: var(--accent); font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin: 0; font-size: 22px; letter-spacing: 2px;">EXHIBIT</h1>
-            <h2 id="story-status" style="color: #fff; font-family: 'Space Mono', monospace; font-size: 12px; margin: 5px 0 0 0; opacity: 0.8;"></h2>
+            <h2 id="story-status" style="color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 14px; margin: 5px 0 0 0;"></h2>
         </header>
 
         <div class="panel-section">
             <label style="color: #bfff00;">WHY IT MATTERS</label>
-            <div id="story-why" style="font-family: 'Space Mono', monospace; font-size: 12px; color: #ccc;"></div>
+            <div id="story-why" style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #fff; line-height: 1.7;"></div>
         </div>
 
         <div class="panel-section">
             <label style="color: #ffaa00;">THE ARCHITECTS</label>
-            <div id="story-who" style="font-family: 'Space Mono', monospace; font-size: 12px; color: #ccc;"></div>
+            <div id="story-who" style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #fff; line-height: 1.7;"></div>
         </div>
 
         <div class="panel-section">
             <label style="color: var(--accent);">HISTORICAL SIGNIFICANCE</label>
-            <div id="story-significance" style="font-family: 'Space Mono', monospace; font-size: 12px; color: #fff; line-height: 1.6;"></div>
+            <div id="story-significance" style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #fff; line-height: 1.7;"></div>
         </div>
 
-        <div id="story-link-container" class="panel-section" style="display: none;">
-            <a id="story-link" href="#" target="_blank" style="display: block; width: 100%; text-align: center; border: 1px solid var(--accent); color: #000; background: var(--accent); font-weight: bold; padding: 10px; text-decoration: none; font-family: 'Space Grotesk', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: all 0.2s;">VIEW REPOSITORY</a>
+        <div id="story-link-container" class="panel-section" style="display: none; border-left: 2px solid #ff007f; padding-left: 10px;">
+            <a id="story-link" href="#" target="_blank" style="color: #ff007f; text-decoration: none; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: bold; display: block; text-transform: uppercase; letter-spacing: 1px; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#ff007f'">▶ VIEW REPOSITORY</a>
         </div>
 
         <div class="panel-section" id="story-artifacts-section" style="display: none; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-bottom: 20px;">
             <label style="color: #ff007f; margin-bottom: 15px;">AUDIO & ARTIFACTS</label>
             <div id="story-artifacts-list" style="display: flex; flex-direction: column; gap: 20px;"></div>
         </div>
+        
+        <button onclick="window.copyStoryData()" class="copy-btn" id="story-copy-btn" style="margin-top: auto;">⎘ COPY EXHIBIT</button>
     </nav>
 
     <div id="metric-legend">
@@ -421,6 +435,13 @@
                     zenBtn.style.pointerEvents = 'none';
                 }
 
+                // --- NEW: Hide the INFO button too! ---
+                const storyBtn = document.getElementById('story-btn');
+                if (storyBtn) {
+                    storyBtn.style.opacity = '0';
+                    storyBtn.style.pointerEvents = 'none';
+                }
+
                 hud.classList.remove('zen-hidden');
                 hud.classList.add('active');
             }
@@ -548,6 +569,13 @@
                 if (zenBtn) {
                     zenBtn.style.opacity = '0';
                     zenBtn.style.pointerEvents = 'none';
+                }
+
+                // --- NEW: Hide the INFO button too! ---
+                const storyBtn = document.getElementById('story-btn');
+                if (storyBtn) {
+                    storyBtn.style.opacity = '0';
+                    storyBtn.style.pointerEvents = 'none';
                 }
 
                 hud.classList.remove('zen-hidden');
@@ -769,6 +797,61 @@
             }
         };
 
+
+        window.copyStoryData = () => {
+            const story = window.currentRawGalaxyData?.story;
+            if (!story) return;
+            
+            let txt = `=== EXHIBIT: ${document.getElementById('story-title').innerText} ===\n\n`;
+            
+            if (story.why) txt += `WHY IT MATTERS:\n${story.why}\n\n`;
+            if (story.who) txt += `THE ARCHITECTS:\n${story.who}\n\n`;
+            if (story.significance) txt += `HISTORICAL SIGNIFICANCE:\n${story.significance}\n\n`;
+            if (story.link) txt += `REPOSITORY LINK:\n${story.link}\n\n`;
+            
+            if (story.artifacts && story.artifacts.length > 0) {
+                txt += `--- AUDIO & ARTIFACTS ---\n`;
+                story.artifacts.forEach(art => {
+                    if (art.title) {
+                        txt += `▶ ${art.title}\n  ${art.description}\n  Link: ${art.url}\n\n`;
+                    }
+                });
+            }
+
+            // Universal Clipboard Fallback & UI Flash
+            const triggerSuccessUI = () => {
+                const btn = document.getElementById('story-copy-btn');
+                btn.innerText = "COPIED!";
+                btn.classList.add('success');
+                setTimeout(() => {
+                    btn.innerText = "⎘ COPY EXHIBIT";
+                    btn.classList.remove('success');
+                }, 2000);
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(txt)
+                    .then(triggerSuccessUI)
+                    .catch(err => console.error('Clipboard write failed:', err));
+            } else {
+                try {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = txt;
+                    textArea.style.position = "fixed"; 
+                    textArea.style.left = "-9999px";
+                    textArea.style.top = "0";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    if (successful) triggerSuccessUI();
+                } catch (err) {
+                    console.error('Fallback clipboard write failed:', err);
+                }
+            }
+        };
+
         // --- ZEN MODE TOGGLE LOGIC ---
         window.isZenMode = false;
         // --- DUAL NAVIGATION SYSTEM ---
@@ -793,34 +876,35 @@
             const zenBtn = document.getElementById('zen-btn');
             const storyBtn = document.getElementById('story-btn');
 
-            // Handle Main HUD
-            if (window.isMainUIOpen) {
-                if(uiLayer) uiLayer.style.transform = 'translateX(0)';
-                if(zenBtn) {
-                    zenBtn.classList.remove('zen-collapsed');
-                    zenBtn.innerHTML = '✕';
-                }
+            // Check if either panel is currently exposed
+            const isAnyOpen = window.isMainUIOpen || window.isStoryOpen;
+
+            // 1. POSITIONING: Move both buttons together
+            if (isAnyOpen) {
+                if (zenBtn) zenBtn.classList.remove('zen-collapsed');
+                if (storyBtn) storyBtn.classList.remove('zen-collapsed');
             } else {
-                if(uiLayer) uiLayer.style.transform = 'translateX(-100%)';
-                if(zenBtn) {
-                    zenBtn.classList.add('zen-collapsed');
-                    zenBtn.innerHTML = '<span style="font-size: 11px; font-weight: bold; letter-spacing: 1px;">HUD</span>';
-                }
+                // If both are closed, dock them to the far left
+                if (zenBtn) zenBtn.classList.add('zen-collapsed');
+                if (storyBtn) storyBtn.classList.add('zen-collapsed');
             }
 
-            // Handle Story HUD
+            // 2. MAIN HUD TOGGLE STATE
+            if (window.isMainUIOpen) {
+                if(uiLayer) uiLayer.style.transform = 'translateX(0)';
+                if(zenBtn) zenBtn.innerHTML = '✕';
+            } else {
+                if(uiLayer) uiLayer.style.transform = 'translateX(-100%)';
+                if(zenBtn) zenBtn.innerHTML = '<span style="font-size: 11px; font-weight: bold; letter-spacing: 1px;">HUD</span>';
+            }
+
+            // 3. STORY HUD TOGGLE STATE
             if (window.isStoryOpen) {
                 if(storyLayer) storyLayer.style.transform = 'translateX(0)';
-                if(storyBtn) {
-                    storyBtn.classList.remove('zen-collapsed');
-                    storyBtn.innerHTML = '✕';
-                }
+                if(storyBtn) storyBtn.innerHTML = '✕';
             } else {
                 if(storyLayer) storyLayer.style.transform = 'translateX(-100%)';
-                if(storyBtn) {
-                    storyBtn.classList.add('zen-collapsed');
-                    storyBtn.innerHTML = '📖';
-                }
+                if(storyBtn) storyBtn.innerHTML = '<span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span>';
             }
         };
 
@@ -828,15 +912,18 @@
         window.populateStoryHUD = (story, key) => {
             const storyBtn = document.getElementById('story-btn');
             
-            // If there's no story for this galaxy, hide the book button completely
+            // If there's no story for this galaxy, hide the INFO button completely
             if (!story || !story.significance || story.significance.trim() === "") {
                 if(storyBtn) storyBtn.style.display = 'none';
                 if(window.isStoryOpen) window.toggleStoryUI(); // Auto-close if open
                 return;
             }
 
-            // Show the book button if story exists
+            // Show the INFO button if story exists
             if(storyBtn) storyBtn.style.display = 'block';
+            
+            // --- NEW: Force the buttons to sync with the current HUD state! ---
+            window.updateNavStates();
             
             // Format the title nicely
             const cleanTitle = key.replace(/_galaxy/g, '').replace(/-/g, ' ').toUpperCase();
@@ -870,7 +957,7 @@
                     artifactsList.insertAdjacentHTML('beforeend', `
                         <div style="border-left: 2px solid #ff007f; padding-left: 10px;">
                             <a href="${art.url}" target="_blank" style="color: #ff007f; text-decoration: none; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#ff007f'">▶ ${art.title}</a>
-                            <div style="font-family: 'Space Mono', monospace; font-size: 11px; color: #8da3bd; line-height: 1.5;">${art.description}</div>
+                            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #fff; line-height: 1.7;">${art.description}</div>
                         </div>
                     `);
                 });
@@ -963,6 +1050,10 @@
             const zenBtn = document.getElementById('zen-btn');
             if (zenBtn) { zenBtn.style.opacity = '0'; zenBtn.style.pointerEvents = 'none'; }
             
+            // --- NEW: Hide the INFO button too! ---
+            const storyBtn = document.getElementById('story-btn');
+            if (storyBtn) { storyBtn.style.opacity = '0'; storyBtn.style.pointerEvents = 'none'; }
+            
             hud.classList.remove('zen-hidden'); 
             hud.classList.add('active');
         };
@@ -997,11 +1088,16 @@
             const hud = document.getElementById('file-hud');
             if (hud) hud.classList.remove('active');
             
-            // Restore the Zen Master Button
+            // Restore both Master Buttons
             const zenBtn = document.getElementById('zen-btn');
             if (zenBtn) {
                 zenBtn.style.opacity = '1';
                 zenBtn.style.pointerEvents = 'all';
+            }
+            const storyBtn = document.getElementById('story-btn');
+            if (storyBtn) {
+                storyBtn.style.opacity = '1';
+                storyBtn.style.pointerEvents = 'all';
             }
         };
 
@@ -1090,6 +1186,49 @@
         
         <iframe id="meta-frame" src="/js/core/metavisualizer.html" style="width: 100%; height: 100%; border: none; display: block;"></iframe>
         
+    </div>
+
+    <div id="about-hud" style="display: none; position: fixed; inset: 0; z-index: 10005; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(10px); align-items: center; justify-content: center;">
+        <div style="background: var(--bg-ui); border: 1px solid var(--accent); padding: 40px; border-radius: 8px; width: 500px; max-width: 90vw; box-shadow: 0 0 50px rgba(0, 243, 255, 0.15); display: flex; flex-direction: column; position: relative;">
+            
+            <button onclick="document.getElementById('about-hud').style.display='none'" class="close-btn" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #8899aa; font-size: 20px; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8899aa'">✕</button>
+
+            <h2 style="font-family: 'Space Grotesk', sans-serif; color: var(--accent); margin: 0 0 5px 0; letter-spacing: 3px; font-size: 24px; text-transform: uppercase;">GitGalaxy Command</h2>
+            <p style="font-family: 'Space Mono', monospace; color: #8899aa; font-size: 11px; margin: 0 0 25px 0; letter-spacing: 1px;">v17.5 // ASTROMETRIC CODE VISUALIZER</p>
+
+            <div style="font-family: 'Space Grotesk', sans-serif; color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 25px;">
+                <p style="margin: 0 0 15px 0;">
+                    GitGalaxy maps the hidden architecture of massive software repositories, translating codebases into non-numeric star-based dashboards (for humans), low-token markdown summaries (for AI agents), and full internal scanned audit results (for lawyers). 
+                </p>
+                
+                <p style="margin: 0 0 15px 0;">
+                    Accomplished by scanning codebases with the same tech used to scan strings of DNA when I was a scientist. By employing a BLAST-like algorithm, a taxonomic language feature map, and DNA fingerprinting algorithms, GitGalaxy brings 50-ish years of bioinformatics to code analysis. We parse our resulting DNA/code fingerprint into a series of risk exposure metrics (mapping genotype to phenotype).
+                </p>
+                
+                <p style="margin: 0 0 15px 0;">
+                    GitGalaxy does not measure "Code Quality", which feels like a judgment, but instead measures Risk Exposure. Our measurements do not judge; they highlight. We do not assess "Bad Code"; we measure Cognitive Load Exposure—how hard it is for a human to work through the logic—because teams should be aware which files are the hardest to work on. 
+                </p>
+                
+                <p style="margin: 0;">
+                    Risk Exposures identify general trends (Good - this file has high API exposure) instead of providing an absolute ranking over tiny differences (Bad - this file is better than that one because it scored 1% higher in the tech debt equation). These are general guides to give engineers, managers and CTOs a visual estimate on code status. t allows a team to agree on standards and instantly see—without reading a single line of text—where their architecture might be drifting into dangerous territory.
+                </p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="#" target="_blank" style="display: block; text-align: center; background: transparent; border: 1px solid #64748b; color: #cbd5e1; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#cbd5e1'; this.style.borderColor='#64748b';">
+                    PROJECT WIKI
+                </a>
+
+                <a href="#" target="_blank" style="display: block; text-align: center; background: transparent; border: 1px solid #64748b; color: #cbd5e1; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#cbd5e1'; this.style.borderColor='#64748b';">
+                    &lt;/&gt; GITHUB REPO
+                </a>
+
+                <a href="mailto:joe@gitgalaxy.io" style="display: block; text-align: center; background: transparent; border: 1px dashed #64748b; color: #8da3bd; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#8da3bd'; this.style.borderColor='#64748b';">
+                    ✉ CONTACT (JOE@GITGALAXY.IO)
+                </a>
+            </div>
+            
+        </div>
     </div>
 
     <div id="gift-shop-hud" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(10px); align-items: center; justify-content: center;">
@@ -1182,15 +1321,16 @@
             // Simple check for mobile devices based on user agent and screen width
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
             
-            // 🛠️ THE FIX: Safely grab the print buttons container using reliable DOM traversal
+            // Safely grab the print buttons container
             const printButtonsContainer = document.getElementById('print-buttons-container');
             
             if (isMobile) {
-                // Replace the physical print buttons with a warning message
+                // Replace the physical print buttons with your exact requested message
                 printButtonsContainer.innerHTML = `
                     <div style="grid-column: 1 / -1; padding: 20px; background: rgba(255, 0, 127, 0.1); border: 1px solid #ff007f; border-radius: 4px; text-align: center;">
-                        <span style="color: #ff007f; font-family: 'Space Grotesk', sans-serif; font-weight: bold; font-size: 14px; letter-spacing: 1px; display: block; margin-bottom: 5px;">⚠️ DESKTOP REQUIRED FOR PHYSICAL PRINTS</span>
-                        <span style="color: #8899aa; font-family: 'Space Mono', monospace; font-size: 11px; line-height: 1.5;">Generating ultra-high-resolution print files requires desktop-class GPU memory. Please revisit this sector on a desktop or laptop computer to order physical posters.</span>
+                        <span style="color: #ff007f; font-family: 'Space Grotesk', sans-serif; font-weight: bold; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;">
+                            ⚠️ Unable to render poster on mobile, please use desktop for this feature.
+                        </span>
                     </div>
                 `;
             } else {
@@ -1234,7 +1374,7 @@
                 setTimeout(() => newBtnDownload.innerText = "💾 DOWNLOAD QUICK SNAPSHOT (SCREEN RESOLUTION)", 2000);
             });
         };
-    
+
         window.cancelPosterRender = () => {
             // 1. Flip the flag to stop the math
             window.abortPosterRender = true; 
@@ -1247,6 +1387,11 @@
             }
             
             console.warn("User aborted the high-res rendering sequence.");
+        };
+
+        window.toggleAboutHUD = () => {
+            const hud = document.getElementById('about-hud');
+            hud.style.display = (hud.style.display === 'none' || hud.style.display === '') ? 'flex' : 'none';
         };
     
     </script>

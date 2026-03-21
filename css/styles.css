@@ -342,7 +342,7 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
 .zen-master-btn {
     position: absolute; 
     top: 25px; 
-    left: 325px; /* Anchors it to the right side of the desktop menu */
+    left: 325px; 
     background: transparent; 
     border: 1px solid var(--panel-border); 
     color: var(--accent); 
@@ -357,6 +357,10 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: 'Space Mono', monospace;
     font-size: 14px;
+    
+    /* 🚨 THE FIX: Strip the global button padding so it centers perfectly */
+    padding: 0 !important; 
+    line-height: 1;
 }
 
 .zen-master-btn:hover {
@@ -434,4 +438,32 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
 #ui-layer[style*="translateX(-100%)"] {
     pointer-events: none !important;
     touch-action: none !important;
+}
+
+/* =========================================
+   ABOUT / CONTACT BUTTON (Bottom Right)
+   ========================================= */
+#about-btn {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 25px !important;
+    width: auto !important;      /* Kills the global 100% width */
+    padding: 8px 12px !important; /* Kills the global 14px padding */
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: var(--accent) !important;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    z-index: 1000;
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+#about-btn:hover {
+    color: #fff !important;
+    text-shadow: 0 0 15px var(--accent) !important;
 }

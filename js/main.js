@@ -324,6 +324,11 @@ class AppController {
 
             window.currentRawGalaxyData = raw; 
             
+            // --- NEW: INJECT STORY DATA INTO THE HTML HUD ---
+            if (window.populateStoryHUD) {
+                window.populateStoryHUD(raw.story, key);
+            }
+            
             if (raw.meta && raw.meta.schemas && raw.meta.schemas.risk_vector_x1000) {
                 this.buildMetricDropdown(raw.meta.schemas.risk_vector_x1000);
             }
