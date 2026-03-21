@@ -556,7 +556,7 @@ class PosterGenerator {
         return canvas;
     }
 
-    // --- PHASE 3: STRIPE & PRINTIFY CHECKOUT PIPELINE ---
+    // --- PHASE 3: CHECKOUT PIPELINE (PHYSICAL PRINTS DISABLED) ---
     async initiateCheckout(sizeString, buttonElement) {
         if (this.active) return;
         this.active = true;
@@ -565,7 +565,7 @@ class PosterGenerator {
         buttonElement.disabled = true;
 
         try {
-            if (this.DEBUG_MODE) console.log(`\n🛒 Initiating checkout pipeline for: ${sizeString}...`);
+            if (this.DEBUG_MODE) console.log(`\n🛒 Initiating pipeline for: ${sizeString}...`);
             const [targetW, targetH] = sizeString.split('x').map(Number);
             
             buttonElement.innerText = "Please Keep Tab Open... ⚙️";
@@ -615,6 +615,12 @@ class PosterGenerator {
             const btnDecline = document.getElementById('btn-decline-print');
             const btnAccept = document.getElementById('btn-accept-print');
 
+            // Reset buttons in case they previously clicked it
+            btnAccept.innerHTML = `YES, SHIP ME THE POSTER <span>→</span>`;
+            btnAccept.style.background = "var(--accent)";
+            btnAccept.style.color = "#000";
+            btnDecline.style.display = 'block';
+
             promptHud.style.display = 'flex';
 
             // Wait for the user's decision using a Promise
@@ -642,34 +648,29 @@ class PosterGenerator {
             }
 
             // ==========================================
-            // 💳 STRIPE CHECKOUT (Only runs if they clicked YES)
+            // 🛑 COMING SOON INTERCEPT (Stripe Disabled)
             // ==========================================
-            btnAccept.innerHTML = "SECURING CHECKOUT... 🔒";
-            btnDecline.style.display = 'none'; // Hide the 'no' button while loading
-
-            const response = await fetch('/api/create-checkout-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    size: sizeString, 
-                    image: imageDataUrl 
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Server failed to create checkout session.');
-            }
-
-            const session = await response.json();
+            // If they click YES, show the coming soon message
+            btnAccept.innerHTML = "PHYSICAL PRINTS COMING SOON! 🚀";
+            btnAccept.style.background = "transparent";
+            btnAccept.style.color = "var(--accent)";
+            btnAccept.style.cursor = "default";
             
+            btnDecline.style.display = 'none'; // Hide the 'no' button to focus attention
+
+            // Give them 3.5 seconds to read the message, then automatically close the HUD
+            await new Promise(resolve => setTimeout(resolve, 3500));
+            
+            // Clean up and restore everything to normal
+            promptHud.style.display = 'none';
+            buttonElement.innerText = originalText;
+            buttonElement.disabled = false;
+            this.active = false;
             this.unlockCamera(); 
-            window.location.href = session.url;
 
         } catch (error) {
             console.error("❌ Checkout Pipeline Error:", error);
             
-            // 👇 NEW: Only pop up an alert box if it was a REAL crash, not a cancellation
             if (error.message !== "Render cancelled by user.") {
                 alert(error.message);
             }

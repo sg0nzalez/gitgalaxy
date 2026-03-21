@@ -115,7 +115,18 @@
                 Reset Focus
             </button>
         </div>
-        
+
+        <div class="panel-section" style="display: flex; gap: 8px;">
+            <button id="btn-dl-llm" style="flex: 1; border-color: rgba(0, 243, 255, 0.4); color: var(--accent); background: transparent; font-size: 10px; font-weight: bold; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s;">
+                <span>📄 LLM SUMMARY</span>
+                <span id="label-dl-llm" style="font-size: 8px; opacity: 0.7; font-family: 'Space Mono', monospace;">CHECKING...</span>
+            </button>
+            <button id="btn-dl-audit" style="flex: 1; border-color: rgba(0, 243, 255, 0.4); color: var(--accent); background: transparent; font-size: 10px; font-weight: bold; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s;">
+                <span>📊 FULL AUDIT</span>
+                <span id="label-dl-audit" style="font-size: 8px; opacity: 0.7; font-family: 'Space Mono', monospace;">CHECKING...</span>
+            </button>
+        </div>
+
         <div class="panel-section">
             <button onclick="window.toggleSystemProfile()" style="width: 100%; border-color: var(--accent); color: #000; background: var(--accent); font-weight: bold; letter-spacing: 2px;">
                 ▤ MACRO DIAGNOSTICS
@@ -278,6 +289,53 @@
             }
         };
 
+        // --- PAYLOAD BUTTON CONTROLLER ---
+        window.updatePayloadButtons = (auditUrl, llmUrl) => {
+            const btnAudit = document.getElementById('btn-dl-audit');
+            const labelAudit = document.getElementById('label-dl-audit');
+            
+            const btnLlm = document.getElementById('btn-dl-llm');
+            const labelLlm = document.getElementById('label-dl-llm');
+
+            // 1. Full Audit Logic (If URL is null/missing)
+            if (!auditUrl || auditUrl === "") {
+                btnAudit.style.opacity = "0.4";
+                btnAudit.style.cursor = "not-allowed";
+                btnAudit.style.borderColor = "rgba(255,255,255,0.1)";
+                btnAudit.style.color = "#666";
+                labelAudit.innerText = "TOO LARGE - ON GIT";
+                labelAudit.style.color = "#ff007f";
+                btnAudit.onclick = null;
+            } else {
+                btnAudit.style.opacity = "1";
+                btnAudit.style.cursor = "pointer";
+                btnAudit.style.borderColor = "rgba(0, 243, 255, 0.4)";
+                btnAudit.style.color = "var(--accent)";
+                labelAudit.innerText = "AVAILABLE";
+                labelAudit.style.color = "var(--text)";
+                btnAudit.onclick = () => window.open(auditUrl, '_blank');
+            }
+
+            // 2. LLM Summary Logic (If URL is null/missing)
+            if (!llmUrl || llmUrl === "") {
+                btnLlm.style.opacity = "0.4";
+                btnLlm.style.cursor = "not-allowed";
+                btnLlm.style.borderColor = "rgba(255,255,255,0.1)";
+                btnLlm.style.color = "#666";
+                labelLlm.innerText = "TOO LARGE - ON GIT";
+                labelLlm.style.color = "#ff007f";
+                btnLlm.onclick = null;
+            } else {
+                btnLlm.style.opacity = "1";
+                btnLlm.style.cursor = "pointer";
+                btnLlm.style.borderColor = "rgba(0, 243, 255, 0.4)";
+                btnLlm.style.color = "var(--accent)";
+                labelLlm.innerText = "AVAILABLE";
+                labelLlm.style.color = "var(--text)";
+                btnLlm.onclick = () => window.open(llmUrl, '_blank');
+            }
+        };
+        
         window.updateHUD = (data, metricMode, metricName, inNames = [], inCount = 0, outNames = [], outCount = 0) => {
             if (!data) return;
             

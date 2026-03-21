@@ -52,8 +52,8 @@ file_handler.setLevel(logging.ERROR)
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 logger.addHandler(file_handler)
 
-# Pull the path from the .env file. If it's not there, default to the production path.
-BACKEND_DATA_PATH = os.getenv("GALAXY_DATA_PATH", "/var/www/gitgalaxy/data")
+# Pull the path from the .env file. Fallback directly to your new museum folder!
+BACKEND_DATA_PATH = os.getenv("GALAXY_DATA_PATH", "/srv/storage_16tb/projects/gitgalaxy/museum")
 os.makedirs(BACKEND_DATA_PATH, exist_ok=True)
 
 # --- 4. ROBUST API SESSION HELPER ---
@@ -79,18 +79,26 @@ def get_printify_session():
 @app.route('/api/list_galaxies')
 def list_galaxies():
     try:
-        pattern = os.path.join(BACKEND_DATA_PATH, '*_galaxy.json')
-        files = glob.glob(pattern)
-        keys = [os.path.basename(f).replace('_galaxy.json', '') for f in files]
-        return jsonify(keys)
+        # 🚨 THE FIX: Read the actual manifest.json instead of globbing the folder
+        manifest_path = os.path.join(BACKEND_DATA_PATH, 'manifest.json')
+        import json
+        with open(manifest_path, 'r') as f:
+            manifest_data = json.load(f)
+        return jsonify(manifest_data)
     except Exception as e:
-        logger.error(f"Discovery Error: {str(e)}")
+        logger.error(f"Discovery Error (Manifest likely missing): {str(e)}")
         return jsonify([]), 500
 
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')
 
+# 🚨 THE FIX: Add the new /museum/ route to match your manifest
+@app.route('/museum/<path:path>')
+def serve_museum_data(path):
+    return send_from_directory(BACKEND_DATA_PATH, path)
+
+# (Optional) Keep the old backend route just in case anything legacy needs it
 @app.route('/backend/<path:path>')
 def serve_data(path):
     return send_from_directory(BACKEND_DATA_PATH, path)

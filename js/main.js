@@ -266,29 +266,33 @@ class AppController {
     }
 
     renderSystemMenu() {
-            const container = document.getElementById('galaxy-list'); 
-            if (!container) return;
-            container.innerHTML = ''; 
+        const container = document.getElementById('galaxy-list'); 
+        if (!container) return;
+        container.innerHTML = ''; 
 
-            this.discoveredGalaxies.forEach(key => {
-                const btn = document.createElement('button');
-                // USE THE OLD CYBER CSS CLASS INSTEAD OF TAILWIND
-                btn.className = "warp-btn"; 
-                
-                // Replicate the old internal span style for the badge
-                const cleanName = key.replace(/_/g, ' ').toUpperCase();
-                btn.innerHTML = `${cleanName} <span>WARP</span>`;
-                
-                btn.onclick = () => this.fetchGalaxyData(key);
-                container.appendChild(btn);
-            });
-        }
+        // 🚨 THE FIX: discoveredGalaxies is now an array of OBJECTS, not strings.
+        this.discoveredGalaxies.forEach(galaxyObj => {
+            const btn = document.createElement('button');
+            btn.className = "warp-btn"; 
+            
+            btn.innerHTML = `${galaxyObj.name.toUpperCase()} <span>WARP</span>`;
+            
+            // Pass the entire object to the fetcher
+            btn.onclick = () => this.fetchGalaxyData(galaxyObj);
+            container.appendChild(btn);
+        });
+    }
 
     /**
      * FETCH GALAXY DATA
-     * Streams the pre-analyzed JSON directly into the 3D Parser.
      */
-    async fetchGalaxyData(key) {
+    async fetchGalaxyData(galaxyObj) {
+        // If it's a legacy string call, convert it to a mock object
+        if (typeof galaxyObj === 'string') {
+            galaxyObj = { id: galaxyObj, name: galaxyObj, file: `/museum/${galaxyObj}_galaxy.json` };
+        }
+        
+        const key = galaxyObj.id;
         console.log(`Visualizer: Fetching ${key}...`);
 
         const searchInput = document.getElementById('warp-search');
@@ -302,15 +306,13 @@ class AppController {
         }
 
         try {
-            // 1. Fetch the data entirely in the background FIRST
-            const response = await fetch(`/backend/${key}_galaxy.json`);
+            // 🚨 THE FIX: Use the exact file path from the manifest!
+            const response = await fetch(galaxyObj.file);
             if (!response.ok) throw new Error(`Artifact [${key}] Load Error: ${response.status}`);
             
             const raw = await response.json();
 
-            // --- NEW: REVERSE-ENGINEER OUTBOUND EDGES ---
-            // The JSON only ships with 'edges' (Imported By) to save space.
-            // We flip them here to create 'outbound_edges' (Imports).
+            // --- REVERSE-ENGINEER OUTBOUND EDGES ---
             if (raw.galaxy && raw.galaxy.edges && !raw.galaxy.outbound_edges) {
                 raw.galaxy.outbound_edges = Array.from({length: raw.galaxy.names.length}, () => []);
                 raw.galaxy.edges.forEach((importedByArray, targetId) => {
@@ -324,9 +326,14 @@ class AppController {
 
             window.currentRawGalaxyData = raw; 
             
-            // --- NEW: INJECT STORY DATA INTO THE HTML HUD ---
+            // --- INJECT STORY DATA ---
             if (window.populateStoryHUD) {
                 window.populateStoryHUD(raw.story, key);
+            }
+
+            // 🚨 THE FIX: Update the Download Payload Buttons using the manifest data!
+            if (window.updatePayloadButtons) {
+                window.updatePayloadButtons(galaxyObj.auditUrl, galaxyObj.llmUrl);
             }
             
             if (raw.meta && raw.meta.schemas && raw.meta.schemas.risk_vector_x1000) {
@@ -338,18 +345,14 @@ class AppController {
                 progress.style.width = '70%';
             }
 
-            // 2. NOW trigger the visual warp, passing a callback for the exact midpoint!
             if (this.engine && typeof this.engine.hyperspaceJump === 'function') {
                 this.engine.hyperspaceJump(() => {
-                    // This code only runs when the camera is deep inside the black hole
                     this.engine.loadSector(raw);
                     this.buildSearchIndex(raw);
-                    
                     if (progress) progress.style.width = '100%';
                     this.clearLoader();
                 });
             } else {
-                // Fallback if engine is missing the jump method
                 this.engine.loadSector(raw);
                 this.buildSearchIndex(raw);
                 if (progress) progress.style.width = '100%';
@@ -357,7 +360,7 @@ class AppController {
             }
 
             const brand = document.getElementById('brand-title');
-            if (brand) brand.innerText = key.split('-')[0].split('_')[0];
+            if (brand) brand.innerText = galaxyObj.name.split(' ')[0]; // Use the clean manifest name
 
         } catch (err) {
             console.warn("Visualizer: Data load failed for", key, err);
