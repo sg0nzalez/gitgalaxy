@@ -200,10 +200,13 @@ class AppController {
 
     async discoverGalaxies() {
         try {
-            const response = await fetch('/api/list_galaxies');
+            // 🚨 THE FIX: Fetch the static JSON directly from Nginx!
+            const response = await fetch('/data/manifest.json');
             if (response.ok) {
                 this.discoveredGalaxies = await response.json();
                 this.renderSystemMenu();
+            } else {
+                console.error("Visualizer Error: Could not find /data/manifest.json");
             }
         } catch (err) {
             console.error("Discovery Failed:", err);
