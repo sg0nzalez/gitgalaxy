@@ -1,48 +1,58 @@
-# ========================
-# SECURITY (CRITICAL)
-# ========================
+# ==========================================
+# SECURITY / SECRETS (CRITICAL)
 .env
 .env.*
 *.pem
 *.key
 
-# ========================
-# PYTHON & FLASK
-# ========================
+# PYTHON, FLASK & VIRTUAL ENVIRONMENTS
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
 venv/
 env/
 .venv/
 flask_session/
 
-# ========================
+# PYPI PACKAGING & BUILD ARTIFACTS
+build/
+dist/
+*.egg-info/
+
+# TESTING & LINTING (NEW)
+.coverage
+htmlcov/
+.mypy_cache/
+
 # LOGS & DATABASES
-# ========================
 *.log
 gitgalaxy_dropped_orders.log
 *.sqlite3
+*.sqlite3-journal
 
-# ========================
 # FRONTEND & NODE
-# ========================
 node_modules/
 tailwindcss
 
-# ========================
 # OS & EDITOR FILES
-# ========================
 .DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
+*~
+*.bak
 *.odt
 .~lock.*
 
-# ========================
-# PROJECT-SPECIFIC SCRIPTS
-# ========================
+# PROJECT-SPECIFIC SCRIPTS & DRAFTS
 get_ids.py
 get_shop.py
 histogram_matcher.py
+tools/
+# GITGALAXY HEAVY DATA
+data/
+museum/
+museum_2/
+*.json

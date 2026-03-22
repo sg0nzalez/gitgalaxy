@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gitgalaxy"
+version = "1.0.2"
+authors = [
+  { name="Joe Esquibel" },
+]
+description = "Visualizes codebase complexity as explorable 3D galaxies."
+readme = "README.md"
+requires-python = ">=3.8"
+# Updated to standard license text format to clear the warning
+license = {text = "PolyForm Noncommercial License 1.0.0"} 
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+]
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://gitgalaxy.io"
+"Source" = "https://github.com/squid-protocol/gitgalaxy"
+
+[project.scripts]
+gitgalaxy = "gitgalaxy.galaxyscope:main" 
+
+
+[tool.setuptools.packages.find]
+include = ["gitgalaxy*"]  # Tells the builder to ONLY grab this folder
