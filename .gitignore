@@ -51,6 +51,7 @@ get_ids.py
 get_shop.py
 histogram_matcher.py
 tools/
+archive/
 # GITGALAXY HEAVY DATA
 data/
 museum/
