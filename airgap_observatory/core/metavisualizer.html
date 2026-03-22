@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaVisualizer | Forensic Galaxy Shell</title>
+    <!-- 
+        FILE: metavisualizer.html 
+        VERSION: v6.9.8 (Full Spec v1.7 Integration)
+        DESCRIPTION: High-density forensic visualizer following System Overview v1.7.
+        COMPONENTS: 
+        - Galactic (Log) vs Linear Toggle.
+        - Zero-Bar Suppression Logic.
+        - Dynamic Axis Bound Reporting.
+        - Non-Occluded Tooltip Architecture.
+        - Multi-color Categorical Axis for Languages.
+    -->
+    <link href="/css/output.css" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background-color: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        
+        /* Pillar Visual Signatures */
+        .bar-physical { background: linear-gradient(to top, #10b981, #34d399); }
+        .bar-risk { background: linear-gradient(to top, #f43f5e, #fb7185); }
+        .bar-satellite { background: linear-gradient(to top, #3b82f6, #60a5fa); }
+
+        /* --- Tooltip Non-Occlusion Protocols (Rule 6) --- */
+        .bar-tooltip { cursor: crosshair; }
+        .bar-tooltip:hover { filter: brightness(1.2) saturate(1.2); z-index: 100; }
+
+        .bar-tooltip:hover::after {
+            content: attr(data-title);
+            position: absolute;
+            bottom: calc(100% + 12px); 
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+            z-index: 200; /* Over pillars */
+            border: 1px solid #475569;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+            pointer-events: none; /* Prevents flickering */
+            opacity: 1;
+        }
+
+        .bar-tooltip:hover::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
+            border-style: solid;
+            border-color: #475569 transparent transparent transparent;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .drag-over #drop-overlay { opacity: 1; visibility: visible; }
+        #drop-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        /* Scaling Switch Mechanics */
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
+    </style>
+</head>
+<body class="min-h-screen relative">
+
+    <!-- Drag & Drop Interface -->
+    <div id="drop-overlay" class="fixed inset-0 flex items-center justify-center bg-blue-600/20 backdrop-blur-sm border-4 border-dashed border-blue-500 m-4 rounded-3xl">
+        <div class="text-center bg-slate-900 p-8 rounded-2xl shadow-2xl border border-slate-700">
+            <h2 class="text-2xl font-black text-white mb-2 uppercase tracking-tighter text-blue-400">FORENSIC INJECT</h2>
+            <p class="text-slate-400 font-mono text-xs uppercase tracking-widest">Drop Galaxy Telemetry (JSON) to Project Distribution</p>
+        </div>
+    </div>
+
+    <!-- Forensic Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-[1600px] mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-black text-sm shadow-lg shadow-blue-500/20">MV</div>
+                <div>
+                    <h1 id="galaxy-name" class="text-xl font-black uppercase tracking-tighter text-white">MetaVisualizer <span class="text-slate-500 font-normal text-sm">v6.9.8</span></h1>
+                    <p id="session-meta" class="text-[10px] text-slate-400 font-mono uppercase tracking-widest">Awaiting Local Forensic Stream</p>
+                </div>
+                
+                <!-- Scaling Architecture Toggle (Rule 3.A) -->
+                <div class="flex items-center gap-3 bg-slate-950/60 p-1.5 rounded-full border border-slate-800 ml-4">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-100 pl-2" id="scale-label-linear">Linear</span>
+                    <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="scale-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer outline-none transition-all duration-300"/>
+                        <label for="scale-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-700 cursor-pointer"></label>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-500 pr-2" id="scale-label-galactic">Galactic (Log) Mode</span>
+                </div>
+            </div>
+
+            <div class="flex pr-16">
+                <div class="text-right">
+                    <div class="text-[10px] text-slate-500 font-mono uppercase tracking-widest font-bold">Analyzed Files</div>
+                    <div id="count-visible" class="text-2xl font-black text-cyan-400 tracking-tighter leading-none">0</div>
+                </div>
+            </div>
+        </div>
+    </header>
+        </div>
+    </header>
+
+    <main class="max-w-[1600px] mx-auto p-6">
+        <div id="app-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-8 opacity-40 grayscale pointer-events-none transition-all duration-700">
+            
+            <!-- Pillar 1: Galactic Profile -->
+            <section class="space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-6 bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.6)] rounded-full"></div>
+                    <h3 class="text-sm font-black uppercase tracking-[0.2em] text-emerald-400">Galaxy (File) Profile</h3>
+                </div>
+                <div id="col-physical" class="space-y-8 bg-slate-900/60 p-6 rounded-3xl border border-slate-800 shadow-2xl backdrop-blur-md"></div>
+            </section>
+
+            <!-- Pillar 2: Risk Exposure -->
+            <section class="space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-6 bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.6)] rounded-full"></div>
+                    <h3 class="text-sm font-black uppercase tracking-[0.2em] text-rose-400">Generalized Risk Exposures</h3>
+                </div>
+                <div id="col-risk" class="space-y-8 bg-slate-900/60 p-6 rounded-3xl border border-slate-800 shadow-2xl backdrop-blur-md"></div>
+            </section>
+
+            <!-- Pillar 3: Satellite Analysis -->
+            <section class="space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-6 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)] rounded-full"></div>
+                    <h3 class="text-sm font-black uppercase tracking-[0.2em] text-blue-400">Satellite Analysis</h3>
+                </div>
+                <div id="col-satellite" class="space-y-8 bg-slate-900/60 p-6 rounded-3xl border border-slate-800 shadow-2xl backdrop-blur-md"></div>
+            </section>
+        </div>
+
+        <div id="empty-state" class="absolute inset-0 top-60 flex flex-col items-center justify-center pointer-events-none">
+            <div class="w-28 h-28 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center shadow-[0_0_50px_rgba(30,41,59,0.5)] mb-8">
+                <div class="w-14 h-14 bg-blue-600/30 rounded-2xl animate-pulse"></div>
+            </div>
+            <p class="text-slate-400 font-mono text-xs uppercase tracking-[0.4em]">Drop Galaxy Telemetry to Activate Visualizer</p>
+        </div>
+    </main>
+
+    <script type="module">
+        /**
+         * v6.9.8 GLOBAL STATE
+         */
+        let lastRawData = null;
+        let galacticScaleActive = false;
+
+        const CONFIG = {
+            physical: [
+                { id: 'languages', label: 'Languages', keys: ['lang_ids', 'language'], isCategorical: true },
+                { id: 'functions', label: 'Functions per File', keys: ['satellites'] },
+                { id: 'locs', label: 'Total LOC', keys: ['locs', 'loc', 'Total LOC'] },
+                { id: 'm_locs', label: 'Coding LOC', keys: ['m_locs', 'm_loc', 'Coding LOC'] },
+                { id: 'mass', label: 'Structural Mass', keys: ['mass', 'Structural Mass'] },
+                { id: 'entropy', label: 'Entropy Signal', keys: ['entropy', 'Entropy Signal'], isFraction: true },
+                // FIX 1: Updated to control_flow_ratio
+                { id: 'control_flow_ratio', label: 'Control Flow Ratio per File (%)', isLogicRatio: true },
+                { id: 'imports', label: 'Dependencies (Outbound)', keys: ['dependencies', 'outbound_links', 'imports'] },
+                { id: 'popularity', label: 'Imported by # (Popularity)', keys: ['popularity', 'Popularity', 'pop'] },
+                ],
+            risk: [
+                // ... (Keep your existing risk array exactly as it is) ...
+                { slug: 'cognitive_load', label: 'Cognitive Load Exposure', isRisk: true },
+                { slug: 'safety_score', label: 'Safety Risk Exposure', isRisk: true },
+                { slug: 'tech_debt', label: 'Tech Debt Exposure', isRisk: true },
+                { slug: 'verification', label: 'Testing Exposure', isRisk: true },
+                { slug: 'api_exposure', label: 'API Exposure', isRisk: true },
+                { slug: 'concurrency', label: 'Concurrency Exposure', isRisk: true },
+                { slug: 'state_flux', label: 'State Flux Exposure', isRisk: true },
+                { slug: 'graveyard', label: 'Dead Code Exposure', isRisk: true },
+                { slug: 'spec_match', label: 'Specification Exposure', isRisk: true },
+                { slug: 'stability', label: 'Stability', isRisk: true },
+                { slug: 'churn', label: 'Churn', isRisk: true },
+                { slug: 'documentation', label: 'Documentation Risk Exposure', isRisk: true },
+                { slug: 'civil_war', label: 'Layout Unity (Civil War)', isRisk: true, isCivilWar: true }
+            ],
+            satellite: [
+                { id: 'impact', label: 'Function Impact #', keys: ['mag_x10', 'magnitude', 'impact'] },
+                { id: 'args', label: 'Arguments per Function', keys: ['args', 'arguments', 'args_x10'] },
+                // FIX 2: Updated to control_flow_ratio
+                { id: 'control_flow_ratio', label: 'Control Flow Ratio per Function (%)', keys: ['control_flow_x1000', 'ratio_x1000'] },
+                { id: 'complexity', label: 'Complexity per Function', keys: ['branch', 'complexity', 'cyclomatic'] },
+                { id: 'angle', label: 'Angle per Function', keys: ['angle', 'angle_x10'] }
+            ]
+        };
+
+        const CATEGORICAL_COLORS = [
+            'bg-emerald-500', 'bg-blue-500', 'bg-rose-500', 'bg-amber-500', 'bg-purple-500',
+            'bg-cyan-500', 'bg-indigo-500', 'bg-lime-500', 'bg-pink-500', 'bg-orange-500',
+            'bg-teal-500', 'bg-fuchsia-500', 'bg-sky-500', 'bg-violet-500', 'bg-emerald-400'
+        ];
+
+        function getStats(values) {
+            if (values.length === 0) return { min: 0, max: 0, avg: 0, med: 0, std: 0, mode: 0 };
+            const sorted = [...values].sort((a, b) => a - b);
+            const sum = sorted.reduce((a, b) => a + b, 0);
+            const avg = sum / sorted.length;
+            const mid = Math.floor(sorted.length / 2);
+            const median = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+            const variance = sorted.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / sorted.length;
+            
+            // Mode Calculation
+            const counts = {};
+            let maxCount = 0;
+            let mode = sorted[0];
+            sorted.forEach(v => {
+                counts[v] = (counts[v] || 0) + 1;
+                if (counts[v] > maxCount) {
+                    maxCount = counts[v];
+                    mode = v;
+                }
+            });
+
+            return { min: sorted[0], max: sorted[sorted.length - 1], avg, med: median, std: Math.sqrt(variance), mode };
+        }
+
+        function findIdx(schema, targetKeys) {
+            if (!schema || !targetKeys) return -1;
+            for (const key of targetKeys) {
+                let idx = schema.indexOf(key);
+                if (idx !== -1) return idx;
+                idx = schema.findIndex(s => s === key || s.startsWith(key + '_') || s.startsWith(key + '.'));
+                if (idx !== -1) return idx;
+            }
+            return -1;
+        }
+
+        /**
+         * Histogram Engine with Galactic (Log) Support (Rule 3.A)
+         */
+
+        function calculateHistogram(values, binsCount = 35, shouldLog = false, forceMin = null, forceMax = null) {
+            const filtered = values.map(v => parseFloat(v)).filter(v => !isNaN(v));
+            if (filtered.length === 0) return [];
+
+            let actualMin = Infinity, actualMax = -Infinity;
+            for (let i = 0; i < filtered.length; i++) {
+                if (filtered[i] < actualMin) actualMin = filtered[i];
+                if (filtered[i] > actualMax) actualMax = filtered[i];
+}
+            
+            // Use forced bounds (e.g. 0-100) regardless of data contents
+            const min = forceMin !== null ? forceMin : actualMin;
+            const max = forceMax !== null ? forceMax : actualMax;
+
+            if (shouldLog && max > min) {
+                const offset = min <= 0 ? Math.abs(min) + 1 : 0;
+                const logValues = filtered.map(v => Math.log10(v + offset));
+                const minLog = Math.log10(min + offset);
+                const maxLog = Math.log10(max + offset);
+                const rangeLog = maxLog - minLog;
+                const stepLog = rangeLog / binsCount || 0.1;
+
+                const bins = new Array(binsCount).fill(0);
+                logValues.forEach(lv => {
+                    let idx = Math.floor((lv - minLog) / stepLog);
+                    if (idx >= binsCount) idx = binsCount - 1;
+                    if (idx >= 0) bins[idx]++;
+                });
+
+                const maxCount = Math.max(...bins, 1);
+                return bins.map((count, i) => {
+                    const startVal = Math.pow(10, minLog + (i * stepLog)) - offset;
+                    const endVal = Math.pow(10, minLog + ((i + 1) * stepLog)) - offset;
+                    const fmt = (v) => v < 1 ? v.toFixed(3) : Math.round(v).toLocaleString();
+                    return {
+                        count,
+                        label: `${fmt(startVal)} - ${fmt(endVal)}`,
+                        percentHeight: (count / maxCount) * 100
+                    };
+                });
+            } else {
+                const range = max - min || 1;
+                const step = range / binsCount;
+                const bins = new Array(binsCount).fill(0);
+                filtered.forEach(v => {
+                    let idx = Math.floor((v - min) / step);
+                    if (idx >= binsCount) idx = binsCount - 1;
+                    if (idx >= 0) bins[idx]++;
+                });
+                const maxCount = Math.max(...bins, 1);
+                return bins.map((count, i) => {
+                    const start = min + (i * step);
+                    const end = min + ((i + 1) * step);
+                    const fmt = (v) => v < 2 ? v.toFixed(2) : Math.round(v).toLocaleString();
+                    return {
+                        count,
+                        label: `${fmt(start)} - ${fmt(end)}`,
+                        percentHeight: (count / maxCount) * 100
+                    };
+                });
+            }
+        }
+
+        function calculateFrequency(values) {
+            const counts = {};
+            values.forEach(v => { const label = (v === null || v === undefined) ? "Unknown" : String(v); counts[label] = (counts[label] || 0) + 1; });
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 15);
+            const maxCount = Math.max(...sorted.map(s => s[1]), 1);
+            return sorted.map(([label, count], i) => ({
+                label, count, percentHeight: (count / maxCount) * 100, color: CATEGORICAL_COLORS[i % CATEGORICAL_COLORS.length]
+            }));
+        }
+
+        /**
+         * Spec-Compliant High-Density Renderer (Rule 4 & 6)
+         */
+
+        function renderMetric(containerId, m, dataArray, barClass) {
+            const isCat = m.isCategorical;
+            const clean = dataArray.map(v => parseFloat(v)).filter(v => !isNaN(v));
+            const s = getStats(clean);
+            
+            const isExcluded = m.isRisk || m.isCategorical;
+            const applyLog = galacticScaleActive && !isExcluded;
+
+            // NEW: Define fixed window for Risk (0-100) and Logic/Entropy (0-1)
+            const forceMin = m.isRisk ? 0 : (m.isFraction ? 0 : null);
+            const forceMax = m.isRisk ? 100 : (m.isFraction ? 1 : null);
+
+            const chartData = isCat ? calculateFrequency(dataArray) : calculateHistogram(dataArray, 35, applyLog, forceMin, forceMax);
+            if (chartData.length === 0) return;
+
+            const format = (n) => n.toLocaleString(undefined, { 
+                minimumFractionDigits: (m.isRisk || m.isFraction) ? 2 : 0,
+                maximumFractionDigits: 2 
+            });
+
+            const bars = chartData.map(b => {
+                const h = b.count > 0 ? Math.max(b.percentHeight, 1) : 0;
+                return `<div class="bar-tooltip flex-1 ${isCat ? b.color : barClass} transition-all relative rounded-t-sm" 
+                             data-title="${b.label}: ${b.count} units"
+                             style="height: ${h}%;"></div>`;
+            }).join('');
+
+            let axisLabels = '';
+            if (isCat) {
+                axisLabels = `<div class="flex justify-between items-start gap-1 text-[7px] font-black uppercase tracking-tighter text-slate-400 mt-2 px-1">
+                                ${chartData.map(b => `<span class="flex-1 text-center truncate" title="${b.label}">${b.label}</span>`).join('')}
+                             </div>`;
+            } else if (m.isCivilWar) {
+                axisLabels = `<div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-white mt-2 px-1">
+                                <span class="bg-slate-800 px-1.5 py-0.5 rounded shadow-sm border border-slate-700">← Pure Tabs (${format(s.min)})</span>
+                                <span class="bg-slate-800 px-1.5 py-0.5 rounded shadow-sm border border-slate-700">Pure Spaces (${format(s.max)}) →</span>
+                             </div>`;
+            } else {
+                // Pin axis labels to the forced window bounds
+                const lblMin = forceMin !== null ? forceMin : s.min;
+                const lblMax = forceMax !== null ? forceMax : s.max;
+                axisLabels = `<div class="flex justify-between text-[10px] font-black uppercase tracking-widest text-white mt-2 px-1">
+                                <span class="bg-slate-800 px-2 py-0.5 rounded shadow-md border border-slate-600">Lower (${format(lblMin)})</span>
+                                <span class="text-slate-500 italic text-[7px] self-center font-normal">${applyLog ? 'GALACTIC MODE' : ''}</span>
+                                <span class="bg-slate-800 px-2 py-0.5 rounded shadow-md border border-slate-600">Higher (${format(lblMax)})</span>
+                             </div>`;
+            }
+
+            const statsHtml = `<div class="grid grid-cols-5 gap-2 text-[9px] font-mono text-slate-400 border-t border-slate-800/60 pt-3 mt-3">
+                                <div class="flex flex-col"><span class="text-slate-500 font-bold">MIN</span><span class="text-white font-black">${format(s.min)}</span></div>
+                                <div class="flex flex-col"><span class="text-slate-500 font-bold">MAX</span><span class="text-white font-black">${format(s.max)}</span></div>
+                                <div class="flex flex-col"><span class="text-slate-500 font-bold">AVG</span><span class="text-white font-black">${format(s.avg)}</span></div>
+                                <div class="flex flex-col"><span class="text-slate-500 font-bold">MED</span><span class="text-white font-black">${format(s.med)}</span></div>
+                                <div class="flex flex-col"><span class="text-slate-500 font-bold">MOD</span><span class="text-white font-black">${format(s.mode)}</span></div>
+                               </div>`;
+
+            const html = `<div class="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500 group relative">
+                            <h4 class="text-[11px] font-black text-slate-200 uppercase tracking-widest leading-none border-l-2 border-slate-700 pl-2 group-hover:border-blue-500 transition-colors">${m.label}</h4>
+                            <div class="h-20 w-full flex items-end gap-[2px] bg-black/40 border border-slate-800 rounded-xl p-2 shadow-inner relative">
+                                ${bars}
+                            </div>
+                            ${axisLabels}
+                            ${statsHtml}
+                          </div>`;
+            const container = document.getElementById(containerId);
+            if (container) container.insertAdjacentHTML('beforeend', html);
+        }
+
+        /**
+         * Parallel Array Resolver (Rule 5.A)
+         */
+
+        function processGalaxyData(raw) {
+            if (!raw) return;
+            lastRawData = raw; 
+            const source = raw.galaxy || raw.data || raw;
+            const meta = raw.meta || {};
+            const schemas = meta.schemas || {};
+
+            let anomalyCount = 0;
+
+            if (meta.session) {
+                const s = meta.session;
+                document.getElementById('galaxy-name').innerHTML = `${s.target || 'UNNAMED'} <span class="text-blue-500 font-normal">v6.9.10</span>`;
+                document.getElementById('session-meta').innerText = `${(s.timestamp || '').split('T')[0]} | ${s.engine || 'Scope'}`;
+            }
+            
+            // EXACT COUNT: Tally the exact number of files successfully parsed into the arrays
+            let analyzedCount = 0;
+            if (source.locs && Array.isArray(source.locs)) {
+                analyzedCount = source.locs.length;
+            } else if (source.paths && Array.isArray(source.paths)) {
+                analyzedCount = source.paths.length;
+            } else if (meta.session && meta.session.counts) {
+                analyzedCount = meta.session.counts.visible || 0; // Fallback
+            }
+            document.getElementById('count-visible').innerText = analyzedCount.toLocaleString();
+
+            ['col-physical', 'col-risk', 'col-satellite'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+
+            // 1. PHYSICAL PILLAR
+            CONFIG.physical.forEach(m => {
+                let values = null;
+                if (m.id === 'languages') {
+                    const langTable = schemas.lookups?.languages || [];
+                    const ids = source.lang_ids || source.language || [];
+                    values = ids.map(id => typeof id === 'number' ? (langTable[id] || 'Unknown') : id);
+                } else if (m.id === 'functions') {
+                    values = (source.satellites || []).map(s => Array.isArray(s) ? s.length : 0);
+                // FIX 3: Updated to check for control_flow_ratio
+                } else if (m.isLogicRatio || m.id === 'control_flow_ratio') {
+                    // Read directly from the new telemetry data if it exists
+                    if (source.telemetry) {
+                        values = source.telemetry.map(t => (t.cfr || 0) / 10);
+                    } else {
+                        // Fallback to calculating it manually if telemetry isn't present
+                        values = (source.locs || []).map((loc, i) => loc > 0 ? (source.m_locs[i] / loc) * 100 : 0);
+                    }
+                } else {
+                    // DEFAULT FALLBACK: This now automatically handles Imports/Dependencies!
+                    const key = m.keys ? m.keys.find(k => source[k] !== undefined) : null;
+                    if (key) values = source[key];
+                    
+                    // --- THE FIX: Add t.pop to the telemetry fallback ---
+                    if (!values && m.id === 'popularity' && source.telemetry) {
+                        values = source.telemetry.map(t => t.popularity || t.pop || 0);
+                    }
+                }
+                
+                if (values) {
+                    if (m.isFraction) values = values.map(v => Math.max(0, Math.min(1, v)));
+                    renderMetric('col-physical', m, values, "bar-physical");
+                }
+            });
+
+            // 2. RISK PILLAR (Locked 0 - 100 Fixed Scale)
+            const riskSchema = schemas.risk_vector_x1000 || [];
+            if (source.risks) {
+                CONFIG.risk.forEach(target => {
+                    const sIdx = findIdx(riskSchema, [target.slug]);
+                    if (sIdx !== -1) {
+                        // NORMALIZATION: Divide by 1,000 to transform engine integers to 0 - 100 range
+                        const values = source.risks.map(r => Math.max(0, Math.min(100, (r[sIdx] || 0) / 10)));
+                        const s = getStats(values);
+                        values.forEach(v => { if (v > s.avg + (s.std * 3)) anomalyCount++; });
+                        renderMetric('col-risk', target, values, "bar-risk");
+                    }
+                });
+            }
+
+            // 3. SATELLITE PILLAR
+            const satSchema = schemas.satellites || [];
+            if (source.satellites) {
+                const flattened = source.satellites.flat();
+                CONFIG.satellite.forEach(target => {
+                    const sIdx = findIdx(satSchema, target.keys);
+                    if (sIdx !== -1) {
+                        const values = flattened.map(f => {
+                            let val = f[sIdx] || 0;
+                            if (satSchema[sIdx].endsWith('_x10')) val /= 10;
+                            if (satSchema[sIdx].endsWith('_x1000')) val /= 1000; 
+                            return val;
+                        });
+                        renderMetric('col-satellite', target, values, "bar-satellite");
+                    }
+                });
+            }
+
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('app-grid').classList.remove('opacity-40', 'grayscale', 'pointer-events-none');
+        }
+
+        const toggle = document.getElementById('scale-toggle');
+        const linearLbl = document.getElementById('scale-label-linear');
+        const galacticLbl = document.getElementById('scale-label-galactic');
+
+        toggle.addEventListener('change', (e) => {
+            galacticScaleActive = e.target.checked;
+            if (galacticScaleActive) {
+                galacticLbl.classList.replace('text-slate-500', 'text-blue-500');
+                linearLbl.classList.replace('text-slate-100', 'text-slate-500');
+            } else {
+                galacticLbl.classList.replace('text-blue-500', 'text-slate-500');
+                linearLbl.classList.replace('text-slate-500', 'text-slate-100');
+            }
+            if (lastRawData) processGalaxyData(lastRawData);
+        });
+
+        window.addEventListener('dragover', (e) => { e.preventDefault(); document.body.classList.add('drag-over'); });
+        window.addEventListener('dragleave', (e) => { if (!e.relatedTarget) document.body.classList.remove('drag-over'); });
+        window.addEventListener('drop', (e) => {
+            e.preventDefault();
+            document.body.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try { processGalaxyData(JSON.parse(event.target.result)); } 
+                    catch (err) { console.error("[MetaVisualizer] Parse Failure", err); }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // --- THE FIX: NATIVE RAM INJECTION LISTENER ---
+        // Placed inside the module so it has access to processGalaxyData!
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'GALAXY_DATA_INJECT') {
+                console.log("[MetaVisualizer] Intercepted Direct RAM Injection (Module Scope)");
+                processGalaxyData(event.data.payload);
+            }
+        });
+    </script>
+</body>
+</html>

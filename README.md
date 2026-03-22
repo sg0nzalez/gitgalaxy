@@ -1,5 +1,9 @@
 # GitGalaxy
 
+[![PyPI version](https://badge.fury.io/py/gitgalaxy.svg)](https://badge.fury.io/py/gitgalaxy)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
 Code is art. Logic is art. Systems engineering is art.
 
 GitGalaxy reveals the complexity of codebases as explorable 3D galaxies by using source code as a seed for procedural generative art. It acts as a Rosetta Stone for code complexity, allowing you to visually compare the scale and risk exposure of different projects—from Apollo 11 to the Linux Kernel—under the same set of rules. 
