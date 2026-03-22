@@ -1,8 +1,12 @@
 # GitGalaxy
 
 [![PyPI version](https://badge.fury.io/py/gitgalaxy.svg)](https://badge.fury.io/py/gitgalaxy)
-[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0/)
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)](https://pypi.org/project/gitgalaxy/)
+[![Airgap Ready](https://img.shields.io/badge/Security-Airgap_Ready-teal.svg)](#)
+[![Local Processing](https://img.shields.io/badge/Telemetry-100%25_Local-blueviolet.svg)](#)
+[![Hardware Accelerated](https://img.shields.io/badge/Render-WebGPU_|_WebGL2-ff69b4.svg)](#)
 
 Code is art. Logic is art. Systems engineering is art.
 

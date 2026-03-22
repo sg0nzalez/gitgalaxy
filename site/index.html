@@ -138,6 +138,14 @@
             <div id="galaxy-list" class="cyber-scroll" style="mask-image: linear-gradient(to bottom, black 90%, transparent 100%);">
                 <div style="font-size: 10px; color: var(--accent); opacity: 0.6; font-family: 'Space Mono', monospace;">Scanning sectors...</div>
             </div>
+
+            <div id="sidebar-drop-zone" style="border: 1px dashed #334155; border-radius: 4px; padding: 10px; text-align: center; margin-top: 8px; cursor: pointer; transition: all 0.2s; color: #8899aa; background: rgba(0,0,0,0.2); font-family: 'Space Mono', monospace; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;"
+            onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'; this.style.background='rgba(0, 243, 255, 0.05)';"
+            onmouseout="this.style.borderColor='#334155'; this.style.color='#8899aa'; this.style.background='rgba(0,0,0,0.2)';">
+                <span style="font-size: 14px; margin-bottom: 2px;">📥</span>
+                <span style="font-weight: bold; letter-spacing: 1px;">UPLOAD JSON / ZIP</span>
+                <span style="font-size: 8px; opacity: 0.6;">(MAX 50MB)</span>
+            </div>
         </div>
 
         <div class="panel-section">
@@ -190,7 +198,7 @@
     </div>
     <div id="file-hud" class="hud-panel" style="position: relative;">
         <button onclick="window.hideHUDUI()" class="close-btn">✕</button>
-        <h3 id="hud-filename" style="margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--panel-border); font-family: 'Space Grotesk', sans-serif; letter-spacing: 1px; color: var(--accent); word-break: break-all; padding-right: 25px;">SYSTEM DIAGNOSTIC</h3>
+        <h3 id="hud-filename" style="margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--panel-border); font-family: 'Space Grotesk', sans-serif; letter-spacing: 1px; color: var(--accent); padding-right: 25px; display: block; max-width: 100%; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">SYSTEM DIAGNOSTIC</h3>
         <div id="hud-star-view" style="flex-grow: 1; display: none; flex-direction: column;">
             <div class="passport-container" id="hud-passport-body"></div>
             <div class="passport-container" id="hud-dependency-section" style="margin-top: 15px; margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
@@ -351,7 +359,9 @@
                 document.getElementById('hud-constellation-view').style.display = 'none';
                 document.getElementById('hud-star-view').style.display = 'block';
 
-                document.getElementById('hud-filename').innerText = data.name || "UNKNOWN";
+                const hudTitle = document.getElementById('hud-filename');
+                hudTitle.innerText = data.name || "UNKNOWN";
+                hudTitle.title = data.name || "UNKNOWN"; // Adds the native hover tooltip!
                 
                 const passportBody = document.getElementById('hud-passport-body');
                 if (passportBody) {
@@ -1055,8 +1065,8 @@
             document.getElementById('hud-filename').innerText = "CONSTELLATION OVERVIEW";
             
             document.getElementById('constellation-passport-body').innerHTML = `
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <div style="color: #bfff00; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(191, 255, 0, 0.4);">${name}</div>
+                <div style="text-align: center; margin-bottom: 15px; max-width: 100%; overflow: hidden;">
+                    <div title="${name}" style="color: #bfff00; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(191, 255, 0, 0.4); display: block; max-width: 100%; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</div>
                     <div style="color: #bfff00; font-family: 'Space Mono', monospace; font-size: 11px; margin-top: 4px; opacity: 0.9;">MACRO-CLUSTER</div>
                 </div>
                 <div class="passport-row"><span class="passport-label">Total Files</span><span class="passport-value">${stats.file_count || 0}</span></div>

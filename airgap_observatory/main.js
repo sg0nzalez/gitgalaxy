@@ -1,4 +1,13 @@
 /**
+ * GitGalaxy
+ * Copyright (c) 2026 Joe Esquibel
+ *
+ * This source code is licensed under the PolyForm Noncommercial License 1.0.0.
+ * You may not use this file except in compliance with the License.
+ * A copy of the license can be found in the LICENSE file in the root directory
+ * of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
+ */
+/**
  * FILENAME: main.js
  * GitGalaxy Phase 11: Direct JSON Visualization Core
  * Optimized for Spec v6.2 (Pre-analyzed JSONs) & Airgap Environments

@@ -59,6 +59,11 @@ body, html {
     backdrop-filter: blur(15px);
 }
 
+header {
+    width: 100%;
+    min-width: 0; 
+}
+
 header h1 { 
     font-size: 24px; 
     margin: 0; 
@@ -66,6 +71,12 @@ header h1 {
     letter-spacing: 1px; 
     text-transform: uppercase; 
     text-shadow: var(--text-glow), 0 0 40px var(--accent); 
+    
+    /* Truncation Logic */
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 header h2 { 
@@ -75,6 +86,12 @@ header h2 {
     font-weight: 400; 
     letter-spacing: 1px; 
     color: var(--accent); 
+    
+    /* Truncation Logic */
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .panel-section { 
@@ -159,9 +176,14 @@ select:focus-visible, button:focus-visible, input[type="text"]:focus-visible {
 .search-item:hover { background: var(--btn-hover); padding-left: 16px; border-left: 2px solid var(--accent); }
 
 /* Dynamic Buttons */
-.warp-btn { text-align: left; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px; border: 1px solid var(--panel-border); color: var(--text); font-size: 12px; box-sizing: border-box; }
+.warp-btn { text-align: left; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 6px 10px; border: 1px solid var(--panel-border); color: var(--text); font-size: 10px; box-sizing: border-box; transition: all 0.2s ease; }
 .warp-btn span { opacity: 0.8; font-size: 9px; border: 1px solid currentColor; padding: 2px 5px; border-radius: 2px; color: var(--accent); font-family: 'Space Mono', monospace; }
 .warp-btn:hover { border-color: var(--accent); transform: translateX(6px); box-shadow: -10px 0 20px var(--btn-hover); }
+
+/* Custom styling for manually uploaded JSONs (The Gold Highlight) */
+.local-warp-btn { color: #ffaa00 !important; border-color: rgba(255, 170, 0, 0.4) !important; background: rgba(255, 170, 0, 0.05) !important; }
+.local-warp-btn span { color: #ffaa00 !important; border-color: #ffaa00 !important; }
+.local-warp-btn:hover { border-color: #ffaa00 !important; box-shadow: -10px 0 20px rgba(255, 170, 0, 0.15) !important; }
 
 footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top: 1px solid var(--panel-border); padding-top: 20px; line-height: 2; font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); }
 .status-row { display: flex; justify-content: space-between; }

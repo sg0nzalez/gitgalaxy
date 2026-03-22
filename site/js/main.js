@@ -1,4 +1,13 @@
 /**
+ * GitGalaxy
+ * Copyright (c) 2026 Joe Esquibel
+ *
+ * This source code is licensed under the PolyForm Noncommercial License 1.0.0.
+ * You may not use this file except in compliance with the License.
+ * A copy of the license can be found in the LICENSE file in the root directory
+ * of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
+ */
+/**
  * FILENAME: main.js
  * GitGalaxy Phase 11: Direct JSON Visualization Core
  * Optimized for Spec v6.2 (Pre-analyzed JSONs)
@@ -145,7 +154,61 @@ class AppController {
                 searchInput.addEventListener('input', (e) => this.performSearch(e.target.value));
             }
 
-            // Auto-Discovery: Ask the Librarian what artifacts are available
+            // --- THE LIVE SITE DRAG-AND-DROP LISTENER ---
+            window.addEventListener('dragover', (e) => { e.preventDefault(); });
+            window.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
+
+                // 1. THE .ZIP INTERCEPT
+                if (file.name.endsWith('.zip')) {
+                    alert("ZIP ingestion feature coming soon!\n\nPlease use 'pip install gitgalaxy' in your terminal in the meantime to process local repositories.");
+                    return;
+                }
+                
+                // 2. THE .JSON HANDLER
+                if (file.name.endsWith('.json')) {
+                    const maxSize = 50 * 1024 * 1024; 
+                    if (file.size > maxSize) {
+                        alert(`File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max upload size is 50MB to prevent browser memory crashes.`);
+                        return;
+                    }
+
+                    const loader = document.getElementById('loading-screen');
+                    if (loader) { loader.style.opacity = '1'; loader.style.display = 'flex'; }
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const raw = JSON.parse(event.target.result);
+                            
+                            // Cache it in RAM and assign the 'isLocal' flag
+                            const baseName = file.name.replace('_galaxy.json', '').replace('.json', '');
+                            const exists = this.discoveredGalaxies.find(g => g.id === baseName);
+
+                            if (!exists) {
+                                this.discoveredGalaxies.push({
+                                    id: baseName,
+                                    name: baseName.replace(/-/g, ' ').toUpperCase(),
+                                    file: file.name,
+                                    isLocal: true, // Flags this as a gold-colored manual upload
+                                    rawData: raw 
+                                });
+                                this.renderSystemMenu(); // Re-draw the menu
+                            }
+
+                            this.loadGalaxyFromRAM(raw, file.name);
+                        } catch (err) {
+                            console.error("Live Parse Failure:", err);
+                            this.clearLoader();
+                            alert("Critical Error: Failed to parse JSON file.");
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
             // Auto-Discovery: Ask the Librarian what artifacts are available
             await this.discoverGalaxies();
 
@@ -276,26 +339,27 @@ class AppController {
         if (!container) return;
         container.innerHTML = ''; 
 
-        // 🚨 THE FIX: discoveredGalaxies is now an array of OBJECTS, not strings.
         this.discoveredGalaxies.forEach(galaxyObj => {
             const btn = document.createElement('button');
             btn.className = "warp-btn"; 
             
+            // Apply gold styling to user-uploaded files
+            if (galaxyObj.isLocal) {
+                btn.classList.add('local-warp-btn');
+            }
+
             btn.innerHTML = `${galaxyObj.name.toUpperCase()} <span>WARP</span>`;
-            
-            // Pass the entire object to the fetcher
             btn.onclick = () => this.fetchGalaxyData(galaxyObj);
             container.appendChild(btn);
         });
     }
 
     /**
-     * FETCH GALAXY DATA
+     * FETCH GALAXY DATA (Network vs RAM Routing)
      */
     async fetchGalaxyData(galaxyObj) {
-        // If it's a legacy string call, convert it to a mock object
         if (typeof galaxyObj === 'string') {
-            galaxyObj = { id: galaxyObj, name: galaxyObj, file: `/museum/${galaxyObj}_galaxy.json` };
+            galaxyObj = this.discoveredGalaxies.find(g => g.id === galaxyObj) || { id: galaxyObj, name: galaxyObj, file: `/museum/${galaxyObj}_galaxy.json` };
         }
         
         const key = galaxyObj.id;
@@ -306,18 +370,47 @@ class AppController {
         if (window.renderSearchResults) window.renderSearchResults([], null);
 
         const progress = document.getElementById('load-progress');
-        if (progress) {
-            progress.style.transition = 'none';
-            progress.style.width = '30%';
-        }
+        if (progress) { progress.style.transition = 'none'; progress.style.width = '30%'; }
 
         try {
-            // 🚨 THE FIX: Use the exact file path from the manifest!
-            const response = await fetch(galaxyObj.file);
+            // --- RAM BYPASS: If it's a dragged-in file, load instantly ---
+            if (galaxyObj.isLocal) {
+                console.log(`Visualizer: Restoring [${key}] directly from RAM Cache...`);
+                // Null out payloads since it's a manual upload
+                galaxyObj.rawData._injectedAuditUrl = null;
+                galaxyObj.rawData._injectedLlmUrl = null;
+                this.loadGalaxyFromRAM(galaxyObj.rawData, galaxyObj.file);
+                return;
+            }
+
+            // --- STANDARD: Fetch from your live Nginx server ---
+            const targetUrl = galaxyObj.file || `/museum/${key}_galaxy.json`;
+            const response = await fetch(targetUrl);
+            
             if (!response.ok) throw new Error(`Artifact [${key}] Load Error: ${response.status}`);
             
             const raw = await response.json();
 
+            // Inject URLs so the load function knows they exist
+            raw._injectedAuditUrl = galaxyObj.auditUrl;
+            raw._injectedLlmUrl = galaxyObj.llmUrl;
+
+            this.loadGalaxyFromRAM(raw, galaxyObj.name.split(' ')[0]);
+
+        } catch (err) {
+            console.warn("Visualizer: Data load failed for", key, err);
+            if (this.engine.loadMock) this.engine.loadMock(key);
+            this.clearLoader();
+        }
+    }
+
+    /**
+     * LOAD GALAXY (The Core Engine Injector)
+     */
+    loadGalaxyFromRAM(raw, displayName) {
+        const progress = document.getElementById('load-progress');
+        
+        try {
             // --- REVERSE-ENGINEER OUTBOUND EDGES ---
             if (raw.galaxy && raw.galaxy.edges && !raw.galaxy.outbound_edges) {
                 raw.galaxy.outbound_edges = Array.from({length: raw.galaxy.names.length}, () => []);
@@ -334,12 +427,12 @@ class AppController {
             
             // --- INJECT STORY DATA ---
             if (window.populateStoryHUD) {
-                window.populateStoryHUD(raw.story, key);
+                window.populateStoryHUD(raw.story, displayName);
             }
 
-            // 🚨 THE FIX: Update the Download Payload Buttons using the manifest data!
+            // Update the Download Payload Buttons
             if (window.updatePayloadButtons) {
-                window.updatePayloadButtons(galaxyObj.auditUrl, galaxyObj.llmUrl);
+                window.updatePayloadButtons(raw._injectedAuditUrl, raw._injectedLlmUrl);
             }
             
             if (raw.meta && raw.meta.schemas && raw.meta.schemas.risk_vector_x1000) {
@@ -366,13 +459,10 @@ class AppController {
             }
 
             const brand = document.getElementById('brand-title');
-            if (brand) brand.innerText = galaxyObj.name.split(' ')[0]; // Use the clean manifest name
+            if (brand) brand.innerText = displayName.toUpperCase();
 
         } catch (err) {
-            console.warn("Visualizer: Data load failed for", key, err);
-            if (this.engine.loadMock) {
-                this.engine.loadMock(key);
-            }
+            console.warn("Visualizer: RAM load failed", err);
             this.clearLoader();
         }
     }
