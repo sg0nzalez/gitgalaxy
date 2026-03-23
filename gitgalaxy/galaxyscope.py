@@ -385,6 +385,16 @@ class Orchestrator:
             logger.info(f"--- ENGINE_TELEMETRY: Processed {total_loc:,} lines of code at {loc_per_sec:,} LOC/s ---")
             logger.info(f"--- ARCHIVES_SEALED: {output_file} & {audit_output} ---")
             
+            # --- THE FINAL CALL TO ACTION (CLI BILLBOARD) ---
+            print("\n" + "="*75)
+            print(" 🌌 READY FOR VISUALIZATION (100% LOCAL / ZERO UPLOAD)")
+            print("="*75)
+            print(" 1. Open your browser to: \033[94m\033[4mhttps://gitgalaxy.io/\033[0m")
+            print(f" 2. Drag and drop '{output_file}'")
+            print("\n * PRIVACY SECURED: Your data never leaves your machine.")
+            print("   All architectural rendering executes locally in your browser.")
+            print("="*75 + "\n")
+            
         except Exception as e:
             logger.critical(f"FATAL_SYSTEM_COLLAPSE: {str(e)}", exc_info=True)
             raise
