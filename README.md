@@ -10,11 +10,11 @@
 
 Code is art. Logic is art. Systems engineering is art.
 
-GitGalaxy reveals the complexity of codebases as explorable 3D galaxies by using source code as a seed for procedural generative art. It acts as a Rosetta Stone for code complexity, allowing you to visually compare the scale and risk exposure of different projects—from Apollo 11 to the Linux Kernel—under the same set of rules. 
+GitGalaxy reveals the complexity of codebases as explorable 3D galaxies by using source code as a seed for procedural generative art. It acts as a Rosetta Stone for code complexity, allowing you to visually compare the scale and risk exposure of different projects—from Apollo 11 to the Linux Kernel—under the same set of rules. GitGalaxy visualizes the non-visual architecture of massive software repositories, translating codebases into color based non-numeric dashboard, where files are rendered as stars (for humans), low-token markdown summaries of deep tech patterns the entire code base  (for AI agents), and full audit of both Software Bill of Materials and internal file metrics (for lawyers). Code never leaves your machine, zero dependencies. Analyses based on BLAST and bioinformatic algorithms ported to coding languages. Currently handles ~40 languages and ~250 file extensions. Average scan rates at ~100,000 LOC/second, allowing for CI/CD pipeline integration. CLI based for AI-agent workflow, visualization system optional. 
 
-> **Live Demo:** View 3D galaxy examples of Apollo-11, Linux, and more at [GitGalaxy.io](https://gitgalaxy.io/)
+**Live Demo:** View 3D galaxy examples of Apollo-11, Linux, Tensorflow and more at [GitGalaxy.io](https://gitgalaxy.io/)
 
-> **Note:** This is a condensed version of the full documentation. For the 200-page Architectural Master Blueprint, please visit: [https://github.com/squid-protocol/gitgalaxy](https://github.com/squid-protocol/gitgalaxy)
+> **Note:** This is a condensed version of the full documentation. For more info, please visit: [https://github.com/squid-protocol/gitgalaxy](https://github.com/squid-protocol/gitgalaxy)
 
 ---
 
@@ -31,7 +31,7 @@ pip install gitgalaxy
 Point the GalaxyScope at any local repository or ZIP archive. The engine runs entirely on your local machine—zero data is transmitted.
 
 ```bash
-gitgalaxy /path/to/your/repo
+galaxyscope /path/to/your/local/repo
 ```
 
 ### 3. View the Galaxy
@@ -42,21 +42,24 @@ GitGalaxy offers two ways to visualize your 3D architecture, both built on a str
 Simply drag and drop your generated "your_repo_galaxy.json" file (or a .zip of your raw repository) directly into GitGalaxy.io. All rendering and scanning happens entirely in your browser's local memory.
 
 **Option B: The Local Server (Enterprise & Offline)**
-For teams working behind strict corporate firewalls, you can host the 3D viewer locally. Clone the repository and spin up the included Flask server:
+For teams operating under strict compliance rules or behind corporate firewalls, GitGalaxy includes a 100% static, zero-telemetry local viewer called the Airgap Observatory.
+
+There is no backend, no database, and no external API calls. It is a completely closed-box system built on static HTML and JavaScript, you just need to spin up a basic local server to view it.
+
+Navigate into the visualizer folder and start Python's built-in static web server:
 
 ```bash
 git clone https://github.com/squid-protocol/gitgalaxy.git
-cd gitgalaxy
-python app.py
+cd gitgalaxy/airgap_observatory
+python3 -m http.server 8000
 ```
+Open your web browser and go to http://localhost:8000.
 
-Then open http://localhost:5000 in your browser and drop your JSON file in securely.
+Drag and drop your newly generated _galaxy.json file to instantly render your architecture.
 
-## What Does it Measure?
+## How & What Does it Measure?
 
-GitGalaxy maps the hidden architecture of massive software repositories, translating codebases into non-numeric star-based dashboards (for humans), low-token markdown summaries (for AI agents), and full internal scanned audit results (for lawyers). 
-
-Accomplished by scanning codebases with the same tech used to scan strings of DNA when I was a scientist. By employing a BLAST-like algorithm, a taxonomic language feature map, and DNA fingerprinting algorithms, GitGalaxy brings 50-ish years of bioinformatics to code analysis. We parse our resulting DNA/code fingerprint into a series of risk exposure metrics (genotype to phenotype assocations).
+Accomplished by scanning codebases with the same tech used to scan strings of DNA when I was a scientist. By employing a BLAST-like algorithm, a taxonomic language feature map, and DNA fingerprinting algorithms, GitGalaxy brings 50-ish years of bioinformatics to code analysis. We parse our resulting DNA/code fingerprint into a series of risk exposure metrics (genotype to phenotype associations).
 
 GitGalaxy does not measure "Code Quality", which feels like a judgment, but instead measures Risk Exposure. Our measurements do not judge; they highlight. We do not assess "Bad Code"; we measure Cognitive Load Exposure—how hard it is for a human to work through the logic—because teams should be aware which files are the hardest to work on. 
 
