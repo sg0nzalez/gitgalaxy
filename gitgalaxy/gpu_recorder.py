@@ -270,6 +270,20 @@ class GPURecorder:
 
         summary["singularity"]["breakdown"] = breakdown
 
+        # --- DYNAMIC LORE INJECTION ---
+        # Fetch the story registry, defaulting to an empty dict if it doesn't exist
+        project_stories = getattr(config, "PROJECT_STORIES", {})
+        
+        # Grab the specific story, OR generate the blank template
+        story_payload = project_stories.get(repo_name, {
+            "status": "",
+            "why": "",
+            "who": "",
+            "significance": "",
+            "link": "",
+            "artifacts": []
+        })
+
         return {
             "meta": {
                 "schemas": {
@@ -288,13 +302,14 @@ class GPURecorder:
                         "reasons": self.reason_lookup,
                         "exts": self.ext_lookup, 
                         "imports": self.import_lookup,
-                        "constellations": self.const_lookup # <--- NEW: Expose the mapped names to the UI
+                        "constellations": self.const_lookup 
                     }
                 }
             },
-            "global_summary": summary, # <--- UI gets the average risk exposures from summary["constellations"] here!
+            "global_summary": summary, 
             "galaxy": columns,
-            "singularity": sing_cols
+            "singularity": sing_cols,
+            "story": story_payload  # <--- INJECTED HERE
         }
 
     def _intern(self, val: str, registry: List[str]) -> int:

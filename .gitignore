@@ -51,9 +51,12 @@ get_shop.py
 histogram_matcher.py
 tools/
 archive/
+*.odt
+
 # GITGALAXY HEAVY DATA
 data/
 museum/
 museum_2/
 *.json
-.odt
+*_llm.md
+venvs/
