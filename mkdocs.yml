@@ -1,0 +1,22 @@
+site_name: GitGalaxy Command v17.5
+site_url: https://gitgalaxy.io
+docs_dir: docs/wiki
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: black
+    accent: cyan
+
+nav:
+  - 1. Foundation & Architecture: 1_Foundation__Architecture.md
+  - 2. Converting Code to Space:
+      - Overview: 2_Converting_code_into_space_and_color_info.md
+      - Physical Structure: 2.1_How_we_represent_complexity_as_physical_structure.md
+      - Color Labeling Equations: 2.2_Color_Labeling_Equations.md
+      - Data Analysis Pipeline: 2.3_Data_Analysis_Pipeline.md
+      - Strategy Validation: 2.4_Strategy_Validation_--_Does_this_work.md
+  - 3. The Visual Engine: 3_The_Visual_Engine_Frontend_Rendering.md
+  - 4. Interaction & UX: 4_Interaction__User_Experience_UX.md
+  - 8. Impacts & Outlooks: 8_WorldWideWeb_1990_-_Objective-C.md
