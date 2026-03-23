@@ -489,3 +489,24 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
     color: #fff !important;
     text-shadow: 0 0 15px var(--accent) !important;
 }
+
+/* =========================================
+   HUD FLEXBOX OVERFLOW & SQUISH FIXES
+   ========================================= */
+
+/* 1. Override the rogue inline 'position: relative' fighting your animations */
+#file-hud {
+    position: absolute !important; 
+}
+
+/* 2. Prevent the title from being squished to 0px when the HUD fills up */
+#hud-filename {
+    flex-shrink: 0 !important; 
+}
+
+/* 3. Force nested flex containers to respect boundaries and allow internal scrolling */
+#hud-star-view, 
+#hud-singularity-view, 
+#hud-constellation-view {
+    min-height: 0 !important; 
+}
