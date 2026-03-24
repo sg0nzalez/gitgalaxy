@@ -891,8 +891,16 @@ export class GalaxyEngine {
             const halfH = window.innerHeight / 2;
             
             // LOD Settings: Taper off labels that are too far away
-            const maxDist = 3500;
+            let maxDist = 3500;
             const fadeStart = 1500;
+
+            // --- THE HIGH-VIS FIX ---
+            // High-Vis mode removes the fog-of-war fade entirely for maximum contrast.
+            // We also push the culling distance way back so the map stays populated.
+            const isHighVis = (this.uThemeIndex.value === 4);
+            if (isHighVis) {
+                maxDist = 15000; 
+            }
 
             this.activeFiles.forEach(f => {
                 if (!f.el) return;
@@ -918,7 +926,8 @@ export class GalaxyEngine {
                         
                         // Opacity Taper
                         let opacity = 1.0;
-                        if (dist > fadeStart) {
+                        // Only apply the fade if we are NOT in High-Vis mode!
+                        if (!isHighVis && dist > fadeStart) {
                             opacity = 1.0 - ((dist - fadeStart) / (maxDist - fadeStart));
                         }
                         f.el.style.opacity = opacity.toFixed(2);
@@ -927,6 +936,12 @@ export class GalaxyEngine {
                     f.el.style.display = 'none';
                 }
             });
+        }
+        
+        // --- CLEAN BACKGROUND FIX ---
+        // Hide the space dust entirely in High-Vis mode to keep the canvas stark and clean
+        if (this.dustField) {
+            this.dustField.visible = (this.uThemeIndex.value !== 4);
         }
         
         // Render via the post-processing stack instead of the renderer

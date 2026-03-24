@@ -214,7 +214,6 @@ class LLMRecorder:
         lines.append("> 13. **Civil War - DONT MENTION:** Measures formatting consistency regarding indentation. 0% = File is in pure Tabs, 100% = File is in Pure Spaces, 50% = Mixed indentation. (Provided for human context, not a functional risk) DO NOT MENTION THIS ONE .")
         lines.append("> ")
         lines.append("> **14. Structural Mass (Gravity):** Calculates total structural complexity. It weights files based on decision-making density (branches), parameter coupling (args), and raw size (LOC) to identify the most logically dense components. `((Branches + 1) * (Args + 1) + (0.05 * LOC))`.")
-        lines.append("> **15. Author Distribution (Silo Risk/Bus Factor):** Measures knowledge concentration based on commit history. 100% means a single developer wrote all the code (High Bus Factor); 0% means contributions are evenly distributed across multiple team members. Look for high-mass orchestrators with 100% Silo Risk—these are prime architectural vulnerabilities if that developer leaves.")
         lines.append("")
 
         # --- 3. MACRO ECOSYSTEM ---
@@ -386,8 +385,61 @@ class LLMRecorder:
                         lines.append(f"- `{s.get('path')}` -> **{s.get('risk_vector')[flux_idx]}%** Exposure")
         lines.append("")
 
-        # --- 11. VISIBLE MATTER HITLIST ---
-        lines.append("## 11. VISIBLE MATTER HITLIST (Top 25 Heaviest Files)")
+        # ==============================================================================
+        # --- 11. CUMULATIVE RISK HITLIST (NEW) ---
+        # ==============================================================================
+        lines.append("## 11. CUMULATIVE RISK HITLIST (Top 10 Highest Risk Files)")
+        lines.append("> Cumulative Risk is the sum of all individual risk exposures (excluding Civil War). These files represent the highest multi-dimensional technical debt and architectural fragility.\n")
+        
+        cumulative_risks = forensic_report.get("cumulative_risk", {}).get("highest", [])
+        if cumulative_risks:
+            # Create a fast-lookup map to pull detailed file stats by path
+            star_map = {s.get("path"): s for s in stars}
+            
+            for rank, cr in enumerate(cumulative_risks[:10], 1):
+                p = cr.get("path")
+                c_val = cr.get("value")
+                s = star_map.get(p)
+                
+                # Fallback if the star object is somehow missing
+                if not s:
+                    lines.append(f"### {rank}. `{p}` -> Cumulative Risk: **{c_val}**")
+                    continue
+                
+                l = s.get("lang_id", "UNK").upper()
+                m = s.get("file_impact", 0.0)
+                loc = s.get("total_loc", 0)
+                tel = s.get("telemetry", {})
+                rv = s.get("risk_vector", [])
+                
+                lines.append(f"### {rank}. `{p}` ({l}) -> Cumulative Risk: **{c_val}**")
+                lines.append(f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%")
+                
+                # Dynamically calculate the top 4 risk drivers pushing this file's score up
+                file_risks = []
+                for i, r_val in enumerate(rv):
+                    if i < len(self.RISK_SCHEMA) and self.RISK_SCHEMA[i] != "civil_war" and r_val > 0:
+                        file_risks.append((self.RISK_SCHEMA[i], r_val))
+                
+                file_risks.sort(key=lambda x: x[1], reverse=True)
+                top_file_risks = [f"{k.replace('_', ' ').title()} ({r_val}%)" for k, r_val in file_risks[:4]]
+                lines.append(f"- **Primary Risk Drivers:** {', '.join(top_file_risks) if top_file_risks else 'None'}")
+                
+                # Fetch the top 3 heaviest functions in this specific file
+                sats = sorted(s.get("satellites", []), key=lambda x: x.get("impact", 0), reverse=True)[:3]
+                if sats:
+                    sat_strs = [f"`{sat.get('name')}` (Impact: {sat.get('impact')})" for sat in sats]
+                    lines.append(f"- **Heaviest Functions:** {', '.join(sat_strs)}")
+                    
+                lines.append("")
+        else:
+            lines.append("*No cumulative risk data available.*")
+            lines.append("")
+
+        # ==============================================================================
+        # --- 12. VISIBLE MATTER HITLIST (Shifted from 11) ---
+        # ==============================================================================
+        lines.append("## 12. VISIBLE MATTER HITLIST (Top 25 Heaviest Files)")
         sorted_stars = sorted(stars, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
         
         # DNA Bucketing Sets
@@ -456,14 +508,16 @@ class LLMRecorder:
             lines.append(f"  * `Imported By ({len(inbound)}):` {in_names if in_names else 'None (Orphan / Entrypoint)'}")
             lines.append("")
             
-            # --- 11. SYSTEM PROMPT: HOW TO RESPOND ---
+        # ==============================================================================
+        # --- 13. SYSTEM PROMPT: HOW TO RESPOND ---
+        # ==============================================================================
         lines.append("## AI SYSTEM INSTRUCTIONS (OUTPUT FORMAT)")
         lines.append("> **When the user asks for an architectural review, structure your response using plain, common descriptions suitable for engineers and managers:**")
-        lines.append("> 1. **The Bird's Eye View (Executive Summary):** Look at the Language Composition and Top Dependencies to provide a high-level description of what the system actually *is* and how data flows (e.g., 'This system operates as a C++ core surrounded by Python wrappers for data orchestration'). Diagnose the overarching health and paradigm of the codebase.")
-        lines.append("> 2. **Key Files & Functions:** Identify the top 2-3 files that have the greatest impact on the system (cross-reference high Mass, high Dependencies/Imports, and high Risk Exposures). Explain *why* they are risky using plain language.")
-        lines.append("> 3. **Risk Exposure impacts, Assess for multiple high or conflicting risk exposures and describe what these likely mean for the system at learge")
-        lines.append("> 4. **Architecture consistency:** Assess for consistent practices, structure, if the system seems to be experiencing under or over growth based on provided data for architecture")
-        lines.append("> 5. **Recommended Next Steps:** Provide 2-3 pragmatic, blameless refactoring targets based on the data. Focus on mitigating cognitive load and increasing testing on the heaviest components.")
+        lines.append("> 1. **The Bird's Eye View (Executive Summary):** Look at the Language Composition and Top Dependencies to provide a high-level description of what the system actually *is* and how data flows. Diagnose the overarching health and paradigm of the codebase.")
+        lines.append("> 2. **Key Files & Functions:** Identify the top 2-3 files that have the greatest impact on the system (cross-reference high Mass, high Dependencies/Imports, and high Cumulative Risk). Explain *why* they are risky using plain language based on their primary risk drivers.")
+        lines.append("> 3. **Risk Exposure Impacts:** Assess for multiple high or conflicting risk exposures and describe what these likely mean for the system at large.")
+        lines.append("> 4. **Architecture Consistency:** Assess for consistent practices, structure, and if the system seems to be experiencing under or over growth based on provided data.")
+        lines.append("> 5. **Recommended Next Steps:** Provide 2-3 pragmatic, blameless refactoring targets based on the data. Focus on mitigating cognitive load, tackling high cumulative risk files, and increasing testing on the heaviest components.")
         lines.append("")
             
         return "\n".join(lines)

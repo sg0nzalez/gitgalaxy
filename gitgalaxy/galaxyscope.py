@@ -638,8 +638,13 @@ class Orchestrator:
                 if not clean_path:
                     continue
                 
+                # THE FIX: Don't turn file extensions into folders!
+                # If the string has a dot but no slash, we only replace '.' with '/' 
+                # if it is NOT a recognized file extension.
                 if "." in clean_path and "/" not in clean_path:
-                    clean_path = clean_path.replace(".", "/")
+                    ext_guess = "." + clean_path.rsplit('.', 1)[-1].lower()
+                    if ext_guess not in self.ext_tally:
+                        clean_path = clean_path.replace(".", "/")
                 
                 # Strip leading relative markers so it aligns with our suffix map
                 clean_path = clean_path.lstrip("./")

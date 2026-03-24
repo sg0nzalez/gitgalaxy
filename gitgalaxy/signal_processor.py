@@ -723,18 +723,35 @@ class SignalProcessor:
         if not active_stars:
             active_stars = stars
 
+        # ====================================================================
+        # NEW: CALCULATE CUMULATIVE RISK (Excluding Civil War)
+        # ====================================================================
+        civil_war_idx = self.RISK_SCHEMA.index("civil_war") if "civil_war" in self.RISK_SCHEMA else -1
+        
+        def get_cumulative_risk(s):
+            rv = s.get("risk_vector", [])
+            # Sum all exposures except civil_war
+            return sum(val for i, val in enumerate(rv) if i != civil_war_idx and i < len(rv))
+
+        sorted_by_cumulative = sorted(active_stars, key=get_cumulative_risk, reverse=True)
+
         # 4. Generate rankings using ONLY the masked `active_stars` list
         report = {
             "exposures": {},
             "file_impact": self._rank_list(active_stars, key_path=["file_impact"]),
-            "function_impact": self._generate_function_rankings(active_stars)
+            "function_impact": self._generate_function_rankings(active_stars),
+            # Inject the new Cumulative Risk ranking directly into the root of the report
+            "cumulative_risk": {
+                "highest": [{"name": s.get("name", "unknown"), "path": s.get("path", ""), "value": round(get_cumulative_risk(s), 2)} for s in sorted_by_cumulative[:10]],
+                "lowest": [{"name": s.get("name", "unknown"), "path": s.get("path", ""), "value": round(get_cumulative_risk(s), 2)} for s in reversed(sorted_by_cumulative[-3:])]
+            }
         }
 
         for idx, rk in enumerate(self.RISK_SCHEMA):
             report["exposures"][rk] = self._rank_list(active_stars, key_path=["risk_vector", idx])
             
         return report
-
+    
     def _get_locational_multipliers(self, path: str) -> Dict[str, float]:
         """Matches path against regex configurations and extracts applicable Modifiers."""
         active_multipliers = {}

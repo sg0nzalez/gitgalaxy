@@ -513,6 +513,7 @@
                 hud.classList.remove('zen-hidden');
                 hud.classList.add('active');
             }
+            
         };
 
         window.updateSingularityHUD = (sigData) => {
@@ -644,6 +645,12 @@
                 if (storyBtn) {
                     storyBtn.style.opacity = '0';
                     storyBtn.style.pointerEvents = 'none';
+                }
+
+                // Hide GITGALAXY.IO button on mobile to prevent overlap
+                if (window.innerWidth < 800) {
+                    const aboutBtn = document.getElementById('about-btn');
+                    if (aboutBtn) aboutBtn.style.display = 'none';
                 }
 
                 hud.classList.remove('zen-hidden');
@@ -1122,6 +1129,12 @@
             const storyBtn = document.getElementById('story-btn');
             if (storyBtn) { storyBtn.style.opacity = '0'; storyBtn.style.pointerEvents = 'none'; }
             
+            // Hide GITGALAXY.IO button on mobile to prevent overlap
+            if (window.innerWidth < 800) {
+                const aboutBtn = document.getElementById('about-btn');
+                if (aboutBtn) aboutBtn.style.display = 'none';
+            }
+            
             hud.classList.remove('zen-hidden'); 
             hud.classList.add('active');
         };
@@ -1167,7 +1180,18 @@
                 storyBtn.style.opacity = '1';
                 storyBtn.style.pointerEvents = 'all';
             }
+            // Restore GITGALAXY.IO button
+            const aboutBtn = document.getElementById('about-btn');
+            if (aboutBtn) {
+                aboutBtn.style.display = ''; // Setting to empty string reverts to CSS default
+            }
         };
+
+            // Hide GITGALAXY.IO button on mobile to prevent overlap
+            if (window.innerWidth < 800) {
+                const aboutBtn = document.getElementById('about-btn');
+                if (aboutBtn) aboutBtn.style.display = 'none';
+            }
 
         document.addEventListener('click', (e) => {
             const searchBox = document.getElementById('search-results');
@@ -1256,44 +1280,47 @@
         
     </div>
 
-    <div id="about-hud" style="display: none; position: fixed; inset: 0; z-index: 10005; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(10px); align-items: center; justify-content: center;">
-        <div style="background: var(--bg-ui); border: 1px solid var(--accent); padding: 40px; border-radius: 8px; width: 500px; max-width: 90vw; box-shadow: 0 0 50px rgba(0, 243, 255, 0.15); display: flex; flex-direction: column; position: relative;">
+    <div id="about-hud" style="display: none;">
+        
+        <div class="about-modal-box">
             
             <button onclick="document.getElementById('about-hud').style.display='none'" class="close-btn" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #8899aa; font-size: 20px; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='#8899aa'">✕</button>
 
-            <h2 style="font-family: 'Space Grotesk', sans-serif; color: var(--accent); margin: 0 0 5px 0; letter-spacing: 3px; font-size: 24px; text-transform: uppercase;">GitGalaxy Command</h2>
-            <p style="font-family: 'Space Mono', monospace; color: #8899aa; font-size: 11px; margin: 0 0 25px 0; letter-spacing: 1px;">v17.5 // ASTROMETRIC CODE VISUALIZER</p>
-
-            <div style="font-family: 'Space Grotesk', sans-serif; color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 25px;">
-                <p style="margin: 0 0 15px 0;">
-                    GitGalaxy maps the hidden architecture of massive software repositories, translating codebases into non-numeric star-based dashboards (for humans), low-token markdown summaries (for AI agents), and full internal scanned audit results (for lawyers). 
-                </p>
-                
-                <p style="margin: 0 0 15px 0;">
-                    Accomplished by scanning codebases with the same tech used to scan strings of DNA when I was a scientist. By employing a BLAST-like algorithm, a taxonomic language feature map, and DNA fingerprinting algorithms, GitGalaxy brings 50-ish years of bioinformatics to code analysis. We parse our resulting DNA/code fingerprint into a series of risk exposure metrics (genotype to phenotype assocations).
-                </p>
-                
-                <p style="margin: 0 0 15px 0;">
-                    GitGalaxy does not measure "Code Quality", which feels like a judgment, but instead measures Risk Exposure. Our measurements do not judge; they highlight. We do not assess "Bad Code"; we measure Cognitive Load Exposure—how hard it is for a human to work through the logic—because teams should be aware which files are the hardest to work on. 
-                </p>
-                
-                <p style="margin: 0;">
-                    Risk Exposures identify general trends (this file has high API exposure) instead of providing an absolute ranking over tiny differences (this file is better than that one because it scored 6% higher in the tech debt equation). These are general guides to give engineers, managers and CTOs a visual estimate on code status. It allows a team to agree on standards and instantly see—without reading a single line of text—where their architecture might be drifting into dangerous territory.
-                </p>
+            <div class="about-header-section">
+                <h2 style="font-family: 'Space Grotesk', sans-serif; color: var(--accent); margin: 0 0 5px 0; letter-spacing: 3px; font-size: 24px; text-transform: uppercase;">GitGalaxy Command</h2>
+                <p style="font-family: 'Space Mono', monospace; color: #8899aa; font-size: 11px; margin: 0 0 20px 0; letter-spacing: 1px;">v17.5 // ASTROMETRIC CODE VISUALIZER</p>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <a href="#" target="_blank" style="display: block; text-align: center; background: transparent; border: 1px solid #64748b; color: #cbd5e1; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#cbd5e1'; this.style.borderColor='#64748b';">
-                    PROJECT WIKI
-                </a>
+            <div class="cyber-scroll about-scroll-area">
+                
+                <div style="font-family: 'Space Grotesk', sans-serif; color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 25px;">
+                    <p style="margin: 0 0 15px 0;">
+                        GitGalaxy maps the hidden architecture of massive software repositories, translating codebases into non-numeric star-based dashboards (for humans), low-token markdown summaries (for AI agents), and full internal scanned audit results (for lawyers). 
+                    </p>
+                    <p style="margin: 0 0 15px 0;">
+                        Accomplished by scanning codebases with the same tech used to scan strings of DNA when I was a scientist. By employing a BLAST-like algorithm, a taxonomic language feature map, and DNA fingerprinting algorithms, GitGalaxy brings 50-ish years of bioinformatics to code analysis. We parse our resulting DNA/code fingerprint into a series of risk exposure metrics (genotype to phenotype assocations).
+                    </p>
+                    <p style="margin: 0 0 15px 0;">
+                        GitGalaxy does not measure "Code Quality", which feels like a judgment, but instead measures Risk Exposure. Our measurements do not judge; they highlight. We do not assess "Bad Code"; we measure Cognitive Load Exposure—how hard it is for a human to work through the logic—because teams should be aware which files are the hardest to work on. 
+                    </p>
+                    <p style="margin: 0;">
+                        Risk Exposures identify general trends (this file has high API exposure) instead of providing an absolute ranking over tiny differences (this file is better than that one because it scored 6% higher in the tech debt equation). These are general guides to give engineers, managers and CTOs a visual estimate on code status. It allows a team to agree on standards and instantly see—without reading a single line of text—where their architecture might be drifting into dangerous territory.
+                    </p>
+                </div>
 
-                <a href="https://github.com/squid-protocol/gitgalaxy" target="_blank" style="display: block; text-align: center; background: transparent; border: 1px solid #64748b; color: #cbd5e1; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#cbd5e1'; this.style.borderColor='#64748b';">
-                    &lt;/&gt; GITHUB REPO
-                </a>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                    <a href="#" target="_blank" style="display: block; text-align: center; background: transparent; border: 1px solid #64748b; color: #cbd5e1; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#cbd5e1'; this.style.borderColor='#64748b';">
+                        PROJECT WIKI
+                    </a>
 
-                <a href="mailto:joe@gitgalaxy.io" style="display: block; text-align: center; background: transparent; border: 1px dashed #64748b; color: #8da3bd; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#8da3bd'; this.style.borderColor='#64748b';">
-                    ✉ CONTACT (JOE@GITGALAXY.IO)
-                </a>
+                    <a href="https://github.com/squid-protocol/gitgalaxy" target="_blank" style="display: block; text-align: center; background: transparent; border: 1px solid #64748b; color: #cbd5e1; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#cbd5e1'; this.style.borderColor='#64748b';">
+                        &lt;/&gt; GITHUB REPO
+                    </a>
+
+                    <a href="mailto:joe@gitgalaxy.io" style="display: block; text-align: center; background: transparent; border: 1px dashed #64748b; color: #8da3bd; padding: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-decoration: none; letter-spacing: 1px; transition: all 0.2s;" onmouseover="this.style.color='#fff'; this.style.borderColor='#fff';" onmouseout="this.style.color='#8da3bd'; this.style.borderColor='#64748b';">
+                        ✉ CONTACT (JOE@GITGALAXY.IO)
+                    </a>
+                </div>
             </div>
             
         </div>
