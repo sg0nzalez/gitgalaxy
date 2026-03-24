@@ -390,8 +390,8 @@
                         "Coding LOC": (data.m_loc || 0).toLocaleString(),
                         "Comment LOC": (data.d_loc || 0).toLocaleString(),
                         "Control Flow Ratio": (data.logicRatio * 100).toFixed(1) + "%",
-                        "Imported By": inCount || data.popRank || 0,
-                        "Outbound Imports": outCount || data.importCount || 0,
+                        "Imported By": window.currentRawGalaxyData?.galaxy?.edges ? inCount : (data.popRank || 0),
+                        "Outbound Imports": window.currentRawGalaxyData?.galaxy?.outbound_edges ? outCount : (data.importCount || 0),
                         "Functions": data.sats_count || 0
                     };
 
