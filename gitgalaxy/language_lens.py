@@ -13,7 +13,7 @@ import time
 import logging
 from pathlib import Path
 from typing import Tuple, Optional, Dict, List, Any, TypedDict, Union
-from .gitgalaxy_standards_v011 import EXACT_FILE_MATCH, LANGUAGE_DEFINITIONS, LENS_CONFIG
+from .gitgalaxy_standards_v1 import EXACT_FILE_MATCH, LANGUAGE_DEFINITIONS, LENS_CONFIG
 
 # ==============================================================================
 # GitGalaxy Phase 1: The Entity Census (The Linguistic Detector Chip)
@@ -362,7 +362,7 @@ class LanguageDetector:
                     elif lock_tier == 4:
                         if spec_intensity >= self.thresholds.get("FLOOR_TIER_4", 0.92):
                             best_lang, best_conf = spectral_id, spec_intensity
-                            source_proof = f"Spectral Discovery (Passed {self.thresholds.get("FLOOR_TIER_4", 0.92)} Floor)"
+                            source_proof = f"Spectral Discovery (Passed {self.thresholds.get('FLOOR_TIER_4', 0.92)} Floor)"
                         else:
                             best_lang, best_conf = "undeterminable", spec_intensity
                             source_proof = f"Failed Discovery Floor ({spec_intensity:.2f})"

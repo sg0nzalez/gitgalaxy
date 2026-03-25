@@ -13,7 +13,7 @@ import statistics
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
-from . import gitgalaxy_standards_v011 as config
+from . import gitgalaxy_standards_v1 as config
 
 # ==============================================================================
 # GitGalaxy Phase 10: LLM Recorder (The AI Translation Layer)
@@ -58,13 +58,13 @@ class LLMRecorder:
         if forensic_report is None:
             forensic_report = {}
             
-        # --- ABSOLUTE ROUTING LOGIC (Matching Audit Recorder) ---
-        base_dir = Path("/srv/storage_16tb/projects/gitgalaxy/data")
-        base_dir.mkdir(parents=True, exist_ok=True)
             
         target_name = session_meta.get("target", "unknown_project")
-        output_path_md = base_dir / f"{target_name}_galaxy_llm.md"
-        output_path_db = base_dir / f"{target_name}_galaxy_graph.sqlite"
+        safe_dir = Path(output_dir)
+        
+        # Use safe_dir instead of base_dir!
+        output_path_md = safe_dir / f"{target_name}_galaxy_llm.md"
+        output_path_db = safe_dir / f"{target_name}_galaxy_graph.sqlite"
         
         self.logger.info(f"Initiating LLM Artifact Generation for '{target_name}'...")
         
@@ -200,7 +200,7 @@ class LLMRecorder:
         lines.append("> Most scores use a Sigmoid curve based on density (Hits / LOC) to prevent massive files from mathematically hiding their flaws.")
         lines.append("> ")
         lines.append("> 1. **Cognitive Load Exposure:** Measures the mental effort required for a developer to read and understand the file. `Density(Branches + (Flux * 2) + Async/Danger)` mitigated by `Doc Coverage`. High scores indicate a high density of decision-making, conditional branching, and complex state management packed into a small area.")
-        lines.append("> 2. **Safety Risk Exposure:** Measures structural integrity and resilience against runtime errors. `Net Exposure = (Danger + Safety_Neg + Flux) - (Safety + Tests + Docs)`. High scores mean risky operations (dynamic execution, type bypasses, unhandled mutations) exceed defensive guardrails (try/catch blocks, type checks, assertions). **Breach Cap:** If danger density is too high, the score is mathematically floored to a high-risk state regardless of defense.")
+        lines.append("> 2. **Safety Risk Exposure:** Measures structural integrity and resilience against runtime errors. `Net Exposure = (Danger + Safety_Neg + Flux) - (Safety + Tests + Docs)`. High scores mean risky operations (dynamic execution, type bypasses, unhandled mutations) exceed defensive guardrails (try/catch blocks, type checks, assertions). **Breach Cap:** If danger density is too high, the score is mathematically floored to a high-risk state regardless of defense. A value of near 30 is near minimum floor as gitglaxay tests for testing file pairs, testing folders but not actually their contents.")
         lines.append("> 3. **Tech Debt Exposure:** Measures the density of developer-annotated structural stress. `Density(TODOs [1x] + FIXMEs/Hacks [3x] + Empty Stubs [0.5x])`. High scores indicate a high volume of temporary workarounds, fragile logic, and incomplete implementations relative to the file size.")
         lines.append("> 4. **Verification (Testing) Risk Exposure:** Measures the density of unit testing and programmatic assertions. Evaluates `Test Density` + `Sibling Bonus` (if a dedicated test file exists). High scores (100% risk) mean the logic lacks internal test coverage and has no dedicated sibling test file, increasing the risk of silent failures during refactoring. **Mass Penalty:** Files over 300 LOC get an automatic risk penalty because massive files are inherently harder to test completely.")
         lines.append("> 5. **API Risk Exposure:** Measures the public surface area of a module. `Ratio(API Hits / Total Functions & Classes)`. Weighted by logarithmic volume. High scores indicate that a large percentage of the file's functions and classes are explicitly exported or publicly accessible by external systems.")

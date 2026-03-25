@@ -21,6 +21,36 @@ Contains:
 
 """
 
+class ThreatPolicy:
+    """Defines the threshold at which a structural anomaly becomes a critical threat."""
+    
+    PROFILES = {
+        # The Baseline: For standard, internal development where some low-level logic is expected.
+        "baseline": {
+            "secrets_risk_threshold": 0.001,      # 0.1% density
+            "hidden_malware_threshold": 0.60,     # 60% density
+            "logic_bomb_threshold": 0.50,         # 50% density
+            "injection_surface_threshold": 0.65,  # 65% density
+            "memory_corruption_threshold": 0.60   # 60% density
+        },
+        
+        # The Hazmat Suit: For scanning unknown PyPI/npm packages in a quarantine sandbox.
+        "paranoid": {
+            "secrets_risk_threshold": 0.0001,     # Any trace is critical
+            "hidden_malware_threshold": 0.15,     # 15% density trips the wire
+            "logic_bomb_threshold": 0.20,         # 20% density
+            "injection_surface_threshold": 0.25,  # 25% density
+            "memory_corruption_threshold": 0.10   # 10% density
+        }
+    }
+
+    @staticmethod
+    def get_policy(mode="baseline"):
+        """Returns the specific threat thresholds based on the deployment mode."""
+        return ThreatPolicy.PROFILES.get(mode, ThreatPolicy.PROFILES["baseline"])
+
+#
+
 
 # ------------------------------------------------------------------------------
 # 1. OPTICAL LAYER (Consumed by aperture.py & guidestar_lens.py)
@@ -10399,6 +10429,50 @@ RISK_EQUATION_TUNING = {
     },
     "state_flux": {
         "irc_mult": 0.15, "threshold_base": 15.0, "sigmoid_slope": 0.20
+    }
+}
+
+# ------------------------------------------------------------------------------
+# 4.6 LANGUAGE SECURITY PROFILES (The Context vs. Entity Matrix)
+# Defines domain ontologies to cure the "Apollo Paradox" and detect Trojan Horses.
+# ------------------------------------------------------------------------------
+LANGUAGE_SECURITY_PROFILES = {
+    "ECOSYSTEMS": {
+        # Bare metal, embedded, and legacy mainframe. Pointer math and direct OS hooks are native.
+        "systems": {
+            "c", "cpp", "rust", "assembly", "agc_assembly", "zig", "cobol", 
+            "fortran", "micropython", "objective-c"
+        },
+        # High DOM flux, UI components, and massive string manipulation. Highly vulnerable to XSS.
+        "web": {
+            "javascript", "typescript", "html", "css", "php", "ruby", 
+            "dart", "livecode"
+        },
+        # Deployment, orchestration, and scripting. OS execution is the literal purpose.
+        "infra": {
+            "shell", "powershell", "dockerfile", "yaml", "makefile", "m4", 
+            "xml", "json", "toml", "sqlite", "csv", "plaintext"
+        },
+        # Data processing, APIs, and strict-typed object orientation. 
+        "backend": {
+            "python", "java", "go", "csharp", "kotlin", "scala", "scheme", 
+            "tcl", "matlab", "perl", "haskell", "lua", "apex", "swift"
+        }
+    },
+    
+    # Baseline multipliers applied when the file MATCHES its neighborhood's dominant ecosystem
+    "NATIVE_WEIGHTS": {
+        "systems": {"memory": 0.1, "logic_bomb": 0.2, "flux": 1.0, "injection": 1.0}, # Pointer math is normal
+        "web":     {"memory": 1.0, "logic_bomb": 1.0, "flux": 0.3, "injection": 2.0}, # DOM flux is normal, XSS is deadly
+        "infra":   {"memory": 1.0, "logic_bomb": 0.0, "flux": 1.0, "injection": 1.0}, # OS commands are literally the point
+        "backend": {"memory": 1.5, "logic_bomb": 1.0, "flux": 1.5, "injection": 1.5}  # Standard aggressive baseline
+    },
+    
+    # Aggressive penalties applied when the file is an ALIEN in its neighborhood
+    "ALIEN_WEIGHTS": {
+        "systems_in_web": {"memory": 5.0, "logic_bomb": 3.0}, # C code hiding in a JS app = Trojan
+        "infra_in_web":   {"logic_bomb": 4.0},                # Shell script hiding in a JS app = Backdoor
+        "web_in_systems": {"flux": 3.0}                       # JS embedded in C firmware = Bizarre architecture
     }
 }
 

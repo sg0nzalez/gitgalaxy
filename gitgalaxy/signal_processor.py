@@ -12,7 +12,7 @@ import logging
 import re
 import statistics
 from typing import Dict, Any, List, Optional, Tuple
-from . import gitgalaxy_standards_v011 as config
+from . import gitgalaxy_standards_v1 as config
 
 # ==============================================================================
 # GitGalaxy Phase 4: Signal Processor (The Physics Engine)
@@ -78,8 +78,68 @@ class SignalProcessor:
         self.risk_tuning = getattr(config, "RISK_EQUATION_TUNING", {})
         self.is_paranoid = self.config.get("PARANOID_MODE", False) 
         
-        self.logger.info(f"Signal Processor Online | 13-Point Risk Schema loaded.")
+        # ======================================================================
+        # THE CONTEXT VS. ENTITY MATRIX (Domain Ontologies)
+        # ======================================================================
+        # We now fetch this dynamically from gitgalaxy_standards_v1.py instead of hardcoding it!
+        security_profiles = getattr(config, "LANGUAGE_SECURITY_PROFILES", {})
+        self.ECOSYSTEMS = security_profiles.get("ECOSYSTEMS", {})
+        self.NATIVE_WEIGHTS = security_profiles.get("NATIVE_WEIGHTS", {})
+        self.ALIEN_WEIGHTS = security_profiles.get("ALIEN_WEIGHTS", {})
+        
+        self.logger.info(f"Signal Processor Online | Context-Aware Security Profiles loaded.")
+        
+        # Aggressive penalties applied when the file is an ALIEN in its neighborhood
+        self.ALIEN_WEIGHTS = {
+            "systems_in_web": {"memory": 5.0, "logic_bomb": 3.0}, # C code hiding in a JS app = Trojan
+            "infra_in_web":   {"logic_bomb": 4.0},                # Shell script hiding in a JS app = Backdoor
+            "web_in_systems": {"flux": 3.0}                       # JS embedded in C firmware = Bizarre architecture
+        }
+        
+        self.logger.info(f"Signal Processor Online | Context-Aware Risk Schema loaded.")
+    
+    def _get_context_multipliers(self, file_lang: str, folder_lang: str) -> Dict[str, float]:
+        """
+        Calculates risk multipliers by comparing a file's language to its neighborhood.
+        Prevents the 'Apollo Paradox' and catches 'Trojan Horse' entities.
+        """
+        # Default multipliers if no specific context rules apply
+        multipliers = {"memory": 1.0, "logic_bomb": 1.0, "flux": 1.0, "injection": 1.0}
+        
+        file_lang = file_lang.lower()
+        folder_lang = folder_lang.lower() if folder_lang else file_lang
 
+        # Determine the ecosystem of the specific File
+        file_eco = "backend" # Default fallback
+        for eco, langs in self.ECOSYSTEMS.items():
+            if file_lang in langs:
+                file_eco = eco
+                break
+                
+        # Determine the ecosystem of the surrounding Folder
+        folder_eco = "backend"
+        for eco, langs in self.ECOSYSTEMS.items():
+            if folder_lang in langs:
+                folder_eco = eco
+                break
+
+        # SCENARIO 1: The Entity matches the Context (Native)
+        if file_eco == folder_eco:
+            return self.NATIVE_WEIGHTS.get(file_eco, multipliers)
+
+        # SCENARIO 2: The Entity is an Alien (Context Mismatch)
+        alien_key = f"{file_eco}_in_{folder_eco}"
+        alien_penalties = self.ALIEN_WEIGHTS.get(alien_key, {})
+        
+        # Apply standard weights of the file, but overwrite with severe alien penalties
+        base_weights = self.NATIVE_WEIGHTS.get(file_eco, multipliers).copy()
+        base_weights.update(alien_penalties)
+        
+        if alien_penalties:
+            self.logger.warning(f"👽 ALIEN ENTITY DETECTED: {file_lang} file hiding in a {folder_eco} neighborhood. Applying severe penalties: {alien_penalties}")
+
+        return base_weights
+    
     def _calculate_silo_risk(self, authors: dict) -> float:
         """
         Calculates the 'Bus Factor' risk of a file.
@@ -173,8 +233,13 @@ class SignalProcessor:
             fc = self.TIER_VARS[tier]["fc"]
             irc = self.TIER_VARS[tier]["irc"]
             
-            # Environmental Context
+            # Environmental Context (Path-based overrides)
             mp_map = self._get_locational_multipliers(rel_path)
+            
+            # ---> NEW: Context vs. Entity Ontology Matrix <---
+            # Fetch the folder's dominant language (Assumes your upstream parser injects this)
+            folder_lang = meta.get("metadata", {}).get("folder_dominant_lang", lang_id)
+            eco_mp = self._get_context_multipliers(lang_id, folder_lang)
 
             self.logger.debug(f"[{rel_path}] Physics Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc})")
 
@@ -223,9 +288,9 @@ class SignalProcessor:
                 "civil_war":      self._calc_civil_war(equations),
                 # --- THE SECURITY & VULNERABILITY LENSES ---
                 "obscured_payload":  self._calc_obscured_payload(loc, equations, mp_map.get("obscured", 1.0)),
-                "logic_bomb":        self._calc_logic_bomb(loc, equations, mp_map.get("logic_bomb", 1.0)),
-                "injection_surface": self._calc_injection_surface(loc, equations, mp_map.get("injection", 1.0)),
-                "memory_corruption": self._calc_memory_corruption(loc, equations, mp_map.get("memory", 1.0), lang_id), 
+                "logic_bomb":        self._calc_logic_bomb(loc, equations, mp_map.get("logic_bomb", 1.0) * eco_mp.get("logic_bomb", 1.0)),
+                "injection_surface": self._calc_injection_surface(loc, equations, mp_map.get("injection", 1.0) * eco_mp.get("injection", 1.0)),
+                "memory_corruption": self._calc_memory_corruption(loc, equations, mp_map.get("memory", 1.0) * eco_mp.get("memory", 1.0), lang_id), 
                 "secrets_risk":      self._calc_secrets_risk(loc, equations, mp_map.get("secrets", 1.0))
             }
             

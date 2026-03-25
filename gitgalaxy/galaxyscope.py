@@ -36,7 +36,7 @@ from .audit_recorder import AuditRecorder
 from .llm_recorder import LLMRecorder
 from .security_lens import SecurityLens
 # Load Universal Laws from config
-from . import gitgalaxy_standards_v011 as scanning_config
+from . import gitgalaxy_standards_v1 as scanning_config
 
 logger = logging.getLogger("GalaxyScope")
 
@@ -90,6 +90,12 @@ def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int
         if lang_id not in splicer_cache:
             splicer_cache[lang_id] = LogicSplicer(lang_id, lang_defs, parent_logger=worker_logger)
 
+    # --- NEW: Decide the Rules of Engagement before booting the engines ---
+    if os.environ.get("GITGALAXY_DATA_DIR"):
+        active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
+    else:
+        active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
+
     _worker_state.update({
         'root': root,
         'config': config,
@@ -103,10 +109,30 @@ def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int
         'detector': LanguageDetector(lang_defs, comm_defs),
         'prism': Prism(comm_defs, lang_defs, parent_logger=worker_logger),
         'splicer_cache': splicer_cache,
-        'word_tokenizer': re.compile(r'\b\w+\b') 
+        'word_tokenizer': re.compile(r'\b\w+\b'),
+        
+        # --- NEW: Boot the physics engines into worker memory ---
+        'chronometer': Chronometer(root, parent_logger=worker_logger),
+        'signal': SignalProcessor(aperture_config=config, parent_logger=worker_logger),
+        'security': SecurityLens(policy=active_policy)
+        # --------------------------------------------------------
     })
     
     _worker_state['guidestar'].align_telescope()
+    
+def resolve_mission_control(target_name: str) -> Path:
+    """Routes reports to a .env path, or defaults to the current directory."""
+    env_path = os.environ.get("GITGALAXY_DATA_DIR")
+    
+    if env_path:
+        # If the environment variable is set, drop the files EXACTLY there
+        mission_dir = Path(env_path)
+    else:
+        # If no variable (like on a user's machine), make a safe subfolder so we don't make a mess
+        mission_dir = Path.cwd() / "galaxy_reports" / target_name
+        
+    mission_dir.mkdir(parents=True, exist_ok=True)
+    return mission_dir
 
 def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     """Processes a single file path using the worker's cached hardware modules."""
@@ -138,6 +164,12 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     lang_defs = _worker_state['lang_defs']
     splicer_cache = _worker_state['splicer_cache']
     tokenizer = _worker_state['word_tokenizer']
+    
+    # --- NEW: Extract the physics engines from worker memory ---
+    chronometer = _worker_state['chronometer']
+    signal = _worker_state['signal']
+    security = _worker_state['security']
+    # -----------------------------------------------------------
     
     has_prior, intent_vector = guidestar.get_intent_status(full_path_str)
     observation = {"rel_path": rel_path, "status": "filtered", "reason": "Aperture block", "data": {}}
@@ -298,6 +330,16 @@ class Orchestrator:
         self.audit_recorder = AuditRecorder(parent_logger=logger)
         self.llm_recorder = LLMRecorder(parent_logger=logger)
         
+        # --- NEW: THE SMART THREAT SWITCH (MAIN THREAD) ---
+        if os.environ.get("GITGALAXY_DATA_DIR"):
+            logger.info("☣️ HAZMAT SANDBOX DETECTED: Engaging PARANOID threat thresholds.")
+            active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
+        else:
+            active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
+
+        self.security_analyzer = SecurityLens(policy=active_policy)
+        # --------------------------------------------------
+        
         # State Arrays
         self.census: Set[str] = set()
         self.stem_map: Dict[str, str] = {}
@@ -359,6 +401,11 @@ class Orchestrator:
                 
             # Pass the array into the function, and merge the results directly
             summary["singularity"].update(self._summarize_anomalies(total_singularity))
+
+            # --- THE NEW ROUTER ---
+            mission_dir = resolve_mission_control(self.root.name)
+            output_file = str(mission_dir / Path(output_file).name)
+            # ----------------------
 
             # ==========================================================
             # PHASE 8: AUDIT RECORDER (Non-Destructive Forensic Fork)
@@ -712,6 +759,25 @@ class Orchestrator:
         """Pass 2: Universal Exposure Framework & Signal Processing."""
         logger.info("PASS_2: Calculating structural physics and Tiered Normalization.")
         
+        # ==============================================================
+        # NEW: CALCULATE FOLDER CONTEXTS (For Domain Ontologies)
+        # Tally the languages in every folder to find the dominant ecosystem
+        # ==============================================================
+        folder_tallies = {}
+        for rel_path, meta in self.cryolink.items():
+            folder = str(Path(rel_path).parent)
+            lang = meta.get("lang_id", "unknown")
+            
+            if folder not in folder_tallies:
+                folder_tallies[folder] = {}
+            folder_tallies[folder][lang] = folder_tallies[folder].get(lang, 0) + 1
+            
+        folder_dominant_langs = {}
+        for folder, tallies in folder_tallies.items():
+            if tallies:
+                # The language with the most files wins the neighborhood
+                folder_dominant_langs[folder] = max(tallies, key=tallies.get)
+                
         # --- NEW: CALCULATE THE GLOBAL TEST UMBRELLA ---
         total_loc = 0
         test_loc = 0
@@ -731,6 +797,15 @@ class Orchestrator:
         # -----------------------------------------------
 
         for rel_path, meta in self.cryolink.items():
+            
+            # ---> NEW: INJECT THE FOLDER CONTEXT FOR THE SIGNAL PROCESSOR <---
+            folder = str(Path(rel_path).parent)
+            if "metadata" not in meta:
+                meta["metadata"] = {}
+                
+            # Grab the winning language for this folder (defaulting to the file's own language)
+            meta["metadata"]["folder_dominant_lang"] = folder_dominant_langs.get(folder, meta.get("lang_id", "unknown"))
+            # -----------------------------------------------------------------
             
             meta["temporal_telemetry"] = self.chronometer.get_temporal_signals(rel_path)
             meta["authors"] = meta["temporal_telemetry"].get("authors", {})
@@ -1060,15 +1135,20 @@ def main():
                         merged_langs[lang]['rules'].update(rules_patch)
                         logging.debug(f"   -> Patched '{lang}' geometry rules.")
 
-        # =========================================================
-        # --- NEW: SECURITY LENS INTEGRATION ---
-        # =========================================================
-        logging.info("🛡️ SECURITY LENS ACTIVE: Passively monitoring for Threat Signatures.")
-        lens = SecurityLens(parent_logger=logging.getLogger())
-        
-        # Unconditionally inject the 'sec_' prefixed observers into the registry
-        merged_langs = lens.arm_lens(merged_langs)
-        # =========================================================
+        # --- THE SMART THREAT SWITCH ---
+        # If the engine detects the Docker airlock environment variable, it goes into full lockdown.
+        if os.environ.get("GITGALAXY_DATA_DIR"):
+            # We are in the sandbox. Engage Paranoid Mode.
+            active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
+            # Optional: Print a cool warning so you know it worked in the logs
+            logging.getLogger("GalaxyScope").info("☣️ HAZMAT SANDBOX DETECTED: Engaging PARANOID threat thresholds.")
+        else:
+            # Normal developer scan. Engage Baseline Mode.
+            active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
+
+        # Boot the lens with the chosen policy
+        security_lens = SecurityLens(policy=active_policy)
+        # -------------------------------
         
         # ---------------------------------------------------------
         # 3. Assemble the Final Configuration

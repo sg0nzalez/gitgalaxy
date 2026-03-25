@@ -14,7 +14,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from . import gitgalaxy_standards_v011 as config
+from . import gitgalaxy_standards_v1 as config
 
 # ==============================================================================
 # GitGalaxy Phase 8 & 9: Astrograph Auditor (The Forensic Record)
@@ -365,11 +365,9 @@ class AuditRecorder:
             "6. Visible Matter (Scanned Artifacts)": pretty_constellations
         }
 
-        # --- ABSOLUTE ROUTING LOGIC ---
-        base_dir = Path("/srv/storage_16tb/projects/gitgalaxy/data")
-        base_dir.mkdir(parents=True, exist_ok=True)
-        safe_filename = Path(output_path).name
-        target_path = base_dir / safe_filename
+        # --- THE FIX ---
+        # Convert the output_path handed to us by the orchestrator into a Path object
+        target_path = Path(output_path)
 
         try:
             with open(target_path, 'w', encoding='utf-8') as f:

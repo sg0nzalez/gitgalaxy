@@ -12,7 +12,7 @@ import logging
 import gc
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from . import gitgalaxy_standards_v011 as config
+from . import gitgalaxy_standards_v1 as config
 
 # ==============================================================================
 # GitGalaxy Phase 9: GPU Recorder (Formerly RecordKeeper)
@@ -291,21 +291,17 @@ class GPURecorder:
         return registry.index(val)
 
     def save_minified(self, payload: Dict[str, Any], filename: str):
-        """Serializes with maximum JSON compression to a dedicated storage drive."""
+        """Serializes with maximum JSON compression to the provided output path."""
+        from pathlib import Path
+        
+        # Convert the path handed to us by the orchestrator into a Path object
+        target_path = Path(filename)
 
-        # 1. Define the target directory
-        base_dir = Path("/srv/storage_16tb/projects/gitgalaxy/data")
-
-        # 2. Ensure the directory exists (creates parent folders if needed)
-        base_dir.mkdir(parents=True, exist_ok=True)
-
-        # 3. Strip any existing paths from the filename and append it to the base directory
-        # This prevents errors if someone passes a filename like "data/output.json"
-        safe_filename = Path(filename).name
-        target_path = base_dir / safe_filename
+        # Ensure the parent directory exists just to be safe
+        target_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            # 4. Save using the new absolute target_path
+            # Save using the safe target_path
             with open(target_path, 'w', encoding='utf-8') as f:
                 json.dump(payload, f, indent=None, separators=(',', ':'), ensure_ascii=False)
             self.logger.info(f"GPU Manifest Sealed -> {target_path}")

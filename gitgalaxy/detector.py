@@ -13,7 +13,7 @@ import hashlib
 import logging
 import time
 from typing import Dict, List, Any, TypedDict, Optional, Tuple
-from . import gitgalaxy_standards_v011 as config
+from . import gitgalaxy_standards_v1 as config
 
 
 # ==============================================================================
