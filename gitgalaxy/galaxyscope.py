@@ -34,6 +34,7 @@ from .spectral_auditor import SpectralAuditor
 from .gpu_recorder import GPURecorder
 from .audit_recorder import AuditRecorder
 from .llm_recorder import LLMRecorder
+from .security_lens import SecurityLens
 # Load Universal Laws from config
 from . import gitgalaxy_standards_v011 as scanning_config
 
@@ -111,13 +112,22 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     """Processes a single file path using the worker's cached hardware modules."""
     global _worker_state
     
+    # ---> START THE CLOCK FOR THE MICRO-PROFILER <---
+    t_start = time.time()
+    
     root = _worker_state['root']
     full_path_str = str(root / rel_path) 
     
     # --- NEW: PARALLEL PHANTOM CHECK ---
     # Silently evaporates files missing on disk to prevent main-thread anomaly logging
     if not Path(full_path_str).is_file():
-        return {"rel_path": rel_path, "status": "phantom", "reason": "Phantom file (missing on disk)", "data": {}}
+        return {
+            "rel_path": rel_path, 
+            "status": "phantom", 
+            "reason": "Phantom file (missing on disk)", 
+            "data": {},
+            "processing_time": time.time() - t_start
+        }
 
     logger = _worker_state['worker_logger']
     aperture = _worker_state['filter']
@@ -139,19 +149,28 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["status"] = "singularity"
             observation["reason"] = reason
             observation["size_bytes"] = size_bytes 
+            observation["processing_time"] = time.time() - t_start
             return observation
             
         try:
             with open(full_path_str, 'r', encoding='utf-8', errors='ignore') as f:
                 content_buffer = f.read()
+        except FileNotFoundError:
+            # Replaces the Phantom Check! Fast, zero-overhead disk failure routing.
+            observation["status"] = "phantom"
+            observation["reason"] = "Phantom file (missing on disk)"
+            observation["processing_time"] = time.time() - t_start
+            return observation
         except Exception as e:
             observation["reason"] = f"I/O Error: {str(e)}"
+            observation["processing_time"] = time.time() - t_start
             return observation
 
         filter_res = aperture.is_in_scope(full_path_str, content=content_buffer, has_intent=has_prior)
         if not filter_res["is_in_scope"]:
             observation["status"] = "singularity"
             observation["reason"] = filter_res["reason"]
+            observation["processing_time"] = time.time() - t_start
             return observation
 
         detection_result = detector.inspect(
@@ -169,6 +188,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["status"] = "singularity"
             observation["reason"] = f"Unsupported Format (.{lang_id})" 
             observation["identity_confidence"] = detection_result.get("intensity", 0.0)
+            observation["processing_time"] = time.time() - t_start
             return observation
         
         refraction = prism.refract(content_buffer, lang_id)
@@ -218,12 +238,12 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             "prior_lock": has_prior,
             "coding_loc": refraction["coding_loc"],
             "doc_loc": refraction["doc_loc"],
-            "raw_imports": raw_imports,          # <-- ADDED
-            "popularity_hits": popularity_hits   # <-- ADDED
+            "raw_imports": raw_imports,          
+            "popularity_hits": popularity_hits   
         }
         
         data_payload.update(logic_data)
-        data_payload["raw_imports"] = list(raw_imports) # <-- Cast to list!
+        data_payload["raw_imports"] = list(raw_imports) 
         data_payload["control_flow_ratio"] = logic_data.get("total_control_flow_ratio", 0.0)
         data_payload["file_impact"] = logic_data.get("sum_fxn_impact", 0.0)
 
@@ -232,6 +252,17 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     except Exception as e:
         observation["status"] = "anomaly"
         observation["reason"] = f"Hardware failure: {str(e)}"
+        
+    # ---> RECORD THE FINAL TIME <---
+    total_time = time.time() - t_start
+    observation["processing_time"] = total_time
+
+    # ---> NEW: REAL-TIME SLOW FILE ALERT <---
+    if total_time > 10.0:
+        logger.warning(f"🐌 SLOW PARSE DETECTED: '{rel_path}' took {total_time:.2f} seconds.")
+
+    # ---> RECORD THE FINAL TIME <---
+    observation["processing_time"] = time.time() - t_start
 
     return observation
 
@@ -797,6 +828,52 @@ class Orchestrator:
                 "file_impact": forensic_result["file_impact"],
                 "telemetry": telemetry_payload 
             })
+            
+        # ==================================================================
+        # THE SECRETS SUPERNOVA INJECTION (Synthetic Visualization)
+        # Pull critical leaks out of Dark Matter and force them onto the map
+        # ==================================================================
+        leaks = [cand for cand in self.singularity_candidates if "CRITICAL LEAK" in cand.get("reason", "")]
+        
+        # Remove them from Dark Matter so they aren't double-counted in the summary
+        self.singularity_candidates = [cand for cand in self.singularity_candidates if "CRITICAL LEAK" not in cand.get("reason", "")]
+        
+        from .signal_processor import SignalProcessor
+        
+        for leak in leaks:
+            rel_path = leak["path"]
+            logger.critical(f"Supernova Injection: Forcing {rel_path} onto the 3D Map!")
+            
+            synthetic_star = {
+                "name": Path(rel_path).name,
+                "path": rel_path,
+                "lang_id": "plaintext", # <-- Bypasses the Spectral Auditor as Inert Matter
+                "coding_loc": 1,
+                "total_loc": 1,
+                "band": "critical_secret_leak",
+                
+                # 18-point risk vector. Index 17 is secrets_risk. Peg it to 100%.
+                "risk_vector": [0.0] * 13 + [0.0, 0.0, 0.0, 0.0, 100.0], 
+                "hit_vector": [0] * len(SignalProcessor.SIGNAL_SCHEMA),
+                
+                # ---> CARTOGRAPHER GRAVITY <---
+                # This makes the radius massive and pushes all other files away
+                "file_impact": 5000.0, 
+                
+                "telemetry": {
+                    "ownership": "Secrets Radar",
+                    "domain_context": {"warning": "CRITICAL CREDENTIAL LEAK DETECTED"},
+                    "identity_source_proof": "Aperture Security Override",
+                    "identity_lock_tier": 0
+                }
+            }
+            
+            # Manually flag the private_info hit so UI tooltips show the exact trigger
+            if "private_info" in SignalProcessor.SIGNAL_SCHEMA:
+                idx = SignalProcessor.SIGNAL_SCHEMA.index("private_info")
+                synthetic_star["hit_vector"][idx] = 1
+                
+            self.stars.append(synthetic_star)
     
     def _prepare_target(self, target_input: Union[str, Path]) -> Path:
         """Prepares the filesystem for analysis."""
@@ -934,6 +1011,7 @@ def main():
     parser.add_argument("target", help="Path to repo or ZIP")
     parser.add_argument("--output", default=None, help="Optional output filename override")
     parser.add_argument("--debug", action="store_true", help="Turn on verbose Analytical logging")
+    parser.add_argument("--paranoid", action="store_true", help="Lower security thresholds to flag more potential threats.")
     
     args = parser.parse_args()
 
@@ -982,6 +1060,16 @@ def main():
                         merged_langs[lang]['rules'].update(rules_patch)
                         logging.debug(f"   -> Patched '{lang}' geometry rules.")
 
+        # =========================================================
+        # --- NEW: SECURITY LENS INTEGRATION ---
+        # =========================================================
+        logging.info("🛡️ SECURITY LENS ACTIVE: Passively monitoring for Threat Signatures.")
+        lens = SecurityLens(parent_logger=logging.getLogger())
+        
+        # Unconditionally inject the 'sec_' prefixed observers into the registry
+        merged_langs = lens.arm_lens(merged_langs)
+        # =========================================================
+        
         # ---------------------------------------------------------
         # 3. Assemble the Final Configuration
         # ---------------------------------------------------------
@@ -991,7 +1079,8 @@ def main():
             "APERTURE_CONFIG": getattr(scanning_config, "APERTURE_CONFIG", {}),
             "PATH_MODIFIERS": getattr(scanning_config, "PATH_MODIFIERS", {}),
             "PRIORITY_WHITELIST": getattr(scanning_config, "PRIORITY_WHITELIST", []),
-            "DOCUMENTATION_LANGUAGES": getattr(scanning_config, "DOCUMENTATION_LANGUAGES", set()) 
+            "DOCUMENTATION_LANGUAGES": getattr(scanning_config, "DOCUMENTATION_LANGUAGES", set()),
+            "PARANOID_MODE": args.paranoid # ---> 2. INJECT INTO CONFIG <--- 
         }
 
         # ---------------------------------------------------------

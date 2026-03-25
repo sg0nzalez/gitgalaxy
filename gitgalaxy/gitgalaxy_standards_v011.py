@@ -78,7 +78,7 @@ APERTURE_CONFIG = {
 
         # 4. Cryptographic Keys & Signatures (Dense Base64 / Hex blocks)
         # Prevents the engine from scanning thousands of lines of raw cryptographic hashes.
-        '.pem', '.key', '.crt', '.cer', '.p12', '.p7b', '.asc', '.gpg', '.sig', '.keystore',
+        '.crt', '.cer', '.p12', '.p7b', '.asc', '.gpg', '.sig', '.keystore',
 
         # 5. Office & Print Documents (Zipped XMLs that cause regex spirals)
         '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp',
@@ -103,12 +103,14 @@ APERTURE_CONFIG = {
     "MAX_FILE_SIZE_MB": 50,           # Resource Guard (Large Data Dump limit)
     
     # Spectral Band Definitions: Standardized terminology for the Orchestrator.
+    # These strings are written directly to the galaxy.json manifest.
     "BANDS": {
-        "RADIO": "radio_noise",       # .gitignore / hidden paths
-        "MICROWAVE": "binary_debris",  # Compiled binaries / images
-        "DARK_MATTER": "unknown_ext", # Non-whitelisted extensions
-        "INFRARED": "saturated",      # Minified code / data dumps
-        "VISIBLE": "source_code"      # Whitelisted source matter
+        "RADIO": "ignored_system_or_hidden_file",       
+        "MICROWAVE": "unreadable_binary_or_media",  
+        "DARK_MATTER": "unsupported_file_type", 
+        "INFRARED": "minified_or_massive_data",      
+        "VISIBLE": "valid_source_code",
+        "QUARANTINE": "critical_contraband_leak" 
     }
 }
 
@@ -131,6 +133,37 @@ PRIORITY_WHITELIST = [
     "docker-compose.yml", "Dockerfile", "Jenkinsfile"
 ]
 
+APERTURE_CONFIG = {
+    # --- [Keep your existing BLACK_HOLES and BLACK_HOLE_EXTENSIONS here] ---
+    
+# ==========================================================================
+    # THE SECRETS RADAR (Credential Leaks)
+    # Files that should never be committed to a repository. Aperture will block 
+    # them from being scanned (to save CPU) but will flag them as critical leaks.
+    # ==========================================================================
+    "SECRETS_EXACT": {
+        '.env', '.env.local', '.env.production', 
+        'id_rsa', 'id_dsa', 'id_ecdsa', 'id_ed25519', # SSH Private Keys
+        'secret_token.rb', 'credentials.yml', 'master.key', 'htpasswd',
+        'aws_credentials', 'gcp_credentials.json'
+    },
+    
+    "SECRETS_EXTENSIONS": {
+        '.pem', '.key', '.pkcs12', '.p12', '.pfx', '.keystore', '.jks', 
+        '.ovpn', '.kdbx', '.sqlite3', '.db' # Keys, VPN configs, and raw databases
+    },
+
+    # ... [Keep MAX_LINE_LENGTH, etc] ...
+    
+    "BANDS": {
+        "RADIO": "ignored_system_or_hidden_file",       
+        "MICROWAVE": "unreadable_binary_or_media",  
+        "DARK_MATTER": "unsupported_file_type", 
+        "INFRARED": "minified_or_massive_data",      
+        "VISIBLE": "valid_source_code",
+        "QUARANTINE": "critical_secret_leak" # <--- Fully aligned terminology
+    }
+}
 # Defines the rules for Bayesian Intent inference used by the GuideStar Lens
 GUIDESTAR_CONFIG = {
     "MANIFEST_MAP": {
@@ -418,11 +451,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": re.compile(
                 r"\b(HACK|FIXME|XXX|BUG|KLUDGE|UGLY|WTF)\b", re.I
             ),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|private[_-]?key|auth[_-]?token)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -672,11 +701,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|private[_-]?key|auth[_-]?token)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -929,11 +954,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|private[_-]?key|auth[_-]?token)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -1156,11 +1177,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|credit[_-]?card|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -1405,11 +1422,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|credit[_-]?card|private[_-]?key|ConnectionString)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -1650,11 +1663,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key)\b[ \t]*(?:=|:=)",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -1880,12 +1889,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            # Hardcoded credentials or secrets. Enforces an assignment operator (=) to prevent triggering on logs or prose.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -2028,30 +2032,54 @@ LANGUAGE_DEFINITIONS = {
             "linear": re.compile(
                 r"\b(namespace|using|class|struct|enum|union|template|typename|concept|requires|auto|return|void|inline|virtual|explicit|friend|module|export|import|typedef)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
-            # ONLY executable logic blocks. Handles K&R style and modern C/C++ attributes.
             "func_start": re.compile(
+                # =====================================================================
+                # [LLM CONTEXT: C++ FUNCTION AST EXTRACTOR & REDOS SHIELD]
+                # PURPOSE: Anchors executable logic blocks (methods/functions) in C++.
+                # VULNERABILITY: C++ allows multi-line function signatures and complex 
+                #   return types (e.g., `std::vector<int> \n myFunc()`). In files with 
+                #   massive macro lists (like hardware register maps), the `[ \t\n]+` 
+                #   allowances cause catastrophic backtracking (ReDoS).
+                # THE "IRON WALL" FIX: `(?![ \t]*#)` is a negative lookahead injected at 
+                #   high-risk multi-line boundaries. It explicitly forbids the regex engine 
+                #   from crossing into preprocessor directives, capping the permutation tree.
+                # =====================================================================
+
                 # 1. THE HORIZONTAL ANCHOR (Stops O(N^2) vertical spirals)
                 r"^[ \t]*"
+                
                 # 2. LINKAGE & STORAGE MODIFIERS (Now supports vertical formatting)
                 r"(?:(?:static|inline|extern|virtual|_Noreturn|constexpr|consteval|constinit|__inline__|__forceinline)[ \t\n]+){0,5}"
-                # 3. COMPILER ATTRIBUTES PRE-TYPE
+                
+                # 3. COMPILER ATTRIBUTES PRE-TYPE (Includes C23 [[...]])
                 r"(?:(?:__attribute__[ \t]*\([^)]*\)|\[\[[^\]]*\]\]|__declspec[ \t]*\([^)]*\))[ \t\n]*){0,5}"
+                
                 # 4. THE RETURN TYPE (Pointers/references explicitly bound)
+                # [IRON WALL]: Prevents the engine from reading a `#define` on the next line as a return type.
                 r"(?:(?:struct|union|enum)[ \t\n]+)?"
-                r"(?:[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?(?:[ \t\n]+[*&]*[ \t\n]*|[*&]+[ \t\n]*)){0,5}"
+                r"(?:(?![ \t]*#)[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?(?:[ \t\n]+[*&]*[ \t\n]*|[*&]+[ \t\n]*)){0,5}"
+                
                 # 5. THE "NOT A FUNCTION" SHIELD
+                # Prevents control flow (if, while) and primitive types from being captured as function names.
                 r"(?!(?:if|for|while|switch|return|catch|else|elif|sizeof|new|delete|ARGS\d+|NOARGS|int|float|double|char|void|long|short|unsigned|signed|bool|INTEGER|LOGICAL|real|__attribute__|__declspec|__asm__)\b)"
+                
                 # 6. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
-                r"((?:[a-zA-Z_]\w*::)*[~a-zA-Z_]\w*|operator[ \t]*[^a-zA-Z_\s(]+|operator[ \t]+(?:new|delete)(?:\[\])?)"
+                # [IRON WALL]: Ensures the actual function/operator name isn't hijacked by a macro definition.
+                r"(?![ \t]*#)((?:[a-zA-Z_]\w*::)*[~a-zA-Z_]\w*|operator[ \t]*[^a-zA-Z_\s(]+|operator[ \t]+(?:new|delete)(?:\[\])?)"
+                
                 # 7. THE PARAMETER BLOCK (Supports vertical gap)
                 r"[ \t\n]*(?:ARGS\d+\s*\([^)]*\)|\([^)]*\)|NOARGS)"
+                
                 # 8. POST-PARAMETER MODIFIERS & TRAILING RETURN TYPES
                 r"(?:[ \t\n]+(?:const|volatile|noexcept|override|final|&{1,2}|__attribute__\s*\([^)]*\)|\[\[[^\]]*\]\])){0,10}"
                 r"(?:[ \t\n]*->[ \t]*[a-zA-Z_:\w*<>]+)?"
+                
                 # 9. THE K&R C AND C++ CONSTRUCTOR GAP (ReDoS mitigated)
-                r"(?:[ \t\n]*:[^{;]+|(?:[ \t\n]+[a-zA-Z_][^(){};]*;){1,20})?"
-                # 10. THE IGNITION
+                # Handles C++ initializer lists (e.g., `MyClass() : a(1) {`) and legacy K&R declarations.
+                # [IRON WALL]: Highly prone to ReDoS on line wrap. Lookahead blocks runaway macro parsing.
+                r"(?:[ \t\n]*(?![ \t]*#):[^{;]+|(?:[ \t\n]+(?![ \t]*#)[a-zA-Z_][^(){};]*;){1,20})?"
+                
+                # 10. THE IGNITION (The opening brace confirming it is a definition, not a declaration)
                 r"[ \t\n]*\{",
                 re.M,
             ),
@@ -2158,12 +2186,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            # Hardcoded credentials or secrets. Enforces an assignment operator (=) to prevent triggering on logs or prose.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -2308,26 +2331,51 @@ LANGUAGE_DEFINITIONS = {
             # 4. func_start (The Satellite Spawner)
             # ONLY executable logic blocks. Purged of C++ concepts but fully shielded with a 10-stage optical lock.
             "func_start": re.compile(
+                # =====================================================================
+                # [LLM CONTEXT: C-FUNCTION AST EXTRACTOR & REDOS SHIELD]
+                # PURPOSE: Anchors executable logic blocks (functions) in C.
+                # VULNERABILITY: C allows multi-line function signatures. In files with 
+                #   massive macro lists (e.g., 20k lines of `#define`), the `[ \t\n]+` 
+                #   allowances caused catastrophic backtracking (ReDoS).
+                # THE "IRON WALL" FIX: `(?![ \t]*#)` is a negative lookahead injected at 
+                #   high-risk multi-line boundaries. It explicitly forbids the regex engine 
+                #   from crossing into preprocessor directives, capping the permutation tree.
+                # =====================================================================
+                
                 # 1. THE HORIZONTAL ANCHOR (Stops O(N^2) vertical spirals)
                 r"^[ \t]*"
-                # 2. LINKAGE & STORAGE MODIFIERS (Now supports vertical formatting)
+                
+                # 2. LINKAGE & STORAGE MODIFIERS (Supports vertical formatting)
                 r"(?:(?:static|inline|extern|_Noreturn|__inline__|__forceinline|constexpr)[ \t\n]+){0,5}"
-                # 3. COMPILER ATTRIBUTES PRE-TYPE (Includes C23 [[...]])
+                
+                # 3. COMPILER ATTRIBUTES PRE-TYPE (Includes C23 [[...]] and GNU __attribute__)
                 r"(?:(?:__attribute__[ \t]*\([^)]*\)|\[\[[^\]]*\]\]|__declspec[ \t]*\([^)]*\))[ \t\n]*){0,5}"
+                
                 # 4. THE RETURN TYPE (Pointers/references explicitly bound)
+                # [IRON WALL]: Prevents the engine from reading a `#define` on the next line as a return type.
                 r"(?:(?:struct|union|enum)[ \t\n]+)?"
-                r"(?:[a-zA-Z_]\w*(?:[ \t\n]+[*&]*[ \t\n]*|[*&]+[ \t\n]*)){0,5}"
+                r"(?:(?![ \t]*#)[a-zA-Z_]\w*(?:[ \t\n]+[*&]*[ \t\n]*|[*&]+[ \t\n]*)){0,5}"
+                
                 # 5. THE "NOT A FUNCTION" SHIELD
+                # Prevents control flow (if, while) and primitive types from being captured as function names.
                 r"(?!(?:if|for|while|switch|return|sizeof|int|float|double|char|void|long|short|unsigned|signed|bool|__attribute__|__declspec|__asm__)\b)"
+                
                 # 6. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
-                r"([a-zA-Z_]\w*)"
+                # [IRON WALL]: Ensures the actual function name isn't hijacked by a macro definition.
+                r"(?![ \t]*#)([a-zA-Z_]\w*)"
+                
                 # 7. THE PARAMETER BLOCK (Supports vertical gap)
                 r"[ \t\n]*(?:ARGS\d+\s*\([^)]*\)|\([^)]*\)|NOARGS)"
+                
                 # 8. POST-PARAMETER MODIFIERS (GCC attributes safely handled)
                 r"(?:[ \t\n]+(?:__attribute__\s*\([^)]*\)|\[\[[^\]]*\]\])){0,5}"
-                # 9. THE K&R C PARAMETER GAP (Crucial for legacy DOOM codebases)
-                r"(?:(?:[ \t\n]+[a-zA-Z_][^(){};]*;){1,20})?"
-                # 10. THE IGNITION
+                
+                # 9. THE K&R C PARAMETER GAP (Crucial for legacy codebases like DOOM/FreeBSD)
+                # Legacy C allows type declarations between the closing ')' and opening '{'.
+                # [IRON WALL]: This area is highly prone to ReDoS. The lookahead prevents runaway macro parsing.
+                r"(?:(?:[ \t\n]+(?![ \t]*#)[a-zA-Z_][^(){};]*;){1,20})?"
+                
+                # 10. THE IGNITION (The opening brace confirming it is a definition, not a declaration)
                 r"[ \t\n]*\{",
                 re.M,
             ),
@@ -2418,11 +2466,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -2675,11 +2719,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key|auth[_-]?token)\b[ \t]*(?:=>|=|:)",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -2930,12 +2970,7 @@ LANGUAGE_DEFINITIONS = {
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            # Hardcoded credentials or secrets. Enforces an assignment operator (=) to prevent triggering on logs or prose.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
             # 30. civil_war (The Indentation Tracker)
             # Structural formatting violating norms. Handled natively by the GitGalaxy Signal Processor.
@@ -3169,11 +3204,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|aws_access_key_id|private[_-]?key|auth[_-]?token)[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"#\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -3420,11 +3451,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|credit[_-]?card|private[_-]?key|auth[_-]?token)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -3648,11 +3675,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|credit[_-]?card|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -3883,11 +3906,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|credit[_-]?card|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -4136,11 +4155,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|credit[_-]?card|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"--\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -4411,11 +4426,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": re.compile(
                 r"<!--\s*(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I
             ),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(?:password|secret|token|api_key|client_secret|private_key|auth_token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL)[^\]]*\]", re.I
@@ -4654,11 +4665,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(?:password|secret|token|api_key|client_secret|private_key|auth_token)\b[ \t]*:",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]|\bfigma\.com/file/", re.I
@@ -4935,11 +4942,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(HACK|FIXME|XXX|BUG|WORKAROUND|KLUDGE|OPTIMIZE|HARDCODED|NOQA|IGNORED|WTF|BROKEN|FRAGILE|UGLY|MESSY|BAND-AID|PATCH)\b",
                 re.I,
             ),
-            # 28. private_info (The Sensitive Assets)
-            # Hardcoded secrets, static credentials, or PII exposure risks inside strings or parameters.
-            "private_info": re.compile(
-                r"(?i)\b(password|secret|token|api_key)\b[ \t]*="
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             # Audit tags establishing traceability of intent back to physics papers or architectural specifications.
             # CRITICAL: Removed (?i) to enforce strict uppercase [SPEC-XYZ] tags and prevent prose collisions.
@@ -5202,10 +5205,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"(?i)\b(password|secret|token|api_key)\b[ \t]*(?:db|dw|dd|dq|\.ascii|\.string|\.asciz|equ|=)"
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|rfc)[^\]]*\]", re.I
@@ -5446,10 +5446,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": re.compile(
                 r"#\s*(HACK|FIXME|XXX|BOGUS|BUG|TRASH\s+POCKET)\b", re.I
             ),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"(?i)\b(password|secret|token|api_key)\b[ \t]*(?:=|\bEQU\b)"
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             # Linkage to MIT GSOP or mission versions.
             "spec_exposure": re.compile(
@@ -5645,11 +5642,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
             # 30. civil_war: Indentation Tracker. Tabs vs Spaces density.
@@ -5871,11 +5864,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|credit[_-]?card|private[_-]?key|auth[_-]?token)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -6084,10 +6073,7 @@ LANGUAGE_DEFINITIONS = {
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             "spec_exposure": re.compile(r"\[(?:spec-[0-9]+|audit|rfc)\]", re.I),
             "civil_war": None,
             "ssr_boundaries": re.compile(
@@ -6309,12 +6295,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": re.compile(
                 r"\b(HACK|FIXME|XXX|BUG|KLUDGE|UGLY|WTF)\b", re.I
             ),
-            # 28. private_info (The Sensitive Assets)
-            # Hardcoded IoT credentials and WiFi passwords.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|wifi[_-]?pass|ssid[_-]?pass|mqtt[_-]?pass|auth[_-]?token|credentials|private[_-]?key)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -6542,11 +6523,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r'\b(PASSWORD|SECRET|TOKEN|API[_-]?KEY|CLIENT[_-]?SECRET|SSN)[A-Z0-9_-]*\b[ \t]+(?:IS[ \t]+)?(?:VALUE|PIC)\b|\bMOVE\s+[\'"][^\'"]+[\'"]\s+TO\s+[A-Z0-9_-]*(?:PASSWORD|SECRET|TOKEN)',
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
             # 30. civil_war: Indentation Tracker. Tabs vs spaces conflict.
@@ -6729,11 +6706,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
             # 30. civil_war: Indentation Tracker. Tabs vs 4-space standardization.
@@ -6951,11 +6924,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags and architecture specs.
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]|\b(?:WorldWideWeb|RFC|W3C|CERN|TBL|ENQUIRE)\b",
@@ -7179,11 +7148,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key|auth[_-]?token)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags and architecture specs.
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL|ENQUIRE)[^\]]*\]|\b(?:Tim\s+Berners-Lee|WorldWideWeb|HyperText\s+Proposal)\b",
@@ -7409,11 +7374,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags and architecture specs.
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]|\b(?:WorldWideWeb|HyperText\s+Proposal|NeXTSTEP)\b",
@@ -7660,12 +7621,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            # Hardcoded secrets injected into the image as ENV vars or ARGs. High-alert security risk (should use BuildKit secrets).
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|aws_access_key_id|private[_-]?key|auth[_-]?token)\b[ \t]*=",
-                re.I,
-            ),
+
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit|CVE-\d{4}-\d+)[^\]]*\]",
@@ -7885,10 +7841,7 @@ LANGUAGE_DEFINITIONS = {
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
             "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            "private_info": re.compile(
-                r"\b(?:password|secret|token|api_key|client_secret|private_key)\b[ \t]*=",
-                re.I,
-            ),
+
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
             ),
@@ -8112,11 +8065,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r'\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key|auth[_-]?token)\b[ \t]*=|put\s+["\'][^"\']+["\']\s+into\s+\b(password|secret|token|api[_-]?key)\b',
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
             # 30. civil_war: Indentation Tracker. Tabs vs Spaces density.
@@ -8321,10 +8270,7 @@ LANGUAGE_DEFINITIONS = {
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|ssn|private[_-]?key)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL|ENQUIRE)[^\]]*\]|\b(?:WorldWideWeb|HyperText\s+Proposal|NeXTSTEP\s+Docs)\b",
                 re.I,
@@ -8525,10 +8471,7 @@ LANGUAGE_DEFINITIONS = {
             # --------------------------------------------------------------------------
             "planned_debt": re.compile(r"\b(?:todo|wip|stub|implement)\b", re.I),
             "fragile_debt": re.compile(r"\b(?:hack|fixme|xxx|kludge|ugly|wtf)\b", re.I),
-            "private_info": re.compile(
-                r"\b(?:password|secret|token|api_key|client_secret|private_key)[ \t]*[:=]",
-                re.I,
-            ),
+
             "spec_exposure": re.compile(r"\[(?:spec-[0-9]+|audit|spec)\]", re.I),
             # Strict tracking of Indentation structural boundaries. (Make strictly demands Tabs, mapping space usage catches severe fragmentation).
             "civil_war": None,
@@ -8731,11 +8674,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info: Sensitive Assets. Secrets in strings.
-            "private_info": re.compile(
-                r"\b(PASSWORD|SECRET|TOKEN|API[_-]?KEY|CLIENT[_-]?SECRET|CREDENTIALS|PRIVATE[_-]?KEY|SSN)\b[ \t]*(?:=|VALUE)",
-                re.I,
-            ),
+
             # 29. spec_exposure: Map vs. Territory. Audit tags and architecture docs.
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]|\b(?:WorldWideWeb|RFC|W3C|CERN|TBL|ENQUIRE)\b",
@@ -8998,7 +8937,6 @@ LANGUAGE_DEFINITIONS = {
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS ---
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            "private_info": re.compile(r"\b(password|secret|token)\b[ \t]*[:=]", re.I),
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
@@ -9168,11 +9106,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             # 27. fragile_debt
             "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info
-            "private_info": re.compile(
-                r"\b(?:password|secret|token|api[_-]?key|client[_-]?secret|private[_-]?key)\b[ \t]*[:=]",
-                re.I,
-            ),
+
             # 29. spec_exposure
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
@@ -9382,11 +9316,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
             # 27. fragile_debt
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info
-            "private_info": re.compile(
-                r"(?<=\()(?:define|set!)\s+(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key)\b",
-                re.I,
-            ),
+
             # 29. spec_exposure
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -9760,10 +9690,7 @@ LANGUAGE_DEFINITIONS = {
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS ---
             "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
             "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret)\b[ \t]*=|\bset[ \t]+(password|secret|token|api[_-]?key|client[_-]?secret)\b",
-                re.I,
-            ),
+
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
             ),
@@ -9952,11 +9879,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 27. fragile_debt (The Fracture)
             "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
-            # 28. private_info (The Sensitive Assets)
-            "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*[:=]",
-                re.I,
-            ),
+ 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
@@ -10482,26 +10405,30 @@ RISK_EQUATION_TUNING = {
 # ------------------------------------------------------------------------------
 # 5. SCHEMA & EXPORT REGISTRY (Consumed by recorders & SQLite)
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# 5. SCHEMA & EXPORT REGISTRY (Consumed by recorders & SQLite)
-# ------------------------------------------------------------------------------
 RECORDING_SCHEMAS = {
     "RISK_SCHEMA": [
         "cognitive_load", "safety_score", "tech_debt", "verification", 
         "api_exposure", "concurrency", "state_flux", "graveyard", 
-        "spec_match", "stability", "churn", "documentation", "civil_war"
+        "spec_match", "stability", "churn", "documentation", "civil_war",
+        # --- THE SECURITY & VULNERABILITY LENSES ---
+        "obscured_payload", "logic_bomb", "injection_surface", 
+        "memory_corruption", "secrets_risk"
     ],
     "SIGNAL_SCHEMA": [
         "branch", "linear", "args", "func_start", "class_start",
         "safety", "safety_neg", "danger", "io", "api", "flux", "graveyard", "doc", "test",
         "concurrency", "ui_framework", "closures", "globals", "decorators", "generics", 
         "comprehensions", "scientific", "heat_triggers", "import", "ownership",
-        "planned_debt", "fragile_debt", "private_info", "spec_exposure", "civil_war", 
+        "planned_debt", "fragile_debt", "spec_exposure", "civil_war", 
         "ssr_boundaries", "events", "dependency_injection", "macros", "pointers", 
         "memory_alloc", "inline_asm", "telemetry", "print_hits", "cast_hits", 
         "bailout_hits", "halt_hits", "bitwise_hits", "sync_locks", "freeze_hits", 
         "cleanup", "encapsulation", "listeners", "test_skip",
-        "indent_tabs", "indent_spaces"
+        "indent_tabs", "indent_spaces",
+        # --- NEW: PASSIVE SECURITY LENS OBSERVERS ---
+        "sec_heat_triggers", "sec_safety_neg", "sec_io", "sec_danger", 
+        "sec_flux", "sec_graveyard", "sec_bitwise_hits", "sec_shadow_imports",
+        "sec_homoglyphs", "sec_private_info"
     ],
     "SAT_SCHEMA": [
         "name", "loc", "branch", "angle_x10", "args", "type_id", "control_flow_x1000", "mag_x10", "start_line", "end_line"
@@ -10534,7 +10461,7 @@ RECORDING_SCHEMAS = {
         "scientific": "Scientific & Mathematical Operations", "heat_triggers": "Metaprogramming & Reflection",
         "import": "Module Dependencies (Imports)", "ownership": "Authorship Metadata",
         "planned_debt": "Planned Work (TODOs)", "fragile_debt": "Acknowledged Tech Debt (FIXMEs)",
-        "private_info": "Hardcoded Secrets / Credentials", "spec_exposure": "Specification Traceability Tags",
+        "spec_exposure": "Specification Traceability Tags",
         "civil_war": "Indentation Faction", "ssr_boundaries": "Server-Side Rendering Contexts",
         "events": "Event Publishers / Emitters", "dependency_injection": "Dependency Injection Constructs",
         "macros": "Preprocessor Macros", "pointers": "Pointer Arithmetic & Addressing",
@@ -10545,7 +10472,26 @@ RECORDING_SCHEMAS = {
         "sync_locks": "Thread Synchronization Locks", "freeze_hits": "Immutable Data Declarations",
         "cleanup": "Resource Deallocation & Cleanup", "encapsulation": "Private / Encapsulated Scopes",
         "listeners": "Event Listeners & Subscribers", "test_skip": "Bypassed / Skipped Tests",
-        "indent_tabs": "Structural Tab Indentations", "indent_spaces": "Structural Space Indentations"
+        "indent_tabs": "Structural Tab Indentations", "indent_spaces": "Structural Space Indentations",
+        
+        # --- SECURITY LENS UI MAPPINGS (Plain English) ---
+        "sec_heat_triggers": "Scrambled / Obfuscated Code",
+        "sec_safety_neg": "Security Rule Bypasses",
+        "sec_io": "Suspicious Network Connections",
+        "sec_danger": "Dangerous Code Execution (Eval/Exec)",
+        "sec_flux": "Global Environment Tampering",
+        "sec_graveyard": "Executable Code Hidden in Comments",
+        "sec_bitwise_hits": "Custom Encryption / Decryption Math",
+        "sec_shadow_imports": "Importing Fake Media/Data Files",
+        "sec_homoglyphs": "Invisible / Fake Text Characters",
+        "sec_private_info": "Hardcoded Secrets & Credentials",
+        
+        # --- VULNERABILITY EXPOSURE MAPPINGS (Plain English) ---
+        "obscured_payload": "Hidden Malware Risk",
+        "logic_bomb": "Sabotage & Time Bomb Risk",
+        "injection_surface": "Data Injection Risk (SQLi/XSS)",
+        "memory_corruption": "Memory Exploit & Crash Risk",
+        "secrets_risk": "Credential Leak Risk"
     },
     "EXPOSURE_LABELS": {
         "cognitive_load": "Cognitive Load Exposure", "safety_score": "Safety Exposure",
@@ -10554,11 +10500,16 @@ RECORDING_SCHEMAS = {
         "state_flux": "State Flux Exposure", "graveyard": "Graveyard Exposure",
         "spec_match": "Specification Exposure", "stability": "Instability Exposure",
         "churn": "Volatility Exposure", "documentation": "Documentation Exposure",
-        "civil_war": "Civil War Exposure"
+        "civil_war": "Civil War Exposure",
+        
+        # --- SECURITY LENS UI LABELS (Plain English) ---
+        "obscured_payload": "Hidden Malware Risk",
+        "logic_bomb": "Sabotage & Time Bomb Risk",
+        "injection_surface": "Data Injection Risk",
+        "memory_corruption": "Memory Exploit Risk",
+        "secrets_risk": "Credential Leak Risk"
     }
 }
-
-
 # ------------------------------------------------------------------------------
 # 6. DIALECTS (Project-Specific Overrides)
 # ------------------------------------------------------------------------------

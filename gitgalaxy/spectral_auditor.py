@@ -314,11 +314,21 @@ class SpectralAuditor:
                 if is_outlier:
                     if self._is_necrotic(s):
                         # SPEC ALIGNMENT: Grant Reprieve from Relegation without mutating lang_id
-                        # We keep a flag for internal tracking, but preserve the original lang_id
                         s["is_necrotic"] = True 
                         self.logger.debug(f"[{lid}] Necrosis Guard: '{name}' failed audit ({relegation_reason}) but granted a Reprieve from Relegation.")
                         visible.append(s)
                         necrotic_count += 1
+                        
+                    elif self._is_threat(s):
+                        # --- THE QUARANTINE GUARD ---
+                        # If a file is heavily obfuscated malware, its standard logic density will crash to 0,
+                        # making it look like a data dump. This guard explicitly saves it from the trash 
+                        # and forces it onto the map so the auditor can see the threat.
+                        s["is_quarantined"] = True 
+                        self.logger.critical(f"[{lid}] 🚨 QUARANTINE GUARD ACTIVATED: '{name}' failed structural audit ({relegation_reason}) but contains ACTIVE THREAT SIGNATURES. Forcing to Visible Galaxy!")
+                        visible.append(s)
+                        # We treat it as visible so it passes down to the Signal Processor and GPU Recorder
+                        
                     else:
                         # --- BAYESIAN ACCOUNTABILITY ---
                         # If the file had a strong prior (Tier 0 or 1), hold the prediction to account.
@@ -399,3 +409,24 @@ class SpectralAuditor:
             "identity_lock_tier": telemetry.get("identity_lock_tier", star.get("lock_tier", 4)),
             "identity_source_proof": telemetry.get("identity_source_proof", star.get("source_proof", "Discovery"))
         }
+        
+    def _is_threat(self, star: Dict[str, Any]) -> bool:
+        """
+        Determines if a star contains active security threat signatures.
+        Used by the Quarantine Guard to prevent obfuscated malware from 
+        using its low structural density to hide in the Dark Matter trash pile.
+        """
+        try:
+            eq = star.get("equations", {})
+            
+            # Sum the mass of all keys starting with 'sec_'
+            threat_mass = sum(val for key, val in eq.items() if key.startswith("sec_"))
+            
+            # If the file has even a single threat signature, it cannot be discarded.
+            if threat_mass > 0:
+                return True
+                
+        except Exception as e:
+            self.logger.debug(f"Threat evaluation failed safely: {e}")
+            
+        return False

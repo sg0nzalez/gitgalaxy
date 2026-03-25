@@ -33,6 +33,7 @@ class DetectorResult(TypedDict):
     lang_mix: List[Dict[str, Any]]
     loc: int
     size_bytes: int
+    anomaly_flags: List[str]  # <--- NEW: Security RAM Cache
 
 
 class FocusingError(Exception):
@@ -175,7 +176,8 @@ class LanguageDetector:
             "path": str(file_path),
             "lang_mix": [],
             "loc": 0,
-            "size_bytes": 0
+            "size_bytes": 0,
+            "anomaly_flags": []  # <--- Initialize RAM
         }
 
         if not content_sample:
@@ -243,7 +245,32 @@ class LanguageDetector:
         # 1. Gather Physical Signals
         ext_lang = self._tier_1_metadata_lock(ext, name)
         shebang_lang = self._tier_2_fingerprint_check(content_sample)
+        
+        # =========================================================================
+        # THE IDENTITY CRISIS TRAP (Security Lens Integration)
+        # =========================================================================
+        # If both a known extension AND a known shebang exist, but they contradict 
+        # each other, the file is lying about its physical identity.
+        is_conflict = (ext_lang and ext_lang != "undeterminable") and \
+                      (shebang_lang and shebang_lang != "undeterminable") and \
+                      (ext_lang != shebang_lang)
 
+        if is_conflict:
+            self.logger.warning(f"[{name}] IDENTITY CRISIS: Ext '{ext_lang}' contradicts Shebang '{shebang_lang}'")
+            
+            # 1. Cache the threat into RAM for the Security Lens
+            result["anomaly_flags"].append(f"Identity Masking: Extension ({ext_lang}) vs Shebang ({shebang_lang})")
+            
+            # 2. Force the file into the Singularity by destroying its identity
+            return self._forge_result(
+                lang_id="undeterminable", 
+                intensity=0.0, 
+                tier=5, # Tier 5: Absolute Distrust
+                proof=f"Identity Conflict ({ext_lang} != {shebang_lang})", 
+                base=result, 
+                content_sample=content_sample
+            )
+            
         # =========================================================================
         # THE TRUST MATRIX (Bayesian Evidence Hierarchy)
         # =========================================================================
@@ -709,6 +736,8 @@ class LanguageDetector:
                 if friction_ratio > 5.0:
                     self.logger.warning(f"Tier 4 [Reconciliation]: TEMPORAL ANOMALY on {top_id}...")
                     return "undeterminable", 0.0
+                
+                return top_id, top_density # <-- ADDED SUCCESS RETURN
             
             # 2. The Friction Tie-Breaker
             elif density_margin >= self.thresholds.get("TIER_4_OUTLIER_MARGIN", 1.10):
@@ -718,9 +747,14 @@ class LanguageDetector:
                     return "undeterminable", 0.0
                 self.logger.debug(f"Tier 4 [Reconciliation]: Friction Tie-Breaker utilized for {top_id}.")
                 
+                return top_id, top_density # <-- ADDED SUCCESS RETURN
+                
             # 3. Absolute Ambiguity
             else:
                 return "undeterminable", 0.0
+
+        # 4. Single Candidate Victory (or falling out of the block safely)
+        return top_id, top_density # <-- ADDED FALLBACK RETURN
 
     def _forge_result(self, lang_id: str, intensity: float, tier: int, proof: str, base: DetectorResult, content_sample: str = "") -> DetectorResult:
         family = self.languages.get(lang_id, {}).get('lexical_family')

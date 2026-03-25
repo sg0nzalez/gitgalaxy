@@ -252,14 +252,117 @@ class AuditRecorder:
                 "Discovery Proof": "Logic Splicer Shielding"
             })
 
-        # 4. Final Mission Archive Packaging
+        # ==========================================================
+        # 4. FORENSIC SECURITY & VULNERABILITY AUDIT (Section 3)
+        # ==========================================================
+        sec_risk_mapping = {
+            "secrets_risk": {"label": "Secrets Risk Exposure", "threshold": 0.1},
+            "obscured_payload": {"label": "Hidden Malware Risk Exposure", "threshold": 60.0},
+            "logic_bomb": {"label": "Logic Bomb / Sabotage Risk Exposure", "threshold": 50.0},
+            "injection_surface": {"label": "Injection Surface Risk Exposure", "threshold": 65.0},
+            "memory_corruption": {"label": "Memory Corruption Risk Exposure", "threshold": 60.0}
+        }
+        
+        sec_hit_mapping = {
+            "sec_danger": "Dangerous Code Execution (Eval/Exec)",
+            "sec_safety_neg": "Security Rule Bypasses",
+            "sec_io": "Suspicious Network Connections",
+            "sec_flux": "Global Environment Tampering",
+            "sec_heat_triggers": "Scrambled / Obfuscated Code",
+            "sec_graveyard": "Shadow Logic (Hidden Code)",
+            "sec_bitwise_hits": "Sub-Atomic Decryption (Custom XOR)",
+            "sec_shadow_imports": "Steganographic Execution (Shadow Imports)",
+            "sec_homoglyphs": "Unicode Smuggling (Homoglyph Imports)"
+        }
+
+        quarantined_files = []
+        vuln_exposures = {
+            data["label"]: {
+                "Alert Threshold": f">= {data['threshold']}%", 
+                "Artifacts Flagged": 0, 
+                "Critical Files": []
+            } for key, data in sec_risk_mapping.items()
+        }
+        
+        raw_threat_hits = {
+            "_description": "The total number of times these specific malicious regex patterns were triggered across all scanned files.",
+            **{label: 0 for label in sec_hit_mapping.values()}
+        }
+
+        # Safe index lookups
+        risk_indices = {k: self.RISK_SCHEMA.index(k) for k in sec_risk_mapping.keys() if k in self.RISK_SCHEMA}
+        hit_indices = {k: self.HIT_SCHEMA.index(k) for k in sec_hit_mapping.keys() if k in self.HIT_SCHEMA}
+
+        # Sweep the stars for security anomalies
+        for star in stars:
+            path = star.get("path", "Unknown")
+            band = star.get("band", "")
+            
+            if band == "critical_secret_leak":
+                quarantined_files.append({
+                    "Path": path,
+                    "Diagnostic": star.get("telemetry", {}).get("domain_context", {}).get("warning", "CRITICAL LEAK (Exposed Secret / Key Detected)")
+                })
+                
+            risk_vector = star.get("risk_vector", [])
+            if len(risk_vector) == len(self.RISK_SCHEMA):
+                for r_key, r_idx in risk_indices.items():
+                    score = risk_vector[r_idx]
+                    mapping = sec_risk_mapping[r_key]
+                    if score >= mapping["threshold"]:
+                        label = mapping["label"]
+                        vuln_exposures[label]["Critical Files"].append({"Path": path, "Score": f"{score:.1f}%"})
+                        vuln_exposures[label]["Artifacts Flagged"] += 1
+            
+            # Aggregate the raw threat hits
+            hit_vector = star.get("hit_vector")
+            if isinstance(hit_vector, list) and len(hit_vector) == len(self.HIT_SCHEMA):
+                for h_key, h_idx in hit_indices.items():
+                    hits = hit_vector[h_idx]
+                    if hits > 0:
+                        label = sec_hit_mapping[h_key]
+                        raw_threat_hits[label] += hits
+
+        # --- THE FALSE POSITIVE FIX: Decouple Active Threats from Surface Risks ---
+        # 1. Count actual malicious regex hits (ignoring the _description string)
+        malicious_hits_total = sum(v for k, v in raw_threat_hits.items() if isinstance(v, int))
+        
+        # 2. Check for explicit malware
+        has_malware = vuln_exposures["Hidden Malware Risk Exposure"]["Artifacts Flagged"] > 0
+        has_secrets = vuln_exposures["Secrets Risk Exposure"]["Artifacts Flagged"] > 0
+
+        # 3. Tiered Status Routing
+        if quarantined_files or has_malware or has_secrets or malicious_hits_total > 0:
+            audit_status = "CRITICAL_THREATS_DETECTED"
+        elif any(v["Artifacts Flagged"] > 0 for v in vuln_exposures.values()):
+            # DOOM lands here. High architectural risk, but no active malicious intent.
+            audit_status = "ELEVATED_SURFACE_RISK" 
+        else:
+            audit_status = "SECURE"
+
+        security_audit = {
+            "Audit Status": audit_status,
+            "Scope": {
+                "Artifacts Evaluated": len(stars),
+                "Threat Signatures Monitored": len(sec_hit_mapping),
+                "Vulnerability Vectors Calculated": len(sec_risk_mapping)
+            },
+            "Exposed Secrets & Credentials (Quarantined Files)": quarantined_files,
+            "Vulnerability Exposures (Threshold Breaches)": vuln_exposures,
+            "Raw Threat Signature Hits (Total Repository Occurrences)": raw_threat_hits
+        }
+
+        # ==========================================================
+        # 5. Final Mission Archive Packaging
+        # ==========================================================
         mission_audit = {
             "Audit Protocol": "GitGalaxy v6.2.0-Audit",
             "1. Forensic Trail (Traceability)": forensic_trail,
             "2. Global Synthesis Summary": summary,
-            "3. High-Value Forensic Report": forensic_report,
-            "4. Dark Matter (Excluded Artifacts)": pretty_singularity,
-            "5. Visible Matter (Scanned Artifacts)": pretty_constellations
+            "3. Forensic Security & Vulnerability Audit": security_audit,
+            "4. High-Value Forensic Report": forensic_report,
+            "5. Dark Matter (Excluded Artifacts)": pretty_singularity,
+            "6. Visible Matter (Scanned Artifacts)": pretty_constellations
         }
 
         # --- ABSOLUTE ROUTING LOGIC ---

@@ -13,6 +13,8 @@ import hashlib
 import logging
 import time
 from typing import Dict, List, Any, TypedDict, Optional, Tuple
+from . import gitgalaxy_standards_v011 as config
+
 
 # ==============================================================================
 # GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Cartographer
@@ -214,19 +216,9 @@ class LogicSplicer:
     3. Integration Modes: Labels (A), Braces (B), Indentation (C), Keywords (D), Terminators (E).
     """
 
-    # --- ADD THE SCHEMA HERE ---
-    UNIVERSAL_METRICS_SCHEMA = [
-        "branch", "linear", "args", "func_start", "class_start", "safety", 
-        "safety_neg", "danger", "io", "api", "flux", "graveyard", "doc", 
-        "test", "concurrency", "ui_framework", "closures", "globals", 
-        "decorators", "generics", "comprehensions", "scientific", "heat_triggers", 
-        "import", "ownership", "planned_debt", "fragile_debt", "private_info", 
-        "spec_exposure", "civil_war", "ssr_boundaries", "events", 
-        "dependency_injection", "macros", "pointers", "memory_alloc", 
-        "inline_asm", "telemetry", "print_hits", "cast_hits", "bailout_hits", 
-        "halt_hits", "bitwise_hits", "sync_locks", "freeze_hits", "cleanup", 
-        "encapsulation", "listeners", "test_skip", "indent_tabs", "indent_spaces"
-    ]
+    # --- DYNAMIC SCHEMA FETCH ---
+    # Directly mirrors the central registry to prevent schema drift
+    UNIVERSAL_METRICS_SCHEMA = config.RECORDING_SCHEMAS.get("SIGNAL_SCHEMA", [])
     
     HANDSHAKE_REGISTRY = [
         {"trigger": re.compile(r'<script', re.I), "end": re.compile(r'</script>', re.I), "target": "javascript", "pair": None},

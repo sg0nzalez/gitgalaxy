@@ -3,14 +3,23 @@
 [![PyPI version](https://badge.fury.io/py/gitgalaxy.svg)](https://badge.fury.io/py/gitgalaxy)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0/)
+
+[![Engine](https://img.shields.io/badge/Engine-blAST-8A2BE2.svg)](#)
+[![Velocity](https://img.shields.io/badge/Velocity-100k+_LOC%2Fs-00C957.svg)](#)
+[![Analysis](https://img.shields.io/badge/Analysis-Code_Bioinformatics-00BFFF.svg)](#)
+[![Threat Hunting](https://img.shields.io/badge/Threat_Hunting-Behavioral-FF4500.svg)](#)
+[![Architecture](https://img.shields.io/badge/Architecture-Zero__Trust-teal.svg)](#)
+
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)](https://pypi.org/project/gitgalaxy/)
 [![Airgap Ready](https://img.shields.io/badge/Security-Airgap_Ready-teal.svg)](#)
-[![Local Processing](https://img.shields.io/badge/Telemetry-100%25_Local-blueviolet.svg)](#)
-[![Hardware Accelerated](https://img.shields.io/badge/Render-WebGPU_|_WebGL2-ff69b4.svg)](#)
+
 
 Code is art. Logic is art. Systems engineering is art.
 
-GitGalaxy reveals the complexity of codebases as explorable 3D galaxies by using source code as a seed for procedural generative art. It acts as a Rosetta Stone for code complexity, allowing you to visually compare the scale and risk exposure of different projects—from Apollo 11 to the Linux Kernel—under the same set of rules. GitGalaxy visualizes the non-visual architecture of massive software repositories, translating codebases into color based non-numeric dashboard, where files are rendered as stars (for humans), low-token markdown summaries of deep tech patterns the entire code base  (for AI agents), and full audit of both Software Bill of Materials and internal file metrics (for lawyers). Code never leaves your machine, zero dependencies. Analyses based on BLAST and bioinformatic algorithms ported to coding languages. Currently handles ~40 languages and ~250 file extensions. Average scan rates at ~100,000 LOC/second, allowing for CI/CD pipeline integration. CLI based for AI-agent workflow, visualization system optional. 
+GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is designed to extract the structural DNA of massive software repositories and render their non-visual architecture into measurable, explorable 3D galaxies.
+
+**1. The blAST Engine - The galaxyscope (Backend):** A hyper-scale, language-agnostic static analysis CLI. Based on 50 years of bioinformatics and genetic sequencing algorithms, it parses code at ~100,000 LOC/second. It outputs rich JSON telemetry, SQLite databases, and low-token Markdown briefs optimized for AI-agent workflows.
+**2. The Observatory (Frontend):** Drop your galaxy.json into the free viewer at [GitGalaxy.io](https://gitgalaxy.io/) or use the repo's airgap_observatory, a standalone, zero-telemetry WebGPU visualizer. Both visualizers read the JSON contract and renders the entire code base as a procedural 3D galaxy where files are stars, allowing humans to visually map scale and risk exposure instantly.
 
 **Live Demo:** View 3D galaxy examples of Apollo-11, Linux, Tensorflow and more at [GitGalaxy.io](https://gitgalaxy.io/)
 
@@ -57,13 +66,17 @@ Open your web browser and go to http://localhost:8000.
 
 Drag and drop your newly generated _galaxy.json file to instantly render your architecture.
 
-## How & What Does it Measure?
+## 🧬 The blAST Paradigm: Sequencing the DNA of Software
 
-Accomplished by scanning codebases with the same tech used to scan strings of DNA when I was a scientist. By employing a BLAST-like algorithm, a taxonomic language feature map, and DNA fingerprinting algorithms, GitGalaxy brings 50-ish years of bioinformatics to code analysis. We parse our resulting DNA/code fingerprint into a series of risk exposure metrics (genotype to phenotype associations).
+Traditional computer science treats software like a rigid blueprint, using slow, language-specific Abstract Syntax Trees (ASTs) to analyze code. GitGalaxy treats code as a living, mutating organism using **blAST (Broad Lexical Abstract Syntax Tracker)**.
 
-GitGalaxy does not measure "Code Quality", which feels like a judgment, but instead measures Risk Exposure. Our measurements do not judge; they highlight. We do not assess "Bad Code"; we measure Cognitive Load Exposure—how hard it is for a human to work through the logic—because teams should be aware which files are the hardest to work on. 
+By applying the principles of biological sequence alignment to software, blAST hunts for the universal structural markers of logic across ~40 languages and ~250 file extensions. We translate this genetic code into "phenotypes"—measurable risk exposures.
 
-Risk Exposures identify general trends (this file has high API exposure) instead of providing an absolute ranking over tiny differences (this file is better than that one because it scored 6% higher in the tech debt equation). These are general guides to give engineers, managers and CTOs a visual estimate on code status. It allows a team to agree on standards and instantly see—without reading a single line of text—where their architecture might be drifting into dangerous territory.
+### Sequencing at Hyper-Scale
+By abandoning the compiler bottleneck, blAST achieves processing velocities that traditional ASTs simply cannot comprehend. In live telemetry tracking across the largest open-source ecosystems, blAST demonstrated its absolute scale:
+* **Peak Velocity:** Sequenced the 141,445 lines of the original **Apollo-11** Guidance Computer assembly code in **0.28 seconds** (an alignment rate of **513,298 LOC/s**).
+* **Massive Monoliths:** Chewed through the **3.2 million lines of OpenCV in just 11.11 seconds** (288,594 LOC/s). 
+* **Planetary Scale:** Effortlessly mapped the architectural DNA of planetary-scale repositories like **TensorFlow (7.8M LOC)**, **Kubernetes (5.5M LOC)**, and **FreeBSD (24.4M LOC)** in a fraction of the time required to compile them.
 
 ## Zero-Trust Architecture
 
@@ -72,6 +85,14 @@ Your code never leaves your machine. GitGalaxy performs 100% of its scanning and
 * **No Data Transmission:** Source code is never transmitted to any API, cloud database, or third-party service.
 * **Ephemeral Memory Processing:** Repositories are unpacked into a volatile memory buffer (RAM) and are automatically purged when the browser tab is closed.
 * **Privacy-by-Design:** Even when using the web-based viewer, the data remains behind the user's firewall at all times.
+
+### The Viral Security Lens: Behavioral Threat Hunting
+Traditional security scanners rely on rigid, outdated virus signatures. blAST acts like an immune system, hunting for the *behavioral genetic markers* of a threat. By analyzing the structural density of I/O hits, execution triggers, and security bypasses, blAST is perfectly engineered to stop modern attack vectors:
+
+* **Supply-Chain Poisoning:** Instantly flags seemingly innocent setup scripts that possess an anomalous density of network I/O and dynamic execution (`eval`/`exec`).
+* **Logic Bombs & Sabotage:** Identifies code designed to destroy infrastructure by catching dense concentrations of catastrophic OS commands and raw hardware aborts.
+* **Steganography & Obfuscated Malware:** Mathematically exposes evasion techniques, flagging Unicode Smuggling (homoglyph imports) and sub-atomic custom XOR decryption loops.
+* **Credential Hemorrhaging:** Acts as a ruthless data vault scanner, isolating hardcoded cryptographic assets (`.pem`, `.pfx`, `.jks` files) buried deep within massive repositories.
 
 ## License & Copyright
 

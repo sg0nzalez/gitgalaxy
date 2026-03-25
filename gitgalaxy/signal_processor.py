@@ -33,28 +33,16 @@ class SignalProcessor:
     4. Flexible Risk Schema: Vector indexing is dynamic, preventing offset bugs.
     """
 
-    # --- THE SPECTRAL SCHEMA ---
-# --- THE SPECTRAL SCHEMA (v6.2.0 - 51-Point Sync) ---
-    SIGNAL_SCHEMA = [
-        "branch", "linear", "args", "func_start", "class_start",
-        "safety", "safety_neg", "danger", "io", "api", "flux", "graveyard", "doc", "test",
-        "concurrency", "ui_framework", "closures", "globals", "decorators", "generics", 
-        "comprehensions", "scientific", "heat_triggers", "import", "ownership",
-        "planned_debt", "fragile_debt", "private_info", "spec_exposure", "civil_war", 
-        "ssr_boundaries", "events", "dependency_injection", "macros", "pointers", 
-        "memory_alloc", "inline_asm", "telemetry", "print_hits", "cast_hits", 
-        "bailout_hits", "halt_hits", "bitwise_hits", "sync_locks", "freeze_hits", 
-        "cleanup", "encapsulation", "listeners", "test_skip",
-        "indent_tabs", "indent_spaces"
-    ]
+    # ==========================================================================
+    # SCHEMA BINDING (Single Source of Truth)
+    # Dynamically inherited from gitgalaxy_standards_v011.py
+    # ==========================================================================
     
-    # --- THE 13-POINT RISK EXPOSURE SCHEMA ---
-    RISK_SCHEMA = [
-        "cognitive_load", "safety_score", "tech_debt",   "verification", 
-        "api_exposure",   "concurrency",  "state_flux",  "graveyard", 
-        "spec_match",     "stability",    "churn",       "documentation", 
-        "civil_war"
-    ]
+    # The 60-Point Spectral Sync (Standard + Security Lens)
+    SIGNAL_SCHEMA = config.RECORDING_SCHEMAS.get("SIGNAL_SCHEMA", [])
+    
+    # The 18-Point Risk Exposure Schema
+    RISK_SCHEMA = config.RECORDING_SCHEMAS.get("RISK_SCHEMA", [])
 
     def __init__(
         self, 
@@ -88,6 +76,7 @@ class SignalProcessor:
         self.path_modifiers = getattr(config, "PATH_MODIFIERS", {})
         self.asset_masks = getattr(config, "PHYSICS_ASSET_MASKS", {})
         self.risk_tuning = getattr(config, "RISK_EQUATION_TUNING", {})
+        self.is_paranoid = self.config.get("PARANOID_MODE", False) 
         
         self.logger.info(f"Signal Processor Online | 13-Point Risk Schema loaded.")
 
@@ -153,7 +142,13 @@ class SignalProcessor:
                     0.0,  # Stability (Highly stable)
                     min(raw_churn_freq * 10, 100.0), # Churn (Scales based on commit frequency)
                     100.0,  # Documentation Coverage (Perfect)
-                    50.0     # Civil War (N/A)
+                    50.0,     # Civil War (N/A)
+                    # --- SECURITY BYPASS ---
+                    0.0,    # Obscured Payload
+                    0.0,    # Logic Bomb
+                    0.0,    # Injection Surface
+                    0.0,    # Memory Corruption
+                    0.0     # Secrets Risk
                 ]
 
                 return {
@@ -225,7 +220,13 @@ class SignalProcessor:
                 "stability":      stability_score,
                 "churn":          0.0, # Placeholder: Auto-Scaled globally in Pass 2
                 "documentation":  doc_score,
-                "civil_war":      self._calc_civil_war(equations)
+                "civil_war":      self._calc_civil_war(equations),
+                # --- THE SECURITY & VULNERABILITY LENSES ---
+                "obscured_payload":  self._calc_obscured_payload(loc, equations, mp_map.get("obscured", 1.0)),
+                "logic_bomb":        self._calc_logic_bomb(loc, equations, mp_map.get("logic_bomb", 1.0)),
+                "injection_surface": self._calc_injection_surface(loc, equations, mp_map.get("injection", 1.0)),
+                "memory_corruption": self._calc_memory_corruption(loc, equations, mp_map.get("memory", 1.0), lang_id), 
+                "secrets_risk":      self._calc_secrets_risk(loc, equations, mp_map.get("secrets", 1.0))
             }
             
             # ------------------------------------------------------------------
@@ -698,6 +699,173 @@ class SignalProcessor:
         ratio = min(eq.get("spec_exposure", 0) / entities, 1.0)
         return min((1.0 - ratio) * 100.0 * mp, 100.0)
     
+    def _calc_obscured_payload(self, loc: int, eq: Dict[str, int], mp: float) -> float:
+        """
+        Calculates Obscured Payload Exposure (Malicious Intent Density).
+        Combines passive Security Lens observers with hardcoded secret detection.
+        """
+        glassworm = (eq.get("sec_heat_triggers", 0) * 5.0) + (eq.get("sec_bitwise_hits", 0) * 2.0)
+        trojan = eq.get("sec_safety_neg", 0) * 3.0
+        exfiltration = eq.get("sec_io", 0) * 4.0
+        executioner = eq.get("sec_danger", 0) * 5.0
+        poisoning = eq.get("sec_flux", 0) * 3.0
+        shadow_logic = eq.get("sec_graveyard", 0) * 2.0
+        secrets = eq.get("private_info", 0) * 1.5
+        steganography = eq.get("sec_shadow_imports", 0) * 10.0
+        unicode_smuggling = eq.get("sec_homoglyphs", 0) * 10.0
+
+        total_threat_mass = glassworm + trojan + exfiltration + executioner + poisoning + shadow_logic + secrets + steganography + unicode_smuggling
+
+        if total_threat_mass == 0:
+            return 0.0
+
+        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
+        density = (total_threat_mass / max(loc + 50, 1)) * 100.0
+
+        threshold = 2.0
+        slope = 1.5
+
+        try:
+            score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
+        except OverflowError:
+            score = 100.0 if density > threshold else 0.0
+
+        return min(score * mp, 100.0)
+    
+    def _calc_logic_bomb(self, loc: int, eq: Dict[str, int], mp: float) -> float:
+        """
+        Calculates Logic Bomb / Sabotage Exposure.
+        Looks for delayed or condition-heavy execution leading to destructive commands.
+        """
+        trigger = eq.get("branch", 0) + (eq.get("halt_hits", 0) * 3.0)
+        payload = (eq.get("bailout_hits", 0) * 2.0) + (eq.get("cleanup", 0) * 1.5) + (eq.get("danger", 0) * 4.0)
+
+        sabotage_mass = trigger * payload
+
+        if sabotage_mass == 0:
+            return 0.0
+
+        explicit_threats = eq.get("sec_graveyard", 0) + eq.get("sec_heat_triggers", 0)
+        if explicit_threats == 0 and getattr(self, 'is_paranoid', False) == False:
+            sabotage_mass *= 0.05 
+
+        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
+        density = (sabotage_mass / max(loc + 50, 1)) * 100.0
+
+        threshold = 10.0 if getattr(self, 'is_paranoid', False) else 35.0
+        slope = 0.5 if getattr(self, 'is_paranoid', False) else 0.3
+
+        try:
+            score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
+        except OverflowError:
+            score = 100.0 if density > threshold else 0.0
+
+        return min(score * mp, 100.0)
+
+    def _calc_injection_surface(self, loc: int, eq: Dict[str, int], mp: float) -> float:
+        """
+        Calculates Injection Surface Exposure (XSS, SQLi, RCE, SSTI).
+        Looks for external network input flowing near dynamic execution without safety nets.
+        """
+        input_vectors = eq.get("io", 0) + (eq.get("ssr_boundaries", 0) * 2.0)
+        execution_vectors = (eq.get("danger", 0) * 4.0) + (eq.get("safety_neg", 0) * 2.0)
+
+        injection_mass = input_vectors * execution_vectors
+
+        if injection_mass == 0:
+            return 0.0
+            
+        explicit_threats = eq.get("sec_danger", 0) + eq.get("sec_io", 0)
+        if explicit_threats == 0 and getattr(self, 'is_paranoid', False) == False:
+            injection_mass *= 0.10 
+
+        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
+        density = (injection_mass / max(loc + 50, 1)) * 100.0
+
+        threshold = 3.0 if getattr(self, 'is_paranoid', False) else 15.0
+        slope = 1.2 if getattr(self, 'is_paranoid', False) else 0.6
+
+        try:
+            score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
+        except OverflowError:
+            score = 100.0 if density > threshold else 0.0
+
+        return min(score * mp, 100.0)
+
+    def _calc_memory_corruption(self, loc: int, eq: Dict[str, int], mp: float, lang_id: str = "") -> float:
+        """
+        Calculates Memory Corruption Exposure (Buffer Overflows, UAF).
+        Strictly Opt-In: Only applies to languages with manual memory/pointers.
+        """
+        # ---> THE ARCHITECTURAL FIX: Opt-In Vulnerability Whitelist <---
+        native_memory_langs = {"c", "cpp", "objective-c", "rust", "zig", "assembly", "agc_assembly", "nim"}
+        
+        # If it's not a native memory language, it physically cannot have these exploits.
+        if lang_id.lower() not in native_memory_langs:
+            return 0.0
+
+        raw_memory_mass = (eq.get("pointers", 0) * 2.5) + \
+                          (eq.get("memory_alloc", 0) * 3.0) + \
+                          (eq.get("inline_asm", 0) * 5.0) + \
+                          (eq.get("cast_hits", 0) * 1.5)
+
+        if raw_memory_mass == 0:
+            return 0.0
+
+        mitigation_mass = eq.get("cleanup", 0) + (eq.get("safety", 0) * 1.5)
+
+        net_risk = max(raw_memory_mass - mitigation_mass, 0.0)
+        
+        explicit_threats = eq.get("sec_danger", 0) + eq.get("sec_safety_neg", 0) + eq.get("sec_heat_triggers", 0)
+        if explicit_threats == 0 and getattr(self, 'is_paranoid', False) == False:
+            net_risk *= 0.05
+
+        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
+        density = (net_risk / max(loc + 50, 1)) * 100.0
+
+        threshold = 4.0 if getattr(self, 'is_paranoid', False) else 25.0
+        slope = 0.8 if getattr(self, 'is_paranoid', False) else 0.4
+
+        try:
+            score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
+        except OverflowError:
+            score = 100.0 if density > threshold else 0.0
+
+        return min(score * mp, 100.0)
+    
+    def _calc_secrets_risk(self, loc: int, eq: Dict[str, int], mp: float) -> float:
+        """
+        Calculates Secrets Risk Exposure (Data Hemorrhage).
+        Looks for hardcoded credentials. Trusts the SecurityLens RHS-string sensor.
+        """
+        base_leak = eq.get("sec_private_info", 0) * 10.0
+        
+        if base_leak == 0:
+            return 0.0
+
+        careless_amplifiers = 1.0 + eq.get("print_hits", 0) + eq.get("graveyard", 0) + eq.get("globals", 0)
+
+        if getattr(self, 'is_paranoid', False) == False and eq.get("sec_heat_triggers", 0) == 0:
+            careless_amplifiers = min(careless_amplifiers, 2.0)
+
+        leak_mass = base_leak * careless_amplifiers
+
+        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
+        density = (leak_mass / max(loc + 50, 1)) * 100.0
+
+        threshold = 0.5 if getattr(self, 'is_paranoid', False) else 3.0
+        slope = 2.0 if getattr(self, 'is_paranoid', False) else 1.0
+
+        try:
+            score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
+        except OverflowError:
+            score = 100.0 if density > threshold else 0.0
+
+        if score < 5.0:
+            score = 0.0
+
+        return min(score * mp, 100.0)
+    
     # --------------------------------------------------------------------------
     # REPORTING UTILITIES
     # --------------------------------------------------------------------------
@@ -761,7 +929,7 @@ class SignalProcessor:
             'Testing Exposure': 'test', 'Dead Code Exposure': 'dead',
             'API Exposure': 'api', 'Concurrency Exposure': 'async',
             'State Flux Exposure': 'flux', 'Specification Exposure': 'spec',
-            'Churn Exposure': 'churn'
+            'Churn Exposure': 'churn', 'Obscured Payload Exposure': 'obscured' # <--- ADDED
         }
 
         for category, modifiers in self.path_modifiers.items():

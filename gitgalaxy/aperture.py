@@ -104,14 +104,6 @@ class ApertureFilter:
         """
         [PHASE 0 ENTRY POINT]
         Fast path-only check to build the CensusArray (Radar Walk).
-        Now safely fetches file size to prevent the 0-Byte Dark Matter telemetry bug.
-        
-        Args:
-            file_path: The artifact's path.
-            has_intent: True if the GuideStar mapped this file in a manifest or priority list.
-            
-        Returns:
-            Tuple: (is_valid: bool, size_bytes: int, reason: str)
         """
         path_obj = Path(file_path)
         normalized_path = path_obj.as_posix()
@@ -122,20 +114,28 @@ class ApertureFilter:
         except ValueError:
             relative_path = normalized_path
 
-        # Safely fetch size before making drop decisions to ensure accurate Dark Matter telemetry
         try:
             size_bytes = path_obj.stat().st_size if path_obj.exists() else 0
         except OSError:
             size_bytes = 0
 
-        # 0. TIER 0.5: THE ABSOLUTE EXTENSION SHIELD (Impervious to Intent)
-        # Drops SVGs, 3D Models, PDFs, and PGP keys before disk I/O ever happens.
+        # ======================================================================
+        # 0.1 TIER 0.1: THE SECRETS RADAR (Highest Priority Security Check)
+        # Checks for leaked credentials, databases, and private keys.
+        # ======================================================================
+        if path_obj.name in self.config.get("SECRETS_EXACT", set()) or ext.lower() in self.config.get("SECRETS_EXTENSIONS", set()):
+            reason = f"CRITICAL LEAK (Exposed Secret / Key Detected: '{path_obj.name}')"
+            self.logger.critical(f"🛡️ SECURITY BREACH: {reason} at {relative_path}")
+            return False, size_bytes, reason
+
+        # ======================================================================
+        # 0.5 TIER 0.5: THE ABSOLUTE EXTENSION SHIELD (Impervious to Intent)
+        # ======================================================================
         if ext.lower() in self.black_hole_exts:
             reason = f"Blocked (Explicitly Blacklisted Media/Binary Extension: '{ext}')"
             self.logger.debug(f"{reason}: {relative_path}")
             return False, size_bytes, reason
 
-        # Resolve intent status against cache
         active_intent = has_intent or (normalized_path in self._intent_cache)
         if active_intent:
             self._intent_cache.add(normalized_path)
@@ -147,21 +147,17 @@ class ApertureFilter:
             return False, size_bytes, reason
 
         # --- INTENT BYPASS ---
-        # If the file has a GuideStar lock, it bypasses linguistic whitelisting entirely.
         if active_intent:
             reason = "Passed (GuideStar Intent Lock Bypassed Tier 2)"
             self.logger.debug(f"{reason}: {relative_path}")
             return True, size_bytes, reason
 
         # 2. TIER 2: THE VISIBLE SPECTRUM (Linguistic Whitelisting)
-        # Rule 2.1: Deep Space Remnants (Spec 2.3.3.B)
-        # We allow extensionless files through without intent to be evaluated by the Shebang Scanner
         if not ext:
             reason = "Passed (Extensionless -> Shebang scan required)"
             self.logger.debug(f"{reason}: {relative_path}")
             return True, size_bytes, reason
             
-        # Rule 2.2: Known Ecosystem Anchor or Whitelisted Extension
         if path_obj.name in self.ecosystem_anchors or ext.lower() in self.whitelisted_extensions:
             reason = "Passed (Ecosystem Anchor or Whitelisted Ext)"
             return True, size_bytes, reason
@@ -169,7 +165,7 @@ class ApertureFilter:
         reason = f"Blocked (Unsupported or Unrecognized Extension: '{ext}')"
         self.logger.debug(f"{reason}: {relative_path}")
         return False, size_bytes, reason
-
+    
     def is_in_scope(self, file_path: Union[str, Path], content: Optional[str] = None, has_intent: bool = False) -> FilterResult:
         """Runs the 5-tier perimeter gate to validate maintainable code matter."""
         path_obj = Path(file_path)
@@ -211,7 +207,13 @@ class ApertureFilter:
             # --- TIER 1 & 2: PATH VALIDATION ---
             is_valid, size_bytes, reason = self.evaluate_path_integrity(path_obj, has_intent=active_intent)
             if not is_valid:
-                result["band"] = self.bands.get("RADIO", "radio_noise")
+                # --- SECRETS RADAR CHECK ---
+                if reason and "CRITICAL LEAK" in reason:
+                    # Uses the new QUARANTINE band and aligned terminology
+                    result["band"] = self.bands.get("QUARANTINE", "critical_secret_leak")
+                else:
+                    result["band"] = self.bands.get("RADIO", "ignored_system_or_hidden_file")
+                    
                 result["reason"] = reason
                 result["size_bytes"] = size_bytes
                 return result

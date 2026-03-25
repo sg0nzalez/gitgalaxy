@@ -100,8 +100,8 @@ export class GalaxyEngine {
         const resScale = canvasHeight / 1080.0;
 
         // Make these class-level uniforms so the Poster generator can control them!
-        this.uBloomRadius = uniform(0.4 * resScale);
-        this.uBloomStrength = uniform(0.8 * Math.pow(resScale, 0.5));
+        this.uBloomRadius = uniform(0.1 * resScale);
+        this.uBloomStrength = uniform(0.6 * Math.pow(resScale, 0.5));
         const staticThreshold = 0.4;
 
         const bloomNode = bloom(scenePass, this.uBloomStrength, this.uBloomRadius, staticThreshold);
@@ -709,7 +709,7 @@ export class GalaxyEngine {
             const z = raw.galaxy.pos_z[i] / pScalar;
             
             dummy.position.set(x, y, z);
-            const scale = 10 + Math.pow(mass, 1/3) * 2;
+            const scale = 10 + Math.pow(mass, 1/3) * 2.1;
             dummy.scale.setScalar(type === 'dot' ? scale * 0.5 : scale);
             dummy.rotation.set(Math.random(), Math.random(), 0);
             dummy.updateMatrix();

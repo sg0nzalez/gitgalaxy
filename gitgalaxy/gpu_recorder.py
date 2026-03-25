@@ -50,41 +50,7 @@ class GPURecorder:
         # --- POSITION-SENSITIVE SCHEMAS ---
         self.RISK_SCHEMA = schemas.get("RISK_SCHEMA", [])
         self.HIT_SCHEMA = schemas.get("SIGNAL_SCHEMA", [])
-        self.SAT_SCHEMA = schemas.get("SAT_SCHEMA", ["name", "loc", "branch", "angle_x10", "args", "type_id", "control_flow_x1000", "mag_x10", "start_line", "end_line"])
-
-        self.SAT_SCHEMA = [
-            "name", "loc", "branch", "angle_x10", "args", "type_id", "control_flow_x1000", "mag_x10", "start_line", "end_line"
-        ]
-
-    def _minify_satellites(self, satellites: list) -> list:
-        """
-        Compresses the verbose satellite dictionaries into the strict 10-point SAT_SCHEMA array.
-        Multiplies floats by 10 or 1000 to convert them to integers for smaller JSON payloads.
-        """
-        minified = []
-        for sat in satellites:
-            # Resolve the string to an integer ID using your existing lookup dictionaries
-            name_id = self._intern(sat.get("name", "Unknown"), self.purpose_lookup)
-            type_id = self._intern(sat.get("type_id", "standard"), self.texture_lookup)
-
-            # SAT_SCHEMA: [name_id, loc, branch, angle_x10, args, type_id, ratio_x1000, mag_x10, start_line, end_line]
-            mini_sat = [
-                name_id,
-                int(sat.get("loc", 1)),
-                int(sat.get("branch", 0)),
-                int(sat.get("angle", 0.0) * 10),
-                int(sat.get("args", 0)),
-                type_id,
-                int(sat.get("control_flow_ratio", 0.0) * 1000),
-                int(sat.get("impact", 0.0) * 10),
-                int(sat.get("start_line", 0)),   # <-- NEW: Extracted Start Line
-                int(sat.get("end_line", 0))      # <-- NEW: Extracted End Line
-            ]
-            minified.append(mini_sat)
-
-        # Sort them by impact (index 7, highest to lowest) so the UI displays the biggest functions first
-        minified.sort(key=lambda x: x[7], reverse=True)
-        return minified
+        self.SAT_SCHEMA = schemas.get("SAT_SCHEMA", [])
 
     def record_mission(self, stars: List[Dict], singularity: List[Dict], summary: Dict, forensic_report: Dict, repo_name: str) -> Dict:
         """
@@ -95,7 +61,9 @@ class GPURecorder:
 
         columns = {
             "names": [], "paths": [], "lang_ids": [], "locs": [], "m_locs": [], "d_locs": [],
-            "mass": [], "author_distribution": [], "pos_x": [], "pos_y": [], "pos_z": [],
+            "mass": [], "author_distribution": [], 
+            "ownership_entropy": [], "raw_churn_freq": [], "cog_raw": [], # <--- ADDED THE 3 DNA COLUMNS
+            "pos_x": [], "pos_y": [], "pos_z": [],
             "risks": [], "hits": [], "telemetry": [], "satellites": [],
             "imports": [], # <--- NEW: The dependency string lookup column
             "c_ids": [],   # <--- NEW: The Constellation Mapping Column
@@ -130,6 +98,7 @@ class GPURecorder:
             current_idx = len(columns["paths"]) # Tracks the exact column index being built
             s = stars.pop()
             path = s.get("path", "")
+            tel = s.get("telemetry", {})  # Pre-extract telemetry dict
             
             # --- NEW: Map the file to its Constellation via Interning ---
             c_name = s.get("constellation", "__monolith__")
@@ -142,9 +111,13 @@ class GPURecorder:
             columns["m_locs"].append(int(s.get("coding_loc", 0)))
             columns["d_locs"].append(int(s.get("doc_loc", 0))) # <-- NEW: Comment LOC
 
-            # Quantization
+            # Quantization & DNA Fingerprinting (The 3 new columns)
             columns["mass"].append(int(round(s.get("file_impact", 0.0) * 10)))
-            columns["author_distribution"].append(int(round(s.get("telemetry", {}).get("author_distribution", 0.0) * 1000)))
+            columns["author_distribution"].append(int(round(tel.get("author_distribution", 0.0) * 1000)))
+            columns["ownership_entropy"].append(int(round(tel.get("ownership_entropy", 0.0) * 1000)))
+            columns["raw_churn_freq"].append(int(round(tel.get("raw_churn_freq", 0.0) * 1000)))
+            columns["cog_raw"].append(int(round(tel.get("densities", {}).get("cog_raw", 0.0) * 1000)))
+
             columns["pos_x"].append(int(round(s.get("pos_x", 0.0) * 10)))
             columns["pos_y"].append(int(round(s.get("pos_y", 0.0) * 10)))
             columns["pos_z"].append(int(round(s.get("pos_z", 0.0) * 10)))
@@ -154,7 +127,7 @@ class GPURecorder:
             columns["hits"].append([int(v) for v in s.get("hit_vector", [0]*len(self.HIT_SCHEMA))])
 
             # Telemetry Interning
-            tel = s.get("telemetry", {})
+            domain_ctx = tel.get("domain_context", {}) # <-- FIXED BUG: purpose was nested here
             columns["telemetry"].append(
                 {
                     "aid": self._intern(
@@ -164,12 +137,12 @@ class GPURecorder:
                         tel.get("identity_source_proof", "Discovery"), self.proof_lookup
                     ),
                     "purp": self._intern(
-                        tel.get("purpose", "Standard Logic Matrix"), self.purpose_lookup
+                        domain_ctx.get("purpose", "Standard Logic Matrix"), self.purpose_lookup # <-- FIXED BUG
                     ),
                     "lt": tel.get("identity_lock_tier", 4),
                     "pop": tel.get("popularity", 0),
                     "cfr": int(
-                        round(s.get("total_control_flow_ratio", 0.0) * 1000)
+                        round(tel.get("control_flow_ratio", 0.0) * 1000) # <-- FIXED BUG: was grabbing from root
                     ),
                 }
             )
@@ -187,7 +160,7 @@ class GPURecorder:
                     sat.get("args", 0),
                     self._intern(sat.get("texture", "standard"), self.texture_lookup),
                     int(sat.get("control_flow_ratio", 0.0) * 1000),
-                    int(sat.get("magnitude", 0) * 10),
+                    int(sat.get("impact", sat.get("magnitude", 0)) * 10), # <-- FIXED BUG: Added impact
                     int(sat.get("start_line", 0)),
                     int(sat.get("end_line", 0))
                 ])
