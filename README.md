@@ -19,6 +19,7 @@ Code is art. Logic is art. Systems engineering is art.
 GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is designed to extract the structural DNA of massive software repositories and render their non-visual architecture into measurable, explorable 3D galaxies.
 
 **1. The blAST Engine - The galaxyscope (Backend):** A hyper-scale, language-agnostic static analysis CLI. Based on 50 years of bioinformatics and genetic sequencing algorithms, it parses code at ~100,000 LOC/second. It outputs rich JSON telemetry, SQLite databases, and low-token Markdown briefs optimized for AI-agent workflows.
+
 **2. The Observatory (Frontend):** Drop your galaxy.json into the free viewer at [GitGalaxy.io](https://gitgalaxy.io/) or use the repo's airgap_observatory, a standalone, zero-telemetry WebGPU visualizer. Both visualizers read the JSON contract and renders the entire code base as a procedural 3D galaxy where files are stars, allowing humans to visually map scale and risk exposure instantly.
 
 **Live Demo:** View 3D galaxy examples of Apollo-11, Linux, Tensorflow and more at [GitGalaxy.io](https://gitgalaxy.io/)
