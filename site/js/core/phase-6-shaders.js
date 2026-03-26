@@ -125,63 +125,86 @@ export const createPhase6Shaders = (engine) => {
         stab: color(0x76ff03), chu: cWhite, docs: color(0xffd700), civil: color(0x39ff14)  
     };
 
+    // =====================================================================
     // 10. Extract Relevance for the Active Mode
-    let rel = float(0);
-    rel = select(uMetricMode.equal(19), aSecrets, rel);
-    rel = select(uMetricMode.equal(18), aMemory, rel);
-    rel = select(uMetricMode.equal(17), aInjection, rel);
-    rel = select(uMetricMode.equal(16), aLogicBomb, rel);
-    rel = select(uMetricMode.equal(15), aObscured, rel);
-    rel = select(uMetricMode.equal(14), float(1.0), rel);
-    rel = select(uMetricMode.equal(13), aCivilWar, rel);
-    rel = select(uMetricMode.equal(12), aDocs, rel);
-    rel = select(uMetricMode.equal(11), aChurn, rel);
-    rel = select(uMetricMode.equal(10), aStability, rel);
-    rel = select(uMetricMode.equal(9), aSpec, rel);
-    rel = select(uMetricMode.equal(8), aGraveyard, rel);
-    rel = select(uMetricMode.equal(7), aFlux, rel);
-    rel = select(uMetricMode.equal(6), aConcurrency, rel);
-    rel = select(uMetricMode.equal(5), aApi, rel);
-    rel = select(uMetricMode.equal(4), aVerification, rel);
-    rel = select(uMetricMode.equal(3), aDebt, rel);
-    rel = select(uMetricMode.equal(2), aSafety, rel);
-    const relevance = select(uMetricMode.equal(1), aCognitive, rel);
+    // MOBILE SHADER FIX: Grouped into chunks to prevent AST Stack Overflow on mobile GPUs.
+    // =====================================================================
+    const rel1 = select(uMetricMode.equal(1), aCognitive, 
+                 select(uMetricMode.equal(2), aSafety, 
+                 select(uMetricMode.equal(3), aDebt, 
+                 select(uMetricMode.equal(4), aVerification, 
+                 select(uMetricMode.equal(5), aApi, float(0))))));
 
+    const rel2 = select(uMetricMode.equal(6), aConcurrency,
+                 select(uMetricMode.equal(7), aFlux,
+                 select(uMetricMode.equal(8), aGraveyard,
+                 select(uMetricMode.equal(9), aSpec,
+                 select(uMetricMode.equal(10), aStability, float(0))))));
+
+    const rel3 = select(uMetricMode.equal(11), aChurn,
+                 select(uMetricMode.equal(12), aDocs,
+                 select(uMetricMode.equal(13), aCivilWar,
+                 select(uMetricMode.equal(14), float(1.0),
+                 select(uMetricMode.equal(15), aObscured, float(0))))));
+
+    const rel4 = select(uMetricMode.equal(16), aLogicBomb,
+                 select(uMetricMode.equal(17), aInjection,
+                 select(uMetricMode.equal(18), aMemory,
+                 select(uMetricMode.equal(19), aSecrets, float(0)))));
+
+    const relevance = rel1.add(rel2).add(rel3).add(rel4);
+
+    // =====================================================================
     // 11. Select Min and Max Colors dynamically
+    // =====================================================================
     const secMax = color(0xcc0000); // Red
     const secMin = color(0x00f3ff); // Cyan/Teal
+    const cBlack = color(0x000000); // Baseline zero
 
-    let maxC = themeColor; 
-    maxC = select(uMetricMode.greaterThan(14), secMax, maxC);
-    maxC = select(uMetricMode.equal(13), mMax.civil, maxC);
-    maxC = select(uMetricMode.equal(12), mMax.docs, maxC);
-    maxC = select(uMetricMode.equal(11), mMax.chu, maxC);
-    maxC = select(uMetricMode.equal(10), mMax.stab, maxC);
-    maxC = select(uMetricMode.equal(9), mMax.spec, maxC);
-    maxC = select(uMetricMode.equal(8), mMax.grave, maxC);
-    maxC = select(uMetricMode.equal(7), mMax.flux, maxC);
-    maxC = select(uMetricMode.equal(6), mMax.conc, maxC);
-    maxC = select(uMetricMode.equal(5), mMax.api, maxC);
-    maxC = select(uMetricMode.equal(4), mMax.ver, maxC);
-    maxC = select(uMetricMode.equal(3), mMax.debt, maxC);
-    maxC = select(uMetricMode.equal(2), mMax.saf, maxC);
-    maxC = select(uMetricMode.equal(1), mMax.cog, maxC);
+    const max1 = select(uMetricMode.equal(1), mMax.cog,
+                 select(uMetricMode.equal(2), mMax.saf,
+                 select(uMetricMode.equal(3), mMax.debt,
+                 select(uMetricMode.equal(4), mMax.ver,
+                 select(uMetricMode.equal(5), mMax.api, cBlack)))));
 
-    let minC = themeColor; 
-    minC = select(uMetricMode.greaterThan(14), secMin, minC);
-    minC = select(uMetricMode.equal(13), mMin.civil, minC);
-    minC = select(uMetricMode.equal(12), mMin.docs, minC);
-    minC = select(uMetricMode.equal(11), mMin.chu, minC);
-    minC = select(uMetricMode.equal(10), mMin.stab, minC);
-    minC = select(uMetricMode.equal(9), mMin.spec, minC);
-    minC = select(uMetricMode.equal(8), mMin.grave, minC);
-    minC = select(uMetricMode.equal(7), mMin.flux, minC);
-    minC = select(uMetricMode.equal(6), mMin.conc, minC);
-    minC = select(uMetricMode.equal(5), mMin.api, minC);
-    minC = select(uMetricMode.equal(4), mMin.ver, minC);
-    minC = select(uMetricMode.equal(3), mMin.debt, minC);
-    minC = select(uMetricMode.equal(2), mMin.saf, minC);
-    minC = select(uMetricMode.equal(1), mMin.cog, minC);
+    const max2 = select(uMetricMode.equal(6), mMax.conc,
+                 select(uMetricMode.equal(7), mMax.flux,
+                 select(uMetricMode.equal(8), mMax.grave,
+                 select(uMetricMode.equal(9), mMax.spec,
+                 select(uMetricMode.equal(10), mMax.stab, cBlack)))));
+
+    const max3 = select(uMetricMode.equal(11), mMax.chu,
+                 select(uMetricMode.equal(12), mMax.docs,
+                 select(uMetricMode.equal(13), mMax.civil, cBlack)));
+
+    const max4 = select(uMetricMode.greaterThan(14), secMax, cBlack);
+
+    // Sum the chunks, then fallback to theme color if no metric (0) or language identity (14) is active
+    let maxC = max1.add(max2).add(max3).add(max4);
+    maxC = select(uMetricMode.equal(0), themeColor, maxC);
+    maxC = select(uMetricMode.equal(14), themeColor, maxC); 
+
+    const min1 = select(uMetricMode.equal(1), mMin.cog,
+                 select(uMetricMode.equal(2), mMin.saf,
+                 select(uMetricMode.equal(3), mMin.debt,
+                 select(uMetricMode.equal(4), mMin.ver,
+                 select(uMetricMode.equal(5), mMin.api, cBlack)))));
+
+    const min2 = select(uMetricMode.equal(6), mMin.conc,
+                 select(uMetricMode.equal(7), mMin.flux,
+                 select(uMetricMode.equal(8), mMin.grave,
+                 select(uMetricMode.equal(9), mMin.spec,
+                 select(uMetricMode.equal(10), mMin.stab, cBlack)))));
+
+    const min3 = select(uMetricMode.equal(11), mMin.chu,
+                 select(uMetricMode.equal(12), mMin.docs,
+                 select(uMetricMode.equal(13), mMin.civil, cBlack)));
+
+    const min4 = select(uMetricMode.greaterThan(14), secMin, cBlack);
+
+    let minC = min1.add(min2).add(min3).add(min4);
+    minC = select(uMetricMode.equal(0), themeColor, minC);
+    minC = select(uMetricMode.equal(14), themeColor, minC);
 
     // 12. Calculate Interpolation
     const curvedRelevance = pow(relevance, float(2.0));
