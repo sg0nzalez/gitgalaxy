@@ -77,7 +77,10 @@ export class GalaxyEngine {
         
         this.renderer = new WebGPURenderer({ antialias: true, alpha: true });
         await this.renderer.init();
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+        // PERFORMANCE FIX: Clamp pixel ratio to 1.5. 
+        // Prevents modern phones from trying to render at 3x or 4x native resolution,
+        // which completely chokes mobile GPU fill-rates.
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.viewport.appendChild(this.renderer.domElement);
 
@@ -267,6 +270,7 @@ export class GalaxyEngine {
         canvas.addEventListener('mousemove', (e) => {
             this.lastInteractionTime = Date.now();
             this.isRotating = false;
+            this.needsRaycast = true; // <--- ADD THIS LINE
 
             const rect = canvas.getBoundingClientRect();
             this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -344,6 +348,7 @@ export class GalaxyEngine {
             e.preventDefault();
             this.lastInteractionTime = Date.now();
             this.isRotating = false; // Stop idle rotation when user grabs it
+            this.needsRaycast = true; // <--- ADD THIS LINE
 
             if (e.touches.length === 1) {
                 // --- 1 FINGER: ORBIT ---
@@ -864,7 +869,12 @@ export class GalaxyEngine {
             this.cameraPhi += 0.0005;
         }
 
-        this.checkHover();
+        // PERFORMANCE FIX: Only calculate hover intersections if the mouse actually moved
+        if (this.needsRaycast) {
+            this.checkHover();
+            this.needsRaycast = false;
+        }
+
         if (this.hoveredInfo.id !== -1) {
             const mesh = this.hoveredInfo.mesh;
             const idx = this.hoveredInfo.id;
@@ -933,9 +943,11 @@ export class GalaxyEngine {
 
                     // Frustum check: z > 1 means it's behind the camera
                     if (v.z > 1 || v.x < -1 || v.x > 1 || v.y < -1 || v.y > 1) {
-                        f.el.style.display = 'none';
+                        // PERFORMANCE FIX: Only touch the DOM if we actually need to change the state
+                        if (f.el.style.display !== 'none') f.el.style.display = 'none';
                     } else {
-                        f.el.style.display = 'block';
+                        if (f.el.style.display !== 'block') f.el.style.display = 'block';
+                        
                         const x = (v.x * halfW) + halfW;
                         const y = -(v.y * halfH) + halfH;
                         
