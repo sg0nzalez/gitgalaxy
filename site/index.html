@@ -169,37 +169,36 @@
         </div>
     </nav>
 
-    <nav id="story-layer" class="cyber-scroll" style="transform: translateX(-100%); transition: transform 0.4s ease; position: absolute; top: 0; left: 0; height: 100%; width: 350px; max-width: 85vw; background: rgba(5, 5, 8, 0.95); border-right: 1px solid var(--panel-border); backdrop-filter: blur(10px); z-index: 999; padding: 80px 20px 20px 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;"></nav>
-        <header style="margin-bottom: 0;">
+<nav id="story-layer" class="cyber-scroll" style="transform: translateX(-100%); transition: transform 0.4s ease; position: fixed; top: 0; left: 0; height: 100%; width: 380px; max-width: 100vw; background: rgba(5, 5, 8, 0.95); border-right: 1px solid var(--panel-border); backdrop-filter: blur(10px); z-index: 999; padding: 80px 20px 20px 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">        <header style="margin-bottom: 0; flex-shrink: 0;">
             <h1 id="story-title" style="color: var(--accent); font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin: 0; font-size: 22px; letter-spacing: 2px;">EXHIBIT</h1>
             <h2 id="story-status" style="color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 14px; margin: 5px 0 0 0;"></h2>
         </header>
 
-        <div class="panel-section">
+        <div class="panel-section" style="flex-shrink: 0;">
             <label style="color: #bfff00;">WHY IT MATTERS</label>
             <div id="story-why" style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #fff; line-height: 1.7;"></div>
         </div>
 
-        <div class="panel-section">
+        <div class="panel-section" style="flex-shrink: 0;">
             <label style="color: #ffaa00;">THE ARCHITECTS</label>
             <div id="story-who" style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #fff; line-height: 1.7;"></div>
         </div>
 
-        <div class="panel-section">
+        <div class="panel-section" style="flex-shrink: 0;">
             <label style="color: var(--accent);">HISTORICAL SIGNIFICANCE</label>
             <div id="story-significance" style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #fff; line-height: 1.7;"></div>
         </div>
 
-        <div id="story-link-container" class="panel-section" style="display: none; border-left: 2px solid #ff007f; padding-left: 10px;">
+        <div id="story-link-container" class="panel-section" style="display: none; border-left: 2px solid #ff007f; padding-left: 10px; flex-shrink: 0;">
             <a id="story-link" href="#" target="_blank" style="color: #ff007f; text-decoration: none; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: bold; display: block; text-transform: uppercase; letter-spacing: 1px; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#ff007f'">▶ VIEW REPOSITORY</a>
         </div>
 
-        <div class="panel-section" id="story-artifacts-section" style="display: none; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-bottom: 20px;">
+        <div class="panel-section" id="story-artifacts-section" style="display: none; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-bottom: 20px; flex-shrink: 0;">
             <label style="color: #ff007f; margin-bottom: 15px;">AUDIO & ARTIFACTS</label>
             <div id="story-artifacts-list" style="display: flex; flex-direction: column; gap: 20px;"></div>
         </div>
         
-        <button onclick="window.copyStoryData()" class="copy-btn" id="story-copy-btn" style="margin-top: auto;">⎘ COPY EXHIBIT</button>
+        <button onclick="window.copyStoryData()" class="copy-btn" id="story-copy-btn" style="margin-top: auto; flex-shrink: 0;">⎘ COPY EXHIBIT</button>
     </nav>
 
     <div id="metric-legend">
@@ -530,8 +529,8 @@
 
                 hud.classList.remove('zen-hidden');
                 hud.classList.add('active');
+                if (window.updateAboutButtonVisibility) window.updateAboutButtonVisibility();
             }
-            
         };
 
         window.updateSingularityHUD = (sigData) => {
@@ -665,14 +664,9 @@
                     storyBtn.style.pointerEvents = 'none';
                 }
 
-                // Hide GITGALAXY.IO button on mobile to prevent overlap
-                if (window.innerWidth < 800) {
-                    const aboutBtn = document.getElementById('about-btn');
-                    if (aboutBtn) aboutBtn.style.display = 'none';
-                }
-
                 hud.classList.remove('zen-hidden');
                 hud.classList.add('active');
+                if (window.updateAboutButtonVisibility) window.updateAboutButtonVisibility();
 
             } catch (error) {
                 console.error("UI Critical Failure: Crash during HUD rendering.", error);
@@ -968,6 +962,27 @@
             window.updateNavStates();
         };
 
+        // --- MASTER BUTTON VISIBILITY CONTROLLER ---
+        window.updateAboutButtonVisibility = () => {
+            const aboutBtn = document.getElementById('about-btn');
+            if (!aboutBtn) return;
+            
+            if (window.innerWidth <= 768) {
+                // Check if ANY of the three HUDs are currently open
+                const fileHud = document.getElementById('file-hud');
+                const isFileHudOpen = fileHud && fileHud.classList.contains('active');
+                const isNavOpen = window.isMainUIOpen || window.isStoryOpen;
+                
+                if (isNavOpen || isFileHudOpen) {
+                    aboutBtn.style.display = 'none';
+                } else {
+                    aboutBtn.style.display = ''; // Reverts to CSS default
+                }
+            } else {
+                aboutBtn.style.display = ''; // Always show on Desktop
+            }
+        };
+
         window.updateNavStates = () => {
             const uiLayer = document.getElementById('ui-layer');
             const storyLayer = document.getElementById('story-layer');
@@ -1004,6 +1019,9 @@
                 if(storyLayer) storyLayer.style.transform = 'translateX(-100%)';
                 if(storyBtn) storyBtn.innerHTML = '<span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span>';
             }
+            
+            // Sync the GITGALAXY.IO button
+            if (window.updateAboutButtonVisibility) window.updateAboutButtonVisibility();
         };
 
         window.updateNavStates = () => {
@@ -1200,14 +1218,9 @@
             const storyBtn = document.getElementById('story-btn');
             if (storyBtn) { storyBtn.style.opacity = '0'; storyBtn.style.pointerEvents = 'none'; }
             
-            // Hide GITGALAXY.IO button on mobile to prevent overlap
-            if (window.innerWidth < 800) {
-                const aboutBtn = document.getElementById('about-btn');
-                if (aboutBtn) aboutBtn.style.display = 'none';
-            }
-            
             hud.classList.remove('zen-hidden'); 
             hud.classList.add('active');
+            if (window.updateAboutButtonVisibility) window.updateAboutButtonVisibility();
         };
 
         window.toggleLabels = () => {
@@ -1251,18 +1264,10 @@
                 storyBtn.style.opacity = '1';
                 storyBtn.style.pointerEvents = 'all';
             }
-            // Restore GITGALAXY.IO button
-            const aboutBtn = document.getElementById('about-btn');
-            if (aboutBtn) {
-                aboutBtn.style.display = ''; // Setting to empty string reverts to CSS default
-            }
+            
+            // Sync the GITGALAXY.IO button
+            if (window.updateAboutButtonVisibility) window.updateAboutButtonVisibility();
         };
-
-            // Hide GITGALAXY.IO button on mobile to prevent overlap
-            if (window.innerWidth < 800) {
-                const aboutBtn = document.getElementById('about-btn');
-                if (aboutBtn) aboutBtn.style.display = 'none';
-            }
 
         document.addEventListener('click', (e) => {
             const searchBox = document.getElementById('search-results');
