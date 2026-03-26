@@ -605,29 +605,35 @@ export class GalaxyEngine {
             this.globalWebMesh = null;
         }
         
+        // THE FIX: Master timing variables (in milliseconds)
+        const diveTime = 2500; 
+        const voidPause = 50;
+        const emergenceTime = 2000;
+
         // --- PHASE 1: THE EVENT HORIZON DIVE ---
         new TWEEN.Tween(this.targetPos)
-            .to({ x: 0, y: 0, z: 0 }, 800)
+            .to({ x: 0, y: 0, z: 0 }, diveTime)
             .easing(TWEEN.Easing.Cubic.InOut)
             .start();
 
         new TWEEN.Tween(this)
-            .to({ cameraRadius: 1.6 }, 1000) // Dive into the singularity
+            .to({ cameraRadius: 1.6 }, diveTime) // Dive into the singularity
             .easing(TWEEN.Easing.Cubic.In)
             .start();
 
         new TWEEN.Tween(this.uWarpVelocity)
-            .to({ value: 4.0 }, 1000)
+            .to({ value: 4.0 }, diveTime)
             .easing(TWEEN.Easing.Quartic.In)
             .start();
 
         new TWEEN.Tween(this.camera)
-            .to({ fov: 160 }, 1000)
+            .to({ fov: 160 }, diveTime)
             .easing(TWEEN.Easing.Quartic.In)
             .onUpdate(() => this.camera.updateProjectionMatrix())
             .start();
 
-            // --- PHASE 2 & 3: THE WHITE HOLE EMERGENCE ---
+        // --- PHASE 2 & 3: THE WHITE HOLE EMERGENCE ---
+        // Dynamically waits for the dive to finish, plus the void pause
         setTimeout(() => {
             // EXECUTING THE CALLBACK: Swap the old galaxy for the new one!
             if (onMidpoint) onMidpoint();
@@ -635,31 +641,30 @@ export class GalaxyEngine {
             // 1. Lock the gaze dead-center on the black hole
             this.targetPos.set(0, 0, 0);
 
-            // 2. Set a beautiful, cinematic off-axis angle (prevents random extreme angles)
+            // 2. Set a beautiful, cinematic off-axis angle
             this.cameraPhi = Math.PI / 4; 
             this.cameraTheta = Math.PI / 3;
 
             this.dustFieldRadialScale = 1.0;
 
-            // 3. THE FIX: Use a TWEEN to pull the camera backward!
-            // This safely overrides the dive animation and stops you from getting trapped.
+            // 3. THE REVEAL: Pull the camera backward
             new TWEEN.Tween(this)
-                .to({ cameraRadius: 6000 }, 1500) // Fast 1.5s burst to a wide establishing shot
+                .to({ cameraRadius: 6000 }, emergenceTime) 
                 .easing(TWEEN.Easing.Cubic.Out)
                 .start();
 
             new TWEEN.Tween(this.uWarpVelocity)
-                .to({ value: 0 }, 2000)
+                .to({ value: 0 }, emergenceTime)
                 .easing(TWEEN.Easing.Quartic.Out)
                 .start();
                 
             new TWEEN.Tween(this.camera)
-                .to({ fov: 60 }, 2000)
+                .to({ fov: 60 }, emergenceTime)
                 .easing(TWEEN.Easing.Quartic.Out)
                 .onUpdate(() => this.camera.updateProjectionMatrix())
                 .start();
 
-        }, 1000);
+        }, diveTime + voidPause); 
     }
 
     loadSector(raw) {
