@@ -248,15 +248,22 @@ class GPURecorder:
         project_stories = getattr(config, "PROJECT_STORIES", {})
         
         # Grab the specific story, OR generate the blank template
+        # Explicitly defining the empty artifacts schema so the external merge script can target the keys
         story_payload = project_stories.get(repo_name, {
             "status": "",
             "why": "",
             "who": "",
             "significance": "",
             "link": "",
-            "artifacts": []
+            "artifacts": [
+                {
+                    "title": "",
+                    "url": "",
+                    "description": ""
+                }
+            ]
         })
-
+        
         return {
             "meta": {
                 "schemas": {

@@ -10547,25 +10547,24 @@ RECORDING_SCHEMAS = {
         "cleanup": "Resource Deallocation & Cleanup", "encapsulation": "Private / Encapsulated Scopes",
         "listeners": "Event Listeners & Subscribers", "test_skip": "Bypassed / Skipped Tests",
         "indent_tabs": "Structural Tab Indentations", "indent_spaces": "Structural Space Indentations",
-        
         # --- SECURITY LENS UI MAPPINGS (Plain English) ---
-        "sec_heat_triggers": "Scrambled / Obfuscated Code",
-        "sec_safety_neg": "Security Rule Bypasses",
-        "sec_io": "Suspicious Network Connections",
-        "sec_danger": "Dangerous Code Execution (Eval/Exec)",
-        "sec_flux": "Global Environment Tampering",
-        "sec_graveyard": "Executable Code Hidden in Comments",
-        "sec_bitwise_hits": "Custom Encryption / Decryption Math",
-        "sec_shadow_imports": "Importing Fake Media/Data Files",
-        "sec_homoglyphs": "Invisible / Fake Text Characters",
-        "sec_private_info": "Hardcoded Secrets & Credentials",
+        "sec_heat_triggers": "High-Entropy / Obfuscated Logic",
+        "sec_safety_neg": "Safety & Constraint Bypasses",
+        "sec_io": "External Network & I/O Hooks",
+        "sec_danger": "Dynamic Code Execution (Eval/Exec)",
+        "sec_flux": "Global Environment Mutation",
+        "sec_graveyard": "Commented-Out Executable Logic",
+        "sec_bitwise_hits": "Low-Level Bitwise / Cryptographic Math",
+        "sec_shadow_imports": "Non-Standard / Steganographic Imports",
+        "sec_homoglyphs": "Non-Standard Unicode / Homoglyphs",
+        "sec_private_info": "Embedded Credentials & Keys",
         
         # --- VULNERABILITY EXPOSURE MAPPINGS (Plain English) ---
-        "obscured_payload": "Hidden Malware Risk",
-        "logic_bomb": "Sabotage & Time Bomb Risk",
-        "injection_surface": "Data Injection Risk (SQLi/XSS)",
-        "memory_corruption": "Memory Exploit & Crash Risk",
-        "secrets_risk": "Credential Leak Risk"
+        "obscured_payload": "Obfuscation & Evasion Surface",
+        "logic_bomb": "Exploit Generation Surface",
+        "injection_surface": "Weaponized Injection Vectors",
+        "memory_corruption": "Raw Memory Manipulation",
+        "secrets_risk": "Hardcoded Payload Artifacts"
     },
     "EXPOSURE_LABELS": {
         "cognitive_load": "Cognitive Load Exposure", "safety_score": "Safety Exposure",
@@ -10577,13 +10576,14 @@ RECORDING_SCHEMAS = {
         "civil_war": "Civil War Exposure",
         
         # --- SECURITY LENS UI LABELS (Plain English) ---
-        "obscured_payload": "Hidden Malware Risk",
-        "logic_bomb": "Sabotage & Time Bomb Risk",
-        "injection_surface": "Data Injection Risk",
-        "memory_corruption": "Memory Exploit Risk",
-        "secrets_risk": "Credential Leak Risk"
+        "obscured_payload": "Obfuscation & Evasion Surface",
+        "logic_bomb": "Exploit Generation Surface",
+        "injection_surface": "Weaponized Injection Vectors",
+        "memory_corruption": "Raw Memory Manipulation",
+        "secrets_risk": "Hardcoded Payload Artifacts"
     }
 }
+        
 # ------------------------------------------------------------------------------
 # 6. DIALECTS (Project-Specific Overrides)
 # ------------------------------------------------------------------------------

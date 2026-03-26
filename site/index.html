@@ -99,6 +99,11 @@
                 <option value="11">Deep Churn</option>
                 <option value="12">Documentation Risk</option>
                 <option value="13">Civil War</option>
+                <option value="15">Obfuscation & Evasion Surface</option>
+                <option value="16">Exploit Generation Surface</option>
+                <option value="17">Weaponized Injection Vectors</option>
+                <option value="18">Raw Memory Manipulation</option>
+                <option value="19">Hardcoded Payload Artifacts</option>
             </select>
         </div>
 
@@ -206,45 +211,49 @@
         </div>
     </div>
     <div id="file-hud" class="hud-panel" style="position: relative;">
-        <button onclick="window.hideHUDUI()" class="close-btn">✕</button>
-        <h3 id="hud-filename" style="margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--panel-border); font-family: 'Space Grotesk', sans-serif; letter-spacing: 1px; color: var(--accent); padding-right: 25px; display: block; max-width: 100%; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">SYSTEM DIAGNOSTIC</h3>
-        <div id="hud-star-view" style="flex-grow: 1; display: none; flex-direction: column;">
-            <div class="passport-container" id="hud-passport-body"></div>
-            <div class="passport-container" id="hud-dependency-section" style="margin-top: 15px; margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
-                <div style="margin-bottom: 15px;">
-                    <div style="margin-bottom: 15px; border-top: 1px solid rgba(255, 215, 0, 0.3); padding-top: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                            <h4 style="color: #ffd700; margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 11px; text-transform: uppercase;">▲ Dependents (Imported By):</h4>
-                            <span id="hud-dep-in-count" style="color: #ffd700; font-family: 'Space Mono', monospace; font-size: 11px;">0</span>
+        <button onclick="window.hideHUDUI()" class="close-btn" style="z-index: 10;">✕</button>
+        <h3 id="hud-filename" style="margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--panel-border); font-family: 'Space Grotesk', sans-serif; letter-spacing: 1px; color: var(--accent); padding-right: 25px; display: block; max-width: 100%; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0;">SYSTEM DIAGNOSTIC</h3>
+        
+        <div class="cyber-scroll" style="flex-grow: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; padding-right: 5px;">
+            <div id="hud-star-view" style="display: none; flex-direction: column; flex-shrink: 0;">
+                <div class="passport-container" id="hud-passport-body"></div>
+                <div class="passport-container" id="hud-dependency-section" style="margin-top: 15px; margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <div style="margin-bottom: 15px;">
+                        <div style="margin-bottom: 15px; border-top: 1px solid rgba(255, 215, 0, 0.3); padding-top: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
+                                <h4 style="color: #ffd700; margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 11px; text-transform: uppercase;">▲ Dependents (Imported By):</h4>
+                                <span id="hud-dep-in-count" style="color: #ffd700; font-family: 'Space Mono', monospace; font-size: 11px;">0</span>
+                            </div>
+                            <div id="hud-dependencies-in" class="cyber-scroll" style="max-height: 120px; overflow-y: auto; padding-right: 5px;"></div>
                         </div>
-                        <div id="hud-dependencies-in" class="cyber-scroll" style="max-height: 120px; overflow-y: auto; padding-right: 5px;"></div>
-                    </div>
-                    <div style="margin-bottom: 15px; border-top: 1px solid rgba(255, 0, 127, 0.3); padding-top: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
-                            <h4 style="color: #ff007f; margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 11px; text-transform: uppercase;">▼ Dependencies (Imports):</h4>
-                            <span id="hud-dep-out-count" style="color: #ff007f; font-family: 'Space Mono', monospace; font-size: 11px;">0</span>
+                        <div style="margin-bottom: 15px; border-top: 1px solid rgba(255, 0, 127, 0.3); padding-top: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
+                                <h4 style="color: #ff007f; margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 11px; text-transform: uppercase;">▼ Dependencies (Imports):</h4>
+                                <span id="hud-dep-out-count" style="color: #ff007f; font-family: 'Space Mono', monospace; font-size: 11px;">0</span>
+                            </div>
+                            <div id="hud-dependencies-out" class="cyber-scroll" style="max-height: 120px; overflow-y: auto; padding-right: 5px;"></div>
                         </div>
-                        <div id="hud-dependencies-out" class="cyber-scroll" style="max-height: 120px; overflow-y: auto; padding-right: 5px;"></div>
                     </div>
+                    <button id="btn-dep-toggle" onclick="window.toggleDependencyWeb(this)" style="width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 2px; padding: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: bold; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase;">⎈ VISUALIZE LOCAL WEB</button>
                 </div>
-                <button id="btn-dep-toggle" onclick="window.toggleDependencyWeb(this)" style="width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 2px; padding: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: bold; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase;">⎈ VISUALIZE LOCAL WEB</button>
+                <div id="file-stats-body" class="stat-grid" style="flex-shrink: 0;"></div>
             </div>
-            <div id="file-stats-body" class="stat-grid cyber-scroll" style="flex-grow: 1;"></div>
+            <div id="hud-singularity-view" style="display: none; flex-direction: column; flex-shrink: 0;">
+                <div class="passport-container" id="singularity-passport-body"></div>
+                <div id="singularity-stats-body" class="stat-grid" style="padding-top: 10px; flex-shrink: 0;"></div>
+            </div>
+            <div id="hud-constellation-view" style="display: none; flex-direction: column; flex-shrink: 0;">
+                <div class="passport-container" id="constellation-passport-body"></div>
+                    <div style="margin-bottom: 15px; padding: 0 20px;">
+                        <h4 style="color: var(--accent); margin: 0 0 10px 0; font-family: 'Space Grotesk', sans-serif; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--panel-border); padding-bottom: 5px;">Constituent Files (<span id="constellation-file-count">0</span>)</h4>
+                        <div id="constellation-file-list" class="cyber-scroll" style="max-height: 150px; overflow-y: auto; padding-right: 5px;"></div>
+                    </div>
+                    <div id="constellation-stats-body" class="stat-grid" style="padding: 0 20px; flex-shrink: 0;"></div>
+            </div>
+            <button onclick="window.copyHUDData()" class="copy-btn" id="hud-copy-btn" style="margin-top: 20px; margin-bottom: 20px; flex-shrink: 0;">⎘ COPY REPORT</button>
         </div>
-        <div id="hud-singularity-view" style="flex-grow: 1; display: none; flex-direction: column;">
-            <div class="passport-container" id="singularity-passport-body"></div>
-            <div id="singularity-stats-body" class="stat-grid cyber-scroll" style="padding-top: 10px; flex-grow: 1;"></div>
-        </div>
-        <div id="hud-constellation-view" style="flex-grow: 1; display: none; flex-direction: column;">
-            <div class="passport-container" id="constellation-passport-body"></div>
-                <div style="margin-bottom: 15px; padding: 0 20px;">
-                    <h4 style="color: var(--accent); margin: 0 0 10px 0; font-family: 'Space Grotesk', sans-serif; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--panel-border); padding-bottom: 5px;">Constituent Files (<span id="constellation-file-count">0</span>)</h4>
-                    <div id="constellation-file-list" class="cyber-scroll" style="max-height: 150px; overflow-y: auto; padding-right: 5px;"></div>
-                </div>
-                <div id="constellation-stats-body" class="stat-grid cyber-scroll" style="flex-grow: 1; padding: 0 20px;"></div>
-        </div>
-        <button onclick="window.copyHUDData()" class="copy-btn" id="hud-copy-btn">⎘ COPY REPORT</button>
     </div>
+    
     <script>
         // --- NATIVE METAVISUALIZER HANDOFF ---
         window.toggleSystemProfile = () => {
@@ -366,7 +375,7 @@
                 // Toggle Views to Star Mode
                 document.getElementById('hud-singularity-view').style.display = 'none';
                 document.getElementById('hud-constellation-view').style.display = 'none';
-                document.getElementById('hud-star-view').style.display = 'block';
+                document.getElementById('hud-star-view').style.display = 'flex';
 
                 const hudTitle = document.getElementById('hud-filename');
                 hudTitle.innerText = data.name || "UNKNOWN";
@@ -536,7 +545,7 @@
 
                 document.getElementById('hud-star-view').style.display = 'none';
                 document.getElementById('hud-constellation-view').style.display = 'none';
-                document.getElementById('hud-singularity-view').style.display = 'block';
+                document.getElementById('hud-singularity-view').style.display = 'flex';
 
                 const bd = sigData.breakdown || {};
                 const ratio = sigData.darkness_ratio || 0;
@@ -749,7 +758,12 @@
                         "stability": "Instability Exposure",
                         "churn": "Volatility Exposure",
                         "documentation": "Documentation Exposure",
-                        "civil_war": "Tabs Vs. Spaces"
+                        "civil_war": "Tabs Vs. Spaces",
+                        "obscured_payload": "Obfuscation & Evasion Surface",
+                        "logic_bomb": "Exploit Generation Surface",
+                        "injection_surface": "Weaponized Injection Vectors",
+                        "memory_corruption": "Raw Memory Manipulation",
+                        "secrets_risk": "Hardcoded Payload Artifacts"
                     };
 
                     window.RISK_SCHEMA.forEach((schemaKey, idx) => {

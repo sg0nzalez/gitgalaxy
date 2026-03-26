@@ -204,6 +204,37 @@ const Colors = {
             gradient: "linear-gradient(90deg, #39ff14 0%, #0000ff 50%, #ffff00 100%)", 
             bins: [20, 80], labels: ["TABS", "MIXED", "SPACES"],
             colors: ["#39ff14", "#0000ff", "#ffff00"]
+        },
+        // --- NEW SECURITY LENSES (Teal to Red) ---
+        obscured_payload: { 
+            title: "Obfuscation & Evasion Surface", 
+            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
+            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
+            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
+        },
+        logic_bomb: { 
+            title: "Exploit Generation Surface", 
+            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
+            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
+            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
+        },
+        injection_surface: { 
+            title: "Weaponized Injection Vectors", 
+            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
+            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
+            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
+        },
+        memory_corruption: { 
+            title: "Raw Memory Manipulation", 
+            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
+            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
+            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
+        },
+        secrets_risk: { 
+            title: "Hardcoded Payload Artifacts", 
+            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
+            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
+            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
         }
     },
 
@@ -366,6 +397,13 @@ const Colors = {
                     // High ownership = Pink, Low ownership = Cyan
                     return score > 70 ? C.coverage_pink : (score < 40 ? C.shield_cyan : 0xffffff);
                 
+                case 'obscured_payload':
+                case 'logic_bomb':
+                case 'injection_surface':
+                case 'memory_corruption':
+                case 'secrets_risk':
+                    return score > 60 ? C.safety_crimson : (score < 40 ? C.shield_cyan : 0xffffff);
+
                 default: 
                     return 0xffffff;
             }

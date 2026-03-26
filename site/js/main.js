@@ -298,14 +298,15 @@ class AppController {
 
         // 2. Loop through the JSON schema and build the UI
         riskNames.forEach((rawName, index) => {
-            // THE FIX: Try to grab the exact title from colors.js first!
             let cleanName = rawName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
             
             if (window.Colors && window.Colors.LEGENDS && window.Colors.LEGENDS[rawName]) {
                 cleanName = window.Colors.LEGENDS[rawName].title;
             }
             
-            const engineId = index + 1; 
+            // THE FIX: Shift the new security lenses (index 13+) to IDs 15-19
+            // to preserve ID 14 exclusively for Language Identity.
+            const engineId = index >= 13 ? index + 2 : index + 1; 
             
             this.METRIC_NAMES[engineId] = cleanName;
 
@@ -323,7 +324,9 @@ class AppController {
         const langOption = document.createElement('option');
         langOption.value = langModeId;
         langOption.innerText = langModeName;
-        select.appendChild(langOption);
+        
+        // Insert Language Identity right after Civil War (which is the 14th element in the select DOM)
+        select.insertBefore(langOption, select.children[14]);
 
         // 4. Restore previous selection
         if (this.METRIC_NAMES[currentVal]) {
@@ -602,9 +605,11 @@ class AppController {
         if (window.updateLegend) {
             let schemaKey = null;
             if (mode === 14) {
-                schemaKey = 'language_identity'; // Pass a custom flag for Mode 14
+                schemaKey = 'language_identity'; 
+            } else if (mode >= 15) {
+                schemaKey = window.RISK_SCHEMA[mode - 2]; // Map IDs 15-19 back to array indices 13-17
             } else if (mode > 0) {
-                schemaKey = window.RISK_SCHEMA[mode - 1]; // Normal 0-indexed schema lookup
+                schemaKey = window.RISK_SCHEMA[mode - 1]; // Map IDs 1-13 to array indices 0-12
             }
             window.updateLegend(mode, schemaKey);
         }

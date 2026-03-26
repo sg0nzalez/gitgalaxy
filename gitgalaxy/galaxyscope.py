@@ -91,7 +91,7 @@ def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int
             splicer_cache[lang_id] = LogicSplicer(lang_id, lang_defs, parent_logger=worker_logger)
 
     # --- NEW: Decide the Rules of Engagement before booting the engines ---
-    if os.environ.get("GITGALAXY_DATA_DIR"):
+    if config.get("PARANOID_MODE", False):
         active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
     else:
         active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
@@ -331,8 +331,7 @@ class Orchestrator:
         self.llm_recorder = LLMRecorder(parent_logger=logger)
         
         # --- NEW: THE SMART THREAT SWITCH (MAIN THREAD) ---
-        if os.environ.get("GITGALAXY_DATA_DIR"):
-            logger.info("☣️ HAZMAT SANDBOX DETECTED: Engaging PARANOID threat thresholds.")
+        if self.config.get("PARANOID_MODE", False):
             active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
         else:
             active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
@@ -1136,14 +1135,10 @@ def main():
                         logging.debug(f"   -> Patched '{lang}' geometry rules.")
 
         # --- THE SMART THREAT SWITCH ---
-        # If the engine detects the Docker airlock environment variable, it goes into full lockdown.
-        if os.environ.get("GITGALAXY_DATA_DIR"):
-            # We are in the sandbox. Engage Paranoid Mode.
+        if args.paranoid:
             active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
-            # Optional: Print a cool warning so you know it worked in the logs
-            logging.getLogger("GalaxyScope").info("☣️ HAZMAT SANDBOX DETECTED: Engaging PARANOID threat thresholds.")
+            logging.getLogger("GalaxyScope").info("🔒 ZERO-TRUST MODE: Security Lens thresholds set to maximum sensitivity.")
         else:
-            # Normal developer scan. Engage Baseline Mode.
             active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
 
         # Boot the lens with the chosen policy

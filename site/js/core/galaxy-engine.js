@@ -170,6 +170,8 @@ export class GalaxyEngine {
             geo.setAttribute('aRiskPack1', createEmptyAttr(4));
             geo.setAttribute('aRiskPack2', createEmptyAttr(4));
             geo.setAttribute('aRiskPack3', createEmptyAttr(4));
+            geo.setAttribute('aRiskPack4', createEmptyAttr(4)); // <-- NEW
+            geo.setAttribute('aRiskPack5', createEmptyAttr(4)); // <-- NEW
             
             // --- THE MOBILE FIX: SQUASHED VECTOR ---
             // Replaced aRiskPack4, aPopularity, aGlobalId, and aConstellationId
@@ -676,7 +678,7 @@ export class GalaxyEngine {
         Object.keys(this.meshGroups).forEach(key => {
             groupData[key] = { 
                 matrices: [], 
-                attrs: { pack1: [], pack2: [], pack3: [], meta: [], langColor: [] } 
+                attrs: { pack1: [], pack2: [], pack3: [], pack4: [], pack5: [], meta: [], langColor: [] } 
             };
         });
 
@@ -746,9 +748,11 @@ export class GalaxyEngine {
                 g.attrs.pack2.push((risks[4]||0)/es, (risks[5]||0)/es, (risks[6]||0)/es, (risks[7]||0)/es);
                 g.attrs.pack3.push((risks[8]||0)/es, (risks[9]||0)/es, (risks[10]||0)/es, (risks[11]||0)/es);
                 
-                // SQUASH 4 VARIABLES INTO 1 VEC4
-                g.attrs.meta.push((risks[12]||0)/es, popScore, targetGid, targetCid); 
+                // NEW: Push risks 13-17 into pack4 and pack5
+                g.attrs.pack4.push((risks[13]||0)/es, (risks[14]||0)/es, (risks[15]||0)/es, (risks[16]||0)/es);
+                g.attrs.pack5.push((risks[17]||0)/es, 0, 0, 0); // Pad the rest of the vec4 with 0s
                 
+                g.attrs.meta.push((risks[12]||0)/es, popScore, targetGid, targetCid); 
                 g.attrs.langColor.push(rVal, gVal, bVal);
             };
 
@@ -828,6 +832,8 @@ export class GalaxyEngine {
             setAttr('aRiskPack1', g.attrs.pack1, 4); 
             setAttr('aRiskPack2', g.attrs.pack2, 4); 
             setAttr('aRiskPack3', g.attrs.pack3, 4);
+            setAttr('aRiskPack4', g.attrs.pack4, 4); // <-- NEW
+            setAttr('aRiskPack5', g.attrs.pack5, 4); // <-- NEW
             setAttr('aMetaPack1', g.attrs.meta, 4); 
             setAttr('aLangColor', g.attrs.langColor, 3); 
         });

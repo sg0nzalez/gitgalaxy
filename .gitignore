@@ -60,3 +60,7 @@ museum_2/
 *.json
 *_llm.md
 venvs/
+
+# Local data mounts
+data/
+museum/

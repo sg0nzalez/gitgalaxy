@@ -145,7 +145,7 @@ export class DataParser {
             visualType: type,
             logicRatio: logicRatio,
             pos: { x: galaxy.pos_x[i] / 10.0, y: galaxy.pos_y[i] / 10.0, z: galaxy.pos_z[i] / 10.0 },
-            risks: galaxy.risks[i] || Array(13).fill(0),
+            risks: galaxy.risks[i] || Array(18).fill(0), // Increased from 13 to 18
             satellites: galaxy.satellites ? galaxy.satellites[i] : [],
             popularity: realPopularity,    // <--- Store the real value
             importHits: realPopularity     // <--- Wire rings to actual popularity, not regex hits!
@@ -205,10 +205,8 @@ export class DataParser {
         const groups = {};
         keys.forEach(k => {
             groups[k] = {
-                positions: [],
-                scales: [],
-                rotations: [],
-                satData: [], 
+                positions: [], scales: [], rotations: [], satData: [], 
+                attrs: { pack1: [], pack2: [], pack3: [], pack4: [], pack5: [], meta: [], langColor: [] },
                 riskAttributes: this.createEmptyRiskAttributes()
             };
         });

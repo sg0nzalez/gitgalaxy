@@ -32,6 +32,8 @@ export const createPhase6Shaders = (engine) => {
     const aRiskPack1 = attribute('aRiskPack1', 'vec4');
     const aRiskPack2 = attribute('aRiskPack2', 'vec4');
     const aRiskPack3 = attribute('aRiskPack3', 'vec4');
+    const aRiskPack4 = attribute('aRiskPack4', 'vec4'); // <-- NEW
+    const aRiskPack5 = attribute('aRiskPack5', 'vec4'); // <-- NEW
     const aMetaPack1 = attribute('aMetaPack1', 'vec4'); 
     const aLangColor = attribute('aLangColor', 'vec3');
 
@@ -48,6 +50,13 @@ export const createPhase6Shaders = (engine) => {
     const aStability = aRiskPack3.y;       
     const aChurn = aRiskPack3.z;           
     const aDocs = aRiskPack3.w;            
+    
+    // NEW: SECURITY LENS VARIABLES
+    const aObscured = aRiskPack4.x;
+    const aLogicBomb = aRiskPack4.y;
+    const aInjection = aRiskPack4.z;
+    const aMemory = aRiskPack4.w;
+    const aSecrets = aRiskPack5.x;          
     
     // UNPACKING THE META SUITCASE
     const aCivilWar = aMetaPack1.x;          
@@ -112,6 +121,11 @@ export const createPhase6Shaders = (engine) => {
 
     // 10. Extract Relevance for the Active Mode
     let rel = float(0);
+    rel = select(uMetricMode.equal(19), aSecrets, rel);
+    rel = select(uMetricMode.equal(18), aMemory, rel);
+    rel = select(uMetricMode.equal(17), aInjection, rel);
+    rel = select(uMetricMode.equal(16), aLogicBomb, rel);
+    rel = select(uMetricMode.equal(15), aObscured, rel);
     rel = select(uMetricMode.equal(14), float(1.0), rel);
     rel = select(uMetricMode.equal(13), aCivilWar, rel);
     rel = select(uMetricMode.equal(12), aDocs, rel);
@@ -128,7 +142,11 @@ export const createPhase6Shaders = (engine) => {
     const relevance = select(uMetricMode.equal(1), aCognitive, rel);
 
     // 11. Select Min and Max Colors dynamically
+    const secMax = color(0xcc0000); // Red
+    const secMin = color(0x00f3ff); // Cyan/Teal
+
     let maxC = themeColor; 
+    maxC = select(uMetricMode.greaterThan(14), secMax, maxC);
     maxC = select(uMetricMode.equal(13), mMax.civil, maxC);
     maxC = select(uMetricMode.equal(12), mMax.docs, maxC);
     maxC = select(uMetricMode.equal(11), mMax.chu, maxC);
@@ -144,6 +162,7 @@ export const createPhase6Shaders = (engine) => {
     maxC = select(uMetricMode.equal(1), mMax.cog, maxC);
 
     let minC = themeColor; 
+    minC = select(uMetricMode.greaterThan(14), secMin, minC);
     minC = select(uMetricMode.equal(13), mMin.civil, minC);
     minC = select(uMetricMode.equal(12), mMin.docs, minC);
     minC = select(uMetricMode.equal(11), mMin.chu, minC);
