@@ -169,7 +169,7 @@
         </div>
     </nav>
 
-    <nav id="story-layer" class="cyber-scroll" style="transform: translateX(-100%); transition: transform 0.4s ease; position: fixed; top: 0; left: 0; bottom: 0; width: 350px; max-width: 85vw; background: rgba(5, 5, 8, 0.95); border-right: 1px solid var(--panel-border); backdrop-filter: blur(10px); z-index: 999; padding: 80px 20px 20px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
+    <nav id="story-layer" class="cyber-scroll" style="transform: translateX(-100%); transition: transform 0.4s ease; position: absolute; top: 0; left: 0; height: 100%; width: 350px; max-width: 85vw; background: rgba(5, 5, 8, 0.95); border-right: 1px solid var(--panel-border); backdrop-filter: blur(10px); z-index: 999; padding: 80px 20px 20px 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;"></nav>
         <header style="margin-bottom: 0;">
             <h1 id="story-title" style="color: var(--accent); font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin: 0; font-size: 22px; letter-spacing: 2px;">EXHIBIT</h1>
             <h2 id="story-status" style="color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 14px; margin: 5px 0 0 0;"></h2>
@@ -1005,6 +1005,54 @@
                 if(storyBtn) storyBtn.innerHTML = '<span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span>';
             }
         };
+
+        window.updateNavStates = () => {
+            const uiLayer = document.getElementById('ui-layer');
+            const storyLayer = document.getElementById('story-layer');
+            const zenBtn = document.getElementById('zen-btn');
+            const storyBtn = document.getElementById('story-btn');
+
+            // Check if either panel is currently exposed
+            const isAnyOpen = window.isMainUIOpen || window.isStoryOpen;
+
+            // 1. POSITIONING: Move both buttons together
+            if (isAnyOpen) {
+                if (zenBtn) zenBtn.classList.remove('zen-collapsed');
+                if (storyBtn) storyBtn.classList.remove('zen-collapsed');
+            } else {
+                // If both are closed, dock them to the far left
+                if (zenBtn) zenBtn.classList.add('zen-collapsed');
+                if (storyBtn) storyBtn.classList.add('zen-collapsed');
+            }
+
+            // 2. MAIN HUD TOGGLE STATE
+            if (window.isMainUIOpen) {
+                if(uiLayer) uiLayer.style.transform = 'translateX(0)';
+                if(zenBtn) zenBtn.innerHTML = '✕';
+            } else {
+                if(uiLayer) uiLayer.style.transform = 'translateX(-100%)';
+                if(zenBtn) zenBtn.innerHTML = '<span style="font-size: 11px; font-weight: bold; letter-spacing: 1px;">HUD</span>';
+            }
+
+            // 3. STORY HUD TOGGLE STATE
+            if (window.isStoryOpen) {
+                if(storyLayer) storyLayer.style.transform = 'translateX(0)';
+                if(storyBtn) storyBtn.innerHTML = '✕';
+            } else {
+                if(storyLayer) storyLayer.style.transform = 'translateX(-100%)';
+                if(storyBtn) storyBtn.innerHTML = '<span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span>';
+            }
+        };
+
+        // --- MOBILE AUTO-HIDE INIT ---
+        // If the screen is phone/tablet sized, start with the main menu hidden
+        if (window.innerWidth <= 768) {
+            window.isMainUIOpen = false;
+            // Force the DOM to apply the hidden transforms immediately on load
+            window.addEventListener('DOMContentLoaded', () => {
+                window.updateNavStates();
+            });
+        }
 
         // --- POPULATE THE STORY HUD ---
         window.populateStoryHUD = (story, key) => {

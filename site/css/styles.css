@@ -344,9 +344,10 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
 }
 
 @media (max-width: 768px) {
-    /* Stretch Left Menu to full width */
-    #ui-layer {
-        width: 100%;
+    /* Stretch Left Menus to full width */
+    #ui-layer, #story-layer {
+        width: 100% !important;
+        max-width: 100% !important;
         border-right: none;
     }
 

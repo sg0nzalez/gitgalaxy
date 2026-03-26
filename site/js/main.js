@@ -368,6 +368,12 @@ class AppController {
         const key = galaxyObj.id;
         console.log(`Visualizer: Fetching ${key}...`);
 
+        // --- MOBILE MENU AUTO-CLOSE ---
+        // If on a mobile device, automatically slide the main menu away so the user can see the hyperspace jump
+        if (window.innerWidth <= 768 && window.isMainUIOpen) {
+            window.toggleMainUI();
+        }
+
         const searchInput = document.getElementById('warp-search');
         if (searchInput) searchInput.value = '';
         if (window.renderSearchResults) window.renderSearchResults([], null);
