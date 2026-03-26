@@ -28,14 +28,18 @@ export const createPhase6Shaders = (engine) => {
     const uSelectedConstellationId = engine.uSelectedConstellationId || uniform(-1.0);
     const uMoonFadeDist = engine.uMoonFadeDist || uniform(5000.0);
 
-    // 2. Attributes: Vector Packed Data
+    // =====================================================================
+    // 2. ATTRIBUTES: VECTOR PACKED DATA (MOBILE GPU LIMIT WARNING)
+    // [LLM CONTEXT]: Do not add new attributes here without checking the 16-slot limit.
+    // We currently have exactly 3 attribute slots remaining before mobile GPUs crash.
+    // aRiskPack5 is currently squashed: x = aSecrets, yzw = aLangColor.
+    // =====================================================================
     const aRiskPack1 = attribute('aRiskPack1', 'vec4');
     const aRiskPack2 = attribute('aRiskPack2', 'vec4');
     const aRiskPack3 = attribute('aRiskPack3', 'vec4');
-    const aRiskPack4 = attribute('aRiskPack4', 'vec4'); // <-- NEW
-    const aRiskPack5 = attribute('aRiskPack5', 'vec4'); // <-- NEW
-    const aMetaPack1 = attribute('aMetaPack1', 'vec4'); 
-    const aLangColor = attribute('aLangColor', 'vec3');
+    const aRiskPack4 = attribute('aRiskPack4', 'vec4'); 
+    const aRiskPack5 = attribute('aRiskPack5', 'vec4'); 
+    const aMetaPack1 = attribute('aMetaPack1', 'vec4');
 
     // 3. Unpack Vectors into Variables
     const aCognitive = aRiskPack1.x;       
@@ -56,7 +60,9 @@ export const createPhase6Shaders = (engine) => {
     const aLogicBomb = aRiskPack4.y;
     const aInjection = aRiskPack4.z;
     const aMemory = aRiskPack4.w;
-    const aSecrets = aRiskPack5.x;          
+    // UNPACKING SQUASHED BUFFERS
+    const aSecrets = aRiskPack5.x;
+    const aLangColor = vec3(aRiskPack5.y, aRiskPack5.z, aRiskPack5.w);
     
     // UNPACKING THE META SUITCASE
     const aCivilWar = aMetaPack1.x;          

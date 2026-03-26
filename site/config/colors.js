@@ -128,7 +128,7 @@ const Colors = {
             colors: ["#ffffff", "#d9b3ff", "#c666ff", "#cc00ff", "#9900cc"]
         },
         safety_score: { 
-            title: "Safety Exposure", 
+            title: "Error & Exception Exposure", 
             gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
             bins: [10, 40, 60, 80], labels: ["VERY LOW", "LOW", "INTERMEDIATE", "HIGH", "VERY HIGH"],
             colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
@@ -140,7 +140,7 @@ const Colors = {
             colors: ["#ffffff", "#99b3ff", "#3377ff", "#1b57cf", "#0044cc"]        
         },
         verification: { 
-            title: "Testing Exposure & Testing", 
+            title: "Testing & Verification Exposure", 
             gradient: "linear-gradient(90deg, #cccccc 0%, #00b3b3 100%)", 
             bins: [10, 40, 60, 80], labels: ["IRONCLAD", "LOW", "MODERATE", "HIGH", "VERY HIGH"],
             colors: ["#ffffff", "#ccffff", "#66ffff", "#00e6e6", "#00b3b3"]
@@ -213,25 +213,25 @@ const Colors = {
             colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
         },
         logic_bomb: { 
-            title: "Exploit Generation Surface", 
+            title: "Logic Bomb Exposure", 
             gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
             bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
             colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
         },
         injection_surface: { 
-            title: "Weaponized Injection Vectors", 
+            title: "Injection Surface Exposure", 
             gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
             bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
             colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
         },
         memory_corruption: { 
-            title: "Raw Memory Manipulation", 
+            title: "Raw Memory Manipulation Exposusre", 
             gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
             bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
             colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
         },
         secrets_risk: { 
-            title: "Hardcoded Payload Artifacts", 
+            title: "Hardcoded Secrets Exposure", 
             gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
             bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
             colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]

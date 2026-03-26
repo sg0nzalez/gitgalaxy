@@ -989,12 +989,24 @@ class SignalProcessor:
         """Matches path against regex configurations and extracts applicable Modifiers."""
         active_multipliers = {}
         bridge = {
-            'Cognitive Load Exposure': 'cog', 'Safety Exposure': 'safety',
-            'Tech Debt Exposure': 'debt', 'Documentation Exposure': 'doc',
-            'Testing Exposure': 'test', 'Dead Code Exposure': 'dead',
-            'API Exposure': 'api', 'Concurrency Exposure': 'async',
-            'State Flux Exposure': 'flux', 'Specification Exposure': 'spec',
-            'Churn Exposure': 'churn', 'Obscured Payload Exposure': 'obscured' # <--- ADDED
+            'Cognitive Load Exposure': 'cog', 
+            'Error & Exception Exposure': 'safety',
+            'Tech Debt Exposure': 'debt', 
+            'Documentation Exposure': 'doc',
+            'Testing Exposure': 'test', 
+            'Dead Code Exposure': 'dead',
+            'API Exposure': 'api', 
+            'Concurrency Exposure': 'async',
+            'State Flux Exposure': 'flux', 
+            'Specification Exposure': 'spec',
+            'Churn Exposure': 'churn', 
+            
+            # --- SECURITY LENSES ---
+            'Obscured Payload Exposure': 'obscured',
+            'Logic Bomb Exposure': 'logic_bomb',
+            'Injection Vector Exposure': 'injection',
+            'Memory Corruption Exposure': 'memory',
+            'Hardcoded Secrets Exposure': 'secrets'
         }
 
         for category, modifiers in self.path_modifiers.items():

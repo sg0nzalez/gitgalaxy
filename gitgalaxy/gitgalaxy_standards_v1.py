@@ -10137,7 +10137,7 @@ PATH_MODIFIERS = {
         # data that affects the entire application, requiring massive mental overhead to edit safely.
         (re.compile(r'(?:^|/)(?:stores?|states?|reducers?|contexts?)/', re.I), 1.15)
     ],
-    'Safety Exposure': [
+    'Error & Exception Exposure': [
         # 1. The Sentinel (Core Security & Auth)
         # Highly secure zones dedicated to authentication, authorization, and cryptography.
         # Massive reduction in risk exposure because this is explicit defensive mass.
@@ -10517,8 +10517,8 @@ RECORDING_SCHEMAS = {
         "lang_ids": "Detected Languages", "lang_id": "Primary Language",
         "mass": "Structural Complexity Mass", "author_distribution": "Author Distribution",
         "control_flow_ratio": "Control Flow Ratio",
-        "verification": "Test Coverage Exposure", "cognitive_load": "Cognitive Load Exposure",
-        "safety_score": "Defensive Programming Exposure", "tech_debt": "Technical Debt Exposure",
+        "verification": "Testing & Verification Exposure", "cognitive_load": "Cognitive Load Exposure",
+        "safety_score": "Error & Exception Exposure", "tech_debt": "Technical Debt Exposure",
         "spec_match": "Specification Audit Alignment", "churn": "Code Volatility (Churn)",
         "documentation": "Documentation Risk Exposure", "api_exposure": "Public API Surface Area",
         "state_flux": "State Mutation Exposure", "branch": "Control Flow Branches",
@@ -10567,7 +10567,7 @@ RECORDING_SCHEMAS = {
         "secrets_risk": "Hardcoded Payload Artifacts"
     },
     "EXPOSURE_LABELS": {
-        "cognitive_load": "Cognitive Load Exposure", "safety_score": "Safety Exposure",
+        "cognitive_load": "Cognitive Load Exposure", "safety_score": "Error & Exception Exposure",
         "tech_debt": "Tech Debt Exposure", "verification": "Testing Exposure",
         "api_exposure": "API Exposure", "concurrency": "Concurrency Exposure",
         "state_flux": "State Flux Exposure", "graveyard": "Graveyard Exposure",

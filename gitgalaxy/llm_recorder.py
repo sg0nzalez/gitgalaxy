@@ -192,7 +192,7 @@ class LLMRecorder:
         lines.append("> * **Structure & Mass:** `branch` (splits), `linear` (paths), `args` (coupling), `func_start` (entry points).")
         lines.append("> * **Risk & Volatility:** `danger` (catastrophic triggers), `flux` (state mutation), `graveyard` (dead code), `safety_neg` (bypassing types).")
         lines.append("> * **Architecture & Domain:** `io` (external latency), `concurrency` (async orchestration), `api` (public surface), `import` (dependencies).")
-        lines.append("> * **Defensive Guardrails:** `safety` (error handling), `freeze_hits` (immutability), `cleanup` (state destruction).")
+        lines.append("> * **Defensive Guardrails:** `Error & Exception handling, `freeze_hits` (immutability), `cleanup` (state destruction).")
         
         # --- 2. 13-POINT RISK PHYSICS (THE EQUATIONS) ---
         lines.append("## 2. THE 13-POINT RISK EXPOSURE PHYSICS (EQUATIONS & CONTEXT)")
@@ -200,7 +200,7 @@ class LLMRecorder:
         lines.append("> Most scores use a Sigmoid curve based on density (Hits / LOC) to prevent massive files from mathematically hiding their flaws.")
         lines.append("> ")
         lines.append("> 1. **Cognitive Load Exposure:** Measures the mental effort required for a developer to read and understand the file. `Density(Branches + (Flux * 2) + Async/Danger)` mitigated by `Doc Coverage`. High scores indicate a high density of decision-making, conditional branching, and complex state management packed into a small area.")
-        lines.append("> 2. **Safety Risk Exposure:** Measures structural integrity and resilience against runtime errors. `Net Exposure = (Danger + Safety_Neg + Flux) - (Safety + Tests + Docs)`. High scores mean risky operations (dynamic execution, type bypasses, unhandled mutations) exceed defensive guardrails (try/catch blocks, type checks, assertions). **Breach Cap:** If danger density is too high, the score is mathematically floored to a high-risk state regardless of defense. A value of near 30 is near minimum floor as gitglaxay tests for testing file pairs, testing folders but not actually their contents.")
+        lines.append("> 2. **Error & Exception Risk Exposure:** Measures structural integrity and resilience against runtime errors. `Net Exposure = (Danger + Safety_Neg + Flux) - (Safety + Tests + Docs)`. High scores mean risky operations (dynamic execution, type bypasses, unhandled mutations) exceed defensive guardrails (try/catch blocks, type checks, assertions). **Breach Cap:** If danger density is too high, the score is mathematically floored to a high-risk state regardless of defense. A value of near 30 is near minimum floor as gitgalaxy tests for testing file pairs, testing folders but not actually their contents.")
         lines.append("> 3. **Tech Debt Exposure:** Measures the density of developer-annotated structural stress. `Density(TODOs [1x] + FIXMEs/Hacks [3x] + Empty Stubs [0.5x])`. High scores indicate a high volume of temporary workarounds, fragile logic, and incomplete implementations relative to the file size.")
         lines.append("> 4. **Verification (Testing) Risk Exposure:** Measures the density of unit testing and programmatic assertions. Evaluates `Test Density` + `Sibling Bonus` (if a dedicated test file exists). High scores (100% risk) mean the logic lacks internal test coverage and has no dedicated sibling test file, increasing the risk of silent failures during refactoring. **Mass Penalty:** Files over 300 LOC get an automatic risk penalty because massive files are inherently harder to test completely.")
         lines.append("> 5. **API Risk Exposure:** Measures the public surface area of a module. `Ratio(API Hits / Total Functions & Classes)`. Weighted by logarithmic volume. High scores indicate that a large percentage of the file's functions and classes are explicitly exported or publicly accessible by external systems.")
@@ -610,7 +610,7 @@ class LLMRecorder:
                     file_count INTEGER,
                     total_mass REAL,
                     avg_cognitive_load REAL,
-                    avg_safety_score REAL,
+                    avg_error_score REAL,
                     avg_tech_debt REAL,
                     avg_verification REAL
                 )
@@ -658,17 +658,18 @@ class LLMRecorder:
             ''')
 
             const_meta = summary.get("constellations", {})
+
             for c_name, c_data in const_meta.items():
                 exps = c_data.get("avg_exposures", {})
                 cursor.execute('''
-                    INSERT INTO constellations (name, file_count, total_mass, avg_cognitive_load, avg_safety_score, avg_tech_debt, avg_verification)
+                    INSERT INTO constellations (name, file_count, total_mass, avg_cognitive_load, avg_error_score, avg_tech_debt, avg_verification)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     c_name, 
                     c_data.get("file_count", 0), 
                     c_data.get("total_mass", 0.0),
-                    exps.get("cognitive_load", 0.0),
-                    exps.get("safety_score", 0.0),
+                    exps.get("cognitive_load", 0.0), 
+                    exps.get("safety_score", 0.0), # Keep this as "safety_score" unless you've also renamed the internal dictionary keys upstream
                     exps.get("tech_debt", 0.0),
                     exps.get("verification", 0.0)
                 ))

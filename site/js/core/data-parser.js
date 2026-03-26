@@ -206,10 +206,11 @@ export class DataParser {
         keys.forEach(k => {
             groups[k] = {
                 positions: [], scales: [], rotations: [], satData: [], 
-                attrs: { pack1: [], pack2: [], pack3: [], pack4: [], pack5: [], meta: [], langColor: [] },
+                attrs: { pack1: [], pack2: [], pack3: [], pack4: [], pack5: [], meta: [] },
                 riskAttributes: this.createEmptyRiskAttributes()
             };
         });
+        
         return groups;
     }
 
