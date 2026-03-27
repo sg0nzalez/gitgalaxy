@@ -50,14 +50,19 @@
     <div id="viewport"></div>
     <div id="label-container"></div>
 
-    <button onclick="window.toggleMainUI()" id="zen-btn" class="zen-master-btn" style="top: 20px; width: 45px; z-index: 1000;" title="Toggle HUD">✕</button>
-    <button onclick="window.toggleStoryUI()" id="story-btn" class="zen-master-btn" style="top: 60px; width: 45px; z-index: 1000; display: none;" title="Toggle Exhibit"><span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span></button>
+    <button onclick="window.toggleMainUI()" id="zen-btn" class="zen-master-btn" style="top: 20px; left: 20px; right: auto; width: 35px; height: 35px; z-index: 1000;" title="Toggle HUD"><span style="font-size: 9px; font-weight: bold; letter-spacing: 1px;">HUD</span></button>
+    <button onclick="window.toggleStoryUI()" id="story-btn" class="zen-master-btn" style="top: 63px; left: 20px; right: auto; width: 35px; height: 35px; z-index: 1000; display: none;" title="Toggle Exhibit"><span style="font-size: 9px; font-weight: bold; letter-spacing: 1px;">INFO</span></button>
 
     <button onclick="window.toggleAboutHUD()" id="about-btn">
         GITGALAXY.IO
     </button>
 
-    <nav id="ui-layer" style="transition: transform 0.4s ease;">
+    <nav id="ui-layer" style="transition: transform 0.4s ease; padding-top: 20px;">
+        <div style="position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 110;">
+            <button onclick="window.toggleMainUI()" class="zen-master-btn" style="position: relative; top: auto; left: auto; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; padding: 0; z-index: 10; background: rgba(2, 2, 5, 0.9);">✕</button>
+            <button onclick="window.toggleStoryUI()" id="inner-story-btn" class="zen-master-btn" style="position: relative; top: auto; left: auto; width: 35px; height: 35px; align-items: center; justify-content: center; padding: 0; z-index: 10; display: none; background: rgba(2, 2, 5, 0.9);"><span style="font-size: 9px; font-weight: bold; letter-spacing: 1px;">INFO</span></button>
+        </div>
+        
         <header>
             <h1 id="brand-title">GitGalaxy</h1>
             <h2> </h2>
@@ -149,10 +154,10 @@
 
         <div class="panel-section" style="flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 0;">
             <label>System Archives</label>
-            <div id="galaxy-list" class="cyber-scroll" style="mask-image: linear-gradient(to bottom, black 90%, transparent 100%);">
+            <div id="galaxy-list" class="cyber-scroll">
                 <div style="font-size: 10px; color: var(--accent); opacity: 0.6; font-family: 'Space Mono', monospace;">Scanning sectors...</div>
             </div>
-
+            
             <div id="sidebar-drop-zone" style="border: 1px dashed #334155; border-radius: 4px; padding: 10px; text-align: center; margin-top: 8px; cursor: pointer; transition: all 0.2s; color: #8899aa; background: rgba(0,0,0,0.2); font-family: 'Space Mono', monospace; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;"
             onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'; this.style.background='rgba(0, 243, 255, 0.05)';"
             onmouseout="this.style.borderColor='#334155'; this.style.color='#8899aa'; this.style.background='rgba(0,0,0,0.2)';">
@@ -169,7 +174,14 @@
         </div>
     </nav>
 
-<nav id="story-layer" class="cyber-scroll" style="transform: translateX(-100%); transition: transform 0.4s ease; position: fixed; top: 0; left: 0; height: 100%; width: 380px; max-width: 100vw; background: rgba(5, 5, 8, 0.95); border-right: 1px solid var(--panel-border); backdrop-filter: blur(10px); z-index: 999; padding: 80px 20px 20px 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">        <header style="margin-bottom: 0; flex-shrink: 0;">
+<nav id="story-layer" class="cyber-scroll" style="transform: translateX(-100%); transition: transform 0.4s ease; position: fixed; top: 0; left: 0; height: 100%; width: 380px; max-width: 100vw; background: rgba(5, 5, 8, 0.95); border-right: 1px solid var(--panel-border); backdrop-filter: blur(10px); z-index: 999; padding: 20px; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">        
+        
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 110;">
+            <button onclick="window.toggleStoryUI()" class="zen-master-btn" style="position: relative; top: auto; left: auto; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; padding: 0; background: rgba(2, 2, 5, 0.9);">✕</button>
+            <button onclick="window.toggleMainUI()" class="zen-master-btn" style="position: relative; top: auto; left: auto; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; padding: 0; background: rgba(2, 2, 5, 0.9);"><span style="font-size: 9px; font-weight: bold; letter-spacing: 1px;">HUD</span></button>
+        </div>
+
+        <header style="margin-bottom: 0; flex-shrink: 0;">
             <h1 id="story-title" style="color: var(--accent); font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin: 0; font-size: 22px; letter-spacing: 2px;">EXHIBIT</h1>
             <h2 id="story-status" style="color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 14px; margin: 5px 0 0 0;"></h2>
         </header>
@@ -364,6 +376,13 @@
         window.updateHUD = (data, metricMode, metricName, inNames = [], inCount = 0, outNames = [], outCount = 0) => {
             if (!data) return;
             
+            // --- Auto-switch from Story to Main HUD ---
+            if (window.isStoryOpen) {
+                window.isStoryOpen = false;
+                window.isMainUIOpen = true;
+                if (window.updateNavStates) window.updateNavStates();
+            }
+            
             // THIS MERGES THE ARRAYS SO THE COPY FUNCTION CAN SEE THEM
             window.currentHUDData = Object.assign({}, data, { inNames, inCount, outNames, outCount });
             window.currentHUDType = 'star';
@@ -535,8 +554,16 @@
 
         window.updateSingularityHUD = (sigData) => {
             console.log("UI: Received Dark Matter payload:", sigData);
+            
+            // --- Auto-switch from Story to Main HUD ---
+            if (window.isStoryOpen) {
+                window.isStoryOpen = false;
+                window.isMainUIOpen = true;
+                if (window.updateNavStates) window.updateNavStates();
+            }
+
             window.currentHUDData = sigData;          
-            window.currentHUDType = 'singularity';    
+            window.currentHUDType = 'singularity';
             
             try {
                 const hud = document.getElementById('file-hud');
@@ -967,101 +994,66 @@
             const aboutBtn = document.getElementById('about-btn');
             if (!aboutBtn) return;
             
-            if (window.innerWidth <= 768) {
-                // Check if ANY of the three HUDs are currently open
-                const fileHud = document.getElementById('file-hud');
-                const isFileHudOpen = fileHud && fileHud.classList.contains('active');
-                const isNavOpen = window.isMainUIOpen || window.isStoryOpen;
-                
-                if (isNavOpen || isFileHudOpen) {
-                    aboutBtn.style.display = 'none';
-                } else {
-                    aboutBtn.style.display = ''; // Reverts to CSS default
-                }
+            const fileHud = document.getElementById('file-hud');
+            const isFileHudOpen = fileHud && fileHud.classList.contains('active');
+            const isNavOpen = window.isMainUIOpen || window.isStoryOpen;
+            
+            // Force hide the button on mobile if ANY menu is taking up the screen
+            if (window.innerWidth <= 768 && (isNavOpen || isFileHudOpen)) {
+                aboutBtn.style.setProperty('display', 'none', 'important');
             } else {
-                aboutBtn.style.display = ''; // Always show on Desktop
+                // Restore visibility
+                aboutBtn.style.setProperty('display', 'block', 'important');
             }
         };
+
+        // Attach a listener to instantly catch phone rotations or window resizing
+        window.addEventListener('resize', window.updateAboutButtonVisibility);
 
         window.updateNavStates = () => {
             const uiLayer = document.getElementById('ui-layer');
             const storyLayer = document.getElementById('story-layer');
             const zenBtn = document.getElementById('zen-btn');
             const storyBtn = document.getElementById('story-btn');
+            const storyTitle = document.getElementById('story-title');
 
-            // Check if either panel is currently exposed
             const isAnyOpen = window.isMainUIOpen || window.isStoryOpen;
 
-            // 1. POSITIONING: Move both buttons together
+            // 1. MASTER EXTERNAL BUTTON VISIBILITY
+            // Hide external fixed buttons when ANY sidebar is open.
+            // Only show them when both are closed, so they never float over text.
             if (isAnyOpen) {
-                if (zenBtn) zenBtn.classList.remove('zen-collapsed');
-                if (storyBtn) storyBtn.classList.remove('zen-collapsed');
+                if (zenBtn) zenBtn.style.display = 'none';
+                if (storyBtn) storyBtn.style.display = 'none';
             } else {
-                // If both are closed, dock them to the far left
-                if (zenBtn) zenBtn.classList.add('zen-collapsed');
-                if (storyBtn) storyBtn.classList.add('zen-collapsed');
+                if (zenBtn) {
+                    zenBtn.style.display = 'flex';
+                    zenBtn.innerHTML = '<span style="font-size: 11px; font-weight: bold; letter-spacing: 1px;">HUD</span>';
+                }
+                // Only restore external INFO button if a story exists
+                if (storyBtn && storyTitle && storyTitle.innerText !== 'EXHIBIT') {
+                    storyBtn.style.display = 'flex';
+                    storyBtn.innerHTML = '<span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span>';
+                }
             }
 
             // 2. MAIN HUD TOGGLE STATE
             if (window.isMainUIOpen) {
                 if(uiLayer) uiLayer.style.transform = 'translateX(0)';
-                if(zenBtn) zenBtn.innerHTML = '✕';
             } else {
                 if(uiLayer) uiLayer.style.transform = 'translateX(-100%)';
-                if(zenBtn) zenBtn.innerHTML = '<span style="font-size: 11px; font-weight: bold; letter-spacing: 1px;">HUD</span>';
             }
 
             // 3. STORY HUD TOGGLE STATE
             if (window.isStoryOpen) {
                 if(storyLayer) storyLayer.style.transform = 'translateX(0)';
-                if(storyBtn) storyBtn.innerHTML = '✕';
             } else {
                 if(storyLayer) storyLayer.style.transform = 'translateX(-100%)';
-                if(storyBtn) storyBtn.innerHTML = '<span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span>';
             }
             
             // Sync the GITGALAXY.IO button
             if (window.updateAboutButtonVisibility) window.updateAboutButtonVisibility();
         };
-
-        window.updateNavStates = () => {
-            const uiLayer = document.getElementById('ui-layer');
-            const storyLayer = document.getElementById('story-layer');
-            const zenBtn = document.getElementById('zen-btn');
-            const storyBtn = document.getElementById('story-btn');
-
-            // Check if either panel is currently exposed
-            const isAnyOpen = window.isMainUIOpen || window.isStoryOpen;
-
-            // 1. POSITIONING: Move both buttons together
-            if (isAnyOpen) {
-                if (zenBtn) zenBtn.classList.remove('zen-collapsed');
-                if (storyBtn) storyBtn.classList.remove('zen-collapsed');
-            } else {
-                // If both are closed, dock them to the far left
-                if (zenBtn) zenBtn.classList.add('zen-collapsed');
-                if (storyBtn) storyBtn.classList.add('zen-collapsed');
-            }
-
-            // 2. MAIN HUD TOGGLE STATE
-            if (window.isMainUIOpen) {
-                if(uiLayer) uiLayer.style.transform = 'translateX(0)';
-                if(zenBtn) zenBtn.innerHTML = '✕';
-            } else {
-                if(uiLayer) uiLayer.style.transform = 'translateX(-100%)';
-                if(zenBtn) zenBtn.innerHTML = '<span style="font-size: 11px; font-weight: bold; letter-spacing: 1px;">HUD</span>';
-            }
-
-            // 3. STORY HUD TOGGLE STATE
-            if (window.isStoryOpen) {
-                if(storyLayer) storyLayer.style.transform = 'translateX(0)';
-                if(storyBtn) storyBtn.innerHTML = '✕';
-            } else {
-                if(storyLayer) storyLayer.style.transform = 'translateX(-100%)';
-                if(storyBtn) storyBtn.innerHTML = '<span style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">INFO</span>';
-            }
-        };
-
         // --- MOBILE AUTO-HIDE INIT ---
         // If the screen is phone/tablet sized, start with the main menu hidden
         if (window.innerWidth <= 768) {
@@ -1075,16 +1067,19 @@
         // --- POPULATE THE STORY HUD ---
         window.populateStoryHUD = (story, key) => {
             const storyBtn = document.getElementById('story-btn');
+            const innerStoryBtn = document.getElementById('inner-story-btn');
             
             // If there's no story for this galaxy, hide the INFO button completely
             if (!story || !story.significance || story.significance.trim() === "") {
                 if(storyBtn) storyBtn.style.display = 'none';
+                if(innerStoryBtn) innerStoryBtn.style.display = 'none';
                 if(window.isStoryOpen) window.toggleStoryUI(); // Auto-close if open
                 return;
             }
 
-            // Show the INFO button if story exists
-            if(storyBtn) storyBtn.style.display = 'block';
+            // Show the INFO buttons if story exists (external only shows if both sidebars are closed)
+            if(storyBtn && !window.isMainUIOpen && !window.isStoryOpen) storyBtn.style.display = 'flex';
+            if(innerStoryBtn) innerStoryBtn.style.display = 'flex';
             
             // --- NEW: Force the buttons to sync with the current HUD state! ---
             window.updateNavStates();
@@ -1150,6 +1145,13 @@
         };
 
         window.updateConstellationHUD = (name, stats, files) => {
+            // --- Auto-switch from Story to Main HUD ---
+            if (window.isStoryOpen) {
+                window.isStoryOpen = false;
+                window.isMainUIOpen = true;
+                if (window.updateNavStates) window.updateNavStates();
+            }
+
             window.currentHUDType = 'constellation';
             window.currentHUDData = { name, stats, files };
             const hud = document.getElementById('file-hud');

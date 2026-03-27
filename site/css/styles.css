@@ -65,6 +65,8 @@ body, html {
 header {
     width: 100%;
     min-width: 0; 
+    padding-right: 85px; /* Added: Prevents the title text from overlapping your new top-right buttons */
+    box-sizing: border-box;
 }
 
 header h1 { 
@@ -318,12 +320,17 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
     text-shadow: 0 0 5px #000, 0 0 10px #00ff41, 0 0 20px #000;
 }
 
-/* Theme 4: High-Vis (Bold Black, No Glow, Larger Font) */
+/* Theme 4: High-Vis (Massive White Text, Solid Black Outline) */
 #label-container.theme-high-vis .star-label {
-    color: #000000;
-    font-size: 18px;
+    color: #ffffff;
+    font-size: 28px; /* Significantly larger */
     font-weight: 900;
-    text-shadow: none; /* Strip the glow for max contrast on white bg */
+    /* This creates a hard, un-ignorable black border around the white text */
+    text-shadow: 
+        -2px -2px 0 #000000,  
+         2px -2px 0 #000000,
+        -2px  2px 0 #000000,
+         2px  2px 0 #000000; 
 }
 
 
@@ -369,7 +376,7 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
 
 /* --- ZEN MODE MASTER BUTTON --- */
 .zen-master-btn {
-    position: absolute; 
+    position: fixed; /* CHANGED: Was absolute. Fixed ensures it never floats away randomly. */
     top: 25px; 
     left: 325px; 
     background: transparent; 
@@ -386,8 +393,6 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: 'Space Mono', monospace;
     font-size: 14px;
-    
-    /* 🚨 THE FIX: Strip the global button padding so it centers perfectly */
     padding: 0 !important; 
     line-height: 1;
 }
@@ -399,16 +404,17 @@ footer#status-line { font-size: 10px; opacity: 0.8; margin-top: 15px; border-top
 
 /* The Collapsed "HUD" State */
 .zen-master-btn.zen-collapsed {
-    left: 20px !important; /* Moves it to the far left edge */
-    width: 45px; /* Widens to fit the text */
+    left: 20px !important; 
+    right: auto !important; /* Added: Prevents conflict with right alignment */
+    width: 45px; 
     background: rgba(0,0,0,0.8);
 }
 
 /* Mobile Alignment */
 @media (max-width: 768px) {
-    .zen-master-btn {
-        left: auto;
-        right: 25px; /* On mobile, the menu is 100% width, so pin it to the right */
+    .zen-master-btn.zen-collapsed {
+        left: auto !important;
+        right: 25px !important; /* Forces it correctly to the right on mobile */
     }
 }
 

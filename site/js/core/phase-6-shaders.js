@@ -25,8 +25,6 @@ export const createPhase6Shaders = (engine) => {
 
     // =====================================================================
     // 🚨 THE EXPLICIT VARYING SUITCASE 🚨
-    // We force exactly 7 variables across the bridge. TSL is no longer allowed
-    // to unroll our math into 43 temporary varyings.
     // =====================================================================
     const vRiskPack1 = varying(aRiskPack1);
     const vRiskPack2 = varying(aRiskPack2);
@@ -91,7 +89,7 @@ export const createPhase6Shaders = (engine) => {
     matrixColor = select(matrixSeed.greaterThan(0.66), color(0x00bb22), matrixColor);
 
     // 7. High-Vis Theme 
-    const highVisColor = color(0x000000); 
+    const highVisColor = color(0xffffff);
 
     // 8. Final Theme Selection
     const themeColor = select(
@@ -102,23 +100,9 @@ export const createPhase6Shaders = (engine) => {
         )
     );
 
-    // 9. ABSOLUTE GRADIENT MAPPING
-    const cWhite = color(0xffffff);
-    const mMax = {
-        cog: color(0xcc00ff), saf: color(0xcc0000), debt: color(0x0044cc),  
-        ver: color(0x00b3b3), api: color(0xff007f), conc: color(0xcc3700),  
-        flux: color(0xbfff00), grave: color(0x483d8b), spec: color(0x0077ff),  
-        stab: color(0x00f3ff), chu: color(0xff6d00), docs: color(0x8da3bd), civil: color(0xffff00)  
-    };
-
-    const mMin = {
-        cog: cWhite, saf: color(0x00f3ff), debt: cWhite,
-        ver: cWhite, api: cWhite, conc: cWhite,
-        flux: cWhite, grave: cWhite, spec: cWhite,
-        stab: color(0x76ff03), chu: cWhite, docs: color(0xffd700), civil: color(0x39ff14)  
-    };
-
-    // 10. Extract Relevance for the Active Mode
+    // =================================================================
+    // 9. EXTRACT RELEVANCE SCORE FOR ACTIVE METRIC
+    // =================================================================
     const rel1 = select(uMetricMode.equal(1), aCognitive, 
                  select(uMetricMode.equal(2), aSafety, 
                  select(uMetricMode.equal(3), aDebt, 
@@ -144,72 +128,38 @@ export const createPhase6Shaders = (engine) => {
 
     const relevance = rel1.add(rel2).add(rel3).add(rel4);
 
-    // 11. Select Min and Max Colors dynamically
-    const secMax = color(0xcc0000); 
-    const secMin = color(0x00f3ff); 
-    const cBlack = color(0x000000); 
+    // =================================================================
+    // 10. THE UNIVERSAL "TURBO" SPECTRUM MAPPER
+    // =================================================================
+    const cBlue   = color(0x0055ff);  
+    const cCyan   = color(0x00ffff);   
+    const cYellow = color(0xffff00);   
+    const cOrange = color(0xff8800);   
+    const cRed    = color(0xff0000);   
+    
+    let gradientColor = select(
+        relevance.lessThan(0.25), mix(cBlue, cCyan, relevance.mul(4.0)), 
+        select(
+            relevance.lessThan(0.5), mix(cCyan, cYellow, relevance.sub(0.25).mul(4.0)), 
+            select(
+                relevance.lessThan(0.75), mix(cYellow, cOrange, relevance.sub(0.5).mul(4.0)), 
+                mix(cOrange, cRed, relevance.sub(0.75).mul(4.0))
+            )
+        )
+    );
 
-    const max1 = select(uMetricMode.equal(1), mMax.cog,
-                 select(uMetricMode.equal(2), mMax.saf,
-                 select(uMetricMode.equal(3), mMax.debt,
-                 select(uMetricMode.equal(4), mMax.ver,
-                 select(uMetricMode.equal(5), mMax.api, cBlack)))));
-
-    const max2 = select(uMetricMode.equal(6), mMax.conc,
-                 select(uMetricMode.equal(7), mMax.flux,
-                 select(uMetricMode.equal(8), mMax.grave,
-                 select(uMetricMode.equal(9), mMax.spec,
-                 select(uMetricMode.equal(10), mMax.stab, cBlack)))));
-
-    const max3 = select(uMetricMode.equal(11), mMax.chu,
-                 select(uMetricMode.equal(12), mMax.docs,
-                 select(uMetricMode.equal(13), mMax.civil, cBlack)));
-
-    const max4 = select(uMetricMode.greaterThan(14), secMax, cBlack);
-
-    let maxC = max1.add(max2).add(max3).add(max4);
-    maxC = select(uMetricMode.equal(0), themeColor, maxC);
-    maxC = select(uMetricMode.equal(14), themeColor, maxC); 
-
-    const min1 = select(uMetricMode.equal(1), mMin.cog,
-                 select(uMetricMode.equal(2), mMin.saf,
-                 select(uMetricMode.equal(3), mMin.debt,
-                 select(uMetricMode.equal(4), mMin.ver,
-                 select(uMetricMode.equal(5), mMin.api, cBlack)))));
-
-    const min2 = select(uMetricMode.equal(6), mMin.conc,
-                 select(uMetricMode.equal(7), mMin.flux,
-                 select(uMetricMode.equal(8), mMin.grave,
-                 select(uMetricMode.equal(9), mMin.spec,
-                 select(uMetricMode.equal(10), mMin.stab, cBlack)))));
-
-    const min3 = select(uMetricMode.equal(11), mMin.chu,
-                 select(uMetricMode.equal(12), mMin.docs,
-                 select(uMetricMode.equal(13), mMin.civil, cBlack)));
-
-    const min4 = select(uMetricMode.greaterThan(14), secMin, cBlack);
-
-    let minC = min1.add(min2).add(min3).add(min4);
-    minC = select(uMetricMode.equal(0), themeColor, minC);
-    minC = select(uMetricMode.equal(14), themeColor, minC);
-
-    // 12. Calculate Interpolation
-    const curvedRelevance = pow(relevance, float(2.0));
-    let gradientColor = mix(minC, maxC, curvedRelevance);
-
+    // EXCEPTION A: Civil War (Mode 13) gets a diverging Green -> Blue -> Yellow spectrum
     const civilBlue = color(0x0000ff);
-    const civilColor = select(relevance.lessThan(0.5), mix(mMin.civil, civilBlue, relevance.mul(2.0)), mix(civilBlue, mMax.civil, relevance.sub(0.5).mul(2.0)));
+    const civilMin = color(0x39ff14);
+    const civilMax = color(0xffff00);
+    const civilColor = select(relevance.lessThan(0.5), mix(civilMin, civilBlue, relevance.mul(2.0)), mix(civilBlue, civilMax, relevance.sub(0.5).mul(2.0)));
     gradientColor = select(uMetricMode.equal(13), civilColor, gradientColor);
 
-    const hvBlack = color(0x000000);  
-    const hvTeal  = color(0x008080);   
-    const hvBlue  = color(0x0000ff);   
-    const hvPink  = color(0xff00ff);   
-    const hvRed   = color(0xff0000);   
-    const highVisGradient = select(relevance.lessThan(0.25), mix(hvBlack, hvTeal, relevance.mul(4.0)), select(relevance.lessThan(0.5), mix(hvTeal, hvBlue, relevance.sub(0.25).mul(4.0)), select(relevance.lessThan(0.75), mix(hvBlue, hvPink, relevance.sub(0.5).mul(4.0)), mix(hvPink, hvRed, relevance.sub(0.75).mul(4.0)))));
-    
-    gradientColor = select(uThemeIndex.equal(4), highVisGradient, gradientColor);
-    gradientColor = select(uMetricMode.equal(14), aLangColor, gradientColor);    
+    // EXCEPTION B: Language Identity (Mode 14) gets raw categorical hex colors
+    gradientColor = select(uMetricMode.equal(14), aLangColor, gradientColor);
+
+    // EXCEPTION C: Base State (Mode 0) falls back to the native environment Theme Color
+    gradientColor = select(uMetricMode.equal(0), themeColor, gradientColor);
 
     // --- 13. Glow & Pulse ---
     let baseGlow = float(2.0); 
@@ -238,7 +188,14 @@ export const createPhase6Shaders = (engine) => {
 
     let finalColor = select(uMetricMode.greaterThan(0), adaptiveGlowColor, glowingThemeColor);
     finalColor = finalColor.mul(1.25); 
-    finalColor = select(uThemeIndex.equal(4), select(uMetricMode.greaterThan(0), gradientColor, themeColor), finalColor);
+    
+    // 🚨 THE FIX: If High-Vis mode AND no metric is selected (Mode 0), make the orbs flat white.
+    // If a metric IS selected, allow the new A11y rainbow gradient to render!
+    finalColor = select(
+        uThemeIndex.equal(4), 
+        select(uMetricMode.equal(0), color(0xffffff), finalColor), 
+        finalColor
+    );
 
     // --- 14. ROBUST GLOBAL DIMMING LOGIC ---
     let baseOpacity = float(0.8);

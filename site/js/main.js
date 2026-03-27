@@ -47,6 +47,7 @@ class AppController {
 
             // Connect TSL Node Materials once engine is ready
             const shaders = createPhase6Shaders(this.engine);
+            this.engine.cachedShaders = shaders; // <-- NEW: Save for theme switching
             if (this.engine.solidMat && this.engine.wireMat) {
                 this.engine.solidMat.colorNode = shaders.colorNode;
                 this.engine.wireMat.colorNode = shaders.colorNode;
@@ -570,38 +571,68 @@ class AppController {
         const index = parseInt(val);
         this.engine.uThemeIndex.value = index; 
 
-        // 1. Handle Background Environments
+        // Cache the default bloom strength the first time we switch themes
+        if (this.engine.defaultBloomStrength === undefined && this.engine.uBloomStrength) {
+            this.engine.defaultBloomStrength = this.engine.uBloomStrength.value;
+        }
+
+        // 1. Handle Background Environments & Post-Processing
         if (index === 4) { // High-Vis
-            this.engine.scene.background.setHex(0xffffff); // Pure White
-        } else if (index === 3) { // Matrix
             this.engine.scene.background.setHex(0x000000); // Pure Black
-        } else if (index === 1) { // Ice Crystal
-            this.engine.scene.background.setHex(0x020205); // Dark Navy
-        } else { // Galactic / Basal
-            this.engine.scene.background.setHex(0x050508); // Deep Grey-Black
+            if (this.engine.uBloomStrength) this.engine.uBloomStrength.value = 0.0;
+            if (this.engine.uBloomThreshold) this.engine.uBloomThreshold.value = 2.0;
+            
+            // Force the Opaque Render Queue to prevent back-to-front rendering bleed
+            if (this.engine.solidMat) {
+                this.engine.solidMat.transparent = false;
+                this.engine.solidMat.depthWrite = true;
+                this.engine.moonMat.transparent = false;
+                this.engine.moonMat.depthWrite = true;
+                this.engine.wireMat.transparent = false;
+                this.engine.wireMat.depthWrite = true;
+            }
+        } else {
+            // Restore standard space backgrounds and Bloom for all other themes
+            if (index === 3) this.engine.scene.background.setHex(0x000000); // Matrix
+            else if (index === 1) this.engine.scene.background.setHex(0x020205); // Ice Crystal
+            else this.engine.scene.background.setHex(0x050508); // Galactic
+            
+            if (this.engine.uBloomStrength) this.engine.uBloomStrength.value = this.engine.defaultBloomStrength;
+            if (this.engine.uBloomThreshold) this.engine.uBloomThreshold.value = 0.4; // Restore standard glow
+            
+            // Restore Transparent Render Queue
+            if (this.engine.solidMat) {
+                this.engine.solidMat.transparent = true;
+                this.engine.solidMat.depthWrite = false;
+                this.engine.moonMat.transparent = true;
+                this.engine.moonMat.depthWrite = false;
+                this.engine.wireMat.transparent = true;
+                this.engine.wireMat.depthWrite = false;
+            }
         }
 
         // 2. Handle Wireframe Overrides
         const forceWireframe = (index === 3);
-        this.engine.solidMat.wireframe = forceWireframe;
-        this.engine.solidMat.needsUpdate = true;
+        if (this.engine.solidMat) {
+            this.engine.solidMat.wireframe = forceWireframe;
+            this.engine.solidMat.needsUpdate = true;
+        }
         
         // 3. Handle DOM Label Colors
         const labelContainer = document.getElementById('label-container');
         if (labelContainer) {
-            // Strip any existing theme classes
             labelContainer.className = ''; 
-            
-            // Apply the new theme class
             if (index === 2) labelContainer.classList.add('theme-galactic');
             else if (index === 3) labelContainer.classList.add('theme-matrix');
             else if (index === 4) labelContainer.classList.add('theme-high-vis');
-            // (Ice Crystal uses the default CSS, so it needs no class)
         }
 
-        // --- NEW: Force the Legend & HUD to refresh their colors ---
-        this.handleMetricChange(this.engine.uMetricMode.value);
+        // 4. Force the Legend & HUD to refresh their colors
+        if (this.engine.uMetricMode) {
+            this.handleMetricChange(this.engine.uMetricMode.value);
+        }
     }
+
 
     handleMetricChange(val) { 
         const mode = parseInt(val);

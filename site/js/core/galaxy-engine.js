@@ -21,7 +21,7 @@ import {
 // 2. The Math, Logic, & Post-Processing Nodes live here
 import {  
     uniform,  vec3, color,
-    time, vec4,
+    time, vec4, select,
     positionLocal, pass,
 } from 'three/tsl';
 
@@ -107,9 +107,12 @@ export class GalaxyEngine {
         this.uBloomStrength = uniform(0.6 * Math.pow(resScale, 0.5));
         const staticThreshold = 0.4;
 
-        const bloomNode = bloom(scenePass, this.uBloomStrength, this.uBloomRadius, staticThreshold);
+        // 🚨 THE FIX: Make the threshold a uniform so we can mathematically starve the bloom
+        this.uBloomThreshold = uniform(0.4);
+        const bloomNode = bloom(scenePass, this.uBloomStrength, this.uBloomRadius, this.uBloomThreshold);
         
         // 1. Combine the scene and the bloom into a single output
+        // RESTORED: No select() branch, preserving your MSAA and high resolution!
         const composite = scenePass.add(bloomNode);
         
         // 2. Extract RGB directly and pass to the Tone Mapper
@@ -919,16 +922,9 @@ export class GalaxyEngine {
             const halfH = window.innerHeight / 2;
             
             // LOD Settings: Taper off labels that are too far away
-            let maxDist = 3500;
-            const fadeStart = 1500;
-
-            // --- THE HIGH-VIS FIX ---
-            // High-Vis mode removes the fog-of-war fade entirely for maximum contrast.
-            // We also push the culling distance way back so the map stays populated.
-            const isHighVis = (this.uThemeIndex.value === 4);
-            if (isHighVis) {
-                maxDist = 15000; 
-            }
+            // 🚨 TIGHTENED: You now must be significantly closer to see the text
+            const maxDist = 1200;  // Slashed from 3500
+            const fadeStart = 500; // Slashed from 1500
 
             this.activeFiles.forEach(f => {
                 if (!f.el) return;
@@ -954,10 +950,9 @@ export class GalaxyEngine {
                         
                         f.el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
                         
-                        // Opacity Taper
+                        // Opacity Taper: Gracefully fade out distant labels
                         let opacity = 1.0;
-                        // Only apply the fade if we are NOT in High-Vis mode!
-                        if (!isHighVis && dist > fadeStart) {
+                        if (dist > fadeStart) {
                             opacity = 1.0 - ((dist - fadeStart) / (maxDist - fadeStart));
                         }
                         f.el.style.opacity = opacity.toFixed(2);

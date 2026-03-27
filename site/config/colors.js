@@ -8,52 +8,18 @@
  * of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
  */
 /**
- * COLORS & PALETTE REGISTRY v5.4
+ * COLORS & PALETTE REGISTRY v6.0 (Unified A11y Spectrum)
  * Defines the "Visual Semantics" of the universe.
- * * INTEGRATED: Full 15-Metric Logic + HUD Legends
- * * UPDATED v5.4: Added String-based UI Metadata for perf_monitor (GalaxyScope) sync.
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * This file acts as the single source of truth for both the 3D WebGL Engine 
- * (using numeric hex) and the DOM-based UI layer (using CSS strings).
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * * INTEGRATED: Unified High-Contrast "Turbo" Spectrum for all Risk Metrics.
  */
 
-const Colors = {
-    // 1. BEHAVIORAL PALETTE (Metric Overlays)
-    // These colors "bleed" through or override the basal state when toggled.
-    BEHAVIOR: {
-        standard: 0xcccccc,
-        white: 0xffffff,
-        
-        // --- 1. The Red/Orange/Yellow Spectrum ---
-        safety_crimson: 0xcc0000,    // Safety (Max)
-        churn_orange: 0xff6d00,      // Churn (Max)
-        flux_lime: 0xbfff00,         // State Flux (Max)
-        docs_gold: 0xffd700,         // Docs (Min - Encyclopedic)
-        docs_umber: 0x8da3bd,        // Docs (Max - Undocumented)
-        spaces_yellow: 0xffff00,     // Civil War
-        
-        // --- 2. The Green/Teal/Cyan Spectrum ---
-        stability_green: 0x76ff03,   // Stability (Min - Hot/New)
-        tabs_green: 0x39ff14,        // Civil War
-        verification_teal: 0x00b3b3, // Verification (Max)
-        shield_cyan: 0x00f3ff,       // Safety (Min) & Ownership
-        
-        // --- 3. The Blue/Indigo/Violet Spectrum ---
-        debt_blue: 0x0044cc,         // Tech Debt (Max)
-        spec_blue: 0x0077ff,         // Spec Match (Max)
-        mixed_blue: 0x0000ff,        // Civil War
-        graveyard_slate: 0x483d8b,   // Graveyard (Max)
-        concurrency_uv: 0xff4500,    // Concurrency (Max)
-        
-        // --- 4. The Purple/Pink/Rose Spectrum ---
-        cognitive_purple: 0xcc00ff,  // Cognitive Load (Max)
-        coverage_pink: 0xff00ff,     // Ownership (Max)
-        api_rose: 0xff007f,          // API Exposure (Max)
-        
-    },
+// --- 1. THE UNIVERSAL RISK SPECTRUM ---
+// The master color ramp used for all risk and exposure metrics.
+const UNIVERSAL_GRADIENT = "linear-gradient(90deg, #0055ff 0%, #00ffff 25%, #ffff00 50%, #ff8800 75%, #ff0000 100%)";
+const UNIVERSAL_COLORS = ["#0055ff", "#00ffff", "#ffff00", "#ff8800", "#ff0000"];
 
-    // 5. LANGUAGE IDENTITY PALETTE (Spec 2.2.R)
+const Colors = {
+    // 2. LANGUAGE IDENTITY PALETTE (Spec 2.2.R)
     LANGUAGES: {
         'javascript': 0xF1E05A, 'js': 0xF1E05A,
         'typescript': 0x0099FF, 'ts': 0x0099FF,
@@ -78,37 +44,26 @@ const Colors = {
         'fortran': 0x9A72FF, 'f90': 0x9A72FF,
         'assembly': 0xFFD080, 'asm': 0xFFD080,
         'cobol': 0x66AAFF, 'cbl': 0x66AAFF,
-        'makefile': 0x00FF00, // Grouped with DevOps/Glue
+        'makefile': 0x00FF00, 
         'json': 0x00FFFF, 'yaml': 0x00FFFF, 'yml': 0x00FFFF, 'xml': 0x00FFFF,
         'markdown': 0xFFFFE0, 'md': 0xFFFFE0, 'txt': 0xFFFFE0, 'csv': 0xFFFFE0,
         'dockerfile': 0x00B0FF, 'docker': 0x00B0FF,
         'bin': 0x505050, 'exe': 0x505050
     },
 
-    /**
-     * Resolves a language string to a Hex color.
-     * Uses the Exo-Protocol (Deterministic Hash) for unknown extensions.
-     */
     getLanguageColor: (langString) => {
         if (!langString) return 0xffffff;
         const normalized = langString.toLowerCase().trim();
         
-        // 1. Standard Protocol Check
-        if (Colors.LANGUAGES[normalized]) {
-            return Colors.LANGUAGES[normalized];
-        }
+        if (Colors.LANGUAGES[normalized]) return Colors.LANGUAGES[normalized];
 
-        // 2. Exo-Protocol (High-Contrast Hash)
         let hash = 0;
-        for (let i = 0; i < normalized.length; i++) {
-            hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
-        }
+        for (let i = 0; i < normalized.length; i++) hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
         
         const h = Math.abs(hash) % 360;
-        const s = 80 + (Math.abs(hash >> 8) % 20);  // Locks Saturation 80-100%
-        const l = 60 + (Math.abs(hash >> 16) % 20); // Locks Lightness 60-80%
+        const s = 80 + (Math.abs(hash >> 8) % 20); 
+        const l = 60 + (Math.abs(hash >> 16) % 20); 
 
-        // Inline HSL to Hex Conversion
         const lNorm = l / 100;
         const a = (s / 100) * Math.min(lNorm, 1 - lNorm);
         const f = n => {
@@ -119,330 +74,81 @@ const Colors = {
         return parseInt(`0x${f(0)}${f(8)}${f(4)}`, 16);
     },
 
-    // 2. HUD LEGEND CONFIGURATION.
+    // 3. HUD LEGEND CONFIGURATION (Stripped of redundant colors)
     LEGENDS: {
-        cognitive_load: { 
-            title: "Cognitive Load Exposure", 
-            gradient: "linear-gradient(90deg, #ffffff 0%, #cc00ff 100%)", 
-            bins: [20, 40, 60, 90], labels: ["VERY LOW", "LOW", "INTERMEDIATE", "HIGH", "VERY HIGH"],
-            colors: ["#ffffff", "#d9b3ff", "#c666ff", "#cc00ff", "#9900cc"]
-        },
-        safety_score: { 
-            title: "Error & Exception Exposure", 
-            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
-            bins: [10, 40, 60, 80], labels: ["VERY LOW", "LOW", "INTERMEDIATE", "HIGH", "VERY HIGH"],
-            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
-        },
-        tech_debt: { 
-            title: "Tech Debt Exposure", 
-            gradient: "linear-gradient(90deg, #cccccc 0%, #0044cc 100%)",
-            bins: [20, 40, 60, 80], labels: ["VERY LOW", "LOW", "INTERMEDIATE", "HIGH", "VERY HIGH"],
-            colors: ["#ffffff", "#99b3ff", "#3377ff", "#1b57cf", "#0044cc"]        
-        },
-        verification: { 
-            title: "Testing & Verification Exposure", 
-            gradient: "linear-gradient(90deg, #cccccc 0%, #00b3b3 100%)", 
-            bins: [10, 40, 60, 80], labels: ["IRONCLAD", "LOW", "MODERATE", "HIGH", "VERY HIGH"],
-            colors: ["#ffffff", "#ccffff", "#66ffff", "#00e6e6", "#00b3b3"]
-        },
-        api_exposure: {
-            title: "API Exposure",
-            gradient: "linear-gradient(90deg, #ffffff 0%, #ff007f 100%)", 
-            bins: [20, 40, 60, 80], labels: ["VERY LOW", "LOW", "MODERATE", "HIGH", "VERY HIGH"],
-            colors: ["#ffffff", "#ffb3d9", "#ff66b3", "#ff007f", "#cc0066"]
-        },
-        concurrency: {
-            title: "Concurrency Exposure",
-            gradient: "linear-gradient(90deg, #ffffff 0%, #cc3700 100%)", 
-            bins: [20, 50, 80], labels: ["LOW", "MODERATE", "HIGH", "VERY HIGH"],
-            colors: ["#ffffff", "#ffccb3", "#ff9966", "#ff4500", "#cc3700"]
-        },
-        state_flux: {
-            title: "State Flux Exposure",
-            gradient: "linear-gradient(90deg, #ffffff 0%, #bfff00 100%)", 
-            bins: [20, 40, 60, 80], labels: ["VERY LOW", "LOW", "MODERATE", "HIGH", "VERY HIGH"],
-            colors: ["#ffffff", "#e6ff99", "#ccff33", "#bfff00", "#8cb300"]
-        },
-        graveyard: { 
-            title: "Graveyard (Dead Code)", 
-            gradient: "linear-gradient(90deg, #ffffff 0%, #483d8b 100%)", 
-            bins: [10, 30, 50, 70], labels: ["CLEAN", "LOW", "INTERMEDIATE", "HIGH", "GRAVEYARD"],
-            colors: ["#ffffff", "#ccd1e6", "#99a3cc", "#6675b3", "#483d8b"]
-        },
-        spec_match: {
-            title: "Spec Alignment",
-            gradient: "linear-gradient(90deg, #ffffff 0%, #0077ff 100%)", 
-            bins: [20, 40, 60, 90], labels: ["HIGHLY ALIGNED", "ALIGNED", "MODERATE", "LOW", "VERY LOW"],
-            colors: ["#ffffff", "#b3d9ff", "#66b3ff", "#1a8cff", "#0055b3"]
-        },
-        stability: {
-            title: "Stability (Recent Commits)",
-            bins: [20, 40, 60, 80], labels: ["HOT/NEW", "RECENT", "ACTIVE", "ESTABLISHED", "ENDURING"],
-            gradient: "linear-gradient(90deg, #76ff03 0%, #00f3ff 100%)", 
-            colors: ["#76ff03", "#58fc42", "#3bf981", "#1df6c0", "#00f3ff"]        
-        },
-        churn: { 
-            title: "Deep Churn", 
-            gradient: "linear-gradient(90deg, #ffffff 0%, #ff6d00 100%)", 
-            bins: [20, 40, 60, 80], labels: ["STATIC", "SETTLED", "FLUID", "ACTIVE", "HIGHLY ACTIVE"],
-            colors: ["#ffffff", "#ffd9b3", "#ffb366", "#ff8c1a", "#ff6d00"]
-        },
-        documentation: { 
-            title: "Documentation Risk", 
-            bins: [20, 40, 60, 90], labels: ["THOROUGH", "LOW", "MODERATE", "HIGH", "UNDOCUMENTED"],
-            gradient: "linear-gradient(90deg, #ffd700 0%, #8da3bd 100%)", 
-            colors: ["#ffd700", "#e2ca2f", "#c6bd5e", "#a9b08e", "#8da3bd"] 
-        },
-        ownership: { 
-            title: "Authorship", 
-            gradient: "linear-gradient(90deg, #00f3ff 0%, #ffffff 50%, #ff00ff 100%)", 
-            bins: [20, 40, 60, 80], labels: ["INDIVIDUAL", "SMALL TEAM", "SQUAD", "DEPT", "COMMUNITY"],
-            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff7aff", "#ff00ff"]
-        },
+        cognitive_load: { title: "Cognitive Load Exposure", bins: [20, 40, 60, 90], labels: ["VERY LOW", "LOW", "INTERMEDIATE", "HIGH", "VERY HIGH"] },
+        safety_score: { title: "Error & Exception Exposure", bins: [10, 40, 60, 80], labels: ["VERY LOW", "LOW", "INTERMEDIATE", "HIGH", "VERY HIGH"] },
+        tech_debt: { title: "Tech Debt Exposure", bins: [20, 40, 60, 80], labels: ["VERY LOW", "LOW", "INTERMEDIATE", "HIGH", "VERY HIGH"] },
+        verification: { title: "Testing & Verification Exposure", bins: [10, 40, 60, 80], labels: ["IRONCLAD", "LOW", "MODERATE", "HIGH", "VERY HIGH"] },
+        api_exposure: { title: "API Exposure", bins: [20, 40, 60, 80], labels: ["VERY LOW", "LOW", "MODERATE", "HIGH", "VERY HIGH"] },
+        concurrency: { title: "Concurrency Exposure", bins: [20, 50, 80], labels: ["LOW", "MODERATE", "HIGH", "VERY HIGH"] },
+        state_flux: { title: "State Flux Exposure", bins: [20, 40, 60, 80], labels: ["VERY LOW", "LOW", "MODERATE", "HIGH", "VERY HIGH"] },
+        graveyard: { title: "Graveyard (Dead Code)", bins: [10, 30, 50, 70], labels: ["CLEAN", "LOW", "INTERMEDIATE", "HIGH", "GRAVEYARD"] },
+        spec_match: { title: "Spec Alignment", bins: [20, 40, 60, 90], labels: ["HIGHLY ALIGNED", "ALIGNED", "MODERATE", "LOW", "VERY LOW"] },
+        stability: { title: "Stability (Recent Commits)", bins: [20, 40, 60, 80], labels: ["HOT/NEW", "RECENT", "ACTIVE", "ESTABLISHED", "ENDURING"] },
+        churn: { title: "Deep Churn", bins: [20, 40, 60, 80], labels: ["STATIC", "SETTLED", "FLUID", "ACTIVE", "HIGHLY ACTIVE"] },
+        documentation: { title: "Documentation Risk", bins: [20, 40, 60, 90], labels: ["THOROUGH", "LOW", "MODERATE", "HIGH", "UNDOCUMENTED"] },
+        ownership: { title: "Authorship", bins: [20, 40, 60, 80], labels: ["INDIVIDUAL", "SMALL TEAM", "SQUAD", "DEPT", "COMMUNITY"] },
+        obscured_payload: { title: "Obfuscation & Evasion Surface", bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"] },
+        logic_bomb: { title: "Logic Bomb Exposure", bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"] },
+        injection_surface: { title: "Injection Surface Exposure", bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"] },
+        memory_corruption: { title: "Raw Memory Manipulation Exposure", bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"] },
+        secrets_risk: { title: "Hardcoded Secrets Exposure", bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"] },
+        
+        // Custom Diverging Spectrum (Excluded from Universal Injection)
         civil_war: { 
-            title: "Civil War", 
+            title: "Civil War (Tabs vs Spaces)", 
             gradient: "linear-gradient(90deg, #39ff14 0%, #0000ff 50%, #ffff00 100%)", 
             bins: [20, 80], labels: ["TABS", "MIXED", "SPACES"],
             colors: ["#39ff14", "#0000ff", "#ffff00"]
-        },
-        // --- NEW SECURITY LENSES (Teal to Red) ---
-        obscured_payload: { 
-            title: "Obfuscation & Evasion Surface", 
-            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
-            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
-            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
-        },
-        logic_bomb: { 
-            title: "Logic Bomb Exposure", 
-            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
-            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
-            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
-        },
-        injection_surface: { 
-            title: "Injection Surface Exposure", 
-            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
-            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
-            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
-        },
-        memory_corruption: { 
-            title: "Raw Memory Manipulation Exposusre", 
-            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
-            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
-            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
-        },
-        secrets_risk: { 
-            title: "Hardcoded Secrets Exposure", 
-            gradient: "linear-gradient(90deg, #00f3ff 0%, #cc0000 100%)", 
-            bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"],
-            colors: ["#00f3ff", "#7af9ff", "#ffffff", "#ff6666", "#cc0000"]
         }
     },
 
-    // 3. THEME REGISTRY
-    // Defines the "Basal States" of the universe
+    // 4. THEME REGISTRY
     THEMES: {
         'ice-crystal': {
             name: "Ice Crystal",
-            description: "Minimalist.",
             bg: 0x020205,         
-            fog: 0x0a0a15,         
             basalColor: 0xffffff,  
-            basalVariance: [0xffffff, 0xadd8e6, 0xffe4e1, 0x87cefa, 0xffd1dc], 
-            glowColor: 0xe0f7ff,   
-            bloom: 1.2,
-            dimmingFactor: 1.0,
-            wire: false,
-            stars: [0xffffff, 0xe0f7ff],
-            lockColor: 0xffffff,
-            diffuseBloom: 1.2,
-
-            // v5.4 UI METADATA (Performance HUD Sync)
-            uiAccent: "#ffffff",
-            uiPanel: "rgba(2, 2, 5, 0.95)",
-            uiText: "#ffffff"
+            basalVariance: [0xffffff, 0xadd8e6, 0xffe4e1, 0x87cefa, 0xffd1dc]
         },
         'galactic': {
             name: "Galactic",
-            description: "Colorfully Diverse & Vibrant.",
             bg: 0x050508,         
-            fog: 0x050508,
             basalColor: 0x00f3ff,  
-            basalPalette: [
-                0xbc13fe, 0xffaa00, 0x00f3ff, 0xbfff00, 
-                0xff00ff, 0x00ff00, 0xff0033, 0xffe600,
-                0x2200ff, 0xffffff
-            ],           
-            glowColor: 0x00f3ff,
-            bloom: 1.5,
-            dimmingFactor: 0.2,
-            wire: false,
-            stars: [0x44aaff, 0xff44aa, 0xffffff],
-            lockColor: null,       
-            diffuseBloom: 1.5,
-
-            // v5.4 UI METADATA (Performance HUD Sync)
-            uiAccent: "#00f3ff",
-            uiPanel: "rgba(5, 5, 8, 0.95)",
-            uiText: "#00f3ff"
+            basalPalette: [0xbc13fe, 0xffaa00, 0x00f3ff, 0xbfff00, 0xff00ff, 0x00ff00, 0xff0033, 0xffe600, 0x2200ff, 0xffffff]           
         },
         'matrix': {
             name: "The Matrix",
-            description: "Hacker Aesthetic.",
             bg: 0x000000,         
-            fog: 0x000000,
             basalColor: 0x00ff41,  
-            basalVariance: [0x00ff41, 0x00dd33, 0x00bb22], 
-            glowColor: 0x00ff41,
-            bloom: 2.0,            
-            dimmingFactor: 0.1,    
-            wire: true,            
-            stars: [0x00ff41, 0x00aa00],
-            lockColor: 0x00ff41,
-            diffuseBloom: 2.0,
-
-            // v5.4 UI METADATA (Performance HUD Sync)
-            uiAccent: "#00ff41",
-            uiPanel: "rgba(0, 0, 0, 0.95)",
-            uiText: "#00ff41"
+            basalVariance: [0x00ff41, 0x00dd33, 0x00bb22]
         },
         'high-vis': {
             name: "High-Visibility",
-            description: "Monochrome / A11y.",
-            bg: 0xffffff,           // Pure White Background
-            fog: 0xffffff,          // Pure White Fog
-            basalColor: 0x000000,   // BLACK Geometry (Was Orange)
-            glowColor: 0x000000,    // BLACK Glow (No bloom, just solid)
-            bloom: 0.0,            
-            dimmingFactor: 1.0,    
-            wire: true,             // Wireframe mode for sharp lines
-            stars: [0x000000],      // Black stars
-            lockColor: 0x000000,    // Black selection color
-            diffuseBloom: 0.0,
-
-            // v5.4 UI METADATA (Strict Black & White)
-            uiAccent: "#000000",    // Black UI Accents
-            uiPanel: "#ffffff",     // White Panels
-            uiText: "#000000"       // Black Text
+            bg: 0x000000,           
+            basalColor: 0xffffff
         }
     },
 
-    // 4. UTILITY METHODS
-    
-    /**
-     * Deterministic color hashing for Authors (Ownership Mode)
-     */
-    getAuthorColor: (name) => {
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const color = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-        return parseInt("00000".substring(0, 6 - color.length) + color, 16);
-    },
-
-    /**
-     * Maps a score (0-100) to a specific behavioral color key
-     */
+    // 5. LEGACY FALLBACK (For older UI components requiring a strict hex return)
     getMetricColor: (mode, score) => {
-            const C = Colors.BEHAVIOR;
-
-            if (mode === 'none' || mode === 'default') return C.standard;
-
-            switch(mode) {
-                case 'cognitive_load': 
-                    return score > 70 ? C.cognitive_purple : 0xffffff;
-                
-                case 'safety': 
-                    // High risk = Crimson, Low risk = Cyan
-                    return score > 60 ? C.safety_crimson : (score < 40 ? C.shield_cyan : 0xffffff);
-                
-                case 'debt': 
-                    return score > 50 ? C.debt_blue : 0xffffff;
-                
-                case 'coverage': // Verification
-                    return score > 60 ? C.verification_teal : 0xffffff;
-                
-                case 'api': // Added missing metric
-                    return score > 60 ? C.api_rose : 0xffffff;
-                
-                case 'concurrency': // Added missing metric
-                    return score > 50 ? C.concurrency_uv : 0xffffff;
-                
-                case 'flux': // Added missing metric
-                    return score > 60 ? C.flux_lime : 0xffffff;
-                
-                case 'graveyard': // Added missing metric
-                    return score > 50 ? C.graveyard_slate : 0xffffff;
-                
-                case 'spec_match': 
-                    return score > 20 ? C.spec_blue : 0xffffff;
-                
-                case 'stability': 
-                    // Low score (Hot/New) = Green, High score (Enduring) = White
-                    return score < 30 ? C.stability_green : 0x00f3ff;
-                
-                case 'churn': 
-                    return score > 60 ? C.churn_orange : 0xffffff;
-                
-                case 'docs': 
-                    // High exposure = Umber, Encyclopedic = Gold
-                    return score > 60 ? C.docs_umber : (score < 40 ? C.docs_gold : 0xffffff);
-                
-                case 'indentation': // Civil War
-                    if (score < 20) return C.tabs_green; 
-                    if (score > 80) return C.spaces_yellow;     
-                    return C.mixed_blue;
-                
-                case 'ownership': 
-                    // High ownership = Pink, Low ownership = Cyan
-                    return score > 70 ? C.coverage_pink : (score < 40 ? C.shield_cyan : 0xffffff);
-                
-                case 'obscured_payload':
-                case 'logic_bomb':
-                case 'injection_surface':
-                case 'memory_corruption':
-                case 'secrets_risk':
-                    return score > 60 ? C.safety_crimson : (score < 40 ? C.shield_cyan : 0xffffff);
-
-                default: 
-                    return 0xffffff;
-            }
+        if (mode === 'none' || mode === 'default') return 0xcccccc;
+        if (mode === 'civil_war') return score < 20 ? 0x39ff14 : (score > 80 ? 0xffff00 : 0x0000ff);
+        
+        // Safely map the 0-100 score to the 5-stop Universal Palette
+        const idx = Math.min(4, Math.max(0, Math.floor(score / 20)));
+        return parseInt(UNIVERSAL_COLORS[idx].replace('#', '0x'));
     }
 };
 
-// --- SMART LEGEND INTERCEPTOR (HIGH-VIS ACCESSIBILITY) ---
-// Automatically overrides gradients and HUD colors when Theme 4 is active.
+// --- GLOBAL METRIC COLOR INJECTION ---
+// Automatically wires up the UI Legends to the Universal Spectrum
 Object.keys(Colors.LEGENDS).forEach(key => {
-    const standardGradient = Colors.LEGENDS[key].gradient;
-    const standardColors = Colors.LEGENDS[key].colors;
-    
-    // 1. Override the CSS Gradient for the top legend
-    if (standardGradient) {
-        Object.defineProperty(Colors.LEGENDS[key], 'gradient', {
-            get: function() {
-                if (window.App && window.App.engine && window.App.engine.uThemeIndex.value === 4) {
-                    // 5-Stop CSS Gradient matching the GPU
-                    return "linear-gradient(90deg, #000000 0%, #008080 25%, #0000ff 50%, #ff00ff 75%, #ff0000 100%)";
-                }
-                return standardGradient;
-            }
-        });
-    }
+    if (key === 'civil_war') return; // Skip diverging scales
 
-    // 2. Override the discrete colors for the individual File HUD stats
-    if (standardColors) {
-        Object.defineProperty(Colors.LEGENDS[key], 'colors', {
-            get: function() {
-                if (window.App && window.App.engine && window.App.engine.uThemeIndex.value === 4) {
-                    // 5-stop array: Black -> Dark Teal -> Blue -> Magenta -> Red
-                    const highVisColors = ["#000000", "#008080", "#0000ff", "#ff00ff", "#ff0000"];
-                    // Slice the array so it matches the length of the original schema
-                    return highVisColors.slice(0, standardColors.length);
-                }
-                return standardColors;
-            }
-        });
-    }
+    Colors.LEGENDS[key].gradient = UNIVERSAL_GRADIENT;
+    Colors.LEGENDS[key].colors = UNIVERSAL_COLORS.slice(0, Colors.LEGENDS[key].labels.length);
 });
 
 window.Colors = Colors;
