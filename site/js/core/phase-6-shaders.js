@@ -29,10 +29,9 @@ export const createPhase6Shaders = (engine) => {
     const uMoonFadeDist = engine.uMoonFadeDist || uniform(5000.0);
 
     // =====================================================================
-    // 2. ATTRIBUTES: VECTOR PACKED DATA (MOBILE GPU LIMIT WARNING)
-    // [LLM CONTEXT]: Do not add new attributes here without checking the 16-slot limit.
-    // We currently have exactly 3 attribute slots remaining before mobile GPUs crash.
-    // aRiskPack5 is currently squashed: x = aSecrets, yzw = aLangColor.
+    // 2. ATTRIBUTES: VECTOR PACKED DATA
+    // We use exactly 6 custom buffers. Combined with Position and Matrix,
+    // this hits the exact 8-buffer mobile GPU limit.
     // =====================================================================
     const aRiskPack1 = attribute('aRiskPack1', 'vec4');
     const aRiskPack2 = attribute('aRiskPack2', 'vec4');
@@ -220,20 +219,16 @@ export const createPhase6Shaders = (engine) => {
     const hvPink  = color(0xff00ff);   
     const hvRed   = color(0xff0000);   
     const highVisGradient = select(relevance.lessThan(0.25), mix(hvBlack, hvTeal, relevance.mul(4.0)), select(relevance.lessThan(0.5), mix(hvTeal, hvBlue, relevance.sub(0.25).mul(4.0)), select(relevance.lessThan(0.75), mix(hvBlue, hvPink, relevance.sub(0.5).mul(4.0)), mix(hvPink, hvRed, relevance.sub(0.75).mul(4.0)))));
+    
     gradientColor = select(uThemeIndex.equal(4), highVisGradient, gradientColor);
     gradientColor = select(uMetricMode.equal(14), aLangColor, gradientColor);    
 
     // =====================================================================
-    // 🚨 THE MOBILE VARYING FIX 🚨
-    // This tells TSL: Compute all the crazy math above in the Vertex Shader.
-    // Only pass these 6 finalized variables across the bridge to the Fragment Shader.
+    // 🚨 WE REMOVED THE VARYING SQUASH 🚨
+    // TSL automatically manages varyings behind the scenes. Squashing massive IDs 
+    // into a vec4 forced them into 16-bit precision, which corrupted the numbers!
+    // We now just use the raw `aGlobalId` and `themeColor` natively.
     // =====================================================================
-    const vThemeColor = varying(themeColor);
-    const vGradientColor = varying(gradientColor);
-    const vPopularity = varying(aPopularity);
-    const vGlobalId = varying(aGlobalId);
-    const vConstellationId = varying(aConstellationId);
-    const vTwinkleSeed = varying(hash(instanceIndex.add(42.0)));
 
     // --- 13. Glow & Pulse ---
     let baseGlow = float(2.0); 
@@ -241,40 +236,43 @@ export const createPhase6Shaders = (engine) => {
     baseGlow = select(uThemeIndex.equal(3), float(2.2), baseGlow); 
     baseGlow = select(uThemeIndex.equal(4), float(0.0), baseGlow); 
     
-    // Using the packed varying
-    const popularityGlowBoost = vPopularity.mul(float(3.0));
+    // We use `aPopularity` natively now
+    const popularityGlowBoost = aPopularity.mul(float(3.0));
     let idleGlow = baseGlow.add(popularityGlowBoost);
 
-    const pulseFreq = mix(float(0.3), float(0.8), vTwinkleSeed).add(vPopularity.mul(float(1.5))); 
-    const timeOffset = vTwinkleSeed.mul(100.0); 
+    const twinkleSeed = hash(instanceIndex.add(42.0));
+    const pulseFreq = mix(float(0.3), float(0.8), twinkleSeed).add(aPopularity.mul(float(1.5))); 
+    const timeOffset = twinkleSeed.mul(100.0); 
     const wave = sin(mul(uTime.add(timeOffset), pulseFreq)).mul(0.5).add(0.5); 
     const idlePulse = mix(idleGlow, idleGlow.add(1.0), wave);
 
     const phosphorBlend = wave.mul(0.05); 
-    const crtColor = mix(vThemeColor, color(0xffffff), phosphorBlend);
-    const finalThemeColor = select(uThemeIndex.equal(3), crtColor, vThemeColor);
+    const crtColor = mix(themeColor, color(0xffffff), phosphorBlend);
+    const finalThemeColor = select(uThemeIndex.equal(3), crtColor, themeColor);
     const glowingThemeColor = finalThemeColor.mul(idlePulse);
 
     const bloomWeights = vec3(0.2126, 0.7152, 0.0722); 
-    const currentLuma = max(dot(vGradientColor, bloomWeights), float(0.15)); 
+    const currentLuma = max(dot(gradientColor, bloomWeights), float(0.15)); 
     const targetLuma = mix(float(1.4), float(2.2), wave); 
-    const adaptiveGlowColor = vGradientColor.mul(targetLuma.div(currentLuma));
+    const adaptiveGlowColor = gradientColor.mul(targetLuma.div(currentLuma));
 
     let finalColor = select(uMetricMode.greaterThan(0), adaptiveGlowColor, glowingThemeColor);
     finalColor = finalColor.mul(1.25); 
-    finalColor = select(uThemeIndex.equal(4), select(uMetricMode.greaterThan(0), vGradientColor, vThemeColor), finalColor);
+    finalColor = select(uThemeIndex.equal(4), select(uMetricMode.greaterThan(0), gradientColor, themeColor), finalColor);
 
-    // --- 14. TYPE-SAFE GLOBAL DIMMING LOGIC ---
+    // --- 14. ROBUST GLOBAL DIMMING LOGIC ---
     let baseOpacity = float(0.8);
     const fConstId = float(uSelectedConstellationId);
     const fGlobalId = float(uSelectedGlobalId);
 
     const isConstActive = fConstId.greaterThan(-0.5);
-    const inConstellation = vConstellationId.equal(fConstId);
+    
+    // .abs().lessThan(0.5) provides a safe 0.5 margin of error for float math
+    const inConstellation = aConstellationId.sub(fConstId).abs().lessThan(0.5);
     let finalOpacity = select(isConstActive, select(inConstellation, float(0.9), float(0.05)), baseOpacity);
 
     const isStarActive = fGlobalId.greaterThan(-0.5);
-    const isTargetStar = vGlobalId.equal(fGlobalId);
+    const isTargetStar = aGlobalId.sub(fGlobalId).abs().lessThan(0.5);
     finalOpacity = select(isStarActive, select(isConstActive, finalOpacity, select(isTargetStar, float(0.9), float(0.05))), finalOpacity);
 
     // --- 15. ATMOSPHERIC DISSOLVE (MOONS) ---
