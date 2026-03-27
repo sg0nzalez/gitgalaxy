@@ -1,23 +1,8 @@
-/**
- * GitGalaxy
- * Copyright (c) 2026 Joe Esquibel
- *
- * This source code is licensed under the PolyForm Noncommercial License 1.0.0.
- * You may not use this file except in compliance with the License.
- * A copy of the license can be found in the LICENSE file in the root directory
- * of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
- */
 import { 
     uniform, attribute, float, color, mix, vec4,
     instanceIndex, select, hash, time, sin, mul, 
     dot, vec3, max, pow, distance, cameraPosition, positionWorld, varying 
 } from 'three/tsl';
-
-/**
- * FILENAME: phase-6-shaders.js
- * Phase 6: Visual Themes TSL Implementation
- * Vector Packed & Varying-Optimized for Mobile WebGPU Compatibility
- */
 
 export const createPhase6Shaders = (engine) => {
     // 1. Uniforms
@@ -29,9 +14,7 @@ export const createPhase6Shaders = (engine) => {
     const uMoonFadeDist = engine.uMoonFadeDist || uniform(5000.0);
 
     // =====================================================================
-    // 2. ATTRIBUTES: VECTOR PACKED DATA
-    // We use exactly 6 custom buffers. Combined with Position and Matrix,
-    // this hits the exact 8-buffer mobile GPU limit.
+    // 2. ATTRIBUTES: THE RAW DATA
     // =====================================================================
     const aRiskPack1 = attribute('aRiskPack1', 'vec4');
     const aRiskPack2 = attribute('aRiskPack2', 'vec4');
@@ -40,37 +23,48 @@ export const createPhase6Shaders = (engine) => {
     const aRiskPack5 = attribute('aRiskPack5', 'vec4'); 
     const aMetaPack1 = attribute('aMetaPack1', 'vec4');
 
-    // 3. Unpack Vectors into Variables
-    const aCognitive = aRiskPack1.x;       
-    const aSafety = aRiskPack1.y;          
-    const aDebt = aRiskPack1.z;            
-    const aVerification = aRiskPack1.w;    
-    const aApi = aRiskPack2.x;             
-    const aConcurrency = aRiskPack2.y;     
-    const aFlux = aRiskPack2.z;            
-    const aGraveyard = aRiskPack2.w;       
-    const aSpec = aRiskPack3.x;            
-    const aStability = aRiskPack3.y;       
-    const aChurn = aRiskPack3.z;           
-    const aDocs = aRiskPack3.w;            
+    // =====================================================================
+    // 🚨 THE EXPLICIT VARYING SUITCASE 🚨
+    // We force exactly 7 variables across the bridge. TSL is no longer allowed
+    // to unroll our math into 43 temporary varyings.
+    // =====================================================================
+    const vRiskPack1 = varying(aRiskPack1);
+    const vRiskPack2 = varying(aRiskPack2);
+    const vRiskPack3 = varying(aRiskPack3);
+    const vRiskPack4 = varying(aRiskPack4);
+    const vRiskPack5 = varying(aRiskPack5);
+    const vMetaPack1 = varying(aMetaPack1);
+    const vInstIndex = varying(float(instanceIndex));
+
+    // 3. Unpack Vectors into Variables (Executing safely in the Fragment Shader)
+    const aCognitive = vRiskPack1.x;       
+    const aSafety = vRiskPack1.y;          
+    const aDebt = vRiskPack1.z;            
+    const aVerification = vRiskPack1.w;    
+    const aApi = vRiskPack2.x;             
+    const aConcurrency = vRiskPack2.y;     
+    const aFlux = vRiskPack2.z;            
+    const aGraveyard = vRiskPack2.w;       
+    const aSpec = vRiskPack3.x;            
+    const aStability = vRiskPack3.y;       
+    const aChurn = vRiskPack3.z;           
+    const aDocs = vRiskPack3.w;            
     
-    // NEW: SECURITY LENS VARIABLES
-    const aObscured = aRiskPack4.x;
-    const aLogicBomb = aRiskPack4.y;
-    const aInjection = aRiskPack4.z;
-    const aMemory = aRiskPack4.w;
-    // UNPACKING SQUASHED BUFFERS
-    const aSecrets = aRiskPack5.x;
-    const aLangColor = vec3(aRiskPack5.y, aRiskPack5.z, aRiskPack5.w);
+    const aObscured = vRiskPack4.x;
+    const aLogicBomb = vRiskPack4.y;
+    const aInjection = vRiskPack4.z;
+    const aMemory = vRiskPack4.w;
+
+    const aSecrets = vRiskPack5.x;
+    const aLangColor = vec3(vRiskPack5.y, vRiskPack5.z, vRiskPack5.w);
     
-    // UNPACKING THE META SUITCASE
-    const aCivilWar = aMetaPack1.x;          
-    const aPopularity = aMetaPack1.y;        
-    const aGlobalId = aMetaPack1.z;          
-    const aConstellationId = aMetaPack1.w;       
+    const aCivilWar = vMetaPack1.x;          
+    const aPopularity = vMetaPack1.y;        
+    const aGlobalId = vMetaPack1.z;          
+    const aConstellationId = vMetaPack1.w;       
 
     // 4. Ice Crystal Theme
-    const iceSeed = hash(instanceIndex.add(1.0));
+    const iceSeed = hash(vInstIndex.add(1.0));
     let iceColor = color(0xffffff);
     iceColor = select(iceSeed.greaterThan(0.2), color(0xadd8e6), iceColor);
     iceColor = select(iceSeed.greaterThan(0.4), color(0xffe4e1), iceColor);
@@ -78,7 +72,7 @@ export const createPhase6Shaders = (engine) => {
     iceColor = select(iceSeed.greaterThan(0.8), color(0xffd1dc), iceColor);
 
     // 5. Galactic Theme
-    const gSeed = hash(instanceIndex.mul(1.5));
+    const gSeed = hash(vInstIndex.mul(1.5));
     let galacticColor = color(0xbc13fe); 
     galacticColor = select(gSeed.greaterThan(0.1), color(0xffaa00), galacticColor); 
     galacticColor = select(gSeed.greaterThan(0.2), color(0x00f3ff), galacticColor); 
@@ -91,7 +85,7 @@ export const createPhase6Shaders = (engine) => {
     galacticColor = select(gSeed.greaterThan(0.9), color(0xffffff), galacticColor); 
 
     // 6. Matrix Theme 
-    const matrixSeed = hash(instanceIndex.add(2.0));
+    const matrixSeed = hash(vInstIndex.add(2.0));
     let matrixColor = color(0x00ff41);
     matrixColor = select(matrixSeed.greaterThan(0.33), color(0x00dd33), matrixColor);
     matrixColor = select(matrixSeed.greaterThan(0.66), color(0x00bb22), matrixColor);
@@ -124,10 +118,7 @@ export const createPhase6Shaders = (engine) => {
         stab: color(0x76ff03), chu: cWhite, docs: color(0xffd700), civil: color(0x39ff14)  
     };
 
-    // =====================================================================
     // 10. Extract Relevance for the Active Mode
-    // MOBILE SHADER FIX: Grouped into chunks to prevent AST Stack Overflow on mobile GPUs.
-    // =====================================================================
     const rel1 = select(uMetricMode.equal(1), aCognitive, 
                  select(uMetricMode.equal(2), aSafety, 
                  select(uMetricMode.equal(3), aDebt, 
@@ -153,12 +144,10 @@ export const createPhase6Shaders = (engine) => {
 
     const relevance = rel1.add(rel2).add(rel3).add(rel4);
 
-    // =====================================================================
     // 11. Select Min and Max Colors dynamically
-    // =====================================================================
-    const secMax = color(0xcc0000); // Red
-    const secMin = color(0x00f3ff); // Cyan/Teal
-    const cBlack = color(0x000000); // Baseline zero
+    const secMax = color(0xcc0000); 
+    const secMin = color(0x00f3ff); 
+    const cBlack = color(0x000000); 
 
     const max1 = select(uMetricMode.equal(1), mMax.cog,
                  select(uMetricMode.equal(2), mMax.saf,
@@ -178,7 +167,6 @@ export const createPhase6Shaders = (engine) => {
 
     const max4 = select(uMetricMode.greaterThan(14), secMax, cBlack);
 
-    // Sum the chunks, then fallback to theme color if no metric (0) or language identity (14) is active
     let maxC = max1.add(max2).add(max3).add(max4);
     maxC = select(uMetricMode.equal(0), themeColor, maxC);
     maxC = select(uMetricMode.equal(14), themeColor, maxC); 
@@ -223,92 +211,16 @@ export const createPhase6Shaders = (engine) => {
     gradientColor = select(uThemeIndex.equal(4), highVisGradient, gradientColor);
     gradientColor = select(uMetricMode.equal(14), aLangColor, gradientColor);    
 
-    // =====================================================================
-    // 🚨 THE POTATO-GPU VARYING FIX 🚨
-    // We force all attribute-heavy math into the Vertex Shader using varying().
-    // This drops the varying count from 25+ down to just 4!
-    // It ALSO keeps aGlobalId in 32-bit precision, fixing the selection bug!
-    // =====================================================================
-    const vGradientColor = varying(gradientColor);
-    const vThemeColor = varying(themeColor);
-    const vPopularity = varying(aPopularity);
-    const vTwinkleSeed = varying(hash(instanceIndex.add(42.0)));
-
     // --- 13. Glow & Pulse ---
     let baseGlow = float(2.0); 
     baseGlow = select(uThemeIndex.equal(2), float(2.5), baseGlow); 
     baseGlow = select(uThemeIndex.equal(3), float(2.2), baseGlow); 
     baseGlow = select(uThemeIndex.equal(4), float(0.0), baseGlow); 
     
-    const popularityGlowBoost = vPopularity.mul(float(3.0));
-    let idleGlow = baseGlow.add(popularityGlowBoost);
-
-    const pulseFreq = mix(float(0.3), float(0.8), vTwinkleSeed).add(vPopularity.mul(float(1.5))); 
-    const timeOffset = vTwinkleSeed.mul(100.0); 
-    const wave = sin(mul(uTime.add(timeOffset), pulseFreq)).mul(0.5).add(0.5); 
-    const idlePulse = mix(idleGlow, idleGlow.add(1.0), wave);
-
-    const phosphorBlend = wave.mul(0.05); 
-    const crtColor = mix(vThemeColor, color(0xffffff), phosphorBlend);
-    const finalThemeColor = select(uThemeIndex.equal(3), crtColor, vThemeColor);
-    const glowingThemeColor = finalThemeColor.mul(idlePulse);
-
-    const bloomWeights = vec3(0.2126, 0.7152, 0.0722); 
-    const currentLuma = max(dot(vGradientColor, bloomWeights), float(0.15)); 
-    const targetLuma = mix(float(1.4), float(2.2), wave); 
-    const adaptiveGlowColor = vGradientColor.mul(targetLuma.div(currentLuma));
-
-    let finalColor = select(uMetricMode.greaterThan(0), adaptiveGlowColor, glowingThemeColor);
-    finalColor = finalColor.mul(1.25); 
-    finalColor = select(uThemeIndex.equal(4), select(uMetricMode.greaterThan(0), vGradientColor, vThemeColor), finalColor);
-
-    // --- 14. ROBUST GLOBAL DIMMING LOGIC ---
-    let baseOpacity = float(0.8);
-    const fConstId = float(uSelectedConstellationId);
-    const fGlobalId = float(uSelectedGlobalId);
-
-    const isConstActive = fConstId.greaterThan(-0.5);
-    const inConstellation = aConstellationId.sub(fConstId).abs().lessThan(0.5);
-    let finalOpacity = select(isConstActive, select(inConstellation, float(0.9), float(0.05)), baseOpacity);
-
-    const isStarActive = fGlobalId.greaterThan(-0.5);
-    const isTargetStar = aGlobalId.sub(fGlobalId).abs().lessThan(0.5);
-    finalOpacity = select(isStarActive, select(isConstActive, finalOpacity, select(isTargetStar, float(0.9), float(0.05))), finalOpacity);
-
-    // --- 15. ATMOSPHERIC DISSOLVE (MOONS) ---
-    const distToCam = distance(cameraPosition, positionWorld);
-    const distRatio = distToCam.div(uMoonFadeDist);
-    const falloff = float(1.0).sub(pow(distRatio, 2.0));
-    const baseMoonOpacity = max(float(0.0), falloff).mul(0.8);
-    
-    const finalMoonOpacity = select(isTargetStar, float(0.8), baseMoonOpacity);
-    const dimmedMoonOpacity = select(isConstActive, select(inConstellation, finalMoonOpacity, float(0.01)), finalMoonOpacity);
-    let superDimmedMoonOpacity = select(isStarActive, select(isConstActive, dimmedMoonOpacity, select(isTargetStar, finalMoonOpacity, float(0.01))), dimmedMoonOpacity);
-    
-    // High-Vis dynamic override
-    finalOpacity = select(uThemeIndex.equal(4), float(1.0), finalOpacity);
-    superDimmedMoonOpacity = select(uThemeIndex.equal(4), float(1.0), superDimmedMoonOpacity);
-
-    // Lock Opacities to the Vertex Shader
-    const vFinalOpacity = varying(finalOpacity);
-    const vMoonOpacity = varying(superDimmedMoonOpacity);
-
-    return {
-        colorNode: finalColor,
-        opacityNode: vFinalOpacity,
-        moonOpacityNode: vMoonOpacity
-    };
-};
-    let baseGlow = float(2.0); 
-    baseGlow = select(uThemeIndex.equal(2), float(2.5), baseGlow); 
-    baseGlow = select(uThemeIndex.equal(3), float(2.2), baseGlow); 
-    baseGlow = select(uThemeIndex.equal(4), float(0.0), baseGlow); 
-    
-    // We use `aPopularity` natively now
     const popularityGlowBoost = aPopularity.mul(float(3.0));
     let idleGlow = baseGlow.add(popularityGlowBoost);
 
-    const twinkleSeed = hash(instanceIndex.add(42.0));
+    const twinkleSeed = hash(vInstIndex.add(42.0));
     const pulseFreq = mix(float(0.3), float(0.8), twinkleSeed).add(aPopularity.mul(float(1.5))); 
     const timeOffset = twinkleSeed.mul(100.0); 
     const wave = sin(mul(uTime.add(timeOffset), pulseFreq)).mul(0.5).add(0.5); 
@@ -334,8 +246,6 @@ export const createPhase6Shaders = (engine) => {
     const fGlobalId = float(uSelectedGlobalId);
 
     const isConstActive = fConstId.greaterThan(-0.5);
-    
-    // .abs().lessThan(0.5) provides a safe 0.5 margin of error for float math
     const inConstellation = aConstellationId.sub(fConstId).abs().lessThan(0.5);
     let finalOpacity = select(isConstActive, select(inConstellation, float(0.9), float(0.05)), baseOpacity);
 
