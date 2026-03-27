@@ -224,13 +224,81 @@ export const createPhase6Shaders = (engine) => {
     gradientColor = select(uMetricMode.equal(14), aLangColor, gradientColor);    
 
     // =====================================================================
-    // 🚨 WE REMOVED THE VARYING SQUASH 🚨
-    // TSL automatically manages varyings behind the scenes. Squashing massive IDs 
-    // into a vec4 forced them into 16-bit precision, which corrupted the numbers!
-    // We now just use the raw `aGlobalId` and `themeColor` natively.
+    // 🚨 THE POTATO-GPU VARYING FIX 🚨
+    // We force all attribute-heavy math into the Vertex Shader using varying().
+    // This drops the varying count from 25+ down to just 4!
+    // It ALSO keeps aGlobalId in 32-bit precision, fixing the selection bug!
     // =====================================================================
+    const vGradientColor = varying(gradientColor);
+    const vThemeColor = varying(themeColor);
+    const vPopularity = varying(aPopularity);
+    const vTwinkleSeed = varying(hash(instanceIndex.add(42.0)));
 
     // --- 13. Glow & Pulse ---
+    let baseGlow = float(2.0); 
+    baseGlow = select(uThemeIndex.equal(2), float(2.5), baseGlow); 
+    baseGlow = select(uThemeIndex.equal(3), float(2.2), baseGlow); 
+    baseGlow = select(uThemeIndex.equal(4), float(0.0), baseGlow); 
+    
+    const popularityGlowBoost = vPopularity.mul(float(3.0));
+    let idleGlow = baseGlow.add(popularityGlowBoost);
+
+    const pulseFreq = mix(float(0.3), float(0.8), vTwinkleSeed).add(vPopularity.mul(float(1.5))); 
+    const timeOffset = vTwinkleSeed.mul(100.0); 
+    const wave = sin(mul(uTime.add(timeOffset), pulseFreq)).mul(0.5).add(0.5); 
+    const idlePulse = mix(idleGlow, idleGlow.add(1.0), wave);
+
+    const phosphorBlend = wave.mul(0.05); 
+    const crtColor = mix(vThemeColor, color(0xffffff), phosphorBlend);
+    const finalThemeColor = select(uThemeIndex.equal(3), crtColor, vThemeColor);
+    const glowingThemeColor = finalThemeColor.mul(idlePulse);
+
+    const bloomWeights = vec3(0.2126, 0.7152, 0.0722); 
+    const currentLuma = max(dot(vGradientColor, bloomWeights), float(0.15)); 
+    const targetLuma = mix(float(1.4), float(2.2), wave); 
+    const adaptiveGlowColor = vGradientColor.mul(targetLuma.div(currentLuma));
+
+    let finalColor = select(uMetricMode.greaterThan(0), adaptiveGlowColor, glowingThemeColor);
+    finalColor = finalColor.mul(1.25); 
+    finalColor = select(uThemeIndex.equal(4), select(uMetricMode.greaterThan(0), vGradientColor, vThemeColor), finalColor);
+
+    // --- 14. ROBUST GLOBAL DIMMING LOGIC ---
+    let baseOpacity = float(0.8);
+    const fConstId = float(uSelectedConstellationId);
+    const fGlobalId = float(uSelectedGlobalId);
+
+    const isConstActive = fConstId.greaterThan(-0.5);
+    const inConstellation = aConstellationId.sub(fConstId).abs().lessThan(0.5);
+    let finalOpacity = select(isConstActive, select(inConstellation, float(0.9), float(0.05)), baseOpacity);
+
+    const isStarActive = fGlobalId.greaterThan(-0.5);
+    const isTargetStar = aGlobalId.sub(fGlobalId).abs().lessThan(0.5);
+    finalOpacity = select(isStarActive, select(isConstActive, finalOpacity, select(isTargetStar, float(0.9), float(0.05))), finalOpacity);
+
+    // --- 15. ATMOSPHERIC DISSOLVE (MOONS) ---
+    const distToCam = distance(cameraPosition, positionWorld);
+    const distRatio = distToCam.div(uMoonFadeDist);
+    const falloff = float(1.0).sub(pow(distRatio, 2.0));
+    const baseMoonOpacity = max(float(0.0), falloff).mul(0.8);
+    
+    const finalMoonOpacity = select(isTargetStar, float(0.8), baseMoonOpacity);
+    const dimmedMoonOpacity = select(isConstActive, select(inConstellation, finalMoonOpacity, float(0.01)), finalMoonOpacity);
+    let superDimmedMoonOpacity = select(isStarActive, select(isConstActive, dimmedMoonOpacity, select(isTargetStar, finalMoonOpacity, float(0.01))), dimmedMoonOpacity);
+    
+    // High-Vis dynamic override
+    finalOpacity = select(uThemeIndex.equal(4), float(1.0), finalOpacity);
+    superDimmedMoonOpacity = select(uThemeIndex.equal(4), float(1.0), superDimmedMoonOpacity);
+
+    // Lock Opacities to the Vertex Shader
+    const vFinalOpacity = varying(finalOpacity);
+    const vMoonOpacity = varying(superDimmedMoonOpacity);
+
+    return {
+        colorNode: finalColor,
+        opacityNode: vFinalOpacity,
+        moonOpacityNode: vMoonOpacity
+    };
+};
     let baseGlow = float(2.0); 
     baseGlow = select(uThemeIndex.equal(2), float(2.5), baseGlow); 
     baseGlow = select(uThemeIndex.equal(3), float(2.2), baseGlow); 

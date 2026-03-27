@@ -405,58 +405,66 @@ class Orchestrator:
             mission_dir = resolve_mission_control(self.root.name)
             output_file = str(mission_dir / Path(output_file).name)
             # ----------------------
+            
+            # --- CHECK EXCLUSIVE MODE FLAGS ---
+            exclusive_mode = self.config.get("LLM_ONLY") or self.config.get("GPU_ONLY") or self.config.get("AUDIT_ONLY")
+            audit_output = "Skipped"
 
             # ==========================================================
             # PHASE 8: AUDIT RECORDER (Non-Destructive Forensic Fork)
             # ==========================================================
-            try:
-                out_path = Path(output_file)
-                audit_output = str(out_path.with_name(f"{out_path.stem}_audit{out_path.suffix}"))
-                logger.info(f"AUDIT: Generating comprehensive human-readable forensic log -> {audit_output}")
-                
-                self.audit_recorder.generate_report(
-                    stars=visible_galaxy,
-                    singularity=total_singularity,
-                    summary=summary,
-                    forensic_report=report,
-                    session_meta=session_meta,
-                    output_path=audit_output
-                )
-            except Exception as e:
-                logger.error(f"AUDIT_FAILURE: Could not generate forensic log. {e}", exc_info=True)
+            if not exclusive_mode or self.config.get("AUDIT_ONLY"):
+                try:
+                    out_path = Path(output_file)
+                    audit_output = str(out_path.with_name(f"{out_path.stem}_audit{out_path.suffix}"))
+                    logger.info(f"AUDIT: Generating comprehensive human-readable forensic log -> {audit_output}")
+                    
+                    self.audit_recorder.generate_report(
+                        stars=visible_galaxy,
+                        singularity=total_singularity,
+                        summary=summary,
+                        forensic_report=report,
+                        session_meta=session_meta,
+                        output_path=audit_output
+                    )
+                except Exception as e:
+                    logger.error(f"AUDIT_FAILURE: Could not generate forensic log. {e}", exc_info=True)
 
             # ==========================================================
             # PHASE 8.5: LLM RECORDER (The AI Translation Layer)
             # ==========================================================
-            try:
-                # Extract the output directory from the desired output file path
-                output_dir = str(Path(output_file).parent)
-                
-                self.llm_recorder.generate_artifacts(
-                    stars=visible_galaxy,
-                    singularity=total_singularity,
-                    summary=summary,
-                    session_meta=session_meta,
-                    output_dir=output_dir,
-                    forensic_report=report
-                )
-            except Exception as e:
-                logger.error(f"LLM_FAILURE: Could not generate AI artifacts. {e}", exc_info=True)
+            if not exclusive_mode or self.config.get("LLM_ONLY"):
+                try:
+                    output_dir = str(Path(output_file).parent)
+                    logger.info(f"LLM: Generating AI translation artifacts -> {output_dir}")
+                    
+                    self.llm_recorder.generate_artifacts(
+                        stars=visible_galaxy,
+                        singularity=total_singularity,
+                        summary=summary,
+                        session_meta=session_meta,
+                        output_dir=output_dir,
+                        forensic_report=report
+                    )
+                except Exception as e:
+                    logger.error(f"LLM_FAILURE: Could not generate AI artifacts. {e}", exc_info=True)
 
             # ==========================================================
             # PHASE 9: GPU RECORDER (Destructive Columnar Pivot)
             # ==========================================================
-            # record_mission destructively clears RAM as it pivots
-            payload = self.gpu_recorder.record_mission(
-                stars=visible_galaxy,
-                singularity=total_singularity,
-                summary=summary,
-                forensic_report=report,
-                repo_name=self.root.name
-            )
-            
-            payload["meta"]["session"] = session_meta
-            self.gpu_recorder.save_minified(payload, output_file)
+            if not exclusive_mode or self.config.get("GPU_ONLY"):
+                logger.info(f"GPU: Generating minified payload -> {output_file}")
+                # record_mission destructively clears RAM as it pivots
+                payload = self.gpu_recorder.record_mission(
+                    stars=visible_galaxy,
+                    singularity=total_singularity,
+                    summary=summary,
+                    forensic_report=report,
+                    repo_name=self.root.name
+                )
+                
+                payload["meta"]["session"] = session_meta
+                self.gpu_recorder.save_minified(payload, output_file)
 
             logger.info(f"--- MISSION_SUCCESS: {stars_mapped_count} stars mapped in {duration}s ---")
             logger.info(f"--- ENGINE_TELEMETRY: Processed {total_loc:,} lines of code at {loc_per_sec:,} LOC/s ---")
@@ -1087,6 +1095,11 @@ def main():
     parser.add_argument("--debug", action="store_true", help="Turn on verbose Analytical logging")
     parser.add_argument("--paranoid", action="store_true", help="Lower security thresholds to flag more potential threats.")
     
+    # --- NEW: EXCLUSIVE RECORDER FLAGS ---
+    parser.add_argument("--llm-only", action="store_true", help="Run ONLY the LLM recorder")
+    parser.add_argument("--gpu-only", action="store_true", help="Run ONLY the GPU recorder")
+    parser.add_argument("--audit-only", action="store_true", help="Run ONLY the Audit recorder")
+    
     args = parser.parse_args()
 
     log_level = logging.DEBUG if args.debug else logging.INFO
@@ -1155,7 +1168,11 @@ def main():
             "PATH_MODIFIERS": getattr(scanning_config, "PATH_MODIFIERS", {}),
             "PRIORITY_WHITELIST": getattr(scanning_config, "PRIORITY_WHITELIST", []),
             "DOCUMENTATION_LANGUAGES": getattr(scanning_config, "DOCUMENTATION_LANGUAGES", set()),
-            "PARANOID_MODE": args.paranoid # ---> 2. INJECT INTO CONFIG <--- 
+            "PARANOID_MODE": args.paranoid,
+            # --- NEW: PASS EXCLUSIVE FLAGS TO ORCHESTRATOR ---
+            "LLM_ONLY": args.llm_only,
+            "GPU_ONLY": args.gpu_only,
+            "AUDIT_ONLY": args.audit_only
         }
 
         # ---------------------------------------------------------

@@ -220,7 +220,9 @@ class LLMRecorder:
         lines.append("> 17. **Memory Corruption Risk Exposure (memory_corruption):** Measures the density of raw pointer math, manual memory allocations, and forceful casts without mitigations (Buffer Overflows, UAF). Primarily affects C/C++/Rust.")
         lines.append("> 18. **Secrets Risk Exposure (secrets_risk):** Measures the presence of hardcoded credentials (RHS assignments) exposed to logs, globals, or graveyard code. Any score > 0 is a critical alert.")
         lines.append("> ")
-        lines.append("> **19. Structural Mass (Gravity):** Calculates total structural complexity. It weights files based on decision-making density (branches), parameter coupling (args), and raw size (LOC). `((Branches + 1) * (Args + 1) + (0.05 * LOC))`.")
+        lines.append("> **--- STRUCTURAL MAGNITUDE (NOT RISK) ---**")
+        lines.append("> **19. Function Magnitude (Impact Score):** Measures the physical footprint and 'heaviness' of a specific function. `((BranchHits + 1) * (Args + 1) + (0.05 * LOC)) * 10`. **This is NOT a risk score.** It measures the volume of decision-making, parameter coupling, and length. High impact means the function is a load-bearing 'Main Character' in the logic.")
+        lines.append("> **20. File Magnitude (Total Mass):** Measures the total gravitational pull of a file. `Sum(Function Impacts) + API + Concurrency + Flux + (LOC / 50)`. **This is NOT a risk score.** A massive file simply means it is a heavily connected, structurally dense hub, whereas a lightweight file is a simple utility or config.")
         lines.append("")
         
 
@@ -336,7 +338,8 @@ class LLMRecorder:
         lines.append("")
 
         # --- 8. GOD FUNCTIONS (THE SATELLITES) ---
-        lines.append("## 8. SATELLITE HITLIST (God Functions)")
+        lines.append("## 8. SATELLITE HITLIST (Heaviest Functions)")
+        lines.append("> *Note: The 'Impact' metric below represents Structural Magnitude (complexity, arguments, and length), NOT operational risk. These are the load-bearing pillars of the logic.*\n")
         func_impacts = forensic_report.get("function_impact", {}).get("highest", [])
         if func_impacts:
             for f in func_impacts[:10]:
@@ -467,9 +470,10 @@ class LLMRecorder:
             lines.append("")
 
         # ==============================================================================
-        # --- 12. VISIBLE MATTER HITLIST (Shifted from 11) ---
+        # --- 12. VISIBLE MATTER HITLIST (Top 25 Heaviest Files) ---
         # ==============================================================================
         lines.append("## 12. VISIBLE MATTER HITLIST (Top 25 Heaviest Files)")
+        lines.append("> *Note: 'Mass' represents the file's total Structural Magnitude and gravitational pull within the system. It is independent of its Risk Profile. High mass implies high structural importance and centralization.*\n")
         sorted_stars = sorted(stars, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
         
         # DNA Bucketing Sets
