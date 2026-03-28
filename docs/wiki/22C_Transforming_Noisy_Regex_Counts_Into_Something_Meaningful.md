@@ -1,76 +1,42 @@
 # 2.2.C. Transforming Noisy Regex Counts Into Something Meaningful
 
-We recognize that raw heuristic counts are inherently fragile; they are
-easily fooled by \"safety theater\" (like empty catch blocks) and lack
-the deep contextual awareness of a compiler. To transform this fuzzy,
-easily manipulated data into actionable intelligence, we implemented a
-**Universal Exposure Framework** that treats code metrics not as
-absolute truths, but as weighted signals within a \"Physics Engine.\"
-This approach applies four specific stabilizing forces to counteract the
-noise of static analysis:
+> **The Universal Exposure Framework**
+>
+> We recognize that raw heuristic counts are inherently fragile; they are easily fooled by "safety theater" (like empty catch blocks) and lack the deep contextual awareness of a compiler. To transform this fuzzy, easily manipulated data into actionable intelligence, we implemented a Universal Exposure Framework that treats code metrics not as absolute truths, but as weighted signals within a "Physics Engine."
 
--   **Weighted Asymmetry (The Entropy Check):** A simple counter treats
-a vulnerability and a safeguard as equal opposites (1 - 1 = 0). In
-reality, it is significantly harder to secure a system than to break
-it. We apply a **2.5x multiplier** to all detected risks, forcing
-the code to demonstrate disproportionate defensive density before it
-can achieve a \"Safe\" rating. This prevents minor cosmetic fixes
-from masking structural brittleness.
--   **The Breach Cap (Zero-Trust Logic):** To prevent large files with
-high test coverage from masking critical flaws, we enforce a hard
-limit: if the raw count of **Risk Hits** exceeds **Guardrail Hits**,
-the module is capped at a \"Fragile\" rating regardless of its other
-qualities. This overrides the math with a reality check---no amount
-of unit testing can neutralize a fundamentally insecure
-architecture.
--   **The Sigmoid Clamp (Noise Gating):** Linear counting penalizes
-large files for having trace amounts of technical debt. We utilize a
-logistic function to act as a noise gate, suppressing trivial
-findings (0-5% density) while aggressively highlighting clusters of
-debt once they cross a critical threshold (\~20%). This ensures the
-visualization focuses on systemic patterns rather than isolated
-infractions.
--   **Quantized Final Tiering (Removing False Precision):** Presenting a
-\"Safety Score\" of 87.4% implies a level of precision that regex
-cannot provide. By binning complex scores into five distinct
-**Qualitative Tiers** (Unshielded, Fragile, Stable, Defended,
-Fortified), we remove false precision and deliver a binary truth:
-the module is either sufficiently defended for its context, or it is
-not.
+## 2.2.C.1. The Four Stabilizing Forces
 
-**Instead of a single \"Master Equation\" **for **all** Risk
-Exposure**s**,** we employ a **Universal Framework** that is
-instantiated and calibrated for each of the Risk Exposure domains. ** **
+To counteract the noise of static analysis, the engine applies four specific stabilizing forces to the raw data:
 
-**The Standardization:** While each Risk Exposure equation is unique,
-they all adhere to the same physics:
+* **Weighted Asymmetry (The Entropy Check):** A simple counter treats a vulnerability and a safeguard as equal opposites ($1 - 1 = 0$). In reality, it is significantly harder to secure a system than to break it. We apply a **2.5x multiplier** to all detected risks, forcing the code to demonstrate disproportionate defensive density before it can achieve a "Safe" rating. This prevents minor cosmetic fixes from masking structural brittleness.
+* **The Breach Cap (Zero-Trust Logic):** To prevent large files with high test coverage from masking critical flaws, we enforce a hard limit: if the raw count of **Risk Hits** exceeds **Guardrail Hits**, the module is capped at a "Fragile" rating regardless of its other qualities. This overrides the math with a reality check—no amount of unit testing can neutralize a fundamentally insecure architecture.
+* **The Sigmoid Clamp (Noise Gating):** Linear counting penalizes large files for having trace amounts of technical debt. We utilize a logistic function to act as a noise gate, suppressing trivial findings (0-5% density) while aggressively highlighting clusters of debt once they cross a critical threshold (~20%). This ensures the visualization focuses on systemic patterns rather than isolated infractions.
+* **Quantized Final Tiering (Removing False Precision):** Presenting a "Safety Score" of 87.4% implies a level of precision that regex cannot provide. By binning complex scores into five distinct **Qualitative Tiers** (Unshielded, Fragile, Stable, Defended, Fortified), we remove false precision and deliver a binary truth: the module is either sufficiently defended for its context, or it is not.
 
-Each coding language is set in a tier that determines the value for Fc,
-Irc.
+## 2.2.C.2. The Physics of Risk
 
--   **Tier 1** = Explicit Languages (High Trust, e.g., Rust).
+Instead of a single "Master Equation" for all Risk Exposures, we employ a Universal Framework that is instantiated and calibrated for each specific Risk Domain. 
 
--   **Tier 2** = Structured Languages (Minor Doubt, e.g., Java).
+While each domain has a unique formula, they all adhere to the exact same physics: we weigh risk heavier than defenses, we add an "Opacity Tax" to the risk for dynamic languages, and we dampen the defenses based on our trust in the language's explicit syntax.
 
--   Tier 3 = Implicit Languages (Fog of War, e.g., Shell).**
+### The Language Confidence Tiers
 
+Every coding language is assigned to a tier that dictates its mathematical dampeners.
 
+| Confidence Tier | Classification | Example Languages | Mathematical Treatment |
+| :--- | :--- | :--- | :--- |
+| **Tier 1** | Explicit Languages (High Trust) | Rust, Go, C++ | Standard baseline calculations. |
+| **Tier 2** | Structured Languages (Minor Doubt) | Java, TypeScript | Minor risk dampening applied. |
+| **Tier 3** | Implicit Languages (Fog of War) | Shell, Python, JS | High "Opacity Tax" added; Defensive hits are dampened. |
 
-```{=html}
-<!-- -->
-```
--   **Fc** = Fidelity Coefficient. (A dampener used to reduce trust in
-ambiguous languages).
--   **Irc** = Implicit Risk Correction. (A flat penalty added to
-ambiguous languages aka \"Opacity Tax\").
--   **Mp** = Multiplier / Path Modifier. (Scales risk based on file
-location, e.g., Core vs. Lab). We reward people for good file
-structure, when we can.
+### The Universal Variables
 
-While each risk domain has a unique formula, they all follow this
-general form. We weigh risk (Asymmetry) heavier than defenses, add the
-\"Opacity Tax\" to the risk, and dampen the defenses with the \"Trust
-Coefficient.\"
+* **$\text{Fc}$ (Fidelity Coefficient):** A dampener used to reduce our trust in the defensive keywords of ambiguous languages.
+* **$\text{Irc}$ (Implicit Risk Correction):** A flat penalty added to ambiguous languages (The "Opacity Tax").
+* **$\text{Mp}$ (Multiplier / Path Modifier):** Scales risk based on the file's physical location in the repository (e.g., Core vs. Lab vs. Tests). This mathematically rewards teams for good folder architecture.
 
-*RiskExposure = \[ ((RiskHits + Irc) \* Weight) - (DefenseHits \* Fc) \]
-/ LOC \* Mp*
+### The General Risk Equation
+
+All risk domains follow this fundamental structural pattern:
+
+$$\text{RiskExposure} = \left( \frac{((\text{RiskHits} + \text{Irc}) \times \text{Weight}) - (\text{DefenseHits} \times \text{Fc})}{\text{LOC}} \right) \times \text{Mp}$$

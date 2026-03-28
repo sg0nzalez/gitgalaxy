@@ -1,119 +1,76 @@
 # 2.2.K. File Stability (Commit Heat)
 
-## 2.2.K.A. The Philosophy
+> **Metric: Relative Temporal Distance (Geological Layers)**
+>
+> **Summary:** Visualizes the "Geological Layers" of the repository. Instead of measuring "Freshness" (which implies old code is bad/stale), we measure **Stability**. We use Auto-Scaling Normalization to scan the entire repository and find the absolute oldest and newest timestamps, creating a relative timeframe specific to that exact galaxy.
+>
+> **Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
+> * 🟦 **HOT/NEW (Score 0-19):** The "Active Front." Code written or heavily modified very recently.
+> * 🟨 **ACTIVE (Score 40-59):** Settled. Halfway down the repository's timeline.
+> * 🟥 **ENDURING (Score 80-100):** The "Foundation." The oldest, most untouched files in the repository.
 
-Visualizes the \"Geological Layers\" of the repository. Instead of
-measuring \"Freshness\" (which implies old code is bad/stale), we
-measure Stability. We use Auto-Scaling Normalization to scan the entire
-repository and find the absolute oldest and newest timestamps, creating
-a relative timeframe specific to that galaxy.
+## 2.2.K.1. The Inputs (File System)
 
-**Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
+We use **Auto-Scaling Normalization**. We scan the entire repository to find the absolute oldest and newest timestamps, creating a relative time-frame strictly for this specific project.
 
--   **HOT/NEW (Score 0-20, Blue):** The \"Active Front.\" Code written
-or heavily modified very recently.
--   **ACTIVE (Score 41-60, Yellow):** Settled. Halfway down the
-repository\'s timeline.
--   **ENDURING (Score 81-100, Red):** The \"Foundation.\" The oldest,
-most untouched files in the repository.
+| Variable | Source | Unit | Structural Definition |
+| :--- | :--- | :--- | :--- |
+| `FileMTime` | `os.path.getmtime` | Epoch | The last modified timestamp of the specific file. |
+| `RepoMinTime` | Calculated (Pass 1) | Epoch | The timestamp of the *oldest* file in the entire repo. |
+| `RepoMaxTime` | Calculated (Pass 1) | Epoch | The timestamp of the *newest* file in the entire repo. |
 
-## 2.2.K.B. The Inputs (File System)
+## 2.2.K.2. The Universal Framework Integration
 
-We use **Auto-Scaling Normalization**. We scan the entire repository to
-find the absolute oldest and newest timestamps, creating a relative
-time-frame for this specific galaxy.
+Stability is a pure temporal measurement. It is not a risk factor that requires structural dampening or context amplification.
 
------------------ ----------------------- ------- --------------------------------------------------------
-Input Variable    Source                  Unit    Rationale
-**FileMTime**     *os.path.getmtime*      Epoch   The last modified timestamp of the specific file.
-**RepoMinTime**   *Calculated (Pass 1)*   Epoch   The timestamp of the *oldest* file in the entire repo.
-**RepoMaxTime**   *Calculated (Pass 1)*   Epoch   The timestamp of the *newest* file in the entire repo.
------------------ ----------------------- ------- --------------------------------------------------------
+* **$\text{Fc}$ (Fidelity Coefficient):** Not Applied. Time is absolute.
+* **$\text{Irc}$ (Implicit Risk Correction):** Not Applied.
+* **$\text{Mp}$ (Path Modifier):** Not Applied. The age of a file is a physical constant.
 
-## 2.2.K.C. The Universal Framework Integration
+## 2.2.K.3. The Equation: Relative Time Normalization
 
-Stability is a pure temporal measurement. It is not a risk factor that
-requires dampening or amplification.
+We define Stability as the "Distance from the Newest moment."
 
--   **Fc (Fidelity Coefficient):** Not Applied. Time is absolute.
--   **Irc (Implicit Risk Correction):** Not Applied.
--   **Mp (Path Modifier):** Not Applied. The age of a file is a physical
-constant.
+**Step A: Calculate Temporal Distance**
+We subtract the file's last modified time (`mtime`) from the newest moment in the repository (`repo_max`). We clamp this difference to $0.0$ at a minimum to prevent negative time errors if a file's timestamp somehow drifts ahead of the global max during processing.
 
-## 2.2.K.D. The Equation: Relative Time Normalization
+$$\text{SecondsFromMax} = \max(\text{RepoMaxTime} - \text{FileMTime},\ 0.0)$$
 
-We define Stability as the \"Distance from the Newest moment.\"
+**Step B: Calculate Relative Ratio**
+We divide the file's temporal distance by the total time range of the repository. We enforce a minimum range of $1.0$ second to prevent division-by-zero crashes in brand-new or single-file repositories.
 
-**Step A: Calculate Temporal Distance** We subtract the file\'s last
-modified time (*mtime*) from the newest moment in the repository
-(*repo_max*). We clamp this difference to *0.0* at a minimum to prevent
-negative time errors if a file\'s timestamp somehow drifts ahead of the
-global max during processing.
+$$\text{TimeRange} = \max(\text{RepoMaxTime} - \text{RepoMinTime},\ 1.0)$$
+$$\text{StabilityScore} = \min\left( \left( \frac{\text{SecondsFromMax}}{\text{TimeRange}} \right) \times 100.0,\ 100.0 \right)$$
 
-**Step B: Calculate Relative Ratio** We divide the file\'s temporal
-distance by the total time range of the repository. We enforce a minimum
-range of *1.0* second to prevent division-by-zero crashes in brand-new
-or single-file repositories.
+* If $\text{FileTime} == \text{RepoMaxTime}$ (Newest), the distance is $0$, so $\text{StabilityScore} = 0.0$.
+* If $\text{FileTime} == \text{RepoMinTime}$ (Oldest), the distance equals the full range, so $\text{StabilityScore} = 100.0$.
 
--   If *FileTime == RepoMaxTime* (Newest), the distance is *0*, so
-*Stability = 0.0*.
--   If *FileTime == RepoMinTime* (Oldest), the distance equals the full
-range, so *Stability = 100.0*.
+## 2.2.K.4. Implementation (Python Reference)
 
-## 2.2.K.E. Implementation (Python Reference)
+```python
+import math
+from typing import Dict, Any, Tuple
 
-*from typing import Dict, Tuple*
+def _calc_raw_temporal_signals(self, temp: Dict[str, Any]) -> Tuple[float, float]:
+    """Calculates Stability (Age) and Raw Churn (Seismic Frequency)."""
+    if not temp or not temp.get("is_git_tracked", False):
+        return 50.0, 0.0 
 
-*def \_calc_raw_temporal_signals(self, temp: Dict\[str, Any\]) -\>
-Tuple\[float, float\]:*
+    mtime = temp.get("mtime", 0.0)
+    repo_min = temp.get("repo_min_time", mtime)
+    repo_max = temp.get("repo_max_time", mtime)
+    commits = temp.get("commit_count", 0)
 
-* \"\"\"Calculates Stability (Age) and Raw Churn (Seismic
-Frequency).\"\"\"*
+    # ---> THE FIX: Clamp the time difference so it never goes negative <---
+    seconds_from_max = max(repo_max - mtime, 0.0)
+    time_range = max(repo_max - repo_min, 1.0)
 
-* if not temp or not temp.get(\"is_git_tracked\", False):*
+    # 1. Stability (0 = Newest/Surface, 100 = Oldest/Bedrock)
+    stability_ratio = seconds_from_max / time_range
+    stability_score = min(stability_ratio * 100.0, 100.0)
 
-* return 50.0, 0.0 *
+    # 2. Raw Churn Frequency (Calculated alongside stability)
+    age_weeks = max(seconds_from_max / 604800.0, 1.0) 
+    raw_churn_freq = commits / math.sqrt(age_weeks)
 
-* mtime = temp.get(\"mtime\", 0.0)*
-
-* repo_min = temp.get(\"repo_min_time\", mtime)*
-
-* repo_max = temp.get(\"repo_max_time\", mtime)*
-
-* commits = temp.get(\"commit_count\", 0)*
-
-* \# \-\--\> THE FIX: Clamp the time difference so it never goes
-negative \<\-\--*
-
-* seconds_from_max = max(repo_max - mtime, 0.0)*
-
-* time_range = max(repo_max - repo_min, 1.0)*
-
-* *
-
-* \# 1. Stability (0 = Newest/Surface, 100 = Oldest/Bedrock)*
-
-* stability_ratio = seconds_from_max / time_range*
-
-* stability_score = min(stability_ratio \* 100.0, 100.0)*
-
-* \# 2. Raw Churn Frequency (Calculated alongside stability)*
-
-* age_weeks = max(seconds_from_max / 604800.0, 1.0) *
-
-* raw_churn_freq = commits / math.sqrt(age_weeks)*
-
-* *
-
-* return stability_score, raw_churn_freq*
-
-## 2.2.K.F. Visual Verification (\"The Truth\")
-
-**Scenario:** A project started on Jan 1st (*Min*) and released on Dec
-31st (*Max*). Range = 365 Days.
-
-------------------- ------------------ ------------ ----------- ----------------- --------------------------------------------
-**NewFeature.ts**   Dec 31st (Today)   0 Days       **0.0**     HOT/NEW (Blue)    New. The active surface layer.
-**MidYear.ts**      July 1st           \~182 Days   **50.0**    ACTIVE (Yellow)   Settled. Halfway down the timeline.
-**Init.ts**         Jan 1st (Start)    365 Days     **100.0**   ENDURING (Red)    Foundation. The oldest rock in the strata.
-------------------- ------------------ ------------ ----------- ----------------- --------------------------------------------
+    return stability_score, raw_churn_freq

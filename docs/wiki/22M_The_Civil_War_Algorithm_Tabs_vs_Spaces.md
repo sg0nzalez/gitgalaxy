@@ -1,45 +1,65 @@
-# 2.2.M. The \"Civil War\" Algorithm: Tabs vs. Spaces
+# 2.2.M. The "Civil War" Algorithm (Tabs vs. Spaces)
 
--   Visual Mapping:
+> **Metric: Layout Unity (Indentation Polarization)**
+>
+> **Summary:** While colloquially referred to as "Civil War," this equation measures Layout Unity. It visualizes the structural formatting consistency of a file by calculating the ratio of space-indented lines to tab-indented lines. 
+>
+> **Effect:** This metric **bypasses the Universal Risk Spectrum** because it does not measure escalating danger. Instead, it uses a custom Diverging Spectrum.
+> * 🟩 **TABS (Score 0-19):** Pure Tabs. Glowing Green (`#39ff14`). Emissive intensity is maxed.
+> * 🟦 **MIXED (Score 20-79):** The "War Zone". Maximum conflict sits at exactly $50$. Deep Blue (`#0000ff`). Triggers the "Bifurcation Shimmer" (geometry flickering).
+> * 🟨 **SPACES (Score 80-100):** Pure Spaces. Glowing Yellow (`#ffff00`). Emissive intensity is maxed.
 
--   Score 0 (Pure Tabs): Visual: Glowing Green
-(#00FF00). Emissive intensity is maxed.
--   Score 100 (Pure Spaces): Visual: Glowing Yellow
-(#FFFF00). Emissive intensity is maxed.
--   Score 50 (Maximum Conflict): Visual: Deep Blue
-(#0000FF). 50/50 split triggers the \"Bifurcation Shimmer\"
-(geometry flickering).
--   Gradient: Linear transition from Green (0) → Blue (50) →
-Yellow (100).
+## 2.2.M.1. The Philosophy: The Linear Polarization Model
 
--   Equation:
+By mapping Tabs to $0$ and Spaces to $100$, the "War Zone" (a 50/50 mix of indentation styles) naturally falls into the center of the spectrum (Score $50$). 
 
-*\# 1. Gather Indentation Context:*
+This visually exposes files that lack a unified formatting standard. A file glowing bright green or bright yellow is unified and clean. A file glowing deep blue is structurally fractured, indicating that multiple developers with conflicting IDE configurations are fighting over the layout.
 
-*\# Lt = Count of lines starting with Tabs*
+## 2.2.M.2. The Inputs (Indentation Context)
 
-*\# Ls = Count of lines starting with Spaces*
+The scanner counts the absolute number of lines that lead with either tabs or spaces.
 
-*\# Ltotal = Total lines with indentation context*
+| Variable | Source | Structural Definition |
+| :--- | :--- | :--- |
+| `indent_tabs` | Scanner | Count of lines starting with one or more Tabs. |
+| `indent_spaces` | Scanner | Count of lines starting with one or more Spaces. |
 
-*Ltotal = TabLines + SpaceLines*
+## 2.2.M.3. The Equation: The Polarization Ratio
 
-*\# 2. Calculate Space-Ratio (R):*
+**Step A: Gather Indentation Context**
+We calculate the total number of lines that contain measurable indentation context. If a file has no indentation at all, it defaults to the neutral center ($50$).
 
-*\# 0.0 means 100% Tabs. 1.0 means 100% Spaces.*
+$$L_{total} = L_t + L_s$$
 
-*R = SpaceLines / max(Ltotal, 1)*
+**Step B: Calculate Space-Ratio ($R$)**
+We calculate the percentage of indented lines that are controlled by spaces. A result of $0.0$ means $100\%$ Tabs. A result of $1.0$ means $100\%$ Spaces.
 
-*\# 3. Final Score Mapping (0-100):*
+$$R = \frac{L_s}{\max(L_{total}, 1)}$$
 
-*FinalScore = R \* 100*
+**Step C: Final Score Mapping**
+We map the ratio to a standard $0-100$ visual scale.
 
--   Range: **0** (Pure Tabs) to **100** (Pure Spaces).
+$$\text{FinalScore} = R \times 100.0$$
 
--   Why this works: This is a Linear Polarization Model.
+## 2.2.M.4. Implementation (Python Reference)
 
--   Terminology: While colloquially referred to as \"Civil
-War,\" the equation measures Layout Unity.
--   Logic: By mapping Tabs to 0 and Spaces to 100, the \"War
-Zone\" (50/50 mix) naturally sits at the center of the spectrum
-(Score 50).
+```python
+def _calc_civil_war(self, eq: Dict[str, int]) -> float:
+    """
+    Calculates Layout Unity (Tabs vs Spaces). 
+    0 = Pure Tabs (Green), 100 = Pure Spaces (Yellow), 50 = War Zone (Blue).
+    """
+    tab_lines = eq.get('indent_tabs', 0)
+    space_lines = eq.get('indent_spaces', 0)
+    
+    l_total = tab_lines + space_lines
+    
+    # Handle Void States (No indentation at all)
+    if l_total == 0:
+        return 50.0 # Default to Neutral Blue
+        
+    # Calculate Space-Ratio (R)
+    space_ratio = space_lines / l_total
+    
+    # Final Score Mapping (0-100)
+    return space_ratio * 100.0

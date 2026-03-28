@@ -1,116 +1,45 @@
-# 2.2.A. Overview of methodology
+# 2.2.A. Overview of Methodology
 
-+----------------+----------------+----------------+----------------+
-| Labeling Mode  | What It    | Color          | Visual Effect  |
-|                | Checks     |                |                |
-+----------------+----------------+----------------+----------------+
-| Ownership  | **Who wrote    |  White | **Rainbow.**   |
-|            | this?** Shows  |                | Single colors  |
-|                | if a file is   |                | are            |
-|                | owned by one   |                | individuals;   |
-|                | person (Solo)  |                | bright White   |
-|                | or everyone    |                | is a team      |
-|                | (Collective).  |                | effort.        |
-+----------------+----------------+----------------+----------------+
-| Cognitive  | **How hard is  |            | **Purple.**    |
-| Load       | it to read?**  |            | The deeper the |
-|                | Highlights     | Purple | purple, the    |
-|                | confusing      |                | harder the     |
-|                | logic that     |                | logic is to    |
-|                | requires high  |                | follow.        |
-|                | mental effort. |                |                |
-+----------------+----------------+----------------+----------------+
-| Churn  | **How often    | Orange | **Orange.**    |
-|            | does it        |                | Bright orange  |
-|                | change?**      |                | indicates a    |
-|                | Identifies     |                | file that      |
-|                | files that are |                | refuses to     |
-|                | constantly     |                | settle down.   |
-|                | being          |                |                |
-|                | rewritten or   |                |                |
-|                | patched.       |                |                |
-+----------------+----------------+----------------+----------------+
-| Safety     | **Is it        | Red    | **Red to       |
-|            | bulletproof?** |                | Cyan.** Red is |
-|                | Checks for     | to     | fragile/risky; |
-|                | defensive code |                | Cyan is        |
-|                | (error         |  Cyan  | f              |
-|                | handling) vs.  |                | ortified/safe. |
-|                | risky code.    |                |                |
-+----------------+----------------+----------------+----------------+
-| Tech       | **Are there    | Red    | **Red.**       |
-| Debt       | shortcuts?**   |                | Glowing red    |
-|                | Scans for      |                | highlights     |
-|                | \"TODOs\",     |                | unfinished     |
-|                | \"Hacks\", and |                | business.      |
-|                | temporary      |                |                |
-|                | fixes.         |                |                |
-+----------------+----------------+----------------+----------------+
-| Doc        | **Is it        | Library    | **Gold.**      |
-| Mode       | explained?**   | Gold       | Bright gold    |
-|                | Measures the   |                | indicates      |
-|                | quality of     |                | library-grade  |
-|                | instruction    |                | documentation. |
-|                | manuals and    |                |                |
-|                | comments.      |                |                |
-+----------------+----------------+----------------+----------------+
-| Commit     | **Is it        | Green          | **Green.**     |
-| Heat       | fresh?** Shows |                | Radioactive    |
-|                | where work is  |                | green means it |
-|                | happening      |                | was edited     |
-|                | *right now*    |                | today.         |
-|                | vs. months     |                |                |
-|                | ago.           |                |                |
-+----------------+----------------+----------------+----------------+
-| Test       | **Is it        | Pink           | **Pink.**      |
-| Coverage   | verified?**    |                | Glowing pink   |
-|                | Checks if the  |                | means the code |
-|                | code has a     |                | is heavily     |
-|                | safety net of  |                | tested.        |
-|                | tests proving  |                |                |
-|                | it works.      |                |                |
-+----------------+----------------+----------------+----------------+
-| []{#a          | **Tabs or      | Green Vs.      | **Green vs     |
-| nchor-63}Civil | Spaces?**      | Yellow         | Yellow.** Blue |
-| War            | Checks for     |                | indicates a    |
-|                | indentation    |                | messy mix of   |
-|                | consistency.   |                | both.          |
-+----------------+----------------+----------------+----------------+
-| []{#ancho      | **Is there     | Purple         | **Purple.** A  |
-| r-64}Graveyard | dead code?**   |                | \"haunted\"    |
-|                | Finds blocks   |                | purple glow    |
-|                | of code that   |                | indicates      |
-|                | were commented |                | historical     |
-|                | out and        |                | hoarding.      |
-|                | abandoned.     |                |                |
-+----------------+----------------+----------------+----------------+
-| API Exposure   | **Is it        | #ff007f        | **Electric     |
-|                | public?**      |                | Rose.**        |
-|                | Highlights the | Electric Rose  | Indicates a    |
-|                | entry points   |                | public         |
-|                | where the      |                | interface or   |
-|                | system talks   |                | endpoint.      |
-|                | to the outside |                |                |
-|                | world.         |                |                |
-+----------------+----------------+----------------+----------------+
-| Concurrency    | **Is it        | #7b2ff7        | **             |
-| Exposure       | m              |                | Ultraviolet.** |
-|                | ultitasking?** | Electric       | Indicates      |
-|                | Highlights     | Ultraviolet    | potential race |
-|                | complex        |                | conditions or  |
-|                | timing,        |                | timing risks.  |
-|                | threads, or    |                |                |
-|                | asynchronous   |                |                |
-|                | logic.         |                |                |
-+----------------+----------------+----------------+----------------+
-| State Flux     | **Is the data  | #ffb84e        | **Clyde        |
-| Exposure       | changing?**    |                | Orange.**      |
-|                | Highlights     | Clyde Orange   | Indicates      |
-|                | variables that |                | \"boiling\"    |
-|                | are constantly |                | data that is   |
-|                | being          |                | hard to track. |
-|                | mod            |                |                |
-|                | ified/mutated. |                |                |
-+----------------+----------------+----------------+----------------+
+> **The Core Philosophy: Genotype to Phenotype**
+>
+> GitGalaxy does not measure subjective "Code Quality," which implies judgment. Instead, it measures objective **Risk Exposures**. We identify structural markers in the code (the Genotype) and translate them into visible risk heatmaps (the Phenotype). This allows teams to instantly see where their architecture is drifting into dangerous territory without reading a single line of text.
 
+## 2.2.A.1. The Universal Risk Spectrum (A11y Standard)
 
+To reduce cognitive load on the user, GitGalaxy v6.0 abandons distinct color palettes for individual metrics. Instead, we utilize a single, unified **High-Contrast Spectrum** for all risk and exposure dashboards. 
+
+Regardless of the metric being viewed, the visual translation is always the same:
+* 🟦 **Deep Blue:** Very Low Exposure (Safe / Cold / Clean)
+* 🩵 **Cyan:** Low Exposure
+* 🟨 **Yellow:** Moderate / Intermediate Exposure
+* 🟧 **Orange:** High Exposure
+* 🟥 **Bright Red:** Critical / Extreme Exposure (Hot / Dangerous)
+
+## 2.2.A.2. The Exposure Metrics
+
+When a user selects a metric from the HUD, the galaxy recolors itself using the Universal Spectrum. The table below defines what the engine is looking for, and what a "Red" (Critical) state represents for each mode.
+
+| Labeling Mode | What It Checks | The "Red" (Critical) State Indicates... |
+| :--- | :--- | :--- |
+| **Cognitive Load** | **How hard is it to read?** Scans for deeply nested logic, sprawling methods, and high control-flow complexity. | The logic is incredibly difficult for a human to follow. A prime target for refactoring. |
+| **Deep Churn** | **How often does it change?** Identifies files that are constantly being rewritten, patched, or reverted. | The file refuses to settle down. It is highly fluid and likely a source of recurring bugs. |
+| **Error & Exception Exposure** | **Is it fragile?** Compares the ratio of defensive code (error handling, guards) against aggressive logic. | The file lacks safety nets. It is performing complex logic without adequate exception handling. |
+| **Tech Debt** | **Are there shortcuts?** Scans for `TODO`s, `FIXME`s, known hacks, and temporary architectural band-aids. | The file is heavily burdened by unfinished business and documented technical debt. |
+| **Documentation Risk** | **Is it explained?** Measures the ratio and quality of instructional comments against the raw code. | The file is essentially undocumented. It operates as a "black box" to new developers. |
+| **Verification (Tests)** | **Is it proven?** Checks if the file has a corresponding safety net of tests proving it works. | The code is heavily exposed due to a severe lack of testing and verification coverage. |
+| **Stability (Heat)** | **Is it fresh?** Shows where work is happening *right now* vs. code that was written months ago. | The file is "Hot." It has been actively edited or committed in the very recent past. |
+| **Graveyard** | **Is there dead code?** Finds massive blocks of code that were commented out and abandoned. | The file is hoarding historical, dead code that needs to be purged. |
+| **API Exposure** | **Is it public?** Highlights the entry points where the system talks to the outside world. | The file serves as a major public endpoint, demanding strict security scrutiny. |
+| **Concurrency** | **Is it multitasking?** Highlights complex timing, threads, or asynchronous logic. | Heavy reliance on asynchronous timing, introducing severe risks for race conditions. |
+| **State Flux** | **Is the data changing?** Highlights variables that are constantly being modified or mutated. | "Boiling" data. The file mutates state aggressively, making it hard to track standard values. |
+| **Authorship** | **Who wrote this?** Measures the Shannon Entropy of Git blame data to see if a file is owned by one person or many. | A "Community" file. It has been touched by so many different developers that no single person owns it. |
+
+## 2.2.A.3. Custom Diverging Scales
+
+Certain metrics do not represent a "Safe to Dangerous" pipeline, but rather a difference in style or identity. These bypass the Universal Spectrum and use custom palettes.
+
+* **Civil War (Tabs vs. Spaces):** Checks for indentation consistency across the codebase.
+  * 🟩 **Green:** Strictly uses Tabs.
+  * 🟨 **Yellow:** Strictly uses Spaces.
+  * 🟦 **Blue:** A chaotic, mixed indentation style (The "Warzone").
+* **Language Identity:** Colors the file based on its file extension (e.g., JavaScript is Yellow, Python is Blue, Rust is Orange) to create a visual taxonomy of the system's tech stack.

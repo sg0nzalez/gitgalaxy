@@ -64,3 +64,4 @@ venvs/
 # Local data mounts
 data/
 museum/
+docs_build/

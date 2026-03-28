@@ -8,7 +8,7 @@ GalaxyScope is a modular computational instrument designed to resolve
 raw source code into intuitive 3D physical structures. Rather than a
 standard \"scanner,\" the system operates as an optical pipeline where
 each module serves as a discrete component housed within the
-**GalaxyScope Chassis**. **Just as light flows through a
+******GalaxyScope Chassis******. **Just as light flows through a
 telescope, data flows through our GalaxyScope. We adjust the aperture
 (what files are blocked), we use guidestars (creator's READMEs), each
 file's language is brought into focus, the data stream is sent through a
@@ -32,16 +32,16 @@ The Adaptive Light Path System   *galaxyscope.py*          Orchestrator. Parses 
 The Security Lens                security_lens.py          The threat detection physics engine. It scans raw structural realities using specialized heuristics to detect adversarial behaviors (obfuscated payloads, logic bombs, exfiltration vectors, and hardcoded secrets), evaluating them against dynamic policy thresholds.                                                                                                                                       **Threat Hunting:** Applies a specialized high-contrast filter to the incoming light, illuminating hostile anomalies, killer asteroids, and structural vulnerabilities hidden within the raw signal.
 **The GuideStar Protocol**       *guidestar_protocol.py*   Calibration and indexing; ensures the instrument is focused on core architectural importance. Reads git lists, package.json, etc.                                                                                                                                                                                                                                                                             **Alignment:** Establishes the coordinate center of the survey.
 **The Language Lens**            *language_lens.py*        Language identification. Compares lines of evidence (ext/shebang), system context to assign a language to each file along with a confidence score based on the quality of that evidence to allow us later more thoroughly assess if our determinations seem plausible for that evidence.                                                                                                                      **Focus:** Spectral identification; determines if we have a lens to best focus that wavelength of light.
-**The **Prism                *prism.py*                Once the language has been identified the correct comment style can be applied to parse comments from code                                                                                                                                                                                                                                                                                                    Spectral Splitting**:** Splits the wavelength of light into two streams that can be analyzed separately from each other
+**The **Prism****                *prism.py*                Once the language has been identified the correct comment style can be applied to parse comments from code                                                                                                                                                                                                                                                                                                    ****Spectral Splitting**:** Splits the wavelength of light into two streams that can be analyzed separately from each other
 **The Primary Detector**         *detector.py*             Heuristic sensor; performs high-speed regex counting to detect functional intent.                                                                                                                                                                                                                                                                                                                             **Raw Signal:** Captures the discrete counts of logic hits. Where the photons hit the EMCCD chip.
-**The Signal Processor**         *signal_processor.py*     Equation engine; converts raw counts into non-linear risk exposures and physical mass.                                                                                                                                                                                                                                                                                                                        Analyzed Signal**:** Transforms hits into meaningful 0-100 exposure scores.
+**The Signal Processor**         *signal_processor.py*     Equation engine; converts raw counts into non-linear risk exposures and physical mass.                                                                                                                                                                                                                                                                                                                        ****Analyzed Signal**:** Transforms hits into meaningful 0-100 exposure scores.
 **The Spectral Auditor**         *spectral_auditor.py*     Bayesian Quality control. If sample size permits, performs statistical Z-score checks to assess if files with low confidence language determinations have further evidence that they have code written in that language. That an extension-less shebang-less file that we labeled as shell actually contains shell related regex hits at an expected regex hit density, as measured from your other files.    **Integrity:** Relegates Mysterious signals to the **Singularity of Ambiguity, **to highlight that the system was unable to analyze these signals.
 The Chronometer                  chronometer.py            A high-fidelity temporal sensor. It analyzes Git commit history and file-system metadata to measure code churn, file stability, and ownership entropy over the project\'s lifespan.                                                                                                                                                                                                                           **Temporal Telemetry:** Measures the \"redshift\" and volatility of artifacts over time, adding the dimension of history and movement to the static star map.
-The Audit Recorder               *audit_recorder.py*       Full level audit record of every file scanned, results and hits; into a large JSON archive. To make your lawyers happy.                                                                                                                                                                                                                                                                                       **The SHBOM**: A permanent \"Black Box\" record (Structural Health Bill of Materials). 
-The GPU Recorder         *gpu_recorder.py*         Vectorization; seals the processed signal into a lightweight, high-density JSON archive.                                                                                                                                                                                                                                                                                                                      **The Starmap**: Converts analyzed data into galaxy format for the 3D rendering engine.
+The Audit Recorder               *audit_recorder.py*       Full level audit record of every file scanned, results and hits; into a large JSON archive. To make your lawyers happy.                                                                                                                                                                                                                                                                                       **The SHBOM**: A permanent \"Black Box\" record (Structural Health Bill of Materials). ****
+****The GPU Recorder****         *gpu_recorder.py*         Vectorization; seals the processed signal into a lightweight, high-density JSON archive.                                                                                                                                                                                                                                                                                                                      **The Starmap**: Converts analyzed data into galaxy format for the 3D rendering engine.
 -------------------------------- ------------------------- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# 2.3.0. The GalaxyScope Chassis -- Optical Orchestration
+#### 2.3.0. The GalaxyScope Chassis -- Optical Orchestration
 
 The GalaxyScope (implemented as the Orchestrator class in
 galaxyscope.py) is the primary structural frame of the GitGalaxy engine.
@@ -52,7 +52,7 @@ individual sensors and lenses would lack the synchronization required to
 build a cohesive 3D map; the Orchestrator ensures that data is
 refracted, analyzed, and recorded with perfect temporal alignment.
 
-## 2.3.0.A. The Adaptive Lightpath System
+##### 2.3.0.A. The Adaptive Lightpath System
 
 The analysis is executed as a series of \"Lightpath Phases.\" By
 organizing the pipeline into distinct sequential passes, the system can
@@ -103,7 +103,7 @@ for a *Critical Credential Leak*, the chassis artificially injects a
 \"Supernova\" onto the map---forcing the hardcoded secret to be
 rendered in the UI despite its architectural insignificance.
 
-## 2.3.0.B. Adaptive Features and Hardware Overrides
+##### 2.3.0.B. Adaptive Features and Hardware Overrides
 
 The GalaxyScope is designed as an \"Open Chassis,\" capable of swapping
 lenses and patching logic on the fly based on the specific \"Atmospheric
@@ -170,7 +170,7 @@ permanently anchored to a specific point in the project\'s history,
 providing the \"Black Box\" data required for SBOM (Software Bill of
 Materials) compliance and legal audits.
 
-# 2.3.1. The Aperture Filter: Adjusting the Telescope's Filter and Focus
+#### 2.3.1. The Aperture Filter: Adjusting the Telescope's Filter and Focus
 
 To prevent \"Radio Noise\" from blinding the telescope, the pipeline
 initiates Phase 0.1: The Solar Shield. In modern repositories, artifacts
@@ -182,7 +182,7 @@ If an artifact isn\'t something a human actively manages, it is treated
 as out-of-scope, protecting the Physics Engine from wasting cycles on
 \"Junk Matter.\"
 
-## 2.3.1.A. Blocking the Radio Noise (The Lead Shield)
+##### 2.3.1.A. Blocking the Radio Noise (The Lead Shield)
 
 The Solar Shield operates through a strict, multi-tiered hierarchy of
 suppression, moving from physical constraints and security risks down to
@@ -226,7 +226,7 @@ Census and Ingestion phases. This allows specific, high-priority \"Dark
 Matter\" (like *.hooks/* or custom config files) to safely bypass the
 Tier 1 Solar Shield, ensuring vital logic is captured in the 3D census.
 
-## 2.3.1.B. The Visible Spectrum (Linguistic & Integrity Gates)
+##### 2.3.1.B. The Visible Spectrum (Linguistic & Integrity Gates)
 
 Once the scope is clear, we tune the sensors to the Visible Spectrum. We
 use the *LANGUAGE_DEFINITIONS* registry as a primary whitelist for
@@ -256,7 +256,7 @@ limit, the signal is considered \"Saturated\" and discarded. If the code
 is too compressed for a human to read, we assume that the user doesn't
 want to analyze what is in it.
 
-## 2.3.1.C. Data Classification Matrix
+##### 2.3.1.C. Data Classification Matrix
 
 Filtering categorizes project data by its \"Wavelength.\" Only artifacts
 in the Visible band (and intentionally injected Quarantined files)
@@ -271,7 +271,9 @@ Infrared      Saturated/Minified Code, \>10MB Files         Discard   Not Render
 Visible       Whitelisted Source Code                       Process   Star Mass / Galaxy Body
 ------------- --------------------------------------------- --------- -------------------------------------------
 
-# #### 2.3.2. The GuideStar Protocol: Contextual Intelligence
+####
+
+#### 2.3.2. The GuideStar Protocol: Contextual Intelligence
 
 The GuideStar Protocol acts as the \"Intelligence Officer\" of the
 GitGalaxy observatory. While the Aperture Filter (Phase 0.1) serves as a
@@ -288,7 +290,7 @@ are intentional logic and which are mere debris. This transforms a rigid
 exclusion filter into a dynamic system that understands the \"Social
 Proof\" of a file before the Language Lens begins its atomic scan.
 
-## 2.3.2.A. The Prior Probability Vector
+##### 2.3.2.A. The Prior Probability Vector
 
 In the GitGalaxy pipeline, every file in the CensusArray begins as an
 uninitialized artifact with a base probability of \"Deep Space
@@ -326,7 +328,7 @@ intensity is increased by **+0.10** (capped at 0.99), signaling to the
 pipeline that this specific file has explicit human-validated
 importance.
 
-## 2.3.2.B. The Handover: Intent vs. Identity
+##### 2.3.2.B. The Handover: Intent vs. Identity
 
 This separation of concerns allows the pipeline to maintain a \"Scan
 Once\" efficiency by distinguishing between two different types of
@@ -341,7 +343,7 @@ this file is). It updates the prior for the \"Standard Galaxy\"
 (files with known extensions) and performs the atomic scan to verify
 all claims.
 
-## 2.3.2.C. The Evidence Hierarchy: Identifying Social Proof
+##### 2.3.2.C. The Evidence Hierarchy: Identifying Social Proof
 
 GuideStar v6.3.0 prioritizes evidence based on its \"Proximity to Human
 Intent.\" This principle assumes that explicit configuration files
@@ -385,7 +387,7 @@ sector.
 -   **Makefile Targets:** Non-reserved custom targets identified in
 build files (e.g., *build-assets:*) are granted a **0.70 Prior**.
 
-## 2.3.2.D. Rules for Deep Manifest & README Analysis
+##### 2.3.2.D. Rules for Deep Manifest & README Analysis
 
 ###### 2.3.2.D.1. Deep Manifest Inspection (v6.3.0)
 
@@ -413,7 +415,7 @@ evaluated, its relative path and filename are tested against these
 patterns, allowing entire directories or file extensions to be instantly
 focus-locked.
 
-## 2.3.2.E. Determinism and Inventory Integrity
+##### 2.3.2.E. Determinism and Inventory Integrity
 
 -   **Traceability:** Every file in the final inventory indicates
 whether its prior was provided by Context (GuideStar) or Signature
@@ -434,7 +436,7 @@ ensures hyper-specific locks override generic folder biases.
 normalizes all filenames (stripping *./* and leading whitespace) to
 ensure manifest references align perfectly with physical file paths.
 
-# 2.3.3. The Security Lens -- Threat Detection Physics
+#### 2.3.3. The Security Lens -- Threat Detection Physics
 
 The Security Lens acts as GitGalaxy's physics engine for threat
 detection. Rather than relying on static vulnerability databases, legacy
@@ -455,7 +457,7 @@ literal density of dangerous operations and structural intent, it can
 successfully detect and flag malicious code even if that specific
 payload has never been seen before in the wild.
 
-## 2.3.3.A. Dynamic Policy Injection (Threshold Governance)
+##### 2.3.3.A. Dynamic Policy Injection (Threshold Governance)
 
 To maintain architectural purity and extreme adaptability, the Security
 Lens is entirely decoupled from policy-making; it does not hardcode
@@ -476,7 +478,7 @@ orchestrator simply adjusts the threshold policy to tighten the net. If
 no strict policy is provided by the orchestrator, the Lens safely falls
 back to a highly secure baseline threshold.
 
-## 2.3.3.B. Raw Sensors: The 11 Threat Signatures
+##### 2.3.3.B. Raw Sensors: The 11 Threat Signatures
 
 The engine utilizes specialized, hardware-level regex sensors to scan
 the logic streams. Crucially, these sensors are not hunting for known,
@@ -585,7 +587,7 @@ well as inline assembly instructions (*\_\_asm\_\_*), which are the
 invariable prerequisites for introducing buffer overflow
 vulnerabilities.
 
-## 2.3.3.C. The Scan Engine: Structural Reality Capture
+##### 2.3.3.C. The Scan Engine: Structural Reality Capture
 
 During the scan phase, the *scan_content* method acts as a completely
 passive observer. It channels the file\'s pure logic stream (the Active
@@ -601,7 +603,7 @@ a raw network socket. The scan engine\'s only job is to generate the
 pristine, objective telemetry required for the physics engine to
 calculate its math.
 
-## 2.3.3.D. Risk Evaluation & Exposure Mapping
+##### 2.3.3.D. Risk Evaluation & Exposure Mapping
 
 Traditional security scanners often drown development teams in false
 positives because they rely on raw hit counts. A 10,000-line monolithic
@@ -638,7 +640,7 @@ monitoring Vault Door hits. Because hardcoded credentials require
 almost zero density to be catastrophic, this vector operates on a
 micro-threshold to instantly flag leaked keys.
 
-# 2.3.3. Focusing the Language Lens
+#### 2.3.3. Focusing the Language Lens
 
 Before the GitGalaxy pipeline can calculate the physics of Star Mass or
 determine security risk, it must perform a comprehensive Entity Census.
@@ -652,7 +654,7 @@ hallucination away from disaster. The Language Lens operates on a
 Bayesian model of Contextual Convergence, treating every file as a
 \"claim\" that must be proven through a strict hierarchy of evidence.
 
-## 2.3.3.A. The Bayesian Engine: Prediction vs. Audit
+##### 2.3.3.A. The Bayesian Engine: Prediction vs. Audit
 
 GitGalaxy adopts a rigorous stance on identity: True confidence requires
 convergence. A single metadata signature (like an extension alone) is
@@ -670,7 +672,7 @@ Matrix to establish their identity.
 5     Absolute Distrust   Identity Crisis          **0.00**          Security Anomaly: Extension and Shebang explicitly contradict each other. Banished to the Singularity.
 ----- ------------------- ------------------------ ----------------- ---------------------------------------------------------------------------------------------------------------------------------
 
-## 2.3.3.B. The Pre-Flight Sequence: Anchors & Wrappers
+##### 2.3.3.B. The Pre-Flight Sequence: Anchors & Wrappers
 
 Before engaging the heavy regex detectors, the Lens secures the
 perimeter, resolves hidden names, and defends against prose hijacking.
@@ -688,7 +690,7 @@ engine will not treat it as Markdown. If a file has a known
 executable extension, it strictly bypasses prose checks so hostile
 logic cannot hide inside fake documentation.
 
-## 2.3.3.C. The Identity Crisis Trap (Security Integration)
+##### 2.3.3.C. The Identity Crisis Trap (Security Integration)
 
 The Lens acts as the first line of defense for the Security Module. It
 performs a cross-examination of physical signals. If a file claims to be
@@ -700,7 +702,7 @@ anomaly, caches it in the RAM *anomaly_flags* for the Security Lens,
 and forces the file into Tier 5 Absolute Distrust, destroying its
 identity and banishing it to the Singularity (*undeterminable*).
 
-## 2.3.3.D. Tier 1.5: Ecosystem Gravity (Collision Resolution)
+##### 2.3.3.D. Tier 1.5: Ecosystem Gravity (Collision Resolution)
 
 Certain extensions, like *.h*, are heavily collided (used primarily by
 C, C++, and Objective-C). The Lens uses \"Ecosystem Gravity\" to resolve
@@ -725,7 +727,7 @@ other competitors. *(Note: The engine includes a hardcoded failsafe
 ensuring C++ is always allowed to compete for *.h* files, even if not
 explicitly mapped).*
 
-## 2.3.3.E. Tier 3: Spectral Verification & The Iron Wall
+#####  2.3.3.E. Tier 3: Spectral Verification & The Iron Wall
 
 Files that land at Tier 2 (Single Signature) must undergo Mandatory
 Spectral Verification to prove they contain the structural logic they
@@ -756,7 +758,7 @@ Delimiter Bonus) is normalized against the file\'s length using a
 logarithmic scale (*math.log1p(loc)*). The file must pass a minimum
 baseline signal threshold to be verified.
 
-## 2.3.3.F. Tier 4: The Deep Space Discovery Funnel
+##### 2.3.3.F. Tier 4: The Deep Space Discovery Funnel
 
 For true unknown files (no extension, no shebang), the Lens engages a
 redesigned 4-Phase Discovery Funnel. It prioritizes graceful failure
@@ -779,11 +781,11 @@ Margin. If the margin is weak, it utilizes a **Temporal Friction
 Tie-Breaker**, measuring the raw execution time of the regex engines
 to deduce the true language based on parser resistance.
 
-## 2.3.3.G. Hybrid Detection (Language Sliding)
+##### 2.3.3.G. Hybrid Detection (Language Sliding)
 
-Many files in modern repositories are multi-language. To map the
+****Many files in modern repositories are multi-language. To map the
 true complexity of a codebase, the engine implements Mid-File Language
-Sliding.
+Sliding.****
 
 ###### 2.3.3.G.1. The Handshake Protocol (Detection)
 
@@ -794,7 +796,7 @@ and define the boundaries of the secondary star.
 
 --------------------------------- ------------------------------ ------------------------- -------------------------------------
 Linguistic Transition (X -\> Y)   Start Marker (Trigger)         End Trigger               Assessment Logic
-**HTML **to **JavaScript**    *\<script*                     *\</script\>*             Pause HTML; activate JS Registry.
+**HTML **to**** **JavaScript**    *\<script*                     *\</script\>*             Pause HTML; activate JS Registry.
 **HTML** to **CSS**               *\<style*                      *\</style\>*              Pause HTML; activate CSS Registry.
 **Any Logic** to **SQLite**       *SELECT\\s+.\*\\s+FROM*        *\[\"\'\]* (String End)   Scan segment with SQL registry.
 **Config** to **Shell**           *RUN\\s+* \| *script:*         De-indentation \| *\\n*   Switch to Shell for the block.
@@ -845,7 +847,7 @@ significantly deviate from the primary language's frequency, it
 maintains the focus until a higher-confidence \"Safe Exit\" is
 found.
 
-## 2.3.3.H. Determinism and Inventory Integrity
+##### 2.3.3.H. Determinism and Inventory Integrity
 
 For enterprise file inventory management, the Language Lens provides a
 fundamentally **deterministic and repeatable** framework. Unlike
@@ -870,7 +872,7 @@ codebase.
 
 ######
 
-# 2.3.4. The Prism -- Splitting the comments from the code
+#### 2.3.4. The Prism -- Splitting the comments from the code
 
 Following the successful completion of the language identification, the
 engine performs a Structural Refraction---splitting a single source file
@@ -885,7 +887,7 @@ perceived mass or branching density of the star. The split is a
 non-destructive process allowing the system to analyze the skeleton of
 the code and the spirit of the documentation independently.
 
-## 2.3.4.A. The Refraction Mechanics (The Prism Protocol)
+##### 2.3.4.A. The Refraction Mechanics (The Prism Protocol)
 
 The refraction process relies on the linguistic parameters established
 by the Language Lens. By operating on verified signals, the Prism
@@ -1002,27 +1004,29 @@ code and an inline comment is strictly scored as Active Matter.
 
 ###### 2.3.4.A.6. Output Streams: The Dual-Mass Result
 
-The structural refraction yields a high-fidelity data payload (the
-*RefractionResult*) containing four distinct channels that feed
-independent analysis tracks:
+****The structural refraction yields a high-fidelity data payload (the
+*****RefractionResult*****) containing four distinct channels that feed
+independent analysis tracks:****
 
--   ***code_stream* (Active Matter):** The pure executable
+-   ***code_stream***** (Active Matter):** The pure executable
 information of the file. It directly drives Meaningful LOC, Branch
 Angle, and Structural Flux. Its integrity is guaranteed by the
 absolute removal of all documentation noise.
--   ***comment_stream* (Ghost Mass):** The isolated literature of
+-   ***comment_stream***** (Ghost Mass):** The isolated literature of
 the project. It is scanned for Technical Debt markers (TODO, HACK),
 authorship, and compliance tags. It serves as the baseline for Trust
 Dampening, measuring the delta between the logic\'s behavior and the
 author\'s stated intent.
--   ***coding_loc*:** The exact integer count of non-empty,
+-   ***coding_loc*****:** The exact integer count of non-empty,
 pure-logic lines.
--   ***doc_loc*:** The exact integer count of documentation lines,
+-   ***doc_loc*****:** The exact integer count of documentation lines,
 normalized to prevent double-counting.
 
-# #### 2.3.5. The Detector -- The Logic Splicer & Cartographer
+####
 
-## 2.3.5.A. Overview: The EMCCD Sensor & Galactic Cartography
+#### 2.3.5. The Detector -- The Logic Splicer & Cartographer
+
+##### 2.3.5.A. Overview: The EMCCD Sensor & Galactic Cartography
 
 Before the Splicer spends computational energy carving a logic stream,
 it performs a strict physical viability check. If a file enters the
@@ -1049,7 +1053,7 @@ into the final spatial cartography.
 
 ######
 
-## 2.3.6.B. The Atomic Literal Shield
+##### 2.3.6.B. The Atomic Literal Shield
 
 Strings and text literals are the natural enemies of structural parsers.
 A stray opening brace *{* or an unmatched quote *\"* trapped inside a
@@ -1076,7 +1080,7 @@ Perl, Elixir), standard regex is insufficient. The Splicer deploys a
 line-by-line state machine to isolate complex Heredoc logic (e.g.,
 *\<\<-EOF*), safely blanking out massive text blocks that frequently
 contain rogue bash characters or unescaped quotes.
--   **Ruby *%* Literals:** Strictly gated to the Ruby ecosystem,
+-   **Ruby *****%***** Literals:** Strictly gated to the Ruby ecosystem,
 a dedicated shield evaluates and masks the complex, bracketed *%*
 string syntax (e.g., *%w\[\...\]*, *%q{\...}*, *%x(\...)*),
 preventing the internal brackets from falsely triggering the Mode D
@@ -1089,14 +1093,14 @@ diagnostic warning to trace the latency bottleneck.
 
 ######
 
-## 2.3.5.C. Coding vs. Comment Analysis (Separation of Concerns)
+##### 2.3.5.C. Coding vs. Comment Analysis (Separation of Concerns)
 
-To maintain absolute mathematical integrity, the GitGalaxy Splicer
+****To maintain absolute mathematical integrity, the GitGalaxy Splicer
 strictly enforces a Separation of Concerns between executable logic
 (Active Matter) and developer literature (Ghost Mass). Mixing these two
 streams during regex evaluation is the primary cause of \"Logic
-Erosion\" in legacy scanners, where a commented-out *if*
-statement falsely inflates a file\'s complexity score.
+Erosion\" in legacy scanners, where a commented-out *****if*****
+statement falsely inflates a file\'s complexity score.****
 
 By routing the pre-split streams into distinct analysis engines,
 GitGalaxy guarantees that structural metrics and human intent are
@@ -1146,7 +1150,7 @@ Purpose** (via specific block/line intent rules). This ensures that even
 unparsed config files or monolithic scripts contribute their human
 context to the final repository map.
 
-## 2.3.5.D. Metric Vectorization: Multi-Dimensional Physics
+##### 2.3.5.D. Metric Vectorization: Multi-Dimensional Physics
 
 Because programming languages adhere to vastly different structural
 physics, a one-size-fits-all regex approach is mathematically
@@ -1210,7 +1214,7 @@ specific **Terminator** token (like a semicolon *;* or a period *.*), at
 which point the \"guillotine drops,\" cleaving the statement into a
 measurable satellite.
 
-## 2.3.5.E. Satellite Physics & Naming Shields
+##### 2.3.5.E. Satellite Physics & Naming Shields
 
 Once the Master Dispatcher successfully cleaves a block of logic from
 the file, it becomes a \"Satellite.\" Before it can be placed into the
@@ -1222,15 +1226,15 @@ extract its true identity.
 isolated block to calculate its weight and trajectory in the final 3D
 visualization.
 
--   **Control Flow Ratio (*cf_ratio*):** Measures the density of
+-   **Control Flow Ratio (*****cf_ratio*****):** Measures the density of
 branching logic vs. linear execution. The formula is *branches /
 max(total_hits, 1)*, clamped tightly between 0.0 and 1.0.
--   **Logic Angle (*angle*):** Determines the trajectory of the
+-   **Logic Angle (*****angle*****):** Determines the trajectory of the
 satellite\'s branches in the 3D viewer. It maps the Control Flow
 Ratio to a physical angle using the equation: *22.5 + (1.0 -
 cf_ratio) \* 67.5*. (Highly linear functions branch at steep 90°
 angles; highly complex functions branch at wide 22.5° angles).
--   **Magnitude (*mag*):** The final physical mass of the block,
+-   **Magnitude (*****mag*****):** The final physical mass of the block,
 calculated as: *(branches + 1) \* (args + 1) + (0.05 \* loc)*.
 -   *Note on Arguments:* The v6.3.0 Protocol upgraded the argument
 counter to recognize space-separated arguments, ensuring languages
@@ -1269,7 +1273,7 @@ functions starting with *fetch* become *io*; *parse* becomes *logic*).
 If the name is ambiguous, it falls back to the heavy regex sensors to
 classify the block based on its literal contents.
 
-## 2.3.5.F. The Cartographer: Fractal Fibonacci Positioning
+##### 2.3.5.F. The Cartographer: Fractal Fibonacci Positioning
 
 The Cartographer transforms flat file lists into a deterministic 3D star
 map. By applying procedurally generated patterns to digital
@@ -1375,9 +1379,11 @@ same relative sub-coordinate every time the map is rendered,
 allowing the developer to build a persistent mental map of the
 project\'s physical shape.
 
-## # 2.3.6. Signal Processing (Equations and 2nd Pass scanning Calculations)
+#####
 
-## 2.3.6.A. Overview: The Post-Processing Pipeline
+#### 2.3.6. Signal Processing (Equations and 2nd Pass scanning Calculations)
+
+##### 2.3.6.A. Overview: The Post-Processing Pipeline
 
 The Signal Processor acts as GitGalaxy\'s core Physics Engine. Once the
 Splicer has carved the raw structural telemetry (the 60-Point
@@ -1389,7 +1395,7 @@ multi-pass architecture. It evaluates a file not just in isolation, but
 against the physical reality of its surrounding neighborhood and the
 temporal history of the entire galaxy.
 
-## 2.3.6.B. The Context vs. Entity Matrix (Domain Ontologies)
+##### 2.3.6.B. The Context vs. Entity Matrix (Domain Ontologies)
 
 A file\'s risk profile changes drastically depending on where it lives.
 A C++ file in a firmware repository is expected; a C++ file hidden deep
@@ -1410,7 +1416,7 @@ systems-level file (*c*, *rust*) hiding in a web neighborhood
 *logic_bomb* and *memory_corruption* exposures, immediately flagging
 it as a severe architectural or security anomaly.
 
-## 2.3.6.C. Standardization: The Tiered Physics Model
+##### 2.3.6.C. Standardization: The Tiered Physics Model
 
 To ensure comparative fairness across different code \"materials,\" the
 engine applies Linguistic Normalization. This accounts for the fact that
@@ -1431,7 +1437,7 @@ War\" penalty adds a baseline phantom risk to all equations,
 requiring significantly higher defensive density to achieve a
 \"Safe\" rating.
 
-## 2.3.6.D. The Documentation Bypass & Silo Risk
+##### 2.3.6.D. The Documentation Bypass & Silo Risk
 
 Pure literature files (*markdown*, *plaintext*) do not execute logic. To
 prevent them from skewing the galaxy\'s structural averages, the engine
@@ -1448,7 +1454,7 @@ the file has on its dominant author. If one developer wrote 95% of a
 critical architecture file, the Splicer flags a high Silo Risk,
 alerting management to critical \"Bus Factor\" vulnerabilities.
 
-## 2.3.6.E. Global Synthesis & 2-Pass Normalization
+##### 2.3.6.E. Global Synthesis & 2-Pass Normalization
 
 Because temporal metrics (like commit frequency) vary wildly between
 repositories, a hardcoded churn threshold is useless. A file with 5
@@ -1469,7 +1475,7 @@ guarantees that the UI gradients perfectly highlight the hottest
 files in the repository, regardless of the team\'s specific commit
 culture.
 
-## 2.3.6.F. The Physics Engine: Weighted Asymmetry & Mass
+##### 2.3.6.F. The Physics Engine: Weighted Asymmetry & Mass
 
 In the final stage, the engine generates the high-fidelity Forensic
 Report. To prevent noise, it applies an **Active Logic Mask**, blinding
@@ -1483,7 +1489,7 @@ mathematically sums all 17 active exposure vectors (excluding formatting
 metrics like Civil War) to identify the absolute most dangerous, dense,
 and volatile artifacts in the repository.
 
-# 2.3.7. Phase 0: Mission Control (The GalaxyScope Orchestrator)
+#### 2.3.7. Phase 0: Mission Control (The GalaxyScope Orchestrator)
 
 The GalaxyScope Orchestrator (**galaxyscope.py**) is the central nervous
 system of the blAST engine. It acts as Mission Control, managing the
@@ -1492,7 +1498,7 @@ serialization of the 3D map. Its primary responsibility is maximizing
 computational velocity while preventing catastrophic memory leaks or
 regex deadlocks during hyper-scale scans.
 
-## 2.3.7.A. Multi-Core Extraction (The Worker Pool)
+##### 2.3.7.A. Multi-Core Extraction (The Worker Pool)
 
 Parsing millions of lines of code on a single thread is a bottleneck. To
 achieve hyper-scale velocity (100,000+ LOC/s), the Orchestrator
@@ -1512,7 +1518,7 @@ before parsing. If a file was reported by Git but has since vanished
 from the disk, it is silently evaporated as a \"Phantom,\"
 preventing the main thread from logging false anomalies.
 
-## 2.3.7.B. The Starvation Monitor (ReDoS Shield)
+##### 2.3.7.B. The Starvation Monitor (ReDoS Shield)
 
 When scanning massive, auto-generated codebases, poorly written files
 can occasionally trigger Catastrophic Regex Backtracking (ReDoS), which
@@ -1528,7 +1534,7 @@ caused the hang, relegates them to the Singularity audit log, and
 forcefully shuts down the executor pool to unfreeze the user\'s
 terminal.
 
-## 2.3.7.C. O(1) Relational Resolution (Pass 1.5)
+##### 2.3.7.C. O(1) Relational Resolution (Pass 1.5)
 
 To build the dependency graph, the engine must figure out which files
 are importing which other files. Cross-referencing thousands of raw
@@ -1545,7 +1551,7 @@ an exponential search into an instantaneous \$O(1)\$ lookup,
 allowing GitGalaxy to resolve millions of dependency links in
 milliseconds.
 
-## 2.3.7.D. Relational Context & Mass Dampeners (Pass 2)
+##### 2.3.7.D. Relational Context & Mass Dampeners (Pass 2)
 
 In Pass 2, the Orchestrator evaluates files based on their surrounding
 neighborhood before handing them off to the Signal Processor.
@@ -1565,7 +1571,7 @@ physically crushes their mass multiplier so they do not
 mathematically eclipse the human-written architecture in the 3D
 view.
 
-## 2.3.7.E. The CLI & Smart Threat Switch
+##### 2.3.7.E. The CLI & Smart Threat Switch
 
 The **main()** entry point manages user interaction and environment
 overrides.
@@ -1575,7 +1581,7 @@ registry. If the user is scanning a known legacy repository (like
 the FreeBSD kernel), it dynamically hot-patches the
 **LANGUAGE_DEFINITIONS** in RAM to parse its specific dialect
 perfectly.
--   **The Smart Threat Switch (**\--paranoid**):** If invoked,
+-   **The Smart Threat Switch (******\--paranoid******):** If invoked,
 the Orchestrator loads the \"Hazmat Suit\" threat policy, lowering
 the threshold for the Security Lens to flag deeply hidden
 steganography and logic bombs.
@@ -1585,7 +1591,7 @@ Python process, instantly freeing gigabytes of RAM back to the
 operating system without waiting for the garbage collector to slowly
 unwind the massive AST dictionaries.
 
-# 2.3.7. The Spectral Audit (Quality Control)
+#### 2.3.7. The Spectral Audit (Quality Control)
 
 The Spectral Auditor is the final data-integrity gate of the analysis
 pipeline. It performs an automated statistical verification of every
@@ -1602,7 +1608,7 @@ its peers, the engine refutes the prior assumption and banishes the file
 to the Singularity (Dark Matter), regardless of its initial metadata
 claims.
 
-## 2.3.7.A. Gate 0: Empirical Bayes Loop-Back (The Consensus Engine)
+##### 2.3.7.A. Gate 0: Empirical Bayes Loop-Back (The Consensus Engine)
 
 Before evaluating signal density, the Auditor attempts to save ambiguous
 files using local ecosystem consensus.
@@ -1620,7 +1626,7 @@ pulled into the dominant orbit, elevated to a Tier 2 Lock, and
 spared from immediate relegation. Files that remain ambiguous are
 instantly stripped to Dark Matter to prevent hallucinations.
 
-## 2.3.7.B. Dynamic Auditability (Inert vs. Structural Matter)
+##### 2.3.7.B. Dynamic Auditability (Inert vs. Structural Matter)
 
 Legacy systems use hardcoded lists (e.g., \"ignore JSON and Markdown\")
 to bypass audits. The Spectral Auditor dynamically evaluates a
@@ -1636,7 +1642,7 @@ total logic sensors (missing concepts like pointers, memory
 allocation, or globals), it is classified as *Structural* (e.g.,
 HTML, CSS, Dockerfile).
 
-## 2.3.7.C. Gate C: The Ecosystem Orphan Guard
+##### 2.3.7.C. Gate C: The Ecosystem Orphan Guard
 
 If a language species has a microscopic population in the galaxy
 (dynamically calculated based on total repository size, e.g., \$\\le 3\$
@@ -1649,7 +1655,7 @@ linguistic hallucinations, strips their identities, and converts them to
 **plaintext** to preserve their mass without polluting the linguistic
 composition metrics.
 
-## 2.3.7.D. Signal Density & The MAD Protocol
+##### 2.3.7.D. Signal Density & The MAD Protocol
 
 For true executable code, the Auditor calculates **Intent Density
 (\$\\rho\$)**: **(Sum of 32 Verified Signal Hits) / (Total Physical
@@ -1674,7 +1680,7 @@ Score (\$C_i\$). The formula \$T\_{adj} = -5 \\times \\max(C_i,
 statistical leniency, while low-confidence files are held to strict
 scrutiny.
 
-## 2.3.7.E. The Event Horizon: Quarantine, Necrosis, and Relegation
+##### 2.3.7.E. The Event Horizon: Quarantine, Necrosis, and Relegation
 
 Every file is evaluated against the 50/0 Law (any file \$\>50\$ lines
 with \$0\$ signals is a data dump) and the MAD Protocol. If flagged as
@@ -1707,7 +1713,7 @@ schema that preserves their \"Bayesian Optics\" (the failed claim,
 confidence, and source proof) so engineers can audit *why* the
 prediction was refuted.
 
-# 2.3.8. The Audit Recorder 
+#### 2.3.8. The Audit Recorder 
 
 The Astrograph Auditor (*audit_recorder.py*) is the final stage of the
 GitGalaxy pipeline. It extracts the raw telemetry from live RAM and
@@ -1715,7 +1721,7 @@ compiles it into a verbose, human-readable forensic JSON manifest.
 Designed for strict enterprise compliance and deep-dive debugging, it
 guarantees absolute traceability for every file evaluated.
 
-## 2.3.8.A. Key Architectural Features
+##### 2.3.8.A. Key Architectural Features
 
 -   **The Traceability Anchor:** Imprints the exact Git footprint
 (Branch, SHA-1 Hash, Remote URL) and engine timestamp into the
@@ -1736,7 +1742,7 @@ with explicit diagnostic reasons (e.g., \"Optical Bypass,\"
 \"Ecosystem Orphan,\" \"Unsupported Extension\") so engineers can
 audit the pipeline\'s blind spots.
 
-## 2.3.8.B. The Blank Audit Skeleton (*galaxy_audit.json*)
+##### 2.3.8.B. The Blank Audit Skeleton (*galaxy_audit.json*)
 
 Here is the structural blueprint of the final output. You can use this
 blank template to understand the exact data hierarchy GitGalaxy
@@ -1887,7 +1893,7 @@ CRITICAL_THREATS_DETECTED\]\",*
 
 *}*
 
-# 2.3.9. The LLM Recorder (AI Translation Layer)
+#### 2.3.9. The LLM Recorder (AI Translation Layer)
 
 The LLM Recorder (*llm_recorder.py*) bridges the gap between GitGalaxy's
 raw mathematical physics and autonomous AI agents. Rather than forcing a
@@ -1896,7 +1902,7 @@ raw JSON, this phase translates the pipeline\'s telemetry into highly
 optimized, token-dense artifacts designed specifically for LLM context
 windows and Retrieval-Augmented Generation (RAG) systems.
 
-## 2.3.9.A. Reverse Dependency Resolution
+##### 2.3.9.A. Reverse Dependency Resolution
 
 Before generating outputs, the recorder performs a unified
 reverse-dependency map across the entire galaxy. It traces every
@@ -1910,13 +1916,13 @@ this file carries a massive risk of cascading breakages.
 connections (\"Imports\"). Tells the AI that this file is highly
 coupled and fragile to external API changes.
 
-## 2.3.9.B. The Token-Optimized Markdown Brief
+##### 2.3.9.B. The Token-Optimized Markdown Brief
 
 The primary output is a dense, pre-engineered Markdown prompt
 (*\_galaxy_llm.md*) that fits cleanly into standard context windows
 (like Claude 3.5 or GPT-4o). It structurally guides the AI\'s analysis:
 
-## 1. Hardcoded System Instructions
+##### 1. Hardcoded System Instructions
 
 The brief injects strict Prompt Engineering at the header and footer. It
 explicitly commands the AI to \"Measure Risk, Not Quality,\" enforcing a
@@ -1924,14 +1930,14 @@ blameless, objective tone based on physical DNA (regex hits) rather than
 subjective coding styles. It instructs the AI exactly how to read the
 18-point risk vector.
 
-## 2. The Cumulative Risk Hitlist
+##### 2. The Cumulative Risk Hitlist
 
 Calculates and surfaces the top 10 most dangerous files in the
 repository by mathematically summing their individual risk exposures. It
 extracts the top 4 \"Primary Risk Drivers\" for each file so the AI
 instantly knows *why* the file is failing.
 
-## 3. The Visible Matter Hitlist
+##### 3. The Visible Matter Hitlist
 
 Details the top 25 heaviest load-bearing files in the system. To save
 tokens, the raw 60-point *hit_vector* is intelligently bucketed into
@@ -1939,21 +1945,21 @@ readable categories: *Structure*, *Risk/State*, *Architecture*, and
 *Defense*. It also lists the heaviest internal functions (Satellites) so
 the AI knows exactly where to target refactoring efforts.
 
-## 4. Security Triage
+##### 4. Security Triage
 
 Actively isolates the Security Lens metrics (Memory Corruption, Obscured
 Payloads, Secrets Leaks). If any file breaches a security threshold, it
 is explicitly flagged in a dedicated section, instructing the AI to
 prioritize these vulnerabilities in its response.
 
-## 2.3.9.C. The Relational Knowledge Graph (SQLite)
+##### 2.3.9.C. The Relational Knowledge Graph (SQLite)
 
 For advanced, autonomous agent workflows that utilize SQL generation
 (like LangChain or AutoGen), Markdown is insufficient. The recorder
 generates a fully relational SQLite database (*\_galaxy_graph.sqlite*)
 from the live RAM data.
 
-## Relational Schema
+##### Relational Schema
 
 Agents can write dynamic SQL queries against the following constructed
 tables:
@@ -1966,11 +1972,11 @@ columns for all 18 Risk Vectors, Mass, Volatility, and Silo Risk
 parent *star_id*.
 -   ***dna_hits***: A flattened, queryable list of every single regex
 pattern triggered by a file.
--   ***inbound_dependencies* & *outbound_dependencies***: The
+-   ***inbound_dependencies***** & *****outbound_dependencies***: The
 bi-directional RAG graph, allowing an agent to recursively query the
 blast radius of any file.
 
-# 2.3.9. The GPU Recorder (Hypercompressed Data Storage)
+#### 2.3.9. The GPU Recorder (Hypercompressed Data Storage)
 
 The GPU Recorder (*gpu_recorder.py*) is the instrument\'s
 high-performance recording head. It prepares project telemetry for
@@ -1979,7 +1985,7 @@ into a hypercompressed, columnar format. Unlike the Audit Recorder, it
 prioritizes memory efficiency, bandwidth reduction, and raw
 computational speed over human readability.
 
-## 2.3.9.A. Destructive RAM Eviction (Stage 3.3 Protocol)
+##### 2.3.9.A. Destructive RAM Eviction (Stage 3.3 Protocol)
 
 **To handle massive repositories (10,000+ files) without exhausting
 system memory, the engine employs an aggressive eviction strategy during
@@ -1993,7 +1999,7 @@ explicitly deleted (*del s*), followed by a manual Python garbage
 collection cycle (*gc.collect()*) to completely clear the heap
 before the massive file-write operation.
 
-## 2.3.9.B. The Columnar Pivot & Dependency Graphing
+##### 2.3.9.B. The Columnar Pivot & Dependency Graphing
 
 The recorder converts the object-oriented manifest into a \"Structure of
 Arrays\" (SoA). The v6.2.0 Protocol introduces advanced dependency
@@ -2009,7 +2015,7 @@ and *outbound_edges*. This allows the UI to render thousands of 3D
 relational lines instantly without performing expensive
 string-matching in the browser.
 
-## 2.3.9.C. String Interning & Numerical Quantization
+##### 2.3.9.C. String Interning & Numerical Quantization
 
 To achieve maximum compression, the recorder eliminates repetitive text
 and floating-point bloat.
@@ -2031,7 +2037,7 @@ Structural Mass (e.g., *150.45* becomes *1505*).
 -   **Exposure Scaling (x1000):** Applied to the 18-point Risk Vectors
 and Control Flow Ratios (e.g., *85.4%* becomes *854*).
 
-## 2.3.9.D. Dynamic Lore & Final Sealing
+##### 2.3.9.D. Dynamic Lore & Final Sealing
 
 Before final serialization, the recorder shapes the payload for the
 frontend UI:
@@ -2049,7 +2055,7 @@ absolute lowest latency payload possible for the 3D visualizer.
 
 **
 
-# 2.3.10. Overview of gitgalaxy_standards
+#### 2.3.10. Overview of gitgalaxy_standards
 
 **The *gitgalaxy_standards_v1.py* file is the central nervous system of
 the GitGalaxy architecture. To ensure the engine remains entirely
@@ -2058,7 +2064,7 @@ regex patterns, and risk policies are decoupled from the processing
 scripts and centralized here. It serves as the immutable rulebook
 governing how code is detected, parsed, and weighed.**
 
-## 2.3.10.A. The Coding Language Taxonomy Equivalence Map
+##### 2.3.10.A. The Coding Language Taxonomy Equivalence Map
 
 The most critical component of the standards file is the
 *LANGUAGE_DEFINITIONS* matrix. It is not merely a collection of regex
@@ -2073,16 +2079,16 @@ languages into 51 universal \"Signal Categories\" (*SIGNAL_SCHEMA*).
 By mapping *syntax* to *universal intent*, the Physics Engine can treat
 all code equally. For example:
 
--   **The *concurrency* Signal:** In Go, this triggers on *go
+-   **The *****concurrency***** Signal:** In Go, this triggers on *go
 func*; in JavaScript, it triggers on *async/await*; in C, it
 triggers on *pthread_create*; and in AGC Assembly, it triggers on
 *TC WAITLIST*. The engine doesn\'t need to know *how* the language
 handles threading; it only needs to know that the universal
 \"Concurrency\" bucket was incremented.
--   **The *flux* Signal (State Mutation):** Maps Python\'s
+-   **The *****flux***** Signal (State Mutation):** Maps Python\'s
 *global* keyword, JavaScript\'s *setState*, and COBOL\'s *MOVE* into
 the exact same category representing volatile state changes.
--   **The *graveyard* Signal:** Teaches the engine exactly what
+-   **The *****graveyard***** Signal:** Teaches the engine exactly what
 commented-out structural logic looks like across different comment
 delimiters (e.g., *// if* in C++ vs. *\# def* in Python).
 
@@ -2090,13 +2096,13 @@ This abstraction layer makes GitGalaxy infinitely scalable. Adding a new
 language to the engine does not require writing new parsing logic; it
 simply requires adding a new \"species\" definition to the Taxonomy Map.
 
-## 2.3.10.B. Aperture & Environmental Configurations
+##### 2.3.10.B. Aperture & Environmental Configurations
 
 Before code is even analyzed, the standards define the physical
 boundaries of the galaxy to prevent the engine from wasting compute on
 \"Space Debris.\"
 
--   **The Solar Shield (*BLACK_HOLES*):** A strict blocklist of
+-   **The Solar Shield (*****BLACK_HOLES*****):** A strict blocklist of
 directories (e.g., *node_modules*, *.git*, *build*) and extensions
 (e.g., *.png*, *.dll*, *.mp4*) that represent non-maintainable or
 binary mass.
@@ -2105,7 +2111,7 @@ anchors (like *Dockerfile*, *main.go*, or *package.json*) that
 receive artificial gravity boosts to ensure they are visually
 prominent in the final 3D map.
 
-## 2.3.10.C. Risk Equation Tuning (The Physics Knobs)
+##### 2.3.10.C. Risk Equation Tuning (The Physics Knobs)
 
 This section defines the mathematical coefficients used by the Signal
 Processor to convert raw structural hits into 0-100% Risk Exposures.
@@ -2123,7 +2129,7 @@ based on a file\'s location. For example, dead code found in
 */tests/* is penalized lightly, while dead code found in */core/* is
 penalized heavily.
 
-## 2.3.10.D. Context vs. Entity Security Profiles
+##### 2.3.10.D. Context vs. Entity Security Profiles
 
 Defines the Domain Ontologies used to detect Architectural Trojans. It
 maps ecosystems (*systems*, *web*, *infra*, *backend*) to detect when a
@@ -2131,7 +2137,7 @@ file is an \"Alien\" in its neighborhood (e.g., a C++ file hidden inside
 a JavaScript React application), automatically triggering severe
 security penalties.
 
-## 2.3.10.E. Dialects (Project-Specific Overrides)
+##### 2.3.10.E. Dialects (Project-Specific Overrides)
 
 Because massive, legacy codebases often break standard conventions, the
 *PROJECT_OVERRIDES* dictionary allows the engine to mutate its Universal
