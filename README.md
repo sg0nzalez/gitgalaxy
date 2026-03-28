@@ -24,7 +24,7 @@ GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is 
 
 **Live Demo:** View 3D galaxy examples of Apollo-11, Linux, Tensorflow and more at [GitGalaxy.io](https://gitgalaxy.io/)
 
-> **Note:** This is a condensed version of the full documentation. For more info, please visit: [https://github.com/squid-protocol/gitgalaxy](https://github.com/squid-protocol/gitgalaxy)
+> **📖 Official Documentation:** Read the full technical specifications, architecture blueprints, and the Taxonomical Equivalence Map at **[squid-protocol.github.io/gitgalaxy](https://squid-protocol.github.io/gitgalaxy/)**.
 
 ---
 

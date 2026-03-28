@@ -1,4 +1,4 @@
-## 2.4.1. Claim 2 -- Coding Languages Evolve Towards Explicitness
+Claim 2 -- Coding Languages Evolve Towards Explicitness
 
 After subjecting 40+ distinct programming languages to the blAST engine, the evidence suggests an inarguable pattern: the history of software language development is a trend towards explicitness. This correlation directly scales the ability for heuristic regex to scan for "Intent" rather than mere "Syntax."
 
@@ -24,48 +24,64 @@ To make the comparison fair, GitGalaxy applies a Fidelity Tax (the Fidelity Coef
 
 This matrix maps the structural "Broadcast Power" of coding languages across history. Signals are clustered into logical processors to visualize the transition from Implicit (I) to Explicit (E) physics.
 
+### 2.4.1.C. The Fidelity Matrix (40 Languages x 51 Signals)
+
+This matrix maps the structural "Broadcast Power" of coding languages across history. Signals are clustered into logical processors to visualize the transition from Implicit to Explicit physics.
+
+**Legend:**
+* 🟦 **E (Explicit):** The language has dedicated, unambiguous structural syntax for this concept.
+* 🟧 **I (Implicit):** The concept exists, but must be inferred from context, conventions, or secondary logic.
+* ⚪ **- (None):** The concept is not structurally applicable to the language.
+
 | Language (Year) | Tier | CF | Phys | Risk | Domain | Thermo |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| MLIR (2019) | 1 | E | E | E | - | E |
-| Zig (2016) | 1 | E | E | E | E | E |
-| Swift (2014) | 1 | E | E | E | E | E |
-| Dockerfile (2013) | 1 | E | E | E | E | E |
-| TypeScript (2012) | 2 | E | E | E | E | E |
-| Kotlin (2011) | 1 | E | E | E | E | E |
-| Dart (2011) | 1 | E | E | E | E | E |
-| Rust (2010) | 1 | E | E | E | E | E |
-| Go (2009) | 1 | E | E | E | E | E |
-| Scala (2004) | 1 | E | E | E | E | E |
-| Groovy (2003) | 3 | E | E | I | E | E |
-| LiveCode (2001) | 3 | E | I | I | E | I |
-| C# (2000) | 1 | E | E | E | E | E |
-| SQLite (2000) | 1 | E | E | E | I | E |
-| PHP 8 (1995/2020) | 2 | E | E | I | E | E |
-| Java (1995) | 1 | E | E | E | E | E |
-| JavaScript (1995) | 2 | E | E | I | E | E |
-| Ruby (1995) | 3 | E | E | I | E | E |
-| Lua (1993) | 2 | E | E | I | E | E |
-| Python (1991) | 1 | E | E | E | E | E |
-| Haskell (1990) | 2 | E | E | E | I | E |
-| HTML5 (1990/2014) | 3 | I | I | I | E | I |
-| Bash/Shell (1989) | 3 | I | I | I | I | I |
-| Tcl (1988) | 2 | E | E | I | I | I |
-| HyperTalk (1987) | 3 | E | I | I | E | I |
-| Perl (1987) | 3 | E | E | I | I | I |
-| C++ (1985) | 2 | E | E | I | E | E |
-| MATLAB (1984) | 2 | E | E | I | E | I |
-| Objective-C (1984) | 2 | E | E | I | E | E |
-| ABAP (1983) | 1 | E | E | E | E | E |
-| M4 (1977) | 3 | I | I | I | - | I |
-| SQL (1974) | 2 | E | E | I | - | E |
-| Prolog (1972) | 2 | I | I | I | - | I |
-| C (1972) | 2 | E | E | I | I | E |
-| Yacc/Bison (1970) | 2 | I | E | I | - | I |
-| COBOL (1959) | 2 | E | I | I | E | I |
-| Fortran (1957) | 2 | E | I | I | I | I |
-| Assembly (x86) (1970s) | 3 | I | I | I | - | I |
-| AGC Assembly (1966) | 3 | I | I | I | - | I |
-| CSV/Data (Universal) | 1 | - | - | - | - | - |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| MLIR (2019) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | ⚪ **-** | 🟦 **E** |
+| Zig (2016) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Swift (2014) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Dockerfile (2013) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| TypeScript (2012) | 2 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Kotlin (2011) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Dart (2011) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Rust (2010) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Go (2009) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Scala (2004) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Groovy (2003) | 3 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** | 🟦 **E** |
+| LiveCode (2001) | 3 | 🟦 **E** | 🟧 **I** | 🟧 **I** | 🟦 **E** | 🟧 **I** |
+| C# (2000) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| SQLite (2000) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** |
+| PHP 8 (1995/2020) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** | 🟦 **E** |
+| Java (1995) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| JavaScript (1995) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** | 🟦 **E** |
+| Ruby (1995) | 3 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** | 🟦 **E** |
+| Lua (1993) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** | 🟦 **E** |
+| Python (1991) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| Haskell (1990) | 2 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** |
+| HTML5 (1990/2014) | 3 | 🟧 **I** | 🟧 **I** | 🟧 **I** | 🟦 **E** | 🟧 **I** |
+| Bash/Shell (1989) | 3 | 🟧 **I** | 🟧 **I** | 🟧 **I** | 🟧 **I** | 🟧 **I** |
+| Tcl (1988) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟧 **I** | 🟧 **I** |
+| HyperTalk (1987) | 3 | 🟦 **E** | 🟧 **I** | 🟧 **I** | 🟦 **E** | 🟧 **I** |
+| Perl (1987) | 3 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟧 **I** | 🟧 **I** |
+| C++ (1985) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** | 🟦 **E** |
+| MATLAB (1984) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** | 🟧 **I** |
+| Objective-C (1984) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟦 **E** | 🟦 **E** |
+| ABAP (1983) | 1 | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** | 🟦 **E** |
+| M4 (1977) | 3 | 🟧 **I** | 🟧 **I** | 🟧 **I** | ⚪ **-** | 🟧 **I** |
+| SQL (1974) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | ⚪ **-** | 🟦 **E** |
+| Prolog (1972) | 2 | 🟧 **I** | 🟧 **I** | 🟧 **I** | ⚪ **-** | 🟧 **I** |
+| C (1972) | 2 | 🟦 **E** | 🟦 **E** | 🟧 **I** | 🟧 **I** | 🟦 **E** |
+| Yacc/Bison (1970) | 2 | 🟧 **I** | 🟦 **E** | 🟧 **I** | ⚪ **-** | 🟧 **I** |
+| COBOL (1959) | 2 | 🟦 **E** | 🟧 **I** | 🟧 **I** | 🟦 **E** | 🟧 **I** |
+| Fortran (1957) | 2 | 🟦 **E** | 🟧 **I** | 🟧 **I** | 🟧 **I** | 🟧 **I** |
+| Assembly (x86) (1970s) | 3 | 🟧 **I** | 🟧 **I** | 🟧 **I** | ⚪ **-** | 🟧 **I** |
+| AGC Assembly (1966) | 3 | 🟧 **I** | 🟧 **I** | 🟧 **I** | ⚪ **-** | 🟧 **I** |
+| CSV/Data (Universal) | 1 | ⚪ **-** | ⚪ **-** | ⚪ **-** | ⚪ **-** | ⚪ **-** |
+
+#### Column Legend (Signal Clusters)
+* **CF (Control Flow):** branch, linear, closures, comprehensions.
+* **Phys (Physics):** mass, args, func_start, class_start, import.
+* **Risk (Risk Exposure):** safety, safety_neg, danger, flux, graveyard, debt.
+* **Domain (Ecosystem):** ui_framework, ssr_boundaries, events, di.
+* **Thermo (Thermodynamics):** telemetry, print_hits, bailout, halt, bitwise, locks, cleanup.
 
 #### Column Legend (Signal Clusters)
 * **CF (Control Flow):** branch, linear, closures, comprehensions.

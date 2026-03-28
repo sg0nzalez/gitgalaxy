@@ -41,7 +41,6 @@ nav:
       - 'Node Size (Argument Count)': 21H_Node_Size_Metric_Argument_Count.md
       - 'Planetary Rings': 21I_Planetary_Rings.md
       - 'Sequence Affinity': 21J_Relative_Positioning_Metric_Sequence__Affinity.md
-      - 'Misc Equations': 21K_Misc_Equations.md
   - '3. Color Labeling (Risk)':
       - 'Methodology': 22A_Overview_of_methodology.md
       - 'Sub-Equations': 22B_Sub-Equations.md
@@ -75,7 +74,6 @@ nav:
       - 'GPU Recorder': 239_The_GPU_Recorder_Hypercompressed_Data_Storage.md
       - 'LLM Recorder': 239_The_LLM_Recorder_AI_Translation_Layer.md
   - '5. Validation & Outlook':
-      - 'Strategy Validation': 24_Strategy_Validation_--_Does_this_work.md
       - 'Claim 1 (Search Strategies)': 240_Claim_1_--_Optimum_Search_Strategies_Change_with_Scale.md
       - 'Claim 2 (Explicitness)': 241_Claim_2_--_Coding_Languages_Evolve_Towards_Explicitness.md
       - 'Claim 3 (Taxonomy Map)': 242_--_Claim_3_--_Intent_Scales_Across_Syntax_The_Taxonomical_Equivalence_Map.md
