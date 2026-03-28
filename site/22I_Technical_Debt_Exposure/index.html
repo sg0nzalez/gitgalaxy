@@ -10,29 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://squid-protocol.github.io/gitgalaxy/">
+        <link rel="canonical" href="https://squid-protocol.github.io/gitgalaxy/22I_Technical_Debt_Exposure/">
       
       
+        <link rel="prev" href="../22G_Safety_Mode_Metric_Structural_Fortification/">
       
-        <link rel="next" href="1_Foundation__Architecture/">
+      
+        <link rel="next" href="../22J_Documentation_Risk_Exposure_Metric_Sigmoid_Debt/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>GitGalaxy</title>
+        <title>Technical Debt Exposure - GitGalaxy</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#gitgalaxy-documentation" class="md-skip">
+        <a href="#22i-technical-debt-exposure" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +92,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="GitGalaxy" class="md-header__button md-logo" aria-label="GitGalaxy" data-md-component="logo">
+    <a href=".." title="GitGalaxy" class="md-header__button md-logo" aria-label="GitGalaxy" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Technical Debt Exposure
             
           </span>
         </div>
@@ -188,7 +190,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="GitGalaxy" class="md-nav__button md-logo" aria-label="GitGalaxy" data-md-component="logo">
+    <a href=".." title="GitGalaxy" class="md-nav__button md-logo" aria-label="GitGalaxy" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -203,37 +205,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -249,98 +224,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#1-the-blast-engine-the-galaxyscope-backend" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. The blAST Engine - The GalaxyScope (Backend)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-the-observatory-frontend" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. The Observatory (Frontend)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quickstart" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🚀 Quickstart
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-blast-paradigm-sequencing-the-dna-of-software" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🧬 The blAST Paradigm: Sequencing the DNA of Software
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🧬 The blAST Paradigm: Sequencing the DNA of Software">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#zero-trust-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Zero-Trust Architecture
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-viral-security-lens" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Viral Security Lens
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -352,7 +235,7 @@
   
   
     <li class="md-nav__item">
-      <a href="1_Foundation__Architecture/" class="md-nav__link">
+      <a href="../1_Foundation__Architecture/" class="md-nav__link">
         
   
   
@@ -379,7 +262,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21_How_we_represent_complexity_as_physical_structure/" class="md-nav__link">
+      <a href="../21_How_we_represent_complexity_as_physical_structure/" class="md-nav__link">
         
   
   
@@ -406,7 +289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21A_Stars_Size/" class="md-nav__link">
+      <a href="../21A_Stars_Size/" class="md-nav__link">
         
   
   
@@ -433,7 +316,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21C_Stars_Shape/" class="md-nav__link">
+      <a href="../21C_Stars_Shape/" class="md-nav__link">
         
   
   
@@ -460,7 +343,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21D_Satellite_Unit/" class="md-nav__link">
+      <a href="../21D_Satellite_Unit/" class="md-nav__link">
         
   
   
@@ -487,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21E_Satellite_Orbital_Distance/" class="md-nav__link">
+      <a href="../21E_Satellite_Orbital_Distance/" class="md-nav__link">
         
   
   
@@ -514,7 +397,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21F_Number_of_satellites_in_a_unit/" class="md-nav__link">
+      <a href="../21F_Number_of_satellites_in_a_unit/" class="md-nav__link">
         
   
   
@@ -541,7 +424,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21G_Satellites_Relative_Positioning_in_a_unit/" class="md-nav__link">
+      <a href="../21G_Satellites_Relative_Positioning_in_a_unit/" class="md-nav__link">
         
   
   
@@ -568,7 +451,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21H_Node_Size_Metric_Argument_Count/" class="md-nav__link">
+      <a href="../21H_Node_Size_Metric_Argument_Count/" class="md-nav__link">
         
   
   
@@ -595,7 +478,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21I_Planetary_Rings/" class="md-nav__link">
+      <a href="../21I_Planetary_Rings/" class="md-nav__link">
         
   
   
@@ -622,7 +505,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21B_Stars_Pulse_Rate/" class="md-nav__link">
+      <a href="../21B_Stars_Pulse_Rate/" class="md-nav__link">
         
   
   
@@ -649,7 +532,7 @@
   
   
     <li class="md-nav__item">
-      <a href="21J_Relative_Positioning_Metric_Sequence__Affinity/" class="md-nav__link">
+      <a href="../21J_Relative_Positioning_Metric_Sequence__Affinity/" class="md-nav__link">
         
   
   
@@ -676,7 +559,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22_Color_Labeling_Equations/" class="md-nav__link">
+      <a href="../22_Color_Labeling_Equations/" class="md-nav__link">
         
   
   
@@ -703,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22A_Overview_of_methodology/" class="md-nav__link">
+      <a href="../22A_Overview_of_methodology/" class="md-nav__link">
         
   
   
@@ -730,7 +613,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22B_Sub-Equations/" class="md-nav__link">
+      <a href="../22B_Sub-Equations/" class="md-nav__link">
         
   
   
@@ -757,7 +640,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22C_Transforming_Noisy_Regex_Counts_Into_Something_Meaningful/" class="md-nav__link">
+      <a href="../22C_Transforming_Noisy_Regex_Counts_Into_Something_Meaningful/" class="md-nav__link">
         
   
   
@@ -784,7 +667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22D_Ownership_Mode_Shannon_Entropy/" class="md-nav__link">
+      <a href="../22D_Ownership_Mode_Shannon_Entropy/" class="md-nav__link">
         
   
   
@@ -811,7 +694,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22E_Cognitive_Load_Exposure/" class="md-nav__link">
+      <a href="../22E_Cognitive_Load_Exposure/" class="md-nav__link">
         
   
   
@@ -838,7 +721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22F_Churn/" class="md-nav__link">
+      <a href="../22F_Churn/" class="md-nav__link">
         
   
   
@@ -865,7 +748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22G_Safety_Mode_Metric_Structural_Fortification/" class="md-nav__link">
+      <a href="../22G_Safety_Mode_Metric_Structural_Fortification/" class="md-nav__link">
         
   
   
@@ -889,10 +772,35 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="22I_Technical_Debt_Exposure/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Debt Exposure
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -908,6 +816,107 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#22i-technical-debt-exposure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I. Technical Debt Exposure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2.2.I. Technical Debt Exposure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#22ia-the-philosophy-markers-of-honesty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.A. The Philosophy: Markers of Honesty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22ib-the-inputs-regex-heuristics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.B. The Inputs (Regex &amp; Heuristics)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22ic-the-universal-framework-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.C. The Universal Framework Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22id-the-equation-the-structural-stress-density" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.D. The Equation: The Structural Stress Density
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22ie-implementation-python-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.E. Implementation (Python Reference)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22if-visual-verification-the-truth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.F. Visual Verification (\"The Truth\")
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -919,7 +928,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22J_Documentation_Risk_Exposure_Metric_Sigmoid_Debt/" class="md-nav__link">
+      <a href="../22J_Documentation_Risk_Exposure_Metric_Sigmoid_Debt/" class="md-nav__link">
         
   
   
@@ -946,7 +955,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22K_File_Stability_Commit_Heat/" class="md-nav__link">
+      <a href="../22K_File_Stability_Commit_Heat/" class="md-nav__link">
         
   
   
@@ -973,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22L_Test_Coverage_Metric_Verification_Density/" class="md-nav__link">
+      <a href="../22L_Test_Coverage_Metric_Verification_Density/" class="md-nav__link">
         
   
   
@@ -1000,7 +1009,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22M_The_Civil_War_Algorithm_Tabs_vs_Spaces/" class="md-nav__link">
+      <a href="../22M_The_Civil_War_Algorithm_Tabs_vs_Spaces/" class="md-nav__link">
         
   
   
@@ -1027,7 +1036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22N_The_Graveyard_Detector_Metric_Architectural_Transparency/" class="md-nav__link">
+      <a href="../22N_The_Graveyard_Detector_Metric_Architectural_Transparency/" class="md-nav__link">
         
   
   
@@ -1054,7 +1063,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22O_API_Exposure_Metric_The_Event_Horizon/" class="md-nav__link">
+      <a href="../22O_API_Exposure_Metric_The_Event_Horizon/" class="md-nav__link">
         
   
   
@@ -1081,7 +1090,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22P_Concurrency_Exposure/" class="md-nav__link">
+      <a href="../22P_Concurrency_Exposure/" class="md-nav__link">
         
   
   
@@ -1108,7 +1117,7 @@
   
   
     <li class="md-nav__item">
-      <a href="22Q_State_Flux_Exposure/" class="md-nav__link">
+      <a href="../22Q_State_Flux_Exposure/" class="md-nav__link">
         
   
   
@@ -1135,7 +1144,7 @@
   
   
     <li class="md-nav__item">
-      <a href="23_Data_Analysis_Pipeline/" class="md-nav__link">
+      <a href="../23_Data_Analysis_Pipeline/" class="md-nav__link">
         
   
   
@@ -1162,7 +1171,7 @@
   
   
     <li class="md-nav__item">
-      <a href="230_The_GalaxyScope_Chassis_--_Optical_Orchestration/" class="md-nav__link">
+      <a href="../230_The_GalaxyScope_Chassis_--_Optical_Orchestration/" class="md-nav__link">
         
   
   
@@ -1189,7 +1198,7 @@
   
   
     <li class="md-nav__item">
-      <a href="231_The_Aperture_Filter_Adjusting_the_Telescopes_Filter_and_Focus/" class="md-nav__link">
+      <a href="../231_The_Aperture_Filter_Adjusting_the_Telescopes_Filter_and_Focus/" class="md-nav__link">
         
   
   
@@ -1216,7 +1225,7 @@
   
   
     <li class="md-nav__item">
-      <a href="232_The_GuideStar_Protocol_Contextual_Intelligence/" class="md-nav__link">
+      <a href="../232_The_GuideStar_Protocol_Contextual_Intelligence/" class="md-nav__link">
         
   
   
@@ -1243,7 +1252,7 @@
   
   
     <li class="md-nav__item">
-      <a href="233_Focusing_the_Language_Lens/" class="md-nav__link">
+      <a href="../233_Focusing_the_Language_Lens/" class="md-nav__link">
         
   
   
@@ -1270,7 +1279,7 @@
   
   
     <li class="md-nav__item">
-      <a href="233_The_Security_Lens_--_Threat_Detection_Physics/" class="md-nav__link">
+      <a href="../233_The_Security_Lens_--_Threat_Detection_Physics/" class="md-nav__link">
         
   
   
@@ -1297,7 +1306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="234_The_Prism_--_Splitting_the_comments_from_the_code/" class="md-nav__link">
+      <a href="../234_The_Prism_--_Splitting_the_comments_from_the_code/" class="md-nav__link">
         
   
   
@@ -1324,7 +1333,7 @@
   
   
     <li class="md-nav__item">
-      <a href="235_The_Detector_--_The_Logic_Splicer__Cartographer/" class="md-nav__link">
+      <a href="../235_The_Detector_--_The_Logic_Splicer__Cartographer/" class="md-nav__link">
         
   
   
@@ -1351,7 +1360,7 @@
   
   
     <li class="md-nav__item">
-      <a href="236_Signal_Processing_Equations_and_2nd_Pass_scanning_Calculations/" class="md-nav__link">
+      <a href="../236_Signal_Processing_Equations_and_2nd_Pass_scanning_Calculations/" class="md-nav__link">
         
   
   
@@ -1378,7 +1387,7 @@
   
   
     <li class="md-nav__item">
-      <a href="237_The_Spectral_Audit_Quality_Control/" class="md-nav__link">
+      <a href="../237_The_Spectral_Audit_Quality_Control/" class="md-nav__link">
         
   
   
@@ -1405,7 +1414,7 @@
   
   
     <li class="md-nav__item">
-      <a href="238_The_Audit_Recorder/" class="md-nav__link">
+      <a href="../238_The_Audit_Recorder/" class="md-nav__link">
         
   
   
@@ -1432,7 +1441,7 @@
   
   
     <li class="md-nav__item">
-      <a href="239_The_LLM_Recorder_AI_Translation_Layer/" class="md-nav__link">
+      <a href="../239_The_LLM_Recorder_AI_Translation_Layer/" class="md-nav__link">
         
   
   
@@ -1459,7 +1468,7 @@
   
   
     <li class="md-nav__item">
-      <a href="239_The_GPU_Recorder_Hypercompressed_Data_Storage/" class="md-nav__link">
+      <a href="../239_The_GPU_Recorder_Hypercompressed_Data_Storage/" class="md-nav__link">
         
   
   
@@ -1486,7 +1495,7 @@
   
   
     <li class="md-nav__item">
-      <a href="24_Strategy_Validation_--_Does_this_work/" class="md-nav__link">
+      <a href="../24_Strategy_Validation_--_Does_this_work/" class="md-nav__link">
         
   
   
@@ -1513,7 +1522,7 @@
   
   
     <li class="md-nav__item">
-      <a href="240_Claim_1_--_Optimum_Search_Strategies_Change_with_Scale/" class="md-nav__link">
+      <a href="../240_Claim_1_--_Optimum_Search_Strategies_Change_with_Scale/" class="md-nav__link">
         
   
   
@@ -1540,7 +1549,7 @@
   
   
     <li class="md-nav__item">
-      <a href="241_Claim_2_--_Coding_Languages_Evolve_Towards_Explicitness/" class="md-nav__link">
+      <a href="../241_Claim_2_--_Coding_Languages_Evolve_Towards_Explicitness/" class="md-nav__link">
         
   
   
@@ -1567,7 +1576,7 @@
   
   
     <li class="md-nav__item">
-      <a href="242_--_Claim_3_--_Intent_Scales_Across_Syntax_The_Taxonomical_Equivalence_Map/" class="md-nav__link">
+      <a href="../242_--_Claim_3_--_Intent_Scales_Across_Syntax_The_Taxonomical_Equivalence_Map/" class="md-nav__link">
         
   
   
@@ -1594,7 +1603,7 @@
   
   
     <li class="md-nav__item">
-      <a href="7_Impacts__Future_Outlooks/" class="md-nav__link">
+      <a href="../7_Impacts__Future_Outlooks/" class="md-nav__link">
         
   
   
@@ -1631,8 +1640,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1641,55 +1648,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-the-blast-engine-the-galaxyscope-backend" class="md-nav__link">
+  <a href="#22i-technical-debt-exposure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. The blAST Engine - The GalaxyScope (Backend)
+        2.2.I. Technical Debt Exposure
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-the-observatory-frontend" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. The Observatory (Frontend)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quickstart" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🚀 Quickstart
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-blast-paradigm-sequencing-the-dna-of-software" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🧬 The blAST Paradigm: Sequencing the DNA of Software
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🧬 The blAST Paradigm: Sequencing the DNA of Software">
+    <nav class="md-nav" aria-label="2.2.I. Technical Debt Exposure">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#zero-trust-architecture" class="md-nav__link">
+  <a href="#22ia-the-philosophy-markers-of-honesty" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Zero-Trust Architecture
+        2.2.I.A. The Philosophy: Markers of Honesty
       
     </span>
   </a>
@@ -1697,10 +1671,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#the-viral-security-lens" class="md-nav__link">
+  <a href="#22ib-the-inputs-regex-heuristics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Viral Security Lens
+        2.2.I.B. The Inputs (Regex &amp; Heuristics)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22ic-the-universal-framework-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.C. The Universal Framework Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22id-the-equation-the-structural-stress-density" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.D. The Equation: The Structural Stress Density
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22ie-implementation-python-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.E. Implementation (Python Reference)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22if-visual-verification-the-truth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2.I.F. Visual Verification (\"The Truth\")
       
     </span>
   </a>
@@ -1729,36 +1747,172 @@
 
 
 
-<h1 id="gitgalaxy-documentation">GitGalaxy Documentation</h1>
-<p><strong>Code is art. Logic is art. Systems engineering is art.</strong></p>
-<p>GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is designed to extract the structural DNA of massive software repositories and render their non-visual architecture into measurable, explorable 3D galaxies.</p>
-<h3 id="1-the-blast-engine-the-galaxyscope-backend">1. The blAST Engine - The GalaxyScope (Backend)</h3>
-<p>A hyper-scale, language-agnostic static analysis CLI. Based on 50 years of bioinformatics and genetic sequencing algorithms, it parses code at ~100,000 LOC/second. It outputs rich JSON telemetry, SQLite databases, and low-token Markdown briefs optimized for AI-agent workflows.</p>
-<h3 id="2-the-observatory-frontend">2. The Observatory (Frontend)</h3>
-<p>Drop your <code>galaxy.json</code> into the free viewer at <a href="https://gitgalaxy.io">GitGalaxy.io</a> or use the repo's <code>airgap_observatory</code>, a standalone, zero-telemetry WebGPU visualizer. Both visualizers read the JSON contract and render the entire code base as a procedural 3D galaxy where files are stars, allowing humans to visually map scale and risk exposure instantly.</p>
+  <h1>Technical Debt Exposure</h1>
+
+<h4 id="22i-technical-debt-exposure">2.2.I. Technical Debt Exposure</h4>
+<h5 id="22ia-the-philosophy-markers-of-honesty">2.2.I.A. The Philosophy: Markers of Honesty</h5>
+<p><strong>\"The Topography of Compromise.\"</strong></p>
+<p>Visualizes the \"Topography of Compromise.\" We view Technical Debt not
+as a failure, but as a deliberate engineering trade-off. No engineer
+writes a HACK out of laziness; they write it to ship. This metric is
+about Honesty. It relies on the developer\'s own annotations (in the
+Literature/Comment Stream) to identify where the \"Structural Stress\"
+lies. By visualizing these markers, we move from vague anxiety about
+\"bad code\" to a concrete map of where the team knows improvements are
+needed.</p>
+<p><strong>Effect:</strong> Maps directly to the GitGalaxy Universal Risk Spectrum.</p>
+<ul>
+<li><strong>VERY LOW (Score 0-20, Blue):</strong> Polished. The code matches the
+spec. No known shortcuts.</li>
+<li><strong>INTERMEDIATE (Score 41-60, Yellow):</strong> Honest work-in-progress. A
+balanced mix of planned tasks.</li>
+<li><strong>VERY HIGH (Score 81-100, Red):</strong> Fractured. The file is held
+together by temporary fixes (<em>HACK</em>) and unfinished thoughts
+(<em>TODO</em>). It is structurally compromised.</li>
+</ul>
+<h5 id="22ib-the-inputs-regex-heuristics">2.2.I.B. The Inputs (Regex &amp; Heuristics)</h5>
+<p>The regex scanning has been entirely decoupled from the physics engine.
+The <em>blAST</em> engine now pre-calculates these hits and passes them into
+the Signal Processor\'s <em>eq</em> dictionary.</p>
 <hr />
-<h2 id="quickstart">🚀 Quickstart</h2>
-<p><strong>1. Install</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>gitgalaxy
-</code></pre></div></p>
-<p><strong>2. Scan a Repository</strong>
-Point the GalaxyScope at any local repository or ZIP archive. The engine runs entirely on your local machine—zero data is transmitted.
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>galaxyscope<span class="w"> </span>/path/to/your/local/repo
-</code></pre></div></p>
-<p><strong>3. View the Galaxy</strong>
-GitGalaxy offers two ways to visualize your 3D architecture, both built on a strict Zero-Trust Privacy Model where your code never leaves your machine.
-* <strong>The Web Viewer (Frictionless):</strong> Drag and drop your generated <code>_galaxy.json</code> file directly into GitGalaxy.io. All rendering and scanning happens entirely in your browser's local memory.
-* <strong>The Local Server (Enterprise &amp; Offline):</strong> For teams operating under strict compliance rules, GitGalaxy includes a 100% static, zero-telemetry local viewer called the Airgap Observatory.</p>
+<p>Planned Debt    <strong>planned_debt</strong>                         1.0x   The Promise. Future work that doesn\'t necessarily imply current brokenness. Includes <strong>TODO</strong>, <strong>WIP</strong>, <strong>STUB</strong>, <strong>REFACTOR</strong>.
+Fragile Debt    <strong>fragile_debt</strong> (or <strong>keyword_debt</strong>)   3.0x   The Fracture. An explicit admission that the current logic is fragile or dangerous. Includes <strong>HACK</strong>, <strong>FIXME</strong>, <strong>XXX</strong>, <strong>WORKAROUND</strong>, <strong>UGLY</strong>.
+Stub Hits       <strong>func_empty</strong>                           0.5x   The Skeleton. Empty functions (<strong>{}</strong>) found in the Logic Stream. Implies placeholder logic independent of comments.
+Implicit Risk   <strong>irc</strong>                                  0.5x   The Fog. Implicit languages hide debt better, so we add a weighted baseline load to the stress sum.</p>
 <hr />
-<h2 id="the-blast-paradigm-sequencing-the-dna-of-software">🧬 The blAST Paradigm: Sequencing the DNA of Software</h2>
-<p>Traditional computer science treats software like a rigid blueprint, using slow, language-specific Abstract Syntax Trees (ASTs) to analyze code. GitGalaxy treats code as a living, mutating organism using <strong>blAST</strong> (Broad Lexical Abstract Syntax Tracker).</p>
-<p>By applying the principles of biological sequence alignment to software, blAST hunts for the universal structural markers of logic across ~40 languages and ~250 file extensions. We translate this genetic code into "phenotypes"—measurable risk exposures.</p>
-<h3 id="zero-trust-architecture">Zero-Trust Architecture</h3>
-<p>Your code never leaves your machine. GitGalaxy performs 100% of its scanning and vectorization locally.
-* <strong>No Data Transmission:</strong> Source code is never transmitted to any API, cloud database, or third-party service.
-* <strong>Ephemeral Memory Processing:</strong> Repositories are unpacked into a volatile memory buffer (RAM) and are automatically purged when the browser tab is closed.</p>
-<h3 id="the-viral-security-lens">The Viral Security Lens</h3>
-<p>Traditional security scanners rely on rigid, outdated virus signatures. blAST acts like an immune system, hunting for the behavioral genetic markers of a threat. By analyzing the structural density of I/O hits, execution triggers, and security bypasses, blAST is perfectly engineered to stop modern attack vectors.</p>
+<h5 id="22ic-the-universal-framework-integration">2.2.I.C. The Universal Framework Integration</h5>
+<ul>
+<li>
+<p><em>Fc</em><strong> (Fidelity Coefficient):</strong> <strong>Not Applied.</strong> A <em>TODO</em> is a
+<em>TODO</em>, regardless of language.</p>
+</li>
+<li>
+<p><em>Irc</em><strong> (Implicit Risk Correction):</strong> <strong>Applied.</strong> Added to the
+Stress Sum.</p>
+</li>
+<li>
+<p><em>Mp</em><strong> (Path Modifier):</strong> <strong>Applied.</strong></p>
+</li>
+<li>
+<p><em>Archive/Legacy (Mp = 0.5):</em> Debt is expected here. Discount it.</p>
+</li>
+<li><em>Core/Kernel (Mp = 1.2):</em> Debt here is dangerous. Amplify it.</li>
+<li><em>Scratchpad (Mp = 0.8):</em> Allow messy thoughts.</li>
+</ul>
+<h5 id="22id-the-equation-the-structural-stress-density">2.2.I.D. The Equation: The Structural Stress Density</h5>
+<p>We calculate the Density of Debt per line of code.</p>
+<p><strong>Step A: Calculate Stress Sum</strong> We sum the markers, applying weights to
+distinguish \"Planned Work\" (Good Debt) from \"Broken Logic\" (Bad
+Debt). We also add the Implicit Risk Correction (<em>Irc</em>), dampened by its
+own weight multiplier (<em>0.5</em>).</p>
+<p><strong>Step B: Calculate Stress Density</strong> We normalize against the file size
+to calculate the stress points per 100 lines. A 1000-line file with 1
+<em>TODO</em> is fine. A 10-line file with 1 <em>HACK</em> is structurally critical.</p>
+<p><strong>Step C: The Sigmoid Map</strong> We use a Sigmoid function to create a
+\"Tolerance Threshold\".</p>
+<ul>
+<li><strong>Threshold (T):</strong> <em>5.0</em>. We tolerate \~5 points of stress per 100
+lines before the score spikes.</li>
+<li><strong>Slope (K):</strong> <em>0.5</em>. A gentle slope allows for nuance as debt
+accumulates.</li>
+</ul>
+<p><strong>Step D: Final Calculation</strong> We apply the Path Modifier (<em>Mp</em>) to
+dampen or amplify the final score based on the file\'s architectural
+context.</p>
+<h5 id="22ie-implementation-python-reference">2.2.I.E. Implementation (Python Reference)</h5>
+<p><em>import math</em></p>
+<p><em>from typing import Dict</em></p>
+<p><em>def _calc_tech_debt(self, loc: int, eq: Dict[str, int], irc: int,
+mp: float) -&gt; float:</em></p>
+<ul>
+<li>
+<p>t = self.risk_tuning.get(\"tech_debt\", {})*</p>
+</li>
+<li>
+<p>good_debt = eq.get(\"planned_debt\", 0)*</p>
+</li>
+<li>
+<p>bad_debt = eq.get(\"fragile_debt\", eq.get(\"keyword_debt\", 0))*</p>
+</li>
+<li>
+<p>stubs = eq.get(\"func_empty\", 0)*</p>
+</li>
+<li>
+<p>*</p>
+</li>
+<li>
+<p>if good_debt == 0 and bad_debt == 0 and stubs == 0:*</p>
+</li>
+<li>
+<p>return 0.0*</p>
+</li>
+<li>
+<p>*</p>
+</li>
+<li>
+<p># Step A: Stress Sum*</p>
+</li>
+<li>
+<p>stress = (good_debt * t.get(\"good_debt_weight\", 1.0)) + \*</p>
+</li>
+<li>
+<p>(bad_debt * t.get(\"bad_debt_weight\", 3.0)) + \*</p>
+</li>
+<li>
+<p>(stubs * t.get(\"stub_weight\", 0.5)) + \*</p>
+</li>
+<li>
+<p>(irc * t.get(\"irc_weight\", 0.5))*</p>
+</li>
+<li>
+<p>*</p>
+</li>
+<li>
+<p># Step B: Density Calculation*</p>
+</li>
+<li>
+<p>density = (stress / max(loc, 1)) * 100.0*</p>
+</li>
+<li>
+<p>threshold = t.get(\"threshold\", 5.0)*</p>
+</li>
+<li>
+<p>*</p>
+</li>
+<li>
+<p># Step C: Sigmoid Map*</p>
+</li>
+<li>
+<p>try:*</p>
+</li>
+<li>
+<p>raw_score = 100.0 / (1.0 + math.exp(-t.get(\"sigmoid_slope\", 0.5) *
+(density - threshold)))*</p>
+</li>
+<li>
+<p>except OverflowError:*</p>
+</li>
+<li>
+<p>raw_score = 100.0 if density &gt; threshold else 0.0*</p>
+</li>
+<li>
+<p>*</p>
+</li>
+<li>
+<p># Step D: Apply Context Modifier*</p>
+</li>
+<li>
+<p>return min(raw_score * mp, 100.0)*</p>
+</li>
+</ul>
+<h5 id="22if-visual-verification-the-truth">2.2.I.F. Visual Verification (\"The Truth\")</h5>
+<hr />
+<p>Clean Core       200    0                            0.0    0      Blue     Pristine. Zero structural stress.
+Honest Dev       200    2 <strong>REFACTOR</strong>, 3 <strong>TODO</strong>   2.5    22     Cyan     Good citizenship. Admitting work is needed, but well under the threshold.
+The Prototype    100    2 STUBs, 4 <strong>WIP</strong>s          5.0    50     Yellow   Halfway point. Rough but honest.
+Frustrated Dev   50     1 <strong>WTF</strong>, 1 <strong>HACK</strong>        12.0   \~97   Red      High emotional and structural stress. Severe technical debt.
+Legacy Dump      1000   20 <strong>HARDCODED</strong>             6.0    \~31   Cyan     With Mp=0.5. Large volume and high debt, but heavily discounted because it is marked as legacy.</p>
+<hr />
 
 
 
@@ -1808,10 +1962,10 @@ GitGalaxy offers two ways to visualize your 3D architecture, both built on a str
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": [], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
