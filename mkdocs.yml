@@ -1,78 +1,82 @@
 site_name: GitGalaxy
 site_description: The structural DNA of massive software repositories.
 site_url: https://squid-protocol.github.io/gitgalaxy/
+site_dir: docs_build
 
 theme:
   name: material
   palette:
-    # Cyber-Noir aesthetic
     scheme: slate
     primary: deep purple
     accent: cyan
 
-# Tell MkDocs exactly where our markdown files live
 docs_dir: docs/wiki
+site_dir: docs_build
 
-# Optional: Add some neat markdown extensions for formatting
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences
   - tables
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js
 
 nav:
   - Home: index.md
-  - 'Project Overview': 1_Foundation__Architecture.md
-
-  - 'Code Complexity as Physical Structure': 21_How_we_represent_complexity_as_physical_structure.md
-  - 'Stars Size': 21A_Stars_Size.md
-  - 'Stars Shape': 21C_Stars_Shape.md
-  - 'Satellite Unit': 21D_Satellite_Unit.md
-  - 'Satellite Orbital Distance': 21E_Satellite_Orbital_Distance.md
-  - 'Number of satellites in a unit': 21F_Number_of_satellites_in_a_unit.md
-  - 'Satellites Relative Positioning in a unit': 21G_Satellites_Relative_Positioning_in_a_unit.md
-  - 'Node Size Metric Argument Count': 21H_Node_Size_Metric_Argument_Count.md
-  - 'Planetary Rings': 21I_Planetary_Rings.md
-  - 'Stars Pulse Rate': 21B_Stars_Pulse_Rate.md
-  - 'Relative Positioning Metric Sequence  Affinity': 21J_Relative_Positioning_Metric_Sequence__Affinity.md
-
-  - 'Color Labeling Equations': 22_Color_Labeling_Equations.md
-  - 'Overview of methodology': 22A_Overview_of_methodology.md
-  - 'Sub-Equations': 22B_Sub-Equations.md
-  - 'Transforming Regex Counts to Risk': 22C_Transforming_Noisy_Regex_Counts_Into_Something_Meaningful.md
-  - 'Ownership Entropy': 22D_Ownership_Mode_Shannon_Entropy.md
-  - 'Cognitive Load Exposure': 22E_Cognitive_Load_Exposure.md
-  - 'Deep Churn': 22F_Churn.md
-  - 'Error & Exception Exposure': 22G_Safety_Mode_Metric_Structural_Fortification.md
-  - 'Technical Debt Exposure': 22I_Technical_Debt_Exposure.md
-  - 'Documentation Risk Exposure': 22J_Documentation_Risk_Exposure_Metric_Sigmoid_Debt.md
-  - 'File Stability - Commit Heat': 22K_File_Stability_Commit_Heat.md
-  - 'Test Coverage Exposure': 22L_Test_Coverage_Metric_Verification_Density.md
-  - 'Civil War - Tabs vs Spaces': 22M_The_Civil_War_Algorithm_Tabs_vs_Spaces.md
-  - 'Graveyard Code': 22N_The_Graveyard_Detector_Metric_Architectural_Transparency.md
-  - 'API Exposure': 22O_API_Exposure_Metric_The_Event_Horizon.md
-  - 'Concurrency Exposure': 22P_Concurrency_Exposure.md
-  - 'State Flux Exposure': 22Q_State_Flux_Exposure.md
-
-  - 'Data Analysis Pipeline': 23_Data_Analysis_Pipeline.md
-  - 'The GalaxyScope Chassis -- blAST Orchestrator': 230_The_GalaxyScope_Chassis_--_Optical_Orchestration.md
-  - 'The Aperture': 231_The_Aperture_Filter_Adjusting_the_Telescopes_Filter_and_Focus.md
-  - 'The GuideStar Lens': 232_The_GuideStar_Protocol_Contextual_Intelligence.md
-  - 'The Language Lens': 233_Focusing_the_Language_Lens.md
-  - 'The Security Lens': 233_The_Security_Lens_--_Threat_Detection_Physics.md
-  - 'The Prism': 234_The_Prism_--_Splitting_the_comments_from_the_code.md
-  - 'The Detector': 235_The_Detector_--_The_Logic_Splicer__Cartographer.md
-  - 'The Signal Procesor': 236_Signal_Processing_Equations_and_2nd_Pass_scanning_Calculations.md
-  - 'The Spectral Auditor': 237_The_Spectral_Audit_Quality_Control.md
-  - 'The Audit Recorder': 238_The_Audit_Recorder.md
-  - 'The LLM Recorder AI Translation Layer': 239_The_LLM_Recorder_AI_Translation_Layer.md
-  - 'The GPU Recorder ': 239_The_GPU_Recorder_Hypercompressed_Data_Storage.md
-
-
-  - 'Validation': 24_Strategy_Validation_--_Does_this_work.md
-  - 'Claim 1 -- Optimum Search Strategies Change with Scale': 240_Claim_1_--_Optimum_Search_Strategies_Change_with_Scale.md
-  - 'Claim 2 -- Coding Languages Evolve Towards Explicitness': 241_Claim_2_--_Coding_Languages_Evolve_Towards_Explicitness.md
-  - 'Claim 3 -- Intent Scales Across Syntax The Taxonomical Equivalence Map': 242_--_Claim_3_--_Intent_Scales_Across_Syntax_The_Taxonomical_Equivalence_Map.md
-
-  - 'Future Outlooks': 7_Impacts__Future_Outlooks.md
-
+  - '1. Foundation & Architecture': 
+      - 'Project Overview': 1_Foundation__Architecture.md
+  - '2. Physical Structure':
+      - 'Code Complexity': 21_How_we_represent_complexity_as_physical_structure.md
+      - 'Stars Size': 21A_Stars_Size.md
+      - 'Stars Pulse Rate': 21B_Stars_Pulse_Rate.md
+      - 'Stars Shape': 21C_Stars_Shape.md
+      - 'Satellite Unit': 21D_Satellite_Unit.md
+      - 'Satellite Orbital Distance': 21E_Satellite_Orbital_Distance.md
+      - 'Number of satellites': 21F_Number_of_satellites_in_a_unit.md
+      - 'Relative Positioning': 21G_Satellites_Relative_Positioning_in_a_unit.md
+      - 'Node Size (Argument Count)': 21H_Node_Size_Metric_Argument_Count.md
+      - 'Planetary Rings': 21I_Planetary_Rings.md
+      - 'Sequence Affinity': 21J_Relative_Positioning_Metric_Sequence__Affinity.md
+      - 'Misc Equations': 21K_Misc_Equations.md
+  - '3. Color Labeling (Risk)':
+      - 'Methodology': 22A_Overview_of_methodology.md
+      - 'Sub-Equations': 22B_Sub-Equations.md
+      - 'Transforming Regex Counts': 22C_Transforming_Noisy_Regex_Counts_Into_Something_Meaningful.md
+      - 'Ownership Entropy': 22D_Ownership_Mode_Shannon_Entropy.md
+      - 'Cognitive Load Exposure': 22E_Cognitive_Load_Exposure.md
+      - 'Deep Churn': 22F_Churn.md
+      - 'Structural Fortification': 22G_Safety_Mode_Metric_Structural_Fortification.md
+      - 'Technical Debt Exposure': 22I_Technical_Debt_Exposure.md
+      - 'Documentation Risk': 22J_Documentation_Risk_Exposure_Metric_Sigmoid_Debt.md
+      - 'File Stability (Heat)': 22K_File_Stability_Commit_Heat.md
+      - 'Test Coverage': 22L_Test_Coverage_Metric_Verification_Density.md
+      - 'Civil War (Tabs vs Spaces)': 22M_The_Civil_War_Algorithm_Tabs_vs_Spaces.md
+      - 'Graveyard Detector': 22N_The_Graveyard_Detector_Metric_Architectural_Transparency.md
+      - 'API Exposure': 22O_API_Exposure_Metric_The_Event_Horizon.md
+      - 'Concurrency Exposure': 22P_Concurrency_Exposure.md
+      - 'State Flux Exposure': 22Q_State_Flux_Exposure.md
+  - '4. Data Pipeline':
+      - 'Pipeline Overview': 23_Data_Analysis_Pipeline.md
+      - 'Optical Orchestration': 230_The_GalaxyScope_Chassis_--_Optical_Orchestration.md
+      - 'Aperture Filter': 231_The_Aperture_Filter_Adjusting_the_Telescopes_Filter_and_Focus.md
+      - 'GuideStar Protocol': 232_The_GuideStar_Protocol_Contextual_Intelligence.md
+      - 'Language Lens': 233_Focusing_the_Language_Lens.md
+      - 'Security Lens': 233_The_Security_Lens_--_Threat_Detection_Physics.md
+      - 'The Prism': 234_The_Prism_--_Splitting_the_comments_from_the_code.md
+      - 'The Detector': 235_The_Detector_--_The_Logic_Splicer__Cartographer.md
+      - 'Signal Processing': 236_Signal_Processing_Equations_and_2nd_Pass_scanning_Calculations.md
+      - 'Phase 0 Orchestrator': 237_Phase_0_Mission_Control_The_GalaxyScope_Orchestrator.md
+      - 'Spectral Audit': 237_The_Spectral_Audit_Quality_Control.md
+      - 'Audit Recorder': 238_The_Audit_Recorder.md
+      - 'GPU Recorder': 239_The_GPU_Recorder_Hypercompressed_Data_Storage.md
+      - 'LLM Recorder': 239_The_LLM_Recorder_AI_Translation_Layer.md
+  - '5. Validation & Outlook':
+      - 'Strategy Validation': 24_Strategy_Validation_--_Does_this_work.md
+      - 'Claim 1 (Search Strategies)': 240_Claim_1_--_Optimum_Search_Strategies_Change_with_Scale.md
+      - 'Claim 2 (Explicitness)': 241_Claim_2_--_Coding_Languages_Evolve_Towards_Explicitness.md
+      - 'Claim 3 (Taxonomy Map)': 242_--_Claim_3_--_Intent_Scales_Across_Syntax_The_Taxonomical_Equivalence_Map.md
+      - 'Future Outlooks': 7_Impacts__Future_Outlooks.md
