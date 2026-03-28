@@ -2,10 +2,10 @@
 
 ### 7.1 Integration into the publishing pipeline for 24/7 Risk Exposure Analyses
 
-****The ultimate realization of the GitGalaxy standard is the transition
-from point-in-time inspections to a ****24/7 Rolling Risk Exposure****
-model. By deploying a headless version of ****the
-engine---*****scanner.py*****---directly into the publishing pipeline,
+The ultimate realization of the GitGalaxy standard is the transition
+from point-in-time inspections to a 24/7 Rolling Risk Exposure
+model. By deploying a headless version of the
+engine---*scanner.py*---directly into the publishing pipeline,
 we move beyond the \"User-Triggered Audit\" into a state of continuous
 architectural awareness. Every push or pull request triggers a
 full-fidelity scan, ensuring the system's health is never more than one
@@ -16,7 +16,7 @@ making real-time, high-frequency audits technically viable for even the
 largest enterprise monoliths. This creates an automated, objective
 heartbeat that treats human-written code and AI-generated logic with the
 same clinical scrutiny, ensuring the map and the territory never drift
-apart in silence.****
+apart in silence.
 
 This rolling assessment is designed to highlight **Risk Exposure **in
 real-time. Instead of waiting for a manual review to discover that a
@@ -48,8 +48,8 @@ Standard dashboards are failing the needs of modern computing. We are
 building systems with unpredictable emergent behaviors. But our
 dashboards, the very way we measure those systems, are still rooted in
 the "cockpit" philosophy, that we can predict every important error
-ahead of time and make a warning light for it. This relies on ****Finite
-State Anticipation,** **that**** one can predict every way that system
+ahead of time and make a warning light for it. This relies on Finite
+State Anticipation,** **that one can predict every way that system
 will fail. But what happens when the system fails in a way no one
 predicted? **If a system can produce emergent behaviors, any worthwhile
 dashboard must be able to capture and report on emergent behaviors.** Do
@@ -81,20 +81,20 @@ century, but for people.
 
 ### 7.5 Circling back to Specifications Exposure & Auditing
 
-****By embedding ****a specification**** audit trail into the README, we
+By embedding a specification audit trail into the README, we
 turn documentation into a living sensor. We move away from the \"Big
 Bang\" release where specs are checked once at the end, and toward a
 continuous, visual heartbeat of alignment. If this becomes the standard,
 we stop seeing specifications as a \"gate\" to pass through and start
-seeing them as a \"home\" for our logic to inhabit. ****
+seeing them as a \"home\" for our logic to inhabit. 
 
-****The true power of the \[audit\] standard lies in its ability to
+The true power of the \[audit\] standard lies in its ability to
 formalize the natural, bottom-up documentation that already lives in a
 developer\'s README. While high-level \"user specs\" might define the
 destination, the real engineering happens in the sub-specifications and
 complex edge cases that usually stay hidden. By tagging these technical
 hurdles right where they are described, we transform the README from a
-static file into a living ****Engineering Roadmap****.****
+static file into a living Engineering Roadmap.
 
 This isn\'t about assessing how we are meeting a rigid, top-down \"God
 Spec.\" It's about the dev team marking where their work really went. By

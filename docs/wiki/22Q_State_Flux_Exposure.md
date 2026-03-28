@@ -1,6 +1,6 @@
-#### 2.2.Q. State Flux Exposure
+# 2.2.Q. State Flux Exposure
 
-##### 2.2.Q.A. The Philosophy:
+## 2.2.Q.A. The Philosophy:
 
 *Visualizes \"Data Volatility.\" State Flux measures the Density of
 Mutation. It answers the question: \"How stable is the data in this
@@ -21,7 +21,7 @@ reassigned, properties are updated, and side effects are triggered.
 The data state is in constant flux, making it difficult to track
 \"who changed what and when\".
 
-##### 2.2.Q.B. The Inputs (Mutation Markers)
+## 2.2.Q.B. The Inputs (Mutation Markers)
 
 We count the keywords that imply reassignment or side effects. The
 *blAST* engine pre-calculates these and passes them to the Signal
@@ -32,7 +32,7 @@ Flux Hits   **flux**   1.0x          The Change. Keywords that mutate data: **le
 Total LOC   **loc**    Denominator   We measure density. A loop counter **i++** in a 1000-line file is negligible. 50 setters in a 100-line file is a \"Boiling\" class.
 ----------- ---------- ------------- -------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.Q.C. The Universal Framework Integration
+## 2.2.Q.C. The Universal Framework Integration
 
 -   **Fc (Fidelity Coefficient):** Not Applied. Mutation is an absolute
 action.
@@ -50,7 +50,7 @@ of bugs. We lower the bar to highlight this risk.
 Stores exist to mutate data. We let them show their true colors
 without artificial dampening.
 
-##### 2.2.Q.D. The Equation: The Mutation Threshold Sigmoid
+## 2.2.Q.D. The Equation: The Mutation Threshold Sigmoid
 
 *Most code requires some local mutation (e.g., loop counters). We use a
 Sigmoid curve to ignore this background noise but react sharply once
@@ -75,7 +75,7 @@ drops to *12.0%*.
 relaxed slope (*0.20*), creating a smooth curve that ramps up as
 mutation becomes dominant.
 
-##### 2.2.Q.E. Implementation (Python Reference)
+## 2.2.Q.E. Implementation (Python Reference)
 
 *import math*
 
@@ -126,7 +126,7 @@ mp: float) -\> float:*
 
 * return min(score, 100.0)*
 
-##### 2.2.Q.F. Visual Verification (\"The Truth\")
+## 2.2.Q.F. Visual Verification (\"The Truth\")
 
 **Comparison: 100 Line File**
 

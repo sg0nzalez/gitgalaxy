@@ -1,4 +1,4 @@
-#### 2.3.3. Focusing the Language Lens
+# 2.3.3. Focusing the Language Lens
 
 Before the GitGalaxy pipeline can calculate the physics of Star Mass or
 determine security risk, it must perform a comprehensive Entity Census.
@@ -12,7 +12,7 @@ hallucination away from disaster. The Language Lens operates on a
 Bayesian model of Contextual Convergence, treating every file as a
 \"claim\" that must be proven through a strict hierarchy of evidence.
 
-##### 2.3.3.A. The Bayesian Engine: Prediction vs. Audit
+## 2.3.3.A. The Bayesian Engine: Prediction vs. Audit
 
 GitGalaxy adopts a rigorous stance on identity: True confidence requires
 convergence. A single metadata signature (like an extension alone) is
@@ -30,7 +30,7 @@ Matrix to establish their identity.
 5     Absolute Distrust   Identity Crisis          **0.00**          Security Anomaly: Extension and Shebang explicitly contradict each other. Banished to the Singularity.
 ----- ------------------- ------------------------ ----------------- ---------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.3.3.B. The Pre-Flight Sequence: Anchors & Wrappers
+## 2.3.3.B. The Pre-Flight Sequence: Anchors & Wrappers
 
 Before engaging the heavy regex detectors, the Lens secures the
 perimeter, resolves hidden names, and defends against prose hijacking.
@@ -48,7 +48,7 @@ engine will not treat it as Markdown. If a file has a known
 executable extension, it strictly bypasses prose checks so hostile
 logic cannot hide inside fake documentation.
 
-##### 2.3.3.C. The Identity Crisis Trap (Security Integration)
+## 2.3.3.C. The Identity Crisis Trap (Security Integration)
 
 The Lens acts as the first line of defense for the Security Module. It
 performs a cross-examination of physical signals. If a file claims to be
@@ -60,7 +60,7 @@ anomaly, caches it in the RAM *anomaly_flags* for the Security Lens,
 and forces the file into Tier 5 Absolute Distrust, destroying its
 identity and banishing it to the Singularity (*undeterminable*).
 
-##### 2.3.3.D. Tier 1.5: Ecosystem Gravity (Collision Resolution)
+## 2.3.3.D. Tier 1.5: Ecosystem Gravity (Collision Resolution)
 
 Certain extensions, like *.h*, are heavily collided (used primarily by
 C, C++, and Objective-C). The Lens uses \"Ecosystem Gravity\" to resolve
@@ -85,7 +85,7 @@ other competitors. *(Note: The engine includes a hardcoded failsafe
 ensuring C++ is always allowed to compete for *.h* files, even if not
 explicitly mapped).*
 
-#####  2.3.3.E. Tier 3: Spectral Verification & The Iron Wall
+## 2.3.3.E. Tier 3: Spectral Verification & The Iron Wall
 
 Files that land at Tier 2 (Single Signature) must undergo Mandatory
 Spectral Verification to prove they contain the structural logic they
@@ -116,7 +116,7 @@ Delimiter Bonus) is normalized against the file\'s length using a
 logarithmic scale (*math.log1p(loc)*). The file must pass a minimum
 baseline signal threshold to be verified.
 
-##### 2.3.3.F. Tier 4: The Deep Space Discovery Funnel
+## 2.3.3.F. Tier 4: The Deep Space Discovery Funnel
 
 For true unknown files (no extension, no shebang), the Lens engages a
 redesigned 4-Phase Discovery Funnel. It prioritizes graceful failure
@@ -139,11 +139,11 @@ Margin. If the margin is weak, it utilizes a **Temporal Friction
 Tie-Breaker**, measuring the raw execution time of the regex engines
 to deduce the true language based on parser resistance.
 
-##### 2.3.3.G. Hybrid Detection (Language Sliding)
+## 2.3.3.G. Hybrid Detection (Language Sliding)
 
-****Many files in modern repositories are multi-language. To map the
+Many files in modern repositories are multi-language. To map the
 true complexity of a codebase, the engine implements Mid-File Language
-Sliding.****
+Sliding.
 
 ###### 2.3.3.G.1. The Handshake Protocol (Detection)
 
@@ -154,7 +154,7 @@ and define the boundaries of the secondary star.
 
 --------------------------------- ------------------------------ ------------------------- -------------------------------------
 Linguistic Transition (X -\> Y)   Start Marker (Trigger)         End Trigger               Assessment Logic
-**HTML **to**** **JavaScript**    *\<script*                     *\</script\>*             Pause HTML; activate JS Registry.
+**HTML **to **JavaScript**    *\<script*                     *\</script\>*             Pause HTML; activate JS Registry.
 **HTML** to **CSS**               *\<style*                      *\</style\>*              Pause HTML; activate CSS Registry.
 **Any Logic** to **SQLite**       *SELECT\\s+.\*\\s+FROM*        *\[\"\'\]* (String End)   Scan segment with SQL registry.
 **Config** to **Shell**           *RUN\\s+* \| *script:*         De-indentation \| *\\n*   Switch to Shell for the block.
@@ -205,7 +205,7 @@ significantly deviate from the primary language's frequency, it
 maintains the focus until a higher-confidence \"Safe Exit\" is
 found.
 
-##### 2.3.3.H. Determinism and Inventory Integrity
+## 2.3.3.H. Determinism and Inventory Integrity
 
 For enterprise file inventory management, the Language Lens provides a
 fundamentally **deterministic and repeatable** framework. Unlike

@@ -1,4 +1,4 @@
-#### 2.4.2 -- Claim 3 -- Intent Scales Across Syntax (The Taxonomical Equivalence Map)
+# 2.4.2 -- Claim 3 -- Intent Scales Across Syntax (The Taxonomical Equivalence Map)
 
 **The Premise:** Traditional computer science treats
 different programming languages as isolated, incomparable islands. An
@@ -39,7 +39,7 @@ Stone, allowing the Physics Engine to treat all code equally.
 
 Examples:
 
--   **Function Definitions - The *****func_start***** Signal:** Almost
+-   **Function Definitions - The *func_start* Signal:** Almost
 every language has evolved a way to encapsulate a reusable block of
 logic.
 
@@ -53,7 +53,7 @@ vocabulary; it uses tailored regex to detect the *formation of a
 logic block*, allowing the Cartographer to spawn orbiting
 function \"satellites\" for all of them equally.
 
--   **Decision Making - The *****branch***** Signal:** The ability to
+-   **Decision Making - The *branch* Signal:** The ability to
 make decisions and loop over data is universal, but its morphology
 changes drastically across eras.
 
@@ -68,7 +68,7 @@ exact same \"Cognitive Load Exposure\" penalty, whether the
 engine is reading a modern *switch* statement or a 1960s Apollo
 11 subroutine.
 
--   **Dependencies - The *****import***** Signal:** No code survives in
+-   **Dependencies - The *import* Signal:** No code survives in
 isolation; languages must pull resources from their surrounding
 ecosystem.
 
@@ -79,7 +79,7 @@ ecosystem.
 single \"Gravity Link,\" allowing the 3D visualizer to draw
 physical tether lines between files regardless of the ecosystem.
 
--   **Evolutionary Absence (The *****None***** State):** Just as early
+-   **Evolutionary Absence (The *None* State):** Just as early
 aquatic organisms lacked lungs or wings because they didn\'t need
 them yet, early programming languages lack modern structural
 concepts.

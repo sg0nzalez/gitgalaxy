@@ -1,6 +1,6 @@
-#### 2.3.6. Signal Processing (Equations and 2nd Pass scanning Calculations)
+# 2.3.6. Signal Processing (Equations and 2nd Pass scanning Calculations)
 
-##### 2.3.6.A. Overview: The Post-Processing Pipeline
+## 2.3.6.A. Overview: The Post-Processing Pipeline
 
 The Signal Processor acts as GitGalaxy\'s core Physics Engine. Once the
 Splicer has carved the raw structural telemetry (the 60-Point
@@ -12,7 +12,7 @@ multi-pass architecture. It evaluates a file not just in isolation, but
 against the physical reality of its surrounding neighborhood and the
 temporal history of the entire galaxy.
 
-##### 2.3.6.B. The Context vs. Entity Matrix (Domain Ontologies)
+## 2.3.6.B. The Context vs. Entity Matrix (Domain Ontologies)
 
 A file\'s risk profile changes drastically depending on where it lives.
 A C++ file in a firmware repository is expected; a C++ file hidden deep
@@ -33,7 +33,7 @@ systems-level file (*c*, *rust*) hiding in a web neighborhood
 *logic_bomb* and *memory_corruption* exposures, immediately flagging
 it as a severe architectural or security anomaly.
 
-##### 2.3.6.C. Standardization: The Tiered Physics Model
+## 2.3.6.C. Standardization: The Tiered Physics Model
 
 To ensure comparative fairness across different code \"materials,\" the
 engine applies Linguistic Normalization. This accounts for the fact that
@@ -54,7 +54,7 @@ War\" penalty adds a baseline phantom risk to all equations,
 requiring significantly higher defensive density to achieve a
 \"Safe\" rating.
 
-##### 2.3.6.D. The Documentation Bypass & Silo Risk
+## 2.3.6.D. The Documentation Bypass & Silo Risk
 
 Pure literature files (*markdown*, *plaintext*) do not execute logic. To
 prevent them from skewing the galaxy\'s structural averages, the engine
@@ -71,7 +71,7 @@ the file has on its dominant author. If one developer wrote 95% of a
 critical architecture file, the Splicer flags a high Silo Risk,
 alerting management to critical \"Bus Factor\" vulnerabilities.
 
-##### 2.3.6.E. Global Synthesis & 2-Pass Normalization
+## 2.3.6.E. Global Synthesis & 2-Pass Normalization
 
 Because temporal metrics (like commit frequency) vary wildly between
 repositories, a hardcoded churn threshold is useless. A file with 5
@@ -92,7 +92,7 @@ guarantees that the UI gradients perfectly highlight the hottest
 files in the repository, regardless of the team\'s specific commit
 culture.
 
-##### 2.3.6.F. The Physics Engine: Weighted Asymmetry & Mass
+## 2.3.6.F. The Physics Engine: Weighted Asymmetry & Mass
 
 In the final stage, the engine generates the high-fidelity Forensic
 Report. To prevent noise, it applies an **Active Logic Mask**, blinding

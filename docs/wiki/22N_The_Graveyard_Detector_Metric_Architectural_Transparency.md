@@ -1,6 +1,6 @@
-#### 2.2.N. The \"Graveyard\" Detector (Metric: Architectural Transparency)
+# 2.2.N. The \"Graveyard\" Detector (Metric: Architectural Transparency)
 
-##### 2.2.N.A. The Philosophy: \"The Fear of Deletion.\"
+## 2.2.N.A. The Philosophy: \"The Fear of Deletion.\"
 
 Visualizes \"Code Necrosis\" or \"The Fear of Deletion.\" Commented-out
 code (\"Ghost Logic\") is not documentation; it is hesitation. It
@@ -16,7 +16,7 @@ depending on the context.
 -   **GRAVEYARD (Score 81-100, Red):** Heavily polluted with dead
 blocks. The file is \"Haunted\" by its past.
 
-##### 2.2.N.B. The Inputs (Heuristic Detection)
+## 2.2.N.B. The Inputs (Heuristic Detection)
 
 We distinguish between Documentation (English text) and Graveyards
 (Inactive Code) by scanning for syntax density within comment blocks.
@@ -28,7 +28,7 @@ Graveyard Hits   **graveyard**   3.0x          The backend identifies blocks of 
 Total LOC        **total_loc**   Denominator   We measure density against the absolute size of the file, not just the active logic.
 ---------------- --------------- ------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.N.C. The Universal Framework Integration
+## 2.2.N.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** **Not Applied.** Dead code is
 language-agnostic.
@@ -44,7 +44,7 @@ architecture must be clean.
 -   *Legacy (Mp = 1.5):* **Moderate Tolerance.** We expect some rot
 in the archives.
 
-##### 2.2.N.D. The Equation: The Necrosis Sigmoid
+## 2.2.N.D. The Equation: The Necrosis Sigmoid
 
 *We calculate the density of dead code and map it to a curve that
 forgives minor \"scraps\" but punishes \"hoarding.\"*
@@ -75,7 +75,7 @@ risk), the tolerance threshold drops. If it is in *experiments/*
 slope of *0.3*, which creates a smooth transition from \"Clean\" to
 \"Haunted\".
 
-##### 2.2.N.E. Implementation (Python Reference)
+## 2.2.N.E. Implementation (Python Reference)
 
 *import math*
 
@@ -130,7 +130,7 @@ float) -\> float:*
 
 * return min(score, 100.0)*
 
-##### 2.2.N.F. Visual Verification (\"The Truth\")
+## 2.2.N.F. Visual Verification (\"The Truth\")
 
 **Comparison: 200 Line File**
 

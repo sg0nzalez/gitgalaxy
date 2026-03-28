@@ -1,6 +1,6 @@
-#### 2.2.P. Concurrency Exposure
+# 2.2.P. Concurrency Exposure
 
-##### 2.2.P.A. The Philosophy:
+## 2.2.P.A. The Philosophy:
 
 Visualizes \"Temporal Static\" and the Signal-to-Noise Ratio of a file.
 Concurrency is treated as \"Information Static\" because it fractures
@@ -21,7 +21,7 @@ parallel timelines (Promises, threads, channels). The signal is
 highly fractured, warning that execution timing is
 non-deterministic.
 
-##### 2.2.P.B. The Inputs (Temporal Markers)
+## 2.2.P.B. The Inputs (Temporal Markers)
 
 We count the keywords that \"Fork\" time.
 
@@ -31,7 +31,7 @@ Input Variable   Regex Key          Weight            Rationale
 **LOC**          *meaningful_loc*   **Denominator**   We measure density. A 1000-line file with 1 *await* is linear. A 10-line file with 5 *await*s is a temporal knot.
 ---------------- ------------------ ----------------- -----------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.P.C. The Universal Framework Integration
+## 2.2.P.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** **Not Applied.** Time is absolute.
 
@@ -50,7 +50,7 @@ jank). We lower the bar so even minor concurrency glows here.
 discount workers. If a worker is complex, it should look
 complex.
 
-##### 2.2.P.D. The Equation: The Tipping Point Sigmoid
+## 2.2.P.D. The Equation: The Tipping Point Sigmoid
 
 Concurrency complexity is non-linear. A single *await* is standard. Ten
 *await* calls in a small function is a \"Logic Tangle.\" We use a
@@ -95,7 +95,7 @@ Step 5: Final Clamp
 
 *FinalScore = min(RawScore, 100)*
 
-##### 2.2.P.E. Implementation (Python Reference)
+## 2.2.P.E. Implementation (Python Reference)
 
 *import math*
 
@@ -147,7 +147,7 @@ Step 5: Final Clamp
 
 * return int(min(raw_score, 100))*
 
-##### 2.2.P.F. Visual Verification (\"The Truth\")
+## 2.2.P.F. Visual Verification (\"The Truth\")
 
 **Comparison: 100 Line File**
 

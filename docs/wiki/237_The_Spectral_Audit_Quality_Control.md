@@ -1,4 +1,4 @@
-#### 2.3.7. The Spectral Audit (Quality Control)
+# 2.3.7. The Spectral Audit (Quality Control)
 
 The Spectral Auditor is the final data-integrity gate of the analysis
 pipeline. It performs an automated statistical verification of every
@@ -15,7 +15,7 @@ its peers, the engine refutes the prior assumption and banishes the file
 to the Singularity (Dark Matter), regardless of its initial metadata
 claims.
 
-##### 2.3.7.A. Gate 0: Empirical Bayes Loop-Back (The Consensus Engine)
+## 2.3.7.A. Gate 0: Empirical Bayes Loop-Back (The Consensus Engine)
 
 Before evaluating signal density, the Auditor attempts to save ambiguous
 files using local ecosystem consensus.
@@ -33,7 +33,7 @@ pulled into the dominant orbit, elevated to a Tier 2 Lock, and
 spared from immediate relegation. Files that remain ambiguous are
 instantly stripped to Dark Matter to prevent hallucinations.
 
-##### 2.3.7.B. Dynamic Auditability (Inert vs. Structural Matter)
+## 2.3.7.B. Dynamic Auditability (Inert vs. Structural Matter)
 
 Legacy systems use hardcoded lists (e.g., \"ignore JSON and Markdown\")
 to bypass audits. The Spectral Auditor dynamically evaluates a
@@ -49,7 +49,7 @@ total logic sensors (missing concepts like pointers, memory
 allocation, or globals), it is classified as *Structural* (e.g.,
 HTML, CSS, Dockerfile).
 
-##### 2.3.7.C. Gate C: The Ecosystem Orphan Guard
+## 2.3.7.C. Gate C: The Ecosystem Orphan Guard
 
 If a language species has a microscopic population in the galaxy
 (dynamically calculated based on total repository size, e.g., \$\\le 3\$
@@ -62,7 +62,7 @@ linguistic hallucinations, strips their identities, and converts them to
 **plaintext** to preserve their mass without polluting the linguistic
 composition metrics.
 
-##### 2.3.7.D. Signal Density & The MAD Protocol
+## 2.3.7.D. Signal Density & The MAD Protocol
 
 For true executable code, the Auditor calculates **Intent Density
 (\$\\rho\$)**: **(Sum of 32 Verified Signal Hits) / (Total Physical
@@ -87,7 +87,7 @@ Score (\$C_i\$). The formula \$T\_{adj} = -5 \\times \\max(C_i,
 statistical leniency, while low-confidence files are held to strict
 scrutiny.
 
-##### 2.3.7.E. The Event Horizon: Quarantine, Necrosis, and Relegation
+## 2.3.7.E. The Event Horizon: Quarantine, Necrosis, and Relegation
 
 Every file is evaluated against the 50/0 Law (any file \$\>50\$ lines
 with \$0\$ signals is a data dump) and the MAD Protocol. If flagged as

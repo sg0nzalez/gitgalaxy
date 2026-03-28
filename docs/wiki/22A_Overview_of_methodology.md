@@ -1,27 +1,27 @@
-#### 2.2.A. Overview of methodology
+# 2.2.A. Overview of methodology
 
 +----------------+----------------+----------------+----------------+
-| Labeling Mode  | ****What It    | Color          | Visual Effect  |
-|                | Checks****     |                |                |
+| Labeling Mode  | What It    | Color          | Visual Effect  |
+|                | Checks     |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Ownership  | **Who wrote    | **** White**** | **Rainbow.**   |
-| ****           | this?** Shows  |                | Single colors  |
+| Ownership  | **Who wrote    |  White | **Rainbow.**   |
+|            | this?** Shows  |                | Single colors  |
 |                | if a file is   |                | are            |
 |                | owned by one   |                | individuals;   |
 |                | person (Solo)  |                | bright White   |
 |                | or everyone    |                | is a team      |
 |                | (Collective).  |                | effort.        |
 +----------------+----------------+----------------+----------------+
-| ****Cognitive  | **How hard is  | ****           | **Purple.**    |
-| Load ****      | it to read?**  | ****           | The deeper the |
-|                | Highlights     | P****urple**** | purple, the    |
+| Cognitive  | **How hard is  |            | **Purple.**    |
+| Load       | it to read?**  |            | The deeper the |
+|                | Highlights     | Purple | purple, the    |
 |                | confusing      |                | harder the     |
 |                | logic that     |                | logic is to    |
 |                | requires high  |                | follow.        |
 |                | mental effort. |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Churn****  | **How often    | ****Orange**** | **Orange.**    |
-| ****           | does it        |                | Bright orange  |
+| Churn  | **How often    | Orange | **Orange.**    |
+|            | does it        |                | Bright orange  |
 |                | change?**      |                | indicates a    |
 |                | Identifies     |                | file that      |
 |                | files that are |                | refuses to     |
@@ -30,40 +30,40 @@
 |                | rewritten or   |                |                |
 |                | patched.       |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Safety     | **Is it        | ****Red ****   | **Red to       |
-| ****           | bulletproof?** |                | Cyan.** Red is |
-|                | Checks for     | ****to****     | fragile/risky; |
+| Safety     | **Is it        | Red    | **Red to       |
+|            | bulletproof?** |                | Cyan.** Red is |
+|                | Checks for     | to     | fragile/risky; |
 |                | defensive code |                | Cyan is        |
-|                | (error         | **** Cyan****  | f              |
+|                | (error         |  Cyan  | f              |
 |                | handling) vs.  |                | ortified/safe. |
 |                | risky code.    |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Tech       | **Are there    | ****Red****    | **Red.**       |
-| Debt****       | shortcuts?**   |                | Glowing red    |
+| Tech       | **Are there    | Red    | **Red.**       |
+| Debt       | shortcuts?**   |                | Glowing red    |
 |                | Scans for      |                | highlights     |
 |                | \"TODOs\",     |                | unfinished     |
 |                | \"Hacks\", and |                | business.      |
 |                | temporary      |                |                |
 |                | fixes.         |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Doc        | **Is it        | ****Library    | **Gold.**      |
-| Mode****       | explained?**   | Gold****       | Bright gold    |
+| Doc        | **Is it        | Library    | **Gold.**      |
+| Mode       | explained?**   | Gold       | Bright gold    |
 |                | Measures the   |                | indicates      |
 |                | quality of     |                | library-grade  |
 |                | instruction    |                | documentation. |
 |                | manuals and    |                |                |
 |                | comments.      |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Commit     | **Is it        | Green          | **Green.**     |
-| Heat****       | fresh?** Shows |                | Radioactive    |
+| Commit     | **Is it        | Green          | **Green.**     |
+| Heat       | fresh?** Shows |                | Radioactive    |
 |                | where work is  |                | green means it |
 |                | happening      |                | was edited     |
 |                | *right now*    |                | today.         |
 |                | vs. months     |                |                |
 |                | ago.           |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Test       | **Is it        | Pink           | **Pink.**      |
-| Coverage****   | verified?**    |                | Glowing pink   |
+| Test       | **Is it        | Pink           | **Pink.**      |
+| Coverage   | verified?**    |                | Glowing pink   |
 |                | Checks if the  |                | means the code |
 |                | code has a     |                | is heavily     |
 |                | safety net of  |                | tested.        |
@@ -113,4 +113,4 @@
 |                | ified/mutated. |                |                |
 +----------------+----------------+----------------+----------------+
 
-****
+

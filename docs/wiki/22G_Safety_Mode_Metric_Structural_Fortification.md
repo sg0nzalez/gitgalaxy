@@ -1,6 +1,6 @@
-#### 2.2.G. Safety Mode (Metric: Structural Fortification)
+# 2.2.G. Safety Mode (Metric: Structural Fortification)
 
-##### 2.2.G.A. The Philosophy: Structural Integrity \"The Load-Bearing Capacity of Code.\"
+## 2.2.G.A. The Philosophy: Structural Integrity \"The Load-Bearing Capacity of Code.\"
 
 **Summary:** Visualizes the \"Load-Bearing Capacity\" of the code. We
 treat code like physical infrastructure. A bridge is safe not because it
@@ -17,7 +17,7 @@ are roughly balanced.
 (Risk) exceeds the support capacity (Defenses). The code is liable
 to collapse under edge cases.
 
-##### 2.2.G.B. The Inputs (Regex & Heuristics)
+## 2.2.G.B. The Inputs (Regex & Heuristics)
 
 We classify patterns into **Attackers** (Risk) and **Defenders**
 (Safety).
@@ -31,7 +31,7 @@ TestHits     **test**           0.5x          The Blueprint. Proximity to tests 
 DocHits      **doc**            0.1x          The Warning Labels. Provides a minor structural defense bonus.
 ------------ ------------------ ------------- ------------------------------------------------------------------------------------------
 
-##### 2.2.G.C. The Universal Framework Integration
+## 2.2.G.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** Applied to **Defenders**. We trust
 a *try/catch* in Java (Explicit) more than a check in Shell
@@ -50,7 +50,7 @@ forgiven, but unsafe code will still flash Red.
 heavily. Fragility here is unacceptable.
 -   *Standard (Mp = 1.0):* Baseline.
 
-##### 2.2.G.D. The Equation: The Structural Integrity Sigmoid
+## 2.2.G.D. The Equation: The Structural Integrity Sigmoid
 
 The math has been entirely rewritten to calculate **Net Exposure**
 rather than Integrity Density, and introduces Laplace Smoothing to
@@ -81,7 +81,7 @@ hard risk floor (scaling up to 80.0), guaranteeing that catastrophic
 structural weaknesses cannot be \"math-ed away\" by simply adding
 empty *try/catch* blocks.
 
-##### 2.2.G.E. Implementation (Python Reference)
+## 2.2.G.E. Implementation (Python Reference)
 
 *import math*
 
@@ -170,7 +170,7 @@ defense:*
 
 * return max(score, 0.0)*
 
-##### 2.2.G.F. Visual Verification (\"The Truth\")
+## 2.2.G.F. Visual Verification (\"The Truth\")
 
 ---------------------- -------- --------- ----------- -------- -------------- -----------------------------------------------------------------------------
 Scenario               Attack   Defense   Net / LOC   Score    Color          Interpretation

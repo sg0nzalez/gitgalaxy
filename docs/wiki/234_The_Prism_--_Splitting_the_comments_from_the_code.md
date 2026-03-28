@@ -1,4 +1,4 @@
-#### 2.3.4. The Prism -- Splitting the comments from the code
+# 2.3.4. The Prism -- Splitting the comments from the code
 
 Following the successful completion of the language identification, the
 engine performs a Structural Refraction---splitting a single source file
@@ -13,7 +13,7 @@ perceived mass or branching density of the star. The split is a
 non-destructive process allowing the system to analyze the skeleton of
 the code and the spirit of the documentation independently.
 
-##### 2.3.4.A. The Refraction Mechanics (The Prism Protocol)
+## 2.3.4.A. The Refraction Mechanics (The Prism Protocol)
 
 The refraction process relies on the linguistic parameters established
 by the Language Lens. By operating on verified signals, the Prism
@@ -130,22 +130,22 @@ code and an inline comment is strictly scored as Active Matter.
 
 ###### 2.3.4.A.6. Output Streams: The Dual-Mass Result
 
-****The structural refraction yields a high-fidelity data payload (the
-*****RefractionResult*****) containing four distinct channels that feed
-independent analysis tracks:****
+The structural refraction yields a high-fidelity data payload (the
+*RefractionResult*) containing four distinct channels that feed
+independent analysis tracks:
 
--   ***code_stream***** (Active Matter):** The pure executable
+-   ***code_stream* (Active Matter):** The pure executable
 information of the file. It directly drives Meaningful LOC, Branch
 Angle, and Structural Flux. Its integrity is guaranteed by the
 absolute removal of all documentation noise.
--   ***comment_stream***** (Ghost Mass):** The isolated literature of
+-   ***comment_stream* (Ghost Mass):** The isolated literature of
 the project. It is scanned for Technical Debt markers (TODO, HACK),
 authorship, and compliance tags. It serves as the baseline for Trust
 Dampening, measuring the delta between the logic\'s behavior and the
 author\'s stated intent.
--   ***coding_loc*****:** The exact integer count of non-empty,
+-   ***coding_loc*:** The exact integer count of non-empty,
 pure-logic lines.
--   ***doc_loc*****:** The exact integer count of documentation lines,
+-   ***doc_loc*:** The exact integer count of documentation lines,
 normalized to prevent double-counting.
 
 ####

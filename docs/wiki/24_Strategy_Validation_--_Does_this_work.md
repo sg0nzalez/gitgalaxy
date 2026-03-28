@@ -1,6 +1,6 @@
 ### 2.4. Strategy Validation -- Does this work? 
 
-#### 2.4.0. Claim 1 -- Optimum Search Strategies Change with Scale
+# 2.4.0. Claim 1 -- Optimum Search Strategies Change with Scale
 
 In the late 1980s, computational biology hit a wall. DNA databases were
 growing exponentially, but the algorithm used to search them---the
@@ -47,7 +47,7 @@ engine. We know that complex C++ macros can cause a \"False Cold\"
 reading.
 
 But by accepting that 5% margin of microscopic error, we unlocked a
-macroscopic superpower. **We map***** intent*****, not machine
+macroscopic superpower. **We map* intent*, not machine
 execution, at speed, at scale, with privacy, regardless of if it
 compiles, regardless of language. **
 
@@ -68,14 +68,14 @@ hiding, where the technical debt is violently expanding, and where the
 cognitive load is melting your team's brains\... you don\'t need a
 microscope. **You need a telescope.**
 
-#### 2.4.1. Claim 2 -- Coding Languages Evolve Towards Explicitness 
+# 2.4.1. Claim 2 -- Coding Languages Evolve Towards Explicitness 
 
 We assessed of our heuristic regex analysis accuracy across 27 distinct
 programming languages. After subjecting these languages to an analysis
-against all complexity and risk exposure metrics, the ****evidence
-strongly suggests**** an inarguable pattern: the history of software
-language development is a trend towards**** ****explicitness, which
-correlates with**** ****the ability for regex to scan intent.****
+against all complexity and risk exposure metrics, the evidence
+strongly suggests an inarguable pattern: the history of software
+language development is a trend towards explicitness, which
+correlates with the ability for regex to scan intent.
 
 When languages are explicit, regex scanning works well but for implicit
 languages, regex struggles. In older languages, intent is often
@@ -87,24 +87,24 @@ matrices serves as a map of that progression---showing how languages
 have evolved to \"declare\" their intent clearly to both machines and
 humans.
 
-##### 2.4.2.1. False Positives & Error Direction (Equations)
+## 2.4.2.1. False Positives & Error Direction (Equations)
 
--   ****Neg-Safe Error Direction (Over-flagging):**** In modern
+-   Neg-Safe Error Direction (Over-flagging): In modern
 JavaScript, the double-bang *!!* operator is often flagged as a
 safety risk. While it converts types (risk), it is usually a
-standard idiom for truthiness. Direction: ****False Risk
-Inflation****.
--   ****Tests Error Direction (Boilerplate Noise):**** In large
+standard idiom for truthiness. Direction: False Risk
+Inflation.
+-   Tests Error Direction (Boilerplate Noise): In large
 enterprise projects, non-test files often contain internal helper
 methods like *validateInput* or *checkStatus*. These can hit
-\"TestKeywords\" (*validate*, *check*). Direction: ****False
-Verification Bonus****.
--   ****Heat Error Direction (Macro Ambiguity):**** C/C++ Macros that
-wrap simple loops can be missed, leading to ****False Cold****.
+\"TestKeywords\" (*validate*, *check*). Direction: False
+Verification Bonus.
+-   Heat Error Direction (Macro Ambiguity): C/C++ Macros that
+wrap simple loops can be missed, leading to False Cold.
 Conversely, complex macros that wrap definitions can look like
 branching.
 
-#### 2.4.3. Assessing Regex Sub-Equations Across 27 Languages
+# 2.4.3. Assessing Regex Sub-Equations Across 27 Languages
 
 **This matrix tracks the implementation status of all 24 **regex
 **heuristic sensors across the GitGalaxy registry, **collected from
@@ -203,20 +203,20 @@ Metric                 HT   CS   FB   AS   AG   TK   MP   OC   SL
 *(Group 3 Key: HT=HTML, CS=CSS, FB=Fortran, AS=Assembly, AG=AGC
 Assembly, TK=HyperTalk, MP=MicroPython, OC=Objective-C, SL=SQL)*
 
-##### 2.4.3.1. False Positives & Error Direction (Overlays)
+## 2.4.3.1. False Positives & Error Direction (Overlays)
 
--   ****State Flux Error Direction (Severe Deflation):**** In
+-   State Flux Error Direction (Severe Deflation): In
 non-reactive languages (C, Assembly, COBOL), tracking mutation is
 effectively blind. Files appear \"Cold/Stable\" even if they are
-heavily mutable. Direction: ****False Stability****.
--   ****Cognitive Load Error Direction (Boilerplate Inflation):**** In
+heavily mutable. Direction: False Stability.
+-   Cognitive Load Error Direction (Boilerplate Inflation): In
 COBOL and older Java, the extreme verbosity and repetitive
-declarations trigger Heat. Direction: ****False Cognitive Heat****.
--   ****Private Info Error Direction (False Alarms):**** The scanner
+declarations trigger Heat. Direction: False Cognitive Heat.
+-   Private Info Error Direction (False Alarms): The scanner
 flags generic variables like *KEY* or *ID* as private exposure.
-Direction: ****False Anxiety Overlay****.
+Direction: False Anxiety Overlay.
 
-#### 2.4.4. Assessing Risk Exposure Across 27 Languages
+# 2.4.4. Assessing Risk Exposure Across 27 Languages
 
 This matrix assesses the reliability of the Risk Exposures across
 languages.
@@ -252,60 +252,60 @@ Language        Debt   Doc   Cog. Load   Safety   Test   API   Concur   State   
 **27. HTalk**   🟢     🟢    🟢          🟢       🟢     🟡    N/A      🔴      🟡        🟢      🟢
 --------------- ------ ----- ----------- -------- ------ ----- -------- ------- --------- ------- -------
 
-##### 2.4.4.1. False Positives & Error Direction (Physics)
+## 2.4.4.1. False Positives & Error Direction (Physics)
 
--   ****Args Error Direction (Deflation):**** In Objective-C and COBOL,
+-   Args Error Direction (Deflation): In Objective-C and COBOL,
 the syntax for arguments is non-contiguous (e.g. *\[obj key:val
 key2:val2\]*). Regex fails to count these as multiple inputs.
-Direction: ****Under-counting Functional Density****.
--   ****Civil War Error Direction (Flicker Noise):**** A file that is
+Direction: Under-counting Functional Density.
+-   Civil War Error Direction (Flicker Noise): A file that is
 99% consistent may turn \"Blue/Conflict\" because a single tab
-exists inside a multi-line string or comment. Direction: ****False
-Polarization Warning****.
--   ****Sanitization Error Direction (Semantic Leakage):**** Complex
+exists inside a multi-line string or comment. Direction: False
+Polarization Warning.
+-   Sanitization Error Direction (Semantic Leakage): Complex
 nested interpolation in Shell/JS can lead to \"unmasked\" text.
-Direction: ****False Heat Infiltration****.
+Direction: False Heat Infiltration.
 
-#### 2.4.5. Summary of Analyses: The Evolution towards Explicitness 
+# 2.4.5. Summary of Analyses: The Evolution towards Explicitness 
 
 This heuristic analysis acts as a lens for the evolution of programming
 intent. By measuring where the heuristic methodology becomes inaccurate,
 one can clearly see that this correlates with older languages that
 simply don't have the vocab to describe what we are trying to assess.
 
-##### 2.4.5.1. The \"Color Orange\" Paradox (Linguistic Gaps)
+## 2.4.5.1. The \"Color Orange\" Paradox (Linguistic Gaps)
 
 Before the age of travel, languages often lacked specific words, like
 "banana". If the concept isn't around, the language doesn't need a name
 for a thing that doesn't exist yet. We see the exact equivalent in older
 coding languages:
 
--   ****The Invisible Shield (Assembly/C):**** These languages have no
-\"word\" (keyword) for ****Safety****. A developer implements safety
+-   The Invisible Shield (Assembly/C): These languages have no
+\"word\" (keyword) for Safety. A developer implements safety
 via convention (return codes, jump checks), but to a heuristic
 scanner, the safety is invisible. The coding language directly
 express safety as a distinct structural element of conversation.
 It's almost like an inferred concept, like verbal and non-verbal
 info was need to express this idea. Regexes stink at this.
--   ****The Gray Logic (Shell):**** In Shell, the boundary between a
+-   The Gray Logic (Shell): In Shell, the boundary between a
 string (data) and a command (logic) is semi-permeable. Because the
 language treats everything as a potential string until execution,
-the scanner experiences ****Logic/String Entanglement****. Shell
+the scanner experiences Logic/String Entanglement. Shell
 lacks a strict \"word\" for the distinction between a descriptive
 sentence and an executable branch. Regex stinks at this too.
 
-##### 2.4.5.2. The Progression of Clarity (Implicit to Explicit)
+## 2.4.5.2. The Progression of Clarity (Implicit to Explicit)
 
 Analyzing coding languages over time, one sees a journey from
-****Implicit Physics**** to ****Explicit Physics,**** enhanced
+Implicit Physics to Explicit Physics, enhanced
 vocabularies to unambiguously define something without having the other
-to also depend on context, the equivalent of non-verbal cues. ****
+to also depend on context, the equivalent of non-verbal cues. 
 
-****Based on the accuracy of our regex methodology with have grouped the
-languages into 3 categories. ****
+Based on the accuracy of our regex methodology with have grouped the
+languages into 3 categories. 
 
 -   ** Tier 3 Languages -- Older Languages, Mostly Implicit -**
-****Logic, data, and metadata are mixed. Ambiguity is high because
+Logic, data, and metadata are mixed. Ambiguity is high because
 the language relies on the interpreter\'s \"hidden knowledge.\"
 (Example: Perl\'s *\$\_*). Heuristic scanning cannot find what isn't
 explicitly stated and hence suffers from a fog of war. This
@@ -317,7 +317,7 @@ These languages are more \"structured,\" allowing regex to regularly
 find many patterns but there is enough implicitness in the language,
 that ambiguity can be high in some cases.
 -   **Tier 1 Languages -- Modern Languages - Explicit Enough for \~99%
-Accurate Regex Scanning** Languages like ****Rust**** and ****Go****
+Accurate Regex Scanning** Languages like Rust and Go
 are designed to be machine-parseable and human-unambiguous. Concepts
 like \"Ownership,\" \"Error Handling,\" and \"Concurrency\" have
 dedicated, distinct keywords. The scanner hits 99% accuracy because
@@ -330,10 +330,10 @@ As languages define more and more keyword concepts, it becomes
 easier for machines, humans and a heuristic strategies to detect
 intent.
 
-##### 2.4.5.3. Conclusion: Design for Scannability
+## 2.4.5.3. Conclusion: Design for Scannability
 
-The evolution of programming languages is a move toward ****Unambiguous
-Self-Description****. The higher a language ranks in our Fidelity
+The evolution of programming languages is a move toward Unambiguous
+Self-Description. The higher a language ranks in our Fidelity
 Matrix, the more it has succeeded in building features that don\'t just
 \"work,\" but explicitly \"declare\" themselves to both humans and
 heuristic tools. This suggests a future where \"scannability\"---the
@@ -342,29 +342,29 @@ code---could be a design goal for language architects (person 1: "my new
 coding language is so clear a child could read it", person 2: "oh yeah,
 my new coding language is so clear a regex is my compiler").
 
-#### 2.4.6. Tiering Languages based on their Implicitness 
+# 2.4.6. Tiering Languages based on their Implicitness 
 
 To ensure the risk exposures between languages is fair, we must
 normalize the \"Material Properties\" of the languages. We do not judge
 a Shell script for being \"worse\" than Go; we acknowledge that it is
 built from a more opaque material.
 
-****The Go vs. Shell Analogy:**** Imagine inspecting two bridges:
+The Go vs. Shell Analogy: Imagine inspecting two bridges:
 
-1.  ****The Steel Bridge (Go - Tier 1):**** The structure is explicit.
+1.  The Steel Bridge (Go - Tier 1): The structure is explicit.
 We can clearly see the bolts, the tension cables, and the stress
 fractures. If there are no visible cracks, we can be 99% sure the
 bridge is safe.
-2.  ****The Stone Bridge (Shell - Tier 3):**** The structure is
+2.  The Stone Bridge (Shell - Tier 3): The structure is
 implicit. The internal integrity is hidden inside the masonry. A
 visual inspection might show **zero** cracks, but that doesn\'t mean
 the bridge is safe---it just means the material might still be
 hiding faults.
 
-****The Fairness Principle:**** If we judged both bridges solely on
+The Fairness Principle: If we judged both bridges solely on
 \"Visible Cracks\" (Regex Hits), the Stone Bridge (Shell) would unfairly
 score higher simply because it can hide its defects. To make the
-comparison fair, we apply a ****Fidelity Tax**** to the Stone Bridge. We
+comparison fair, we apply a Fidelity Tax to the Stone Bridge. We
 assume a baseline level of hidden risk (Phantom Risk) to correct for the
 opacity of the material. This ensures that a \"Safe\" rating in Shell
 requires significantly more defensive effort than a \"Safe\" rating in
@@ -372,7 +372,7 @@ Go, reflecting the reality of the engineering challenge. This doesn't
 mean a stone bridge can never be viewed as safe, it just has to work a
 little bit harder to prove it is.
 
-##### 2.4.6.1. Tier 1: Explicit Enough for \~99% Accurate Regex Scanning
+## 2.4.6.1. Tier 1: Explicit Enough for \~99% Accurate Regex Scanning
 
 **Fidelity Coefficient ():** *1.0* (100% Signal) **Definition:**
 Languages with explicit keywords for complex concepts. Intent is
@@ -385,7 +385,7 @@ Please note: This does not mean that we view all these languages as
 equally explicit, placement in Tier 1 only means that these languages
 are explicit enough for very high confidence heuristic scanning.
 
-##### 2.4.6.2. Tier 2: Explicit with some Implicit
+## 2.4.6.2. Tier 2: Explicit with some Implicit
 
 **Fidelity Coefficient ():** *0.85* (15% Ambiguity Tax) **Definition:**
 Languages that are structured but suffer from \"Ghost Logic\" (macros,
@@ -396,9 +396,7 @@ JavaScript
 
 TypeScript, C++, C, PHP, Objective-C, Lua, COBOL, Fortran
 
-#####
-
-##### 2.4.6.3. Tier 3: Mostly Implicit
+## ##### 2.4.6.3. Tier 3: Mostly Implicit
 
 **Fidelity Coefficient ():** *0.60* (40% Ambiguity Tax) **Definition:**
 Languages where logic, data, and metadata are mixed. Intent is hidden.
@@ -406,11 +404,11 @@ These languages trigger the **Implicit Risk Simulator** (Phantom Risks)
 and **Base Anxiety Floor**.
 
 Ruby, Shell (Bash/Zsh), Perl, AGC Assembly, Assembly (x86), HyperTalk,
-HTML, ****CSS****
+HTML, CSS
 
-****
 
-#### 2.4.2 -- Claim 3 -- Intent Scales Across Syntax (The Taxonomical Equivalence Map)
+
+# 2.4.2 -- Claim 3 -- Intent Scales Across Syntax (The Taxonomical Equivalence Map)
 
 **The Premise:** Traditional computer science treats
 different programming languages as isolated, incomparable islands. An
@@ -451,7 +449,7 @@ Stone, allowing the Physics Engine to treat all code equally.
 
 Examples:
 
--   **Function Definitions - The *****func_start***** Signal:** Almost
+-   **Function Definitions - The *func_start* Signal:** Almost
 every language has evolved a way to encapsulate a reusable block of
 logic.
 
@@ -465,7 +463,7 @@ vocabulary; it uses tailored regex to detect the *formation of a
 logic block*, allowing the Cartographer to spawn orbiting
 function \"satellites\" for all of them equally.
 
--   **Decision Making - The *****branch***** Signal:** The ability to
+-   **Decision Making - The *branch* Signal:** The ability to
 make decisions and loop over data is universal, but its morphology
 changes drastically across eras.
 
@@ -480,7 +478,7 @@ exact same \"Cognitive Load Exposure\" penalty, whether the
 engine is reading a modern *switch* statement or a 1960s Apollo
 11 subroutine.
 
--   **Dependencies - The *****import***** Signal:** No code survives in
+-   **Dependencies - The *import* Signal:** No code survives in
 isolation; languages must pull resources from their surrounding
 ecosystem.
 
@@ -491,7 +489,7 @@ ecosystem.
 single \"Gravity Link,\" allowing the 3D visualizer to draw
 physical tether lines between files regardless of the ecosystem.
 
--   **Evolutionary Absence (The *****None***** State):** Just as early
+-   **Evolutionary Absence (The *None* State):** Just as early
 aquatic organisms lacked lungs or wings because they didn\'t need
 them yet, early programming languages lack modern structural
 concepts.
@@ -507,7 +505,7 @@ simply hadn\'t been discovered yet, safely bypassing those
 specific risk calculations without crashing or generating false
 anomalies.
 
-#### Conclusion: The Universal Rosetta Stone
+# Conclusion: The Universal Rosetta Stone
 
 Because the *LANGUAGE_DEFINITIONS* matrix maps over 1,400 distinct
 language-specific regex patterns down to these shared structural

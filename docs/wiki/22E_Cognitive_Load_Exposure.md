@@ -1,4 +1,4 @@
-#### 2.2.E. Cognitive Load Exposure
+# 2.2.E. Cognitive Load Exposure
 
 **Summary:** Visualizes the \"Mental RAM\" required to understand a
 file. Unlike Lines of Code (which measures physical size), Cognitive
@@ -16,7 +16,7 @@ the highest cognitive tax is being paid.
 scaling from cool blue (linear, easy-to-read data) to intense red
 (high-friction, multi-state async logic).
 
-##### 2.2.E.1. The Philosophy: The Entropy of Understanding
+## 2.2.E.1. The Philosophy: The Entropy of Understanding
 
 Human working memory is a biological bottleneck. Every time a developer
 encounters a nested *if*, a complex ternary, or a manual memory
@@ -36,7 +36,7 @@ impact on the developer\'s working memory.
 the developer to simulate multiple realities simultaneously;
 identifies areas that require peak focus.
 
-##### 2.2.E.2. The Philosophy: Mental Friction Density
+## 2.2.E.2. The Philosophy: Mental Friction Density
 
 **\"Not how big it is, but how hard it is to read.\"**
 
@@ -51,7 +51,7 @@ Configs. (e.g., HTML, JSON, simple DTOs).
 -   **High Score (90 - 100, Red):** High branching, async timing, state
 mutation, and meta-programming packed into a tight space.
 
-##### 2.2.E.3. The Inputs (Regex & Heuristics)
+## 2.2.E.3. The Inputs (Regex & Heuristics)
 
 We utilize the pre-calculated hits from the blAST engine and weight them
 based on the \"Mental Tax\" they impose on the reader.
@@ -65,7 +65,7 @@ DangerHits     **danger**          5.0x    None           Anxiety. **eval** or u
 DocHits        **doc**             10.0x   None           Structured documentation provides mental shortcuts, reducing the effective load (acts as a cooling agent).
 -------------- ------------------- ------- -------------- -------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.E.4. The Universal Framework Integration
+## 2.2.E.4. The Universal Framework Integration
 
 We apply the standard physics variables to ensure fairness across
 languages and environments.
@@ -81,7 +81,7 @@ example, highly complex mocking logic in a *tests/* directory may
 receive an Mp reduction, as the cognitive expectations there differ
 from a production runtime core.
 
-##### 2.2.E.5. The Equation: The \"Badge of Honor\" Sigmoid
+## 2.2.E.5. The Equation: The \"Badge of Honor\" Sigmoid
 
 We use a Logistic Function (Sigmoid) tuned to be forgiving of moderate
 complexity but demanding of high complexity.
@@ -108,7 +108,7 @@ load, but never to zero. Complex logic is still complex, even if
 explained well. We cap the cooling effect at a maximum reduction of 50%.
 The final score is then multiplied by the Path Modifier (*Mp*).
 
-##### 2.2.E.6. Implementation (Python Reference)
+## 2.2.E.6. Implementation (Python Reference)
 
 *import math*
 
@@ -217,7 +217,7 @@ safe_loc*
 
 * return min(raw_score \* cooling \* mp, 100.0), total_density*
 
-##### 2.2.E.7. Visual Verification (\"The Truth\")
+## 2.2.E.7. Visual Verification (\"The Truth\")
 
 -------------------------- ---------------- --------- -------------- ----------------------------------------------------------------
 Big JSON Config            **\[0-19\]**     \~0-5     VERY LOW       Zero branching. Minimal baseline density.

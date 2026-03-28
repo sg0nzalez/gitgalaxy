@@ -1,13 +1,13 @@
-#### 2.2.L. Test Coverage (Metric: Verification Density)
+# 2.2.L. Test Coverage (Metric: Verification Density)
 
-##### 2.2.L.A. The Philosophy: Trust vs. Verification
+## 2.2.L.A. The Philosophy: Trust vs. Verification
 
-****Visualizes the \"Security Blanket\" of the codebase. In GitGalaxy,
+Visualizes the \"Security Blanket\" of the codebase. In GitGalaxy,
 we distinguish between Defensive Code (handling errors at runtime) and
 Verified Code (proving correctness at design time). Because this metric
 has been unified into the Risk Exposure model, a high score now
-indicates a *****lack***** of verification (high risk), while a low
-score indicates ironclad, verified code.****
+indicates a *lack* of verification (high risk), while a low
+score indicates ironclad, verified code.
 
 **Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
 
@@ -20,7 +20,7 @@ bare minimum threshold.
 -   **VERY HIGH (Score 81-100, Red):** Speculative. The code might work,
 but there is no programmatic proof. It relies entirely on hope.
 
-##### 2.2.L.B. The Inputs (Verification Signals)
+## 2.2.L.B. The Inputs (Verification Signals)
 
 We combine internal evidence (assertions) with external evidence
 (sibling files). The file system checks are now abstracted, passing an
@@ -32,7 +32,7 @@ Sibling Match    **is_protected**   +30.0 (Flat)   External Coverage. Indicates 
 Mass Penalty     **loc \> 300**     Variable       Monoliths (files over 300 lines) gain a stacking risk penalty up to +40. Massive files cannot be adequately verified by unit tests alone.
 ---------------- ------------------ -------------- -------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.L.C. The Universal Framework Integration
+## 2.2.L.C. The Universal Framework Integration
 
 **Exemptions:** Untestable files (e.g., Markdown, Makefiles, CMake, or
 specific extensions configured in the asset masks) bypass the engine
@@ -57,7 +57,7 @@ bar.
 infrastructure (*core/*) gets a higher bar; notoriously hard-to-test
 views (*UI/*) get a lower bar.
 
-##### 2.2.L.D. The Equation: The Verification Sigmoid
+## 2.2.L.D. The Equation: The Verification Sigmoid
 
 **Step A: The Exemption Bypass** If the file matches known untestable
 patterns (e.g., *readme*, *makefile*), the engine immediately returns
@@ -82,7 +82,7 @@ the inverted Fidelity score (*2.0 - Fc*). If the file size exceeds the
 mass penalty, capping the final calculation between the *15.0* risk
 floor and *100.0* maximum.
 
-##### 2.2.L.E. Implementation (Python Reference)
+## 2.2.L.E. Implementation (Python Reference)
 
 *import math*
 
@@ -171,7 +171,7 @@ t.get(\"mass_penalty_div\", 20.0), t.get(\"mass_penalty_max\", 40.0)) *
 
 * *
 
-##### 2.2.L.F. Visual Verification (\"The Truth\")
+## 2.2.L.F. Visual Verification (\"The Truth\")
 
 **Comparison: 100 Line File (Base Threshold 15)**
 

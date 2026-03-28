@@ -1,6 +1,6 @@
-#### 2.3.5. The Detector -- The Logic Splicer & Cartographer
+# 2.3.5. The Detector -- The Logic Splicer & Cartographer
 
-##### 2.3.5.A. Overview: The EMCCD Sensor & Galactic Cartography
+## 2.3.5.A. Overview: The EMCCD Sensor & Galactic Cartography
 
 Before the Splicer spends computational energy carving a logic stream,
 it performs a strict physical viability check. If a file enters the
@@ -27,7 +27,7 @@ into the final spatial cartography.
 
 ######
 
-##### 2.3.6.B. The Atomic Literal Shield
+## 2.3.6.B. The Atomic Literal Shield
 
 Strings and text literals are the natural enemies of structural parsers.
 A stray opening brace *{* or an unmatched quote *\"* trapped inside a
@@ -54,7 +54,7 @@ Perl, Elixir), standard regex is insufficient. The Splicer deploys a
 line-by-line state machine to isolate complex Heredoc logic (e.g.,
 *\<\<-EOF*), safely blanking out massive text blocks that frequently
 contain rogue bash characters or unescaped quotes.
--   **Ruby *****%***** Literals:** Strictly gated to the Ruby ecosystem,
+-   **Ruby *%* Literals:** Strictly gated to the Ruby ecosystem,
 a dedicated shield evaluates and masks the complex, bracketed *%*
 string syntax (e.g., *%w\[\...\]*, *%q{\...}*, *%x(\...)*),
 preventing the internal brackets from falsely triggering the Mode D
@@ -67,14 +67,14 @@ diagnostic warning to trace the latency bottleneck.
 
 ######
 
-##### 2.3.5.C. Coding vs. Comment Analysis (Separation of Concerns)
+## 2.3.5.C. Coding vs. Comment Analysis (Separation of Concerns)
 
-****To maintain absolute mathematical integrity, the GitGalaxy Splicer
+To maintain absolute mathematical integrity, the GitGalaxy Splicer
 strictly enforces a Separation of Concerns between executable logic
 (Active Matter) and developer literature (Ghost Mass). Mixing these two
 streams during regex evaluation is the primary cause of \"Logic
-Erosion\" in legacy scanners, where a commented-out *****if*****
-statement falsely inflates a file\'s complexity score.****
+Erosion\" in legacy scanners, where a commented-out *if*
+statement falsely inflates a file\'s complexity score.
 
 By routing the pre-split streams into distinct analysis engines,
 GitGalaxy guarantees that structural metrics and human intent are
@@ -124,7 +124,7 @@ Purpose** (via specific block/line intent rules). This ensures that even
 unparsed config files or monolithic scripts contribute their human
 context to the final repository map.
 
-##### 2.3.5.D. Metric Vectorization: Multi-Dimensional Physics
+## 2.3.5.D. Metric Vectorization: Multi-Dimensional Physics
 
 Because programming languages adhere to vastly different structural
 physics, a one-size-fits-all regex approach is mathematically
@@ -188,7 +188,7 @@ specific **Terminator** token (like a semicolon *;* or a period *.*), at
 which point the \"guillotine drops,\" cleaving the statement into a
 measurable satellite.
 
-##### 2.3.5.E. Satellite Physics & Naming Shields
+## 2.3.5.E. Satellite Physics & Naming Shields
 
 Once the Master Dispatcher successfully cleaves a block of logic from
 the file, it becomes a \"Satellite.\" Before it can be placed into the
@@ -200,15 +200,15 @@ extract its true identity.
 isolated block to calculate its weight and trajectory in the final 3D
 visualization.
 
--   **Control Flow Ratio (*****cf_ratio*****):** Measures the density of
+-   **Control Flow Ratio (*cf_ratio*):** Measures the density of
 branching logic vs. linear execution. The formula is *branches /
 max(total_hits, 1)*, clamped tightly between 0.0 and 1.0.
--   **Logic Angle (*****angle*****):** Determines the trajectory of the
+-   **Logic Angle (*angle*):** Determines the trajectory of the
 satellite\'s branches in the 3D viewer. It maps the Control Flow
 Ratio to a physical angle using the equation: *22.5 + (1.0 -
 cf_ratio) \* 67.5*. (Highly linear functions branch at steep 90°
 angles; highly complex functions branch at wide 22.5° angles).
--   **Magnitude (*****mag*****):** The final physical mass of the block,
+-   **Magnitude (*mag*):** The final physical mass of the block,
 calculated as: *(branches + 1) \* (args + 1) + (0.05 \* loc)*.
 -   *Note on Arguments:* The v6.3.0 Protocol upgraded the argument
 counter to recognize space-separated arguments, ensuring languages
@@ -247,7 +247,7 @@ functions starting with *fetch* become *io*; *parse* becomes *logic*).
 If the name is ambiguous, it falls back to the heavy regex sensors to
 classify the block based on its literal contents.
 
-##### 2.3.5.F. The Cartographer: Fractal Fibonacci Positioning
+## 2.3.5.F. The Cartographer: Fractal Fibonacci Positioning
 
 The Cartographer transforms flat file lists into a deterministic 3D star
 map. By applying procedurally generated patterns to digital
@@ -353,4 +353,3 @@ same relative sub-coordinate every time the map is rendered,
 allowing the developer to build a persistent mental map of the
 project\'s physical shape.
 
-#####

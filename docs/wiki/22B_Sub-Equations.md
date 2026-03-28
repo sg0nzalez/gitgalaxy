@@ -1,13 +1,13 @@
-#### 2.2.B. Sub-Equations
+# 2.2.B. Sub-Equations
 
 To ensure the equations above are actionable, the following variables
 are defined based on the scanner\'s regex hits:
 
 **branch_hits:** Control flow constructs including
-conditionals (*****if*****, *****switch*****), loops (*****for*****,
-*****while*****), jumps (*****break*****, *****throw*****), and logical
-operators (*****&&*****, *****\|\|*****) that divert execution paths.
-****
+conditionals (*if*, *switch*), loops (*for*,
+*while*), jumps (*break*, *throw*), and logical
+operators (*&&*, *\|\|*) that divert execution paths.
+
 
 -   **args_hits:** Function signatures, parameter lists,
 input registers, or lambda arguments that define the data inputs for
@@ -174,4 +174,4 @@ linking.
 identifying authors, maintainers, or copyright holders within file
 headers (*\@author*).
 
-****
+

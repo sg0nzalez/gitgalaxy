@@ -1,4 +1,4 @@
-#### 2.3.3. The Security Lens -- Threat Detection Physics
+# 2.3.3. The Security Lens -- Threat Detection Physics
 
 The Security Lens acts as GitGalaxy's physics engine for threat
 detection. Rather than relying on static vulnerability databases, legacy
@@ -19,7 +19,7 @@ literal density of dangerous operations and structural intent, it can
 successfully detect and flag malicious code even if that specific
 payload has never been seen before in the wild.
 
-##### 2.3.3.A. Dynamic Policy Injection (Threshold Governance)
+## 2.3.3.A. Dynamic Policy Injection (Threshold Governance)
 
 To maintain architectural purity and extreme adaptability, the Security
 Lens is entirely decoupled from policy-making; it does not hardcode
@@ -40,7 +40,7 @@ orchestrator simply adjusts the threshold policy to tighten the net. If
 no strict policy is provided by the orchestrator, the Lens safely falls
 back to a highly secure baseline threshold.
 
-##### 2.3.3.B. Raw Sensors: The 11 Threat Signatures
+## 2.3.3.B. Raw Sensors: The 11 Threat Signatures
 
 The engine utilizes specialized, hardware-level regex sensors to scan
 the logic streams. Crucially, these sensors are not hunting for known,
@@ -149,7 +149,7 @@ well as inline assembly instructions (*\_\_asm\_\_*), which are the
 invariable prerequisites for introducing buffer overflow
 vulnerabilities.
 
-##### 2.3.3.C. The Scan Engine: Structural Reality Capture
+## 2.3.3.C. The Scan Engine: Structural Reality Capture
 
 During the scan phase, the *scan_content* method acts as a completely
 passive observer. It channels the file\'s pure logic stream (the Active
@@ -165,7 +165,7 @@ a raw network socket. The scan engine\'s only job is to generate the
 pristine, objective telemetry required for the physics engine to
 calculate its math.
 
-##### 2.3.3.D. Risk Evaluation & Exposure Mapping
+## 2.3.3.D. Risk Evaluation & Exposure Mapping
 
 Traditional security scanners often drown development teams in false
 positives because they rely on raw hit counts. A 10,000-line monolithic

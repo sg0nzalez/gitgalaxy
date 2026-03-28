@@ -1,4 +1,4 @@
-#### 2.3.8. The Audit Recorder 
+# 2.3.8. The Audit Recorder 
 
 The Astrograph Auditor (*audit_recorder.py*) is the final stage of the
 GitGalaxy pipeline. It extracts the raw telemetry from live RAM and
@@ -6,7 +6,7 @@ compiles it into a verbose, human-readable forensic JSON manifest.
 Designed for strict enterprise compliance and deep-dive debugging, it
 guarantees absolute traceability for every file evaluated.
 
-##### 2.3.8.A. Key Architectural Features
+## 2.3.8.A. Key Architectural Features
 
 -   **The Traceability Anchor:** Imprints the exact Git footprint
 (Branch, SHA-1 Hash, Remote URL) and engine timestamp into the
@@ -27,7 +27,7 @@ with explicit diagnostic reasons (e.g., \"Optical Bypass,\"
 \"Ecosystem Orphan,\" \"Unsupported Extension\") so engineers can
 audit the pipeline\'s blind spots.
 
-##### 2.3.8.B. The Blank Audit Skeleton (*galaxy_audit.json*)
+## 2.3.8.B. The Blank Audit Skeleton (*galaxy_audit.json*)
 
 Here is the structural blueprint of the final output. You can use this
 blank template to understand the exact data hierarchy GitGalaxy

@@ -1,4 +1,4 @@
-#### 2.4.0. Claim 1 -- Optimum Search Strategies Change with Scale
+# 2.4.0. Claim 1 -- Optimum Search Strategies Change with Scale
 
 In the late 1980s, computational biology hit a wall. DNA databases were
 growing exponentially, but the algorithm used to search them---the
@@ -45,7 +45,7 @@ engine. We know that complex C++ macros can cause a \"False Cold\"
 reading.
 
 But by accepting that 5% margin of microscopic error, we unlocked a
-macroscopic superpower. **We map***** intent*****, not machine
+macroscopic superpower. **We map* intent*, not machine
 execution, at speed, at scale, with privacy, regardless of if it
 compiles, regardless of language. **
 

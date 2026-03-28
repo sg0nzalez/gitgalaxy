@@ -1,4 +1,4 @@
-#### 2.3.2. The GuideStar Protocol: Contextual Intelligence
+# 2.3.2. The GuideStar Protocol: Contextual Intelligence
 
 The GuideStar Protocol acts as the \"Intelligence Officer\" of the
 GitGalaxy observatory. While the Aperture Filter (Phase 0.1) serves as a
@@ -15,7 +15,7 @@ are intentional logic and which are mere debris. This transforms a rigid
 exclusion filter into a dynamic system that understands the \"Social
 Proof\" of a file before the Language Lens begins its atomic scan.
 
-##### 2.3.2.A. The Prior Probability Vector
+## 2.3.2.A. The Prior Probability Vector
 
 In the GitGalaxy pipeline, every file in the CensusArray begins as an
 uninitialized artifact with a base probability of \"Deep Space
@@ -53,7 +53,7 @@ intensity is increased by **+0.10** (capped at 0.99), signaling to the
 pipeline that this specific file has explicit human-validated
 importance.
 
-##### 2.3.2.B. The Handover: Intent vs. Identity
+## 2.3.2.B. The Handover: Intent vs. Identity
 
 This separation of concerns allows the pipeline to maintain a \"Scan
 Once\" efficiency by distinguishing between two different types of
@@ -68,7 +68,7 @@ this file is). It updates the prior for the \"Standard Galaxy\"
 (files with known extensions) and performs the atomic scan to verify
 all claims.
 
-##### 2.3.2.C. The Evidence Hierarchy: Identifying Social Proof
+## 2.3.2.C. The Evidence Hierarchy: Identifying Social Proof
 
 GuideStar v6.3.0 prioritizes evidence based on its \"Proximity to Human
 Intent.\" This principle assumes that explicit configuration files
@@ -112,7 +112,7 @@ sector.
 -   **Makefile Targets:** Non-reserved custom targets identified in
 build files (e.g., *build-assets:*) are granted a **0.70 Prior**.
 
-##### 2.3.2.D. Rules for Deep Manifest & README Analysis
+## 2.3.2.D. Rules for Deep Manifest & README Analysis
 
 ###### 2.3.2.D.1. Deep Manifest Inspection (v6.3.0)
 
@@ -140,7 +140,7 @@ evaluated, its relative path and filename are tested against these
 patterns, allowing entire directories or file extensions to be instantly
 focus-locked.
 
-##### 2.3.2.E. Determinism and Inventory Integrity
+## 2.3.2.E. Determinism and Inventory Integrity
 
 -   **Traceability:** Every file in the final inventory indicates
 whether its prior was provided by Context (GuideStar) or Signature

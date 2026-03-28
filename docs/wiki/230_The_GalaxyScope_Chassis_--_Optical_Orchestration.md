@@ -1,4 +1,4 @@
-#### 2.3.0. The GalaxyScope Chassis -- Optical Orchestration
+# 2.3.0. The GalaxyScope Chassis -- Optical Orchestration
 
 The GalaxyScope (implemented as the Orchestrator class in
 galaxyscope.py) is the primary structural frame of the GitGalaxy engine.
@@ -9,7 +9,7 @@ individual sensors and lenses would lack the synchronization required to
 build a cohesive 3D map; the Orchestrator ensures that data is
 refracted, analyzed, and recorded with perfect temporal alignment.
 
-##### 2.3.0.A. The Adaptive Lightpath System
+## 2.3.0.A. The Adaptive Lightpath System
 
 The analysis is executed as a series of \"Lightpath Phases.\" By
 organizing the pipeline into distinct sequential passes, the system can
@@ -60,7 +60,7 @@ for a *Critical Credential Leak*, the chassis artificially injects a
 \"Supernova\" onto the map---forcing the hardcoded secret to be
 rendered in the UI despite its architectural insignificance.
 
-##### 2.3.0.B. Adaptive Features and Hardware Overrides
+## 2.3.0.B. Adaptive Features and Hardware Overrides
 
 The GalaxyScope is designed as an \"Open Chassis,\" capable of swapping
 lenses and patching logic on the fly based on the specific \"Atmospheric

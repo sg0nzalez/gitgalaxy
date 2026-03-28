@@ -1,29 +1,29 @@
 ### 2.2 Color Labeling Equations
 
-#### 2.2.A. Overview of methodology
+# 2.2.A. Overview of methodology
 
 +----------------+----------------+----------------+----------------+
-| Labeling Mode  | ****What It    | Color          | Visual Effect  |
-|                | Checks****     |                |                |
+| Labeling Mode  | What It    | Color          | Visual Effect  |
+|                | Checks     |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Ownership  | **Who wrote    | **** White**** | **Rainbow.**   |
-| ****           | this?** Shows  |                | Single colors  |
+| Ownership  | **Who wrote    |  White | **Rainbow.**   |
+|            | this?** Shows  |                | Single colors  |
 |                | if a file is   |                | are            |
 |                | owned by one   |                | individuals;   |
 |                | person (Solo)  |                | bright White   |
 |                | or everyone    |                | is a team      |
 |                | (Collective).  |                | effort.        |
 +----------------+----------------+----------------+----------------+
-| ****Cognitive  | **How hard is  | ****           | **Purple.**    |
-| Load ****      | it to read?**  | ****           | The deeper the |
-|                | Highlights     | P****urple**** | purple, the    |
+| Cognitive  | **How hard is  |            | **Purple.**    |
+| Load       | it to read?**  |            | The deeper the |
+|                | Highlights     | Purple | purple, the    |
 |                | confusing      |                | harder the     |
 |                | logic that     |                | logic is to    |
 |                | requires high  |                | follow.        |
 |                | mental effort. |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Churn****  | **How often    | ****Orange**** | **Orange.**    |
-| ****           | does it        |                | Bright orange  |
+| Churn  | **How often    | Orange | **Orange.**    |
+|            | does it        |                | Bright orange  |
 |                | change?**      |                | indicates a    |
 |                | Identifies     |                | file that      |
 |                | files that are |                | refuses to     |
@@ -32,40 +32,40 @@
 |                | rewritten or   |                |                |
 |                | patched.       |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Safety     | **Is it        | ****Red ****   | **Red to       |
-| ****           | bulletproof?** |                | Cyan.** Red is |
-|                | Checks for     | ****to****     | fragile/risky; |
+| Safety     | **Is it        | Red    | **Red to       |
+|            | bulletproof?** |                | Cyan.** Red is |
+|                | Checks for     | to     | fragile/risky; |
 |                | defensive code |                | Cyan is        |
-|                | (error         | **** Cyan****  | f              |
+|                | (error         |  Cyan  | f              |
 |                | handling) vs.  |                | ortified/safe. |
 |                | risky code.    |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Tech       | **Are there    | ****Red****    | **Red.**       |
-| Debt****       | shortcuts?**   |                | Glowing red    |
+| Tech       | **Are there    | Red    | **Red.**       |
+| Debt       | shortcuts?**   |                | Glowing red    |
 |                | Scans for      |                | highlights     |
 |                | \"TODOs\",     |                | unfinished     |
 |                | \"Hacks\", and |                | business.      |
 |                | temporary      |                |                |
 |                | fixes.         |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Doc        | **Is it        | ****Library    | **Gold.**      |
-| Mode****       | explained?**   | Gold****       | Bright gold    |
+| Doc        | **Is it        | Library    | **Gold.**      |
+| Mode       | explained?**   | Gold       | Bright gold    |
 |                | Measures the   |                | indicates      |
 |                | quality of     |                | library-grade  |
 |                | instruction    |                | documentation. |
 |                | manuals and    |                |                |
 |                | comments.      |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Commit     | **Is it        | Green          | **Green.**     |
-| Heat****       | fresh?** Shows |                | Radioactive    |
+| Commit     | **Is it        | Green          | **Green.**     |
+| Heat       | fresh?** Shows |                | Radioactive    |
 |                | where work is  |                | green means it |
 |                | happening      |                | was edited     |
 |                | *right now*    |                | today.         |
 |                | vs. months     |                |                |
 |                | ago.           |                |                |
 +----------------+----------------+----------------+----------------+
-| ****Test       | **Is it        | Pink           | **Pink.**      |
-| Coverage****   | verified?**    |                | Glowing pink   |
+| Test       | **Is it        | Pink           | **Pink.**      |
+| Coverage   | verified?**    |                | Glowing pink   |
 |                | Checks if the  |                | means the code |
 |                | code has a     |                | is heavily     |
 |                | safety net of  |                | tested.        |
@@ -115,18 +115,18 @@
 |                | ified/mutated. |                |                |
 +----------------+----------------+----------------+----------------+
 
-****
 
-#### 2.2.B. Sub-Equations
+
+# 2.2.B. Sub-Equations
 
 To ensure the equations above are actionable, the following variables
 are defined based on the scanner\'s regex hits:
 
 **branch_hits:** Control flow constructs including
-conditionals (*****if*****, *****switch*****), loops (*****for*****,
-*****while*****), jumps (*****break*****, *****throw*****), and logical
-operators (*****&&*****, *****\|\|*****) that divert execution paths.
-****
+conditionals (*if*, *switch*), loops (*for*,
+*while*), jumps (*break*, *throw*), and logical
+operators (*&&*, *\|\|*) that divert execution paths.
+
 
 -   **args_hits:** Function signatures, parameter lists,
 input registers, or lambda arguments that define the data inputs for
@@ -293,9 +293,9 @@ linking.
 identifying authors, maintainers, or copyright holders within file
 headers (*\@author*).
 
-****
 
-#### 2.2.C. Transforming Noisy Regex Counts Into Something Meaningful
+
+# 2.2.C. Transforming Noisy Regex Counts Into Something Meaningful
 
 We recognize that raw heuristic counts are inherently fragile; they are
 easily fooled by \"safety theater\" (like empty catch blocks) and lack
@@ -336,7 +336,7 @@ the module is either sufficiently defended for its context, or it is
 not.
 
 **Instead of a single \"Master Equation\" **for **all** Risk
-Exposure**s**,** we employ a ******Universal Framework****** that is
+Exposure**s**,** we employ a **Universal Framework** that is
 instantiated and calibrated for each of the Risk Exposure domains. ** **
 
 **The Standardization:** While each Risk Exposure equation is unique,
@@ -349,9 +349,9 @@ Irc.
 
 -   **Tier 2** = Structured Languages (Minor Doubt, e.g., Java).
 
--   ****Tier 3**** = Implicit Languages (Fog of War, e.g., Shell).**
+-   Tier 3 = Implicit Languages (Fog of War, e.g., Shell).**
 
-****
+
 
 ```{=html}
 <!-- -->
@@ -372,7 +372,7 @@ Coefficient.\"
 *RiskExposure = \[ ((RiskHits + Irc) \* Weight) - (DefenseHits \* Fc) \]
 / LOC \* Mp*
 
-#### 2.2.D. Ownership Mode: Shannon Entropy
+# 2.2.D. Ownership Mode: Shannon Entropy
 
 Ownership displays the distribution of authorship within a file.
 Ownership isn't about blaming a single author; it's about visualizing
@@ -385,7 +385,7 @@ entropy score is then mapped directly to the GitGalaxy Universal Risk
 Spectrum, allowing you to instantly spot heavily siloed knowledge (\"Bus
 Factor\" risks) versus highly distributed community code.
 
-##### 2.2.D.1. The Philosophy: Knowledge Concentration
+## 2.2.D.1. The Philosophy: Knowledge Concentration
 
 Authorship is analyzed as a variable of structural clarity versus
 architectural diffusion.
@@ -399,7 +399,7 @@ distributed across multiple authors. As more developers influence
 the file, the architectural intent becomes shared, indicating a
 high-traffic module maintained by the collective.
 
-##### 2.2.D.2. The Inputs: Contribution Share
+## 2.2.D.2. The Inputs: Contribution Share
 
 -   **Authors:** A data map of author identifiers to their specific
 commit frequencies for the file.
@@ -408,7 +408,7 @@ file.
 -   **GlobalAuthorCount:** The total number of unique contributors
 across the entire repository.
 
-##### 2.2.D.3. Equation
+## 2.2.D.3. Equation
 
 **p_i:** The proportion of total commits made by author \"i\" (e.g., if
 Author A made 20/100 commits, p = 0.2).
@@ -417,7 +417,7 @@ Entropy = H = -sum(p_i \* log2(p_i))
 
 OwnershipScore = min(H \* 32, 100)
 
-##### 2.2.D.4. Why This Model is Superior
+## 2.2.D.4. Why This Model is Superior
 
 1.  **It Solves the \"Long Tail\" Problem:** A file with 1 Major Author
 (90%) and 1 Minor Author (10%) is relatively stable. A file with 1
@@ -429,11 +429,11 @@ distinct voices in the mix while still marking it mostly with the
 color of the main author. While the Linear model only asks \"Who is
 the biggest author, regardless of commit size?\", the entropy model
 displays \"How much **uncertainty** exists in the authorship?\". In
-GitGalaxy, high entropy means di****ffusion of ****authorship****.
+GitGalaxy, high entropy means diffusion of authorship.
 
 -   #####
 
-##### 2.2.D.5. Visual Interpretation: Ownership vs. Collective Diffusion
+## 2.2.D.5. Visual Interpretation: Ownership vs. Collective Diffusion
 
 -
 
@@ -462,7 +462,7 @@ among a tight-knit group of contributors.
 constant, multi-author input and has reached a state of complete
 architectural diffusion.
 
-##### 2.2.D.6. RQM: Scaling Logic & Visual Overload
+## 2.2.D.6. RQM: Scaling Logic & Visual Overload
 
 By unifying Ownership under the v6.0 Universal Risk Spectrum, GitGalaxy
 eliminates the need for expensive, multi-pass chromatic aberration
@@ -477,7 +477,7 @@ smooth 60 FPS performance even when mapping planetary-scale
 megastructures like Linux or Kubernetes, without requiring visual
 fallbacks or macroscopic LOD (Level of Detail) toggles.
 
-#### 2.2.E. Cognitive Load Exposure
+# 2.2.E. Cognitive Load Exposure
 
 **Summary:** Visualizes the \"Mental RAM\" required to understand a
 file. Unlike Lines of Code (which measures physical size), Cognitive
@@ -495,7 +495,7 @@ the highest cognitive tax is being paid.
 scaling from cool blue (linear, easy-to-read data) to intense red
 (high-friction, multi-state async logic).
 
-##### 2.2.E.1. The Philosophy: The Entropy of Understanding
+## 2.2.E.1. The Philosophy: The Entropy of Understanding
 
 Human working memory is a biological bottleneck. Every time a developer
 encounters a nested *if*, a complex ternary, or a manual memory
@@ -515,7 +515,7 @@ impact on the developer\'s working memory.
 the developer to simulate multiple realities simultaneously;
 identifies areas that require peak focus.
 
-##### 2.2.E.2. The Philosophy: Mental Friction Density
+## 2.2.E.2. The Philosophy: Mental Friction Density
 
 **\"Not how big it is, but how hard it is to read.\"**
 
@@ -530,7 +530,7 @@ Configs. (e.g., HTML, JSON, simple DTOs).
 -   **High Score (90 - 100, Red):** High branching, async timing, state
 mutation, and meta-programming packed into a tight space.
 
-##### 2.2.E.3. The Inputs (Regex & Heuristics)
+## 2.2.E.3. The Inputs (Regex & Heuristics)
 
 We utilize the pre-calculated hits from the blAST engine and weight them
 based on the \"Mental Tax\" they impose on the reader.
@@ -544,7 +544,7 @@ DangerHits     **danger**          5.0x    None           Anxiety. **eval** or u
 DocHits        **doc**             10.0x   None           Structured documentation provides mental shortcuts, reducing the effective load (acts as a cooling agent).
 -------------- ------------------- ------- -------------- -------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.E.4. The Universal Framework Integration
+## 2.2.E.4. The Universal Framework Integration
 
 We apply the standard physics variables to ensure fairness across
 languages and environments.
@@ -560,7 +560,7 @@ example, highly complex mocking logic in a *tests/* directory may
 receive an Mp reduction, as the cognitive expectations there differ
 from a production runtime core.
 
-##### 2.2.E.5. The Equation: The \"Badge of Honor\" Sigmoid
+## 2.2.E.5. The Equation: The \"Badge of Honor\" Sigmoid
 
 We use a Logistic Function (Sigmoid) tuned to be forgiving of moderate
 complexity but demanding of high complexity.
@@ -587,7 +587,7 @@ load, but never to zero. Complex logic is still complex, even if
 explained well. We cap the cooling effect at a maximum reduction of 50%.
 The final score is then multiplied by the Path Modifier (*Mp*).
 
-##### 2.2.E.6. Implementation (Python Reference)
+## 2.2.E.6. Implementation (Python Reference)
 
 *import math*
 
@@ -696,7 +696,7 @@ safe_loc*
 
 * return min(raw_score \* cooling \* mp, 100.0), total_density*
 
-##### 2.2.E.7. Visual Verification (\"The Truth\")
+## 2.2.E.7. Visual Verification (\"The Truth\")
 
 -------------------------- ---------------- --------- -------------- ----------------------------------------------------------------
 Big JSON Config            **\[0-19\]**     \~0-5     VERY LOW       Zero branching. Minimal baseline density.
@@ -708,9 +708,9 @@ Extreme Meta-Programming   **\[90-100\]**   \~95+     VERY HIGH      Rare. Dense
 
 **
 
-#### 2.2.F. Churn
+# 2.2.F. Churn
 
-##### 2.2.F.A. The Philosophy: Relative Historical Volatility
+## 2.2.F.A. The Philosophy: Relative Historical Volatility
 
 Churn measures the \"Frequency of Interruption.\" However, \"High
 Churn\" is relative. In a startup, 10 commits/week is normal. In a
@@ -733,7 +733,7 @@ specific repo. Rarely touched since creation.
 -   **HIGHLY ACTIVE (Score 80 - 100, Red):** The absolute hotspots of
 the repository, taking into account their age and commit density.
 
-##### 2.2.F.B. The Inputs (Git History Data)
+## 2.2.F.B. The Inputs (Git History Data)
 
 We rely on the version control history (Git) to extract \"Deep Time\"
 metrics.
@@ -744,7 +744,7 @@ SecondsFromMax     **repo_max - mtime**   Seconds   The duration the file has ex
 RepoMaxFrequency   Calculated             Float     The highest \"Seismic Frequency\" found in the entire repository during Pass 1.
 ------------------ ---------------------- --------- ---------------------------------------------------------------------------------
 
-##### 2.2.F.C. The Universal Framework Integration
+## 2.2.F.C. The Universal Framework Integration
 
 While Churn is auto-scaled globally, we still apply the Path Modifier
 (*Mp*) to account for architectural expectations after normalization.
@@ -755,7 +755,7 @@ While Churn is auto-scaled globally, we still apply the Path Modifier
 *experiments/* (Low Mp), but high churn in *kernel/* or *core/* is a
 critical warning (High Mp).
 
-##### 2.2.F.D. The Equation: The Two-Pass Relative Seismic Model
+## 2.2.F.D. The Equation: The Two-Pass Relative Seismic Model
 
 During the initial scan, we calculate the Raw Seismic Frequency for
 every file. We divide commits by the square root of its age in weeks.
@@ -773,7 +773,7 @@ ensures a beautiful, smooth color gradient across the 3D galaxy.
 logarithmic score by the Path Modifier (*Mp*) to dampen or amplify the
 significance based on its location in the directory tree.
 
-##### 2.2.F.E. Implementation (Python Reference)
+## 2.2.F.E. Implementation (Python Reference)
 
 import math
 
@@ -829,10 +829,10 @@ if \"risk_vector\" in s and len(s\[\"risk_vector\"\]) \> idx:
 
 s\[\"risk_vector\"\]\[idx\] = round(final_churn, 2)
 
-##### 2.2.F.F. Visual Verification (\"The Truth\")
+## 2.2.F.F. Visual Verification (\"The Truth\")
 
 **Scenario:** A 5-year-old Legacy project vs. a 2-month-old Startup
-project.****
+project.
 
 Project A: The Startup (High Velocity)
 
@@ -854,9 +854,9 @@ hotspot of this specific repo.
 relative to its surroundings in both projects, completely independent of
 the massive difference in raw commit counts.
 
-#### 2.2.G. Safety Mode (Metric: Structural Fortification)
+# 2.2.G. Safety Mode (Metric: Structural Fortification)
 
-##### 2.2.G.A. The Philosophy: Structural Integrity \"The Load-Bearing Capacity of Code.\"
+## 2.2.G.A. The Philosophy: Structural Integrity \"The Load-Bearing Capacity of Code.\"
 
 **Summary:** Visualizes the \"Load-Bearing Capacity\" of the code. We
 treat code like physical infrastructure. A bridge is safe not because it
@@ -873,7 +873,7 @@ are roughly balanced.
 (Risk) exceeds the support capacity (Defenses). The code is liable
 to collapse under edge cases.
 
-##### 2.2.G.B. The Inputs (Regex & Heuristics)
+## 2.2.G.B. The Inputs (Regex & Heuristics)
 
 We classify patterns into **Attackers** (Risk) and **Defenders**
 (Safety).
@@ -887,7 +887,7 @@ TestHits     **test**           0.5x          The Blueprint. Proximity to tests 
 DocHits      **doc**            0.1x          The Warning Labels. Provides a minor structural defense bonus.
 ------------ ------------------ ------------- ------------------------------------------------------------------------------------------
 
-##### 2.2.G.C. The Universal Framework Integration
+## 2.2.G.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** Applied to **Defenders**. We trust
 a *try/catch* in Java (Explicit) more than a check in Shell
@@ -906,7 +906,7 @@ forgiven, but unsafe code will still flash Red.
 heavily. Fragility here is unacceptable.
 -   *Standard (Mp = 1.0):* Baseline.
 
-##### 2.2.G.D. The Equation: The Structural Integrity Sigmoid
+## 2.2.G.D. The Equation: The Structural Integrity Sigmoid
 
 The math has been entirely rewritten to calculate **Net Exposure**
 rather than Integrity Density, and introduces Laplace Smoothing to
@@ -937,7 +937,7 @@ hard risk floor (scaling up to 80.0), guaranteeing that catastrophic
 structural weaknesses cannot be \"math-ed away\" by simply adding
 empty *try/catch* blocks.
 
-##### 2.2.G.E. Implementation (Python Reference)
+## 2.2.G.E. Implementation (Python Reference)
 
 *import math*
 
@@ -1026,7 +1026,7 @@ defense:*
 
 * return max(score, 0.0)*
 
-##### 2.2.G.F. Visual Verification (\"The Truth\")
+## 2.2.G.F. Visual Verification (\"The Truth\")
 
 ---------------------- -------- --------- ----------- -------- -------------- -----------------------------------------------------------------------------
 Scenario               Attack   Defense   Net / LOC   Score    Color          Interpretation
@@ -1038,9 +1038,9 @@ Scenario               Attack   Defense   Net / LOC   Score    Color          In
 **Implicit Script**    5        5         -0.05       **37**   **Pale Red**   *With Irc=5*. Even \"balanced\" code looks fragile due to language opacity.
 ---------------------- -------- --------- ----------- -------- -------------- -----------------------------------------------------------------------------
 
-#### 2.2.I. Technical Debt Exposure
+# 2.2.I. Technical Debt Exposure
 
-##### 2.2.I.A. The Philosophy: Markers of Honesty
+## 2.2.I.A. The Philosophy: Markers of Honesty
 
 **\"The Topography of Compromise.\"**
 
@@ -1063,7 +1063,7 @@ balanced mix of planned tasks.
 together by temporary fixes (*HACK*) and unfinished thoughts
 (*TODO*). It is structurally compromised.
 
-##### 2.2.I.B. The Inputs (Regex & Heuristics)
+## 2.2.I.B. The Inputs (Regex & Heuristics)
 
 The regex scanning has been entirely decoupled from the physics engine.
 The *blAST* engine now pre-calculates these hits and passes them into
@@ -1076,7 +1076,7 @@ Stub Hits       **func_empty**                           0.5x   The Skeleton. Em
 Implicit Risk   **irc**                                  0.5x   The Fog. Implicit languages hide debt better, so we add a weighted baseline load to the stress sum.
 --------------- ---------------------------------------- ------ ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.I.C. The Universal Framework Integration
+## 2.2.I.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** **Not Applied.** A *TODO* is a
 *TODO*, regardless of language.
@@ -1090,7 +1090,7 @@ Stress Sum.
 -   *Core/Kernel (Mp = 1.2):* Debt here is dangerous. Amplify it.
 -   *Scratchpad (Mp = 0.8):* Allow messy thoughts.
 
-##### 2.2.I.D. The Equation: The Structural Stress Density
+## 2.2.I.D. The Equation: The Structural Stress Density
 
 We calculate the Density of Debt per line of code.
 
@@ -1115,7 +1115,7 @@ accumulates.
 dampen or amplify the final score based on the file\'s architectural
 context.
 
-##### 2.2.I.E. Implementation (Python Reference)
+## 2.2.I.E. Implementation (Python Reference)
 
 *import math*
 
@@ -1177,7 +1177,7 @@ mp: float) -\> float:*
 
 * return min(raw_score \* mp, 100.0)*
 
-##### 2.2.I.F. Visual Verification (\"The Truth\")
+## 2.2.I.F. Visual Verification (\"The Truth\")
 
 ---------------- ------ ---------------------------- ------ ------ -------- -------------------------------------------------------------------------------------------------
 Clean Core       200    0                            0.0    0      Blue     Pristine. Zero structural stress.
@@ -1187,9 +1187,9 @@ Frustrated Dev   50     1 **WTF**, 1 **HACK**        12.0   \~97   Red      High
 Legacy Dump      1000   20 **HARDCODED**             6.0    \~31   Cyan     With Mp=0.5. Large volume and high debt, but heavily discounted because it is marked as legacy.
 ---------------- ------ ---------------------------- ------ ------ -------- -------------------------------------------------------------------------------------------------
 
-#### 2.2.J. Documentation Risk Exposure (Metric: Sigmoid Debt)
+# 2.2.J. Documentation Risk Exposure (Metric: Sigmoid Debt)
 
-##### 2.2.J.1. The Philosophy: The Duty of Care
+## 2.2.J.1. The Philosophy: The Duty of Care
 
 Visualizes the \"Duty of Care\" a developer owes to their future self
 and the collective. This metric does not reward the raw volume of text;
@@ -1208,7 +1208,7 @@ standard safety thresholds.
 -   **UNDOCUMENTED (Score 90-100, Red):** Total Opacity. Zero intent
 density, representing high maintenance risk.
 
-##### 2.2.J.2. The Inputs (Tiered Efficiency)
+## 2.2.J.2. The Inputs (Tiered Efficiency)
 
 The regex scanning has been abstracted out of the physics engine. The
 *blAST* engine now pre-calculates documentation lines and structured
@@ -1220,7 +1220,7 @@ Header Hits   **ownership**   0.5x    Medium   Tier 2 (The Metadata). Attributio
 Doc LOC       **doc_loc**     0.33x   Low      Tier 3 (The Narrative). General inline comments. Requires 3 lines of text to equal 1 structured tag, honoring effort but demanding volume.
 ------------- --------------- ------- -------- --------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.J.3. The Universal Framework Integration
+## 2.2.J.3. The Universal Framework Integration
 
 -   **Fc (Fidelity Coefficient):** Applied to the final risk reduction.
 We trust documentation in Explicit languages (e.g., Rust) more than
@@ -1238,7 +1238,7 @@ system. Lack of docs here is punished more severely.
 -   **Tests/Experiments (Mp = 0.5):** Low Bar. Internal logic is
 more \"forgiven\" for being silent.
 
-##### 2.2.J.4. The Equation: The Dynamic Risk Sigmoid
+## 2.2.J.4. The Equation: The Dynamic Risk Sigmoid
 
 *We calculate the density of intent and map it to a \"Debt Curve\" where
 the score represents the Exposure caused by missing documentation.*
@@ -1267,7 +1267,7 @@ Coefficient (*Fc*). Low-fidelity languages (high *Irc*, low *Fc*) suffer
 an inverted trust multiplier, acknowledging that comments in those
 languages are more prone to drifting from reality.
 
-##### 2.2.J.5. Implementation (Python Reference)
+## 2.2.J.5. Implementation (Python Reference)
 
 *import math*
 
@@ -1324,7 +1324,7 @@ int\], fc: float, irc: int, mp: float) -\> float:*
 
 * return min(raw_risk \* (2.0 - fc), 100.0)*
 
-##### 2.2.J.6. Visual Verification (\"The Risk Audit\")
+## 2.2.J.6. Visual Verification (\"The Risk Audit\")
 
 *Comparison: 100 Line File (Threshold 10)*
 
@@ -1335,9 +1335,9 @@ The Student        10 lines of comments   3.3    \~79   HIGH (Orange)        Ris
 The Silent         0 comments             0.0    \~88   UNDOCUMENTED (Red)   Critical. Zero intent density results in high risk exposure.
 ------------------ ---------------------- ------ ------ -------------------- ----------------------------------------------------------------
 
-#### 2.2.K. File Stability (Commit Heat)
+# 2.2.K. File Stability (Commit Heat)
 
-##### 2.2.K.A. The Philosophy
+## 2.2.K.A. The Philosophy
 
 Visualizes the \"Geological Layers\" of the repository. Instead of
 measuring \"Freshness\" (which implies old code is bad/stale), we
@@ -1354,7 +1354,7 @@ repository\'s timeline.
 -   **ENDURING (Score 81-100, Red):** The \"Foundation.\" The oldest,
 most untouched files in the repository.
 
-##### 2.2.K.B. The Inputs (File System)
+## 2.2.K.B. The Inputs (File System)
 
 We use **Auto-Scaling Normalization**. We scan the entire repository to
 find the absolute oldest and newest timestamps, creating a relative
@@ -1367,7 +1367,7 @@ Input Variable    Source                  Unit    Rationale
 **RepoMaxTime**   *Calculated (Pass 1)*   Epoch   The timestamp of the *newest* file in the entire repo.
 ----------------- ----------------------- ------- --------------------------------------------------------
 
-##### 2.2.K.C. The Universal Framework Integration
+## 2.2.K.C. The Universal Framework Integration
 
 Stability is a pure temporal measurement. It is not a risk factor that
 requires dampening or amplification.
@@ -1377,7 +1377,7 @@ requires dampening or amplification.
 -   **Mp (Path Modifier):** Not Applied. The age of a file is a physical
 constant.
 
-##### 2.2.K.D. The Equation: Relative Time Normalization
+## 2.2.K.D. The Equation: Relative Time Normalization
 
 We define Stability as the \"Distance from the Newest moment.\"
 
@@ -1397,7 +1397,7 @@ or single-file repositories.
 -   If *FileTime == RepoMinTime* (Oldest), the distance equals the full
 range, so *Stability = 100.0*.
 
-##### 2.2.K.E. Implementation (Python Reference)
+## 2.2.K.E. Implementation (Python Reference)
 
 *from typing import Dict, Tuple*
 
@@ -1444,7 +1444,7 @@ negative \<\-\--*
 
 * return stability_score, raw_churn_freq*
 
-##### 2.2.K.F. Visual Verification (\"The Truth\")
+## 2.2.K.F. Visual Verification (\"The Truth\")
 
 **Scenario:** A project started on Jan 1st (*Min*) and released on Dec
 31st (*Max*). Range = 365 Days.
@@ -1455,16 +1455,16 @@ negative \<\-\--*
 **Init.ts**         Jan 1st (Start)    365 Days     **100.0**   ENDURING (Red)    Foundation. The oldest rock in the strata.
 ------------------- ------------------ ------------ ----------- ----------------- --------------------------------------------
 
-#### 2.2.L. Test Coverage (Metric: Verification Density)
+# 2.2.L. Test Coverage (Metric: Verification Density)
 
-##### 2.2.L.A. The Philosophy: Trust vs. Verification
+## 2.2.L.A. The Philosophy: Trust vs. Verification
 
-****Visualizes the \"Security Blanket\" of the codebase. In GitGalaxy,
+Visualizes the \"Security Blanket\" of the codebase. In GitGalaxy,
 we distinguish between Defensive Code (handling errors at runtime) and
 Verified Code (proving correctness at design time). Because this metric
 has been unified into the Risk Exposure model, a high score now
-indicates a *****lack***** of verification (high risk), while a low
-score indicates ironclad, verified code.****
+indicates a *lack* of verification (high risk), while a low
+score indicates ironclad, verified code.
 
 **Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
 
@@ -1477,7 +1477,7 @@ bare minimum threshold.
 -   **VERY HIGH (Score 81-100, Red):** Speculative. The code might work,
 but there is no programmatic proof. It relies entirely on hope.
 
-##### 2.2.L.B. The Inputs (Verification Signals)
+## 2.2.L.B. The Inputs (Verification Signals)
 
 We combine internal evidence (assertions) with external evidence
 (sibling files). The file system checks are now abstracted, passing an
@@ -1489,7 +1489,7 @@ Sibling Match    **is_protected**   +30.0 (Flat)   External Coverage. Indicates 
 Mass Penalty     **loc \> 300**     Variable       Monoliths (files over 300 lines) gain a stacking risk penalty up to +40. Massive files cannot be adequately verified by unit tests alone.
 ---------------- ------------------ -------------- -------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.L.C. The Universal Framework Integration
+## 2.2.L.C. The Universal Framework Integration
 
 **Exemptions:** Untestable files (e.g., Markdown, Makefiles, CMake, or
 specific extensions configured in the asset masks) bypass the engine
@@ -1514,7 +1514,7 @@ bar.
 infrastructure (*core/*) gets a higher bar; notoriously hard-to-test
 views (*UI/*) get a lower bar.
 
-##### 2.2.L.D. The Equation: The Verification Sigmoid
+## 2.2.L.D. The Equation: The Verification Sigmoid
 
 **Step A: The Exemption Bypass** If the file matches known untestable
 patterns (e.g., *readme*, *makefile*), the engine immediately returns
@@ -1539,7 +1539,7 @@ the inverted Fidelity score (*2.0 - Fc*). If the file size exceeds the
 mass penalty, capping the final calculation between the *15.0* risk
 floor and *100.0* maximum.
 
-##### 2.2.L.E. Implementation (Python Reference)
+## 2.2.L.E. Implementation (Python Reference)
 
 *import math*
 
@@ -1628,7 +1628,7 @@ t.get(\"mass_penalty_div\", 20.0), t.get(\"mass_penalty_max\", 40.0)) *
 
 * *
 
-##### 2.2.L.F. Visual Verification (\"The Truth\")
+## 2.2.L.F. Visual Verification (\"The Truth\")
 
 **Comparison: 100 Line File (Base Threshold 15)**
 
@@ -1644,21 +1644,21 @@ The Monolith     0 asserts             Yes (Sibling)   **\~45.0**   MODERATE (Ye
 
 **
 
-#### 2.2.M. The \"Civil War\" Algorithm: Tabs vs. Spaces
+# 2.2.M. The \"Civil War\" Algorithm: Tabs vs. Spaces
 
--   ****Visual Mapping:****
+-   Visual Mapping:
 
--   ****Score 0 (Pure Tabs):**** Visual: ****Glowing Green****
+-   Score 0 (Pure Tabs): Visual: Glowing Green
 (#00FF00). Emissive intensity is maxed.
--   ****Score 100 (Pure Spaces):**** Visual: ****Glowing Yellow****
+-   Score 100 (Pure Spaces): Visual: Glowing Yellow
 (#FFFF00). Emissive intensity is maxed.
--   ****Score 50 (Maximum Conflict):**** Visual: ****Deep Blue****
+-   Score 50 (Maximum Conflict): Visual: Deep Blue
 (#0000FF). 50/50 split triggers the \"Bifurcation Shimmer\"
 (geometry flickering).
--   ****Gradient:**** Linear transition from Green (0) → Blue (50) →
+-   Gradient: Linear transition from Green (0) → Blue (50) →
 Yellow (100).
 
--   ****Equation:****
+-   Equation:
 
 *\# 1. Gather Indentation Context:*
 
@@ -1680,19 +1680,19 @@ Yellow (100).
 
 *FinalScore = R \* 100*
 
--   ****Range:**** **0** (Pure Tabs) to **100** (Pure Spaces).
+-   Range: **0** (Pure Tabs) to **100** (Pure Spaces).
 
--   ****Why this works:**** This is a ****Linear Polarization Model****.
+-   Why this works: This is a Linear Polarization Model.
 
--   ****Terminology:**** While colloquially referred to as \"Civil
-War,\" the equation measures ****Layout Unity****.
--   ****Logic:**** By mapping Tabs to 0 and Spaces to 100, the \"War
+-   Terminology: While colloquially referred to as \"Civil
+War,\" the equation measures Layout Unity.
+-   Logic: By mapping Tabs to 0 and Spaces to 100, the \"War
 Zone\" (50/50 mix) naturally sits at the center of the spectrum
 (Score 50).
 
-#### 2.2.N. The \"Graveyard\" Detector (Metric: Architectural Transparency)
+# 2.2.N. The \"Graveyard\" Detector (Metric: Architectural Transparency)
 
-##### 2.2.N.A. The Philosophy: \"The Fear of Deletion.\"
+## 2.2.N.A. The Philosophy: \"The Fear of Deletion.\"
 
 Visualizes \"Code Necrosis\" or \"The Fear of Deletion.\" Commented-out
 code (\"Ghost Logic\") is not documentation; it is hesitation. It
@@ -1708,7 +1708,7 @@ depending on the context.
 -   **GRAVEYARD (Score 81-100, Red):** Heavily polluted with dead
 blocks. The file is \"Haunted\" by its past.
 
-##### 2.2.N.B. The Inputs (Heuristic Detection)
+## 2.2.N.B. The Inputs (Heuristic Detection)
 
 We distinguish between Documentation (English text) and Graveyards
 (Inactive Code) by scanning for syntax density within comment blocks.
@@ -1720,7 +1720,7 @@ Graveyard Hits   **graveyard**   3.0x          The backend identifies blocks of 
 Total LOC        **total_loc**   Denominator   We measure density against the absolute size of the file, not just the active logic.
 ---------------- --------------- ------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.N.C. The Universal Framework Integration
+## 2.2.N.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** **Not Applied.** Dead code is
 language-agnostic.
@@ -1736,7 +1736,7 @@ architecture must be clean.
 -   *Legacy (Mp = 1.5):* **Moderate Tolerance.** We expect some rot
 in the archives.
 
-##### 2.2.N.D. The Equation: The Necrosis Sigmoid
+## 2.2.N.D. The Equation: The Necrosis Sigmoid
 
 *We calculate the density of dead code and map it to a curve that
 forgives minor \"scraps\" but punishes \"hoarding.\"*
@@ -1767,7 +1767,7 @@ risk), the tolerance threshold drops. If it is in *experiments/*
 slope of *0.3*, which creates a smooth transition from \"Clean\" to
 \"Haunted\".
 
-##### 2.2.N.E. Implementation (Python Reference)
+## 2.2.N.E. Implementation (Python Reference)
 
 *import math*
 
@@ -1822,7 +1822,7 @@ float) -\> float:*
 
 * return min(score, 100.0)*
 
-##### 2.2.N.F. Visual Verification (\"The Truth\")
+## 2.2.N.F. Visual Verification (\"The Truth\")
 
 **Comparison: 200 Line File**
 
@@ -1836,15 +1836,15 @@ The Prototype   \~40   20%   Exp (0.5)        20.0%    **50.0**     INTERMEDIATE
 
 
 
-#### 2.2.O. API Exposure (Metric: The Event Horizon)
+# 2.2.O. API Exposure (Metric: The Event Horizon)
 
-##### 2.2.O.A. The Philosophy: The Event Horizon
+## 2.2.O.A. The Philosophy: The Event Horizon
 
-****Visualizes \"The Surface Area of Logic.\" Every module has an Event
+Visualizes \"The Surface Area of Logic.\" Every module has an Event
 Horizon: the boundary between its internal mechanics and the outside
 world. API Exposure measures how permeable this boundary is. This metric
 allows developers to instantly distinguish heavily exposed interfaces
-from internal utility code.****
+from internal utility code.
 
 **Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
 
@@ -1857,7 +1857,7 @@ of public and private methods.
 primarily to be consumed by others. It broadcasts a massive volume
 of functionality to the galaxy.
 
-##### 2.2.O.B. The Inputs (Surface Detection)
+## 2.2.O.B. The Inputs (Surface Detection)
 
 We compare the count of **Public Signatures** against the **Total
 Definitions** to calculate the ratio of exposure. We explicitly sum
@@ -1869,7 +1869,7 @@ Input Variable          Regex Key                      Weight            Rationa
 **TotalDeclarations**   *func_start* + *class_start*   **Denominator**   **The Mass.** The total count of logical units (Functions + Classes). We need to sum both regex hits to ensure we don\'t undercount files that define many classes/structs but few methods.
 ----------------------- ------------------------------ ----------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.O.C. The Universal Framework Integration
+## 2.2.O.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** **Not Applied.** Public is public.
 
@@ -1883,7 +1883,7 @@ shine brighter. They are the intended entry points.
 -   *Internal/Private (Mp = 0.8):* **Dampen.** We want these to
 remain background noise unless they are egregiously leaking.
 
-##### 2.2.O.D. The Equation: Linear Surface Density
+## 2.2.O.D. The Equation: Linear Surface Density
 
 We calculate a compound score that balances the direct percentage of
 public logic (Ratio) with the sheer quantity of exposed endpoints
@@ -1907,7 +1907,7 @@ Volume using their respective weights (*0.4* and *0.6*), scale to
 *100.0*, and apply the Path Modifier (*Mp*) to highlight intended APIs
 and dampen internal utilities.
 
-##### 2.2.O.E. Implementation (Python Reference)
+## 2.2.O.E. Implementation (Python Reference)
 
 *import math*
 
@@ -1955,7 +1955,7 @@ float:*
 
 * return min(raw_score \* mp, 100.0)*
 
-##### 2.2.O.F. Visual Verification (\"The Truth\")
+## 2.2.O.F. Visual Verification (\"The Truth\")
 
 **Comparison: 20 Entity File (Functions + Classes)**
 
@@ -1966,11 +1966,11 @@ The Interface    10   50%    API (1.2)        **\~74**   HIGH (Orange)       Hal
 The Library      20   100%   Standard (1.0)   **\~93**   VERY HIGH (Red)     Pure public interface broadcasting maximum volume.
 ---------------- ---- ------ ---------------- ---------- ------------------- -------------------------------------------------------------------------------------------------
 
-****
 
-#### 2.2.P. Concurrency Exposure
 
-##### 2.2.P.A. The Philosophy:
+# 2.2.P. Concurrency Exposure
+
+## 2.2.P.A. The Philosophy:
 
 Visualizes \"Temporal Static\" and the Signal-to-Noise Ratio of a file.
 Concurrency is treated as \"Information Static\" because it fractures
@@ -1991,7 +1991,7 @@ parallel timelines (Promises, threads, channels). The signal is
 highly fractured, warning that execution timing is
 non-deterministic.
 
-##### 2.2.P.B. The Inputs (Temporal Markers)
+## 2.2.P.B. The Inputs (Temporal Markers)
 
 We count the keywords that \"Fork\" time.
 
@@ -2001,7 +2001,7 @@ Input Variable   Regex Key          Weight            Rationale
 **LOC**          *meaningful_loc*   **Denominator**   We measure density. A 1000-line file with 1 *await* is linear. A 10-line file with 5 *await*s is a temporal knot.
 ---------------- ------------------ ----------------- -----------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.P.C. The Universal Framework Integration
+## 2.2.P.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** **Not Applied.** Time is absolute.
 
@@ -2020,7 +2020,7 @@ jank). We lower the bar so even minor concurrency glows here.
 discount workers. If a worker is complex, it should look
 complex.
 
-##### 2.2.P.D. The Equation: The Tipping Point Sigmoid
+## 2.2.P.D. The Equation: The Tipping Point Sigmoid
 
 Concurrency complexity is non-linear. A single *await* is standard. Ten
 *await* calls in a small function is a \"Logic Tangle.\" We use a
@@ -2065,7 +2065,7 @@ Step 5: Final Clamp
 
 *FinalScore = min(RawScore, 100)*
 
-##### 2.2.P.E. Implementation (Python Reference)
+## 2.2.P.E. Implementation (Python Reference)
 
 *import math*
 
@@ -2117,7 +2117,7 @@ Step 5: Final Clamp
 
 * return int(min(raw_score, 100))*
 
-##### 2.2.P.F. Visual Verification (\"The Truth\")
+## 2.2.P.F. Visual Verification (\"The Truth\")
 
 **Comparison: 100 Line File**
 
@@ -2130,9 +2130,9 @@ The Worker         \~10   10.5%   Worker (1.0)     4.0%   **\~93.0**   VERY HIGH
 
 
 
-#### 2.2.Q. State Flux Exposure
+# 2.2.Q. State Flux Exposure
 
-##### 2.2.Q.A. The Philosophy:
+## 2.2.Q.A. The Philosophy:
 
 *Visualizes \"Data Volatility.\" State Flux measures the Density of
 Mutation. It answers the question: \"How stable is the data in this
@@ -2153,7 +2153,7 @@ reassigned, properties are updated, and side effects are triggered.
 The data state is in constant flux, making it difficult to track
 \"who changed what and when\".
 
-##### 2.2.Q.B. The Inputs (Mutation Markers)
+## 2.2.Q.B. The Inputs (Mutation Markers)
 
 We count the keywords that imply reassignment or side effects. The
 *blAST* engine pre-calculates these and passes them to the Signal
@@ -2164,7 +2164,7 @@ Flux Hits   **flux**   1.0x          The Change. Keywords that mutate data: **le
 Total LOC   **loc**    Denominator   We measure density. A loop counter **i++** in a 1000-line file is negligible. 50 setters in a 100-line file is a \"Boiling\" class.
 ----------- ---------- ------------- -------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.Q.C. The Universal Framework Integration
+## 2.2.Q.C. The Universal Framework Integration
 
 -   **Fc (Fidelity Coefficient):** Not Applied. Mutation is an absolute
 action.
@@ -2182,7 +2182,7 @@ of bugs. We lower the bar to highlight this risk.
 Stores exist to mutate data. We let them show their true colors
 without artificial dampening.
 
-##### 2.2.Q.D. The Equation: The Mutation Threshold Sigmoid
+## 2.2.Q.D. The Equation: The Mutation Threshold Sigmoid
 
 *Most code requires some local mutation (e.g., loop counters). We use a
 Sigmoid curve to ignore this background noise but react sharply once
@@ -2207,7 +2207,7 @@ drops to *12.0%*.
 relaxed slope (*0.20*), creating a smooth curve that ramps up as
 mutation becomes dominant.
 
-##### 2.2.Q.E. Implementation (Python Reference)
+## 2.2.Q.E. Implementation (Python Reference)
 
 *import math*
 
@@ -2258,7 +2258,7 @@ mp: float) -\> float:*
 
 * return min(score, 100.0)*
 
-##### 2.2.Q.F. Visual Verification (\"The Truth\")
+## 2.2.Q.F. Visual Verification (\"The Truth\")
 
 **Comparison: 100 Line File**
 

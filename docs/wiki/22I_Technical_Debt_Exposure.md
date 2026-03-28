@@ -1,6 +1,6 @@
-#### 2.2.I. Technical Debt Exposure
+# 2.2.I. Technical Debt Exposure
 
-##### 2.2.I.A. The Philosophy: Markers of Honesty
+## 2.2.I.A. The Philosophy: Markers of Honesty
 
 **\"The Topography of Compromise.\"**
 
@@ -23,7 +23,7 @@ balanced mix of planned tasks.
 together by temporary fixes (*HACK*) and unfinished thoughts
 (*TODO*). It is structurally compromised.
 
-##### 2.2.I.B. The Inputs (Regex & Heuristics)
+## 2.2.I.B. The Inputs (Regex & Heuristics)
 
 The regex scanning has been entirely decoupled from the physics engine.
 The *blAST* engine now pre-calculates these hits and passes them into
@@ -36,7 +36,7 @@ Stub Hits       **func_empty**                           0.5x   The Skeleton. Em
 Implicit Risk   **irc**                                  0.5x   The Fog. Implicit languages hide debt better, so we add a weighted baseline load to the stress sum.
 --------------- ---------------------------------------- ------ ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.I.C. The Universal Framework Integration
+## 2.2.I.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** **Not Applied.** A *TODO* is a
 *TODO*, regardless of language.
@@ -50,7 +50,7 @@ Stress Sum.
 -   *Core/Kernel (Mp = 1.2):* Debt here is dangerous. Amplify it.
 -   *Scratchpad (Mp = 0.8):* Allow messy thoughts.
 
-##### 2.2.I.D. The Equation: The Structural Stress Density
+## 2.2.I.D. The Equation: The Structural Stress Density
 
 We calculate the Density of Debt per line of code.
 
@@ -75,7 +75,7 @@ accumulates.
 dampen or amplify the final score based on the file\'s architectural
 context.
 
-##### 2.2.I.E. Implementation (Python Reference)
+## 2.2.I.E. Implementation (Python Reference)
 
 *import math*
 
@@ -137,7 +137,7 @@ mp: float) -\> float:*
 
 * return min(raw_score \* mp, 100.0)*
 
-##### 2.2.I.F. Visual Verification (\"The Truth\")
+## 2.2.I.F. Visual Verification (\"The Truth\")
 
 ---------------- ------ ---------------------------- ------ ------ -------- -------------------------------------------------------------------------------------------------
 Clean Core       200    0                            0.0    0      Blue     Pristine. Zero structural stress.

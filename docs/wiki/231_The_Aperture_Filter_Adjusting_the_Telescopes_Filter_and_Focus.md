@@ -1,4 +1,4 @@
-#### 2.3.1. The Aperture Filter: Adjusting the Telescope's Filter and Focus
+# 2.3.1. The Aperture Filter: Adjusting the Telescope's Filter and Focus
 
 To prevent \"Radio Noise\" from blinding the telescope, the pipeline
 initiates Phase 0.1: The Solar Shield. In modern repositories, artifacts
@@ -10,7 +10,7 @@ If an artifact isn\'t something a human actively manages, it is treated
 as out-of-scope, protecting the Physics Engine from wasting cycles on
 \"Junk Matter.\"
 
-##### 2.3.1.A. Blocking the Radio Noise (The Lead Shield)
+## 2.3.1.A. Blocking the Radio Noise (The Lead Shield)
 
 The Solar Shield operates through a strict, multi-tiered hierarchy of
 suppression, moving from physical constraints and security risks down to
@@ -54,7 +54,7 @@ Census and Ingestion phases. This allows specific, high-priority \"Dark
 Matter\" (like *.hooks/* or custom config files) to safely bypass the
 Tier 1 Solar Shield, ensuring vital logic is captured in the 3D census.
 
-##### 2.3.1.B. The Visible Spectrum (Linguistic & Integrity Gates)
+## 2.3.1.B. The Visible Spectrum (Linguistic & Integrity Gates)
 
 Once the scope is clear, we tune the sensors to the Visible Spectrum. We
 use the *LANGUAGE_DEFINITIONS* registry as a primary whitelist for
@@ -84,7 +84,7 @@ limit, the signal is considered \"Saturated\" and discarded. If the code
 is too compressed for a human to read, we assume that the user doesn't
 want to analyze what is in it.
 
-##### 2.3.1.C. Data Classification Matrix
+## 2.3.1.C. Data Classification Matrix
 
 Filtering categorizes project data by its \"Wavelength.\" Only artifacts
 in the Visible band (and intentionally injected Quarantined files)

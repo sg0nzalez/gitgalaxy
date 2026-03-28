@@ -1,4 +1,4 @@
-#### 2.2.D. Ownership Mode: Shannon Entropy
+# 2.2.D. Ownership Mode: Shannon Entropy
 
 Ownership displays the distribution of authorship within a file.
 Ownership isn't about blaming a single author; it's about visualizing
@@ -11,7 +11,7 @@ entropy score is then mapped directly to the GitGalaxy Universal Risk
 Spectrum, allowing you to instantly spot heavily siloed knowledge (\"Bus
 Factor\" risks) versus highly distributed community code.
 
-##### 2.2.D.1. The Philosophy: Knowledge Concentration
+## 2.2.D.1. The Philosophy: Knowledge Concentration
 
 Authorship is analyzed as a variable of structural clarity versus
 architectural diffusion.
@@ -25,7 +25,7 @@ distributed across multiple authors. As more developers influence
 the file, the architectural intent becomes shared, indicating a
 high-traffic module maintained by the collective.
 
-##### 2.2.D.2. The Inputs: Contribution Share
+## 2.2.D.2. The Inputs: Contribution Share
 
 -   **Authors:** A data map of author identifiers to their specific
 commit frequencies for the file.
@@ -34,7 +34,7 @@ file.
 -   **GlobalAuthorCount:** The total number of unique contributors
 across the entire repository.
 
-##### 2.2.D.3. Equation
+## 2.2.D.3. Equation
 
 **p_i:** The proportion of total commits made by author \"i\" (e.g., if
 Author A made 20/100 commits, p = 0.2).
@@ -43,7 +43,7 @@ Entropy = H = -sum(p_i \* log2(p_i))
 
 OwnershipScore = min(H \* 32, 100)
 
-##### 2.2.D.4. Why This Model is Superior
+## 2.2.D.4. Why This Model is Superior
 
 1.  **It Solves the \"Long Tail\" Problem:** A file with 1 Major Author
 (90%) and 1 Minor Author (10%) is relatively stable. A file with 1
@@ -55,11 +55,11 @@ distinct voices in the mix while still marking it mostly with the
 color of the main author. While the Linear model only asks \"Who is
 the biggest author, regardless of commit size?\", the entropy model
 displays \"How much **uncertainty** exists in the authorship?\". In
-GitGalaxy, high entropy means di****ffusion of ****authorship****.
+GitGalaxy, high entropy means diffusion of authorship.
 
 -   #####
 
-##### 2.2.D.5. Visual Interpretation: Ownership vs. Collective Diffusion
+## 2.2.D.5. Visual Interpretation: Ownership vs. Collective Diffusion
 
 -
 
@@ -88,7 +88,7 @@ among a tight-knit group of contributors.
 constant, multi-author input and has reached a state of complete
 architectural diffusion.
 
-##### 2.2.D.6. RQM: Scaling Logic & Visual Overload
+## 2.2.D.6. RQM: Scaling Logic & Visual Overload
 
 By unifying Ownership under the v6.0 Universal Risk Spectrum, GitGalaxy
 eliminates the need for expensive, multi-pass chromatic aberration

@@ -1,4 +1,4 @@
-#### 2.1.K Misc Equations
+# 2.1.K Misc Equations
 
 **The code implements a dynamic orbitRadius formula: 40 + (log2(loc) \*
 10). This establishes an \"Event Horizon\" for functional moons,

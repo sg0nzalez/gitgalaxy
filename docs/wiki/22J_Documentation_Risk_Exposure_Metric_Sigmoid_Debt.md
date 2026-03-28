@@ -1,6 +1,6 @@
-#### 2.2.J. Documentation Risk Exposure (Metric: Sigmoid Debt)
+# 2.2.J. Documentation Risk Exposure (Metric: Sigmoid Debt)
 
-##### 2.2.J.1. The Philosophy: The Duty of Care
+## 2.2.J.1. The Philosophy: The Duty of Care
 
 Visualizes the \"Duty of Care\" a developer owes to their future self
 and the collective. This metric does not reward the raw volume of text;
@@ -19,7 +19,7 @@ standard safety thresholds.
 -   **UNDOCUMENTED (Score 90-100, Red):** Total Opacity. Zero intent
 density, representing high maintenance risk.
 
-##### 2.2.J.2. The Inputs (Tiered Efficiency)
+## 2.2.J.2. The Inputs (Tiered Efficiency)
 
 The regex scanning has been abstracted out of the physics engine. The
 *blAST* engine now pre-calculates documentation lines and structured
@@ -31,7 +31,7 @@ Header Hits   **ownership**   0.5x    Medium   Tier 2 (The Metadata). Attributio
 Doc LOC       **doc_loc**     0.33x   Low      Tier 3 (The Narrative). General inline comments. Requires 3 lines of text to equal 1 structured tag, honoring effort but demanding volume.
 ------------- --------------- ------- -------- --------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.J.3. The Universal Framework Integration
+## 2.2.J.3. The Universal Framework Integration
 
 -   **Fc (Fidelity Coefficient):** Applied to the final risk reduction.
 We trust documentation in Explicit languages (e.g., Rust) more than
@@ -49,7 +49,7 @@ system. Lack of docs here is punished more severely.
 -   **Tests/Experiments (Mp = 0.5):** Low Bar. Internal logic is
 more \"forgiven\" for being silent.
 
-##### 2.2.J.4. The Equation: The Dynamic Risk Sigmoid
+## 2.2.J.4. The Equation: The Dynamic Risk Sigmoid
 
 *We calculate the density of intent and map it to a \"Debt Curve\" where
 the score represents the Exposure caused by missing documentation.*
@@ -78,7 +78,7 @@ Coefficient (*Fc*). Low-fidelity languages (high *Irc*, low *Fc*) suffer
 an inverted trust multiplier, acknowledging that comments in those
 languages are more prone to drifting from reality.
 
-##### 2.2.J.5. Implementation (Python Reference)
+## 2.2.J.5. Implementation (Python Reference)
 
 *import math*
 
@@ -135,7 +135,7 @@ int\], fc: float, irc: int, mp: float) -\> float:*
 
 * return min(raw_risk \* (2.0 - fc), 100.0)*
 
-##### 2.2.J.6. Visual Verification (\"The Risk Audit\")
+## 2.2.J.6. Visual Verification (\"The Risk Audit\")
 
 *Comparison: 100 Line File (Threshold 10)*
 

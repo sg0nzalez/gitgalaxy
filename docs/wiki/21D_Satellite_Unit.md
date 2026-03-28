@@ -1,62 +1,49 @@
-#### 2.1.D Satellite Unit
+# 2.1.D. Satellite Unit
 
-**Metric**: Function Declaration (e.g., *****function*****,
-*****=\>*****, *****def*****, *****class method*****). ****
+> **Metric: Function Declaration (e.g., `function`, `=>`, `def`, class method)**
+>
+> **Purpose:** Represents a discrete unit of logic—a "Tool"—contained within the file (the Toolbox). 
+>
+> **Why:** Files are rarely monolithic blocks of text; they are collections of distinct functions. We visualize these as moons orbiting the planet to show the granularity and inventory of the file at a glance. 
+>
+> **Effect:** Spawns a small spherical geometry orbiting the central parent.
 
-**Purpose**: Represents a discrete unit of logic---a
-\"Tool\"---contained within the file (the Toolbox). ****
-
-**Why**: Files are rarely monolithic blocks of text; they are
-collections of distinct functions. We visualize these as moons orbiting
-the planet to show the granularity and inventory of the file at a
-glance. ****
-
-**Effect**: Spawns a small spherical geometry orbiting the central
-parent.****
-
-##### 2.1.D.1. The Philosophy: The Toolkit
+## 2.1.D.1. The Philosophy: The Toolkit
 
 We treat the file as a container.
 
--   **The Star:** The Box (Class/Module).
--   **The Satellites:** The Tools (Functions/Methods). A star with no
-moons is likely a static data configuration. A star with 50 moons is
-a heavy utility class with many diverse tools.
+* **The Star:** The Box (Class/Module).
+* **The Satellites:** The Tools (Functions/Methods). 
 
-##### 2.1.D.2. The Inputs: Identification
+A star with no moons is likely a static data configuration. A star with 50 moons is a heavy utility class with many diverse tools.
 
--   **Regex Hits:** *function*, *=\>*, *def*, *func*.
--   **Cap:** \~12 satellites (To prevent rendering swarms, we visualize
-a representative sample).
+## 2.1.D.2. The Inputs: Identification
 
-##### 2.1.D.3. Basal Values (The Standard Model)
+* **Regex Hits:** `function`, `=>`, `def`, `func`, etc.
+* **Cap:** ~12 satellites (To prevent rendering swarming clouds of visual noise, we visualize a representative sample of the heaviest functions).
 
-Every satellite begins with these default physical properties before
-other metrics (like complexity) warp them:
+## 2.1.D.3. Basal Values (The Standard Model)
 
--   **Geometry:** *SphereGeometry(2, 4, 4)* (Low-poly \"Moon\").
--   **Radius:** 2 Units (Fixed, small).
--   **Color:** Inherits Parent Star\'s color (Visual Cohesion).
--   **Opacity:** 0.8 (Slightly ghosted to indicate subservience).
--   **Orbit:** Rotates around the parent at a basal speed unless
-modified by \"Heat\" metrics.
+Every satellite begins with these default physical properties before other metrics (like complexity or churn) warp them:
 
-2.1.D.4. The Function Impact Score
+| Property | Default Value | Visual Purpose |
+| :--- | :--- | :--- |
+| **Geometry** | `SphereGeometry(2, 4, 4)` | Renders as a low-poly "Moon". |
+| **Radius** | 2 Units | Keeps the satellite fixed and small. |
+| **Color** | Inherits Parent | Maintains visual cohesion with the central star. |
+| **Opacity** | 0.8 | Slightly ghosted to indicate subservience to the parent. |
+| **Orbit** | Basal Speed | Rotates uniformly around the parent unless modified by "Heat" metrics. |
 
-Not all moons are equal. A one-line \"getter\" is a pebble; a 500-line
-algorithm is a moon. To ensure the visualization is honest, we calculate
-an Impact Score for every function found. This score determines which 12
-satellites are rendered (we always show the heaviest) and how \"large\"
-they appear.
+## 2.1.D.4. The Function Impact Score
 
-Logic: We combine Complexity (Branches), Connectivity (Args), and Volume
-(LOC) into a single weight metric.
+Not all moons are equal. A one-line "getter" is a pebble; a 500-line algorithm is a massive moon. To ensure the visualization is honest, we calculate an Impact Score for every function found. This score determines which 12 satellites are actually rendered (we always show the heaviest) and how "large" they appear.
 
-Impact Score = ((BranchHits + 1) \* (Args + 1) + (0.05 \* LOC)) \* 10
+**The Logic:** We combine Complexity (Branches), Connectivity (Arguments), and Volume (Lines of Code) into a single weight metric.
 
-BranchHits: The density of decision making. Args: The weight of
-inputs/coupling. LOC: The physical length (scaled down by 0.05 to
-prioritize logic over verbosity). Multiplier (10): Scales the integer
-for storage efficiency in vectorized formats.
+$$\text{Impact Score} = \left( (\text{BranchHits} + 1) \times (\text{Args} + 1) + (0.05 \times \text{LOC}) \right) \times 10$$
 
-****
+**The Variables:**
+* **BranchHits:** The density of decision making inside the function.
+* **Args:** The weight of inputs and coupling.
+* **LOC:** The physical length of the function (scaled down by $0.05$ to prioritize logic over verbosity).
+* **Multiplier (10):** Scales the integer up for storage efficiency in vectorized formats.

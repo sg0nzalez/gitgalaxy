@@ -1,6 +1,6 @@
-#### 2.2.F. Churn
+# 2.2.F. Churn
 
-##### 2.2.F.A. The Philosophy: Relative Historical Volatility
+## 2.2.F.A. The Philosophy: Relative Historical Volatility
 
 Churn measures the \"Frequency of Interruption.\" However, \"High
 Churn\" is relative. In a startup, 10 commits/week is normal. In a
@@ -23,7 +23,7 @@ specific repo. Rarely touched since creation.
 -   **HIGHLY ACTIVE (Score 80 - 100, Red):** The absolute hotspots of
 the repository, taking into account their age and commit density.
 
-##### 2.2.F.B. The Inputs (Git History Data)
+## 2.2.F.B. The Inputs (Git History Data)
 
 We rely on the version control history (Git) to extract \"Deep Time\"
 metrics.
@@ -34,7 +34,7 @@ SecondsFromMax     **repo_max - mtime**   Seconds   The duration the file has ex
 RepoMaxFrequency   Calculated             Float     The highest \"Seismic Frequency\" found in the entire repository during Pass 1.
 ------------------ ---------------------- --------- ---------------------------------------------------------------------------------
 
-##### 2.2.F.C. The Universal Framework Integration
+## 2.2.F.C. The Universal Framework Integration
 
 While Churn is auto-scaled globally, we still apply the Path Modifier
 (*Mp*) to account for architectural expectations after normalization.
@@ -45,7 +45,7 @@ While Churn is auto-scaled globally, we still apply the Path Modifier
 *experiments/* (Low Mp), but high churn in *kernel/* or *core/* is a
 critical warning (High Mp).
 
-##### 2.2.F.D. The Equation: The Two-Pass Relative Seismic Model
+## 2.2.F.D. The Equation: The Two-Pass Relative Seismic Model
 
 During the initial scan, we calculate the Raw Seismic Frequency for
 every file. We divide commits by the square root of its age in weeks.
@@ -63,7 +63,7 @@ ensures a beautiful, smooth color gradient across the 3D galaxy.
 logarithmic score by the Path Modifier (*Mp*) to dampen or amplify the
 significance based on its location in the directory tree.
 
-##### 2.2.F.E. Implementation (Python Reference)
+## 2.2.F.E. Implementation (Python Reference)
 
 import math
 
@@ -119,10 +119,10 @@ if \"risk_vector\" in s and len(s\[\"risk_vector\"\]) \> idx:
 
 s\[\"risk_vector\"\]\[idx\] = round(final_churn, 2)
 
-##### 2.2.F.F. Visual Verification (\"The Truth\")
+## 2.2.F.F. Visual Verification (\"The Truth\")
 
 **Scenario:** A 5-year-old Legacy project vs. a 2-month-old Startup
-project.****
+project.
 
 Project A: The Startup (High Velocity)
 

@@ -1,12 +1,12 @@
-#### 2.2.O. API Exposure (Metric: The Event Horizon)
+# 2.2.O. API Exposure (Metric: The Event Horizon)
 
-##### 2.2.O.A. The Philosophy: The Event Horizon
+## 2.2.O.A. The Philosophy: The Event Horizon
 
-****Visualizes \"The Surface Area of Logic.\" Every module has an Event
+Visualizes \"The Surface Area of Logic.\" Every module has an Event
 Horizon: the boundary between its internal mechanics and the outside
 world. API Exposure measures how permeable this boundary is. This metric
 allows developers to instantly distinguish heavily exposed interfaces
-from internal utility code.****
+from internal utility code.
 
 **Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
 
@@ -19,7 +19,7 @@ of public and private methods.
 primarily to be consumed by others. It broadcasts a massive volume
 of functionality to the galaxy.
 
-##### 2.2.O.B. The Inputs (Surface Detection)
+## 2.2.O.B. The Inputs (Surface Detection)
 
 We compare the count of **Public Signatures** against the **Total
 Definitions** to calculate the ratio of exposure. We explicitly sum
@@ -31,7 +31,7 @@ Input Variable          Regex Key                      Weight            Rationa
 **TotalDeclarations**   *func_start* + *class_start*   **Denominator**   **The Mass.** The total count of logical units (Functions + Classes). We need to sum both regex hits to ensure we don\'t undercount files that define many classes/structs but few methods.
 ----------------------- ------------------------------ ----------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-##### 2.2.O.C. The Universal Framework Integration
+## 2.2.O.C. The Universal Framework Integration
 
 -   *Fc*** (Fidelity Coefficient):** **Not Applied.** Public is public.
 
@@ -45,7 +45,7 @@ shine brighter. They are the intended entry points.
 -   *Internal/Private (Mp = 0.8):* **Dampen.** We want these to
 remain background noise unless they are egregiously leaking.
 
-##### 2.2.O.D. The Equation: Linear Surface Density
+## 2.2.O.D. The Equation: Linear Surface Density
 
 We calculate a compound score that balances the direct percentage of
 public logic (Ratio) with the sheer quantity of exposed endpoints
@@ -69,7 +69,7 @@ Volume using their respective weights (*0.4* and *0.6*), scale to
 *100.0*, and apply the Path Modifier (*Mp*) to highlight intended APIs
 and dampen internal utilities.
 
-##### 2.2.O.E. Implementation (Python Reference)
+## 2.2.O.E. Implementation (Python Reference)
 
 *import math*
 
@@ -117,7 +117,7 @@ float:*
 
 * return min(raw_score \* mp, 100.0)*
 
-##### 2.2.O.F. Visual Verification (\"The Truth\")
+## 2.2.O.F. Visual Verification (\"The Truth\")
 
 **Comparison: 20 Entity File (Functions + Classes)**
 
@@ -128,4 +128,4 @@ The Interface    10   50%    API (1.2)        **\~74**   HIGH (Orange)       Hal
 The Library      20   100%   Standard (1.0)   **\~93**   VERY HIGH (Red)     Pure public interface broadcasting maximum volume.
 ---------------- ---- ------ ---------------- ---------- ------------------- -------------------------------------------------------------------------------------------------
 
-****
+

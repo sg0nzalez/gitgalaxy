@@ -1,4 +1,4 @@
-#### 2.3.9. The GPU Recorder (Hypercompressed Data Storage)
+# 2.3.9. The GPU Recorder (Hypercompressed Data Storage)
 
 The GPU Recorder (*gpu_recorder.py*) is the instrument\'s
 high-performance recording head. It prepares project telemetry for
@@ -7,7 +7,7 @@ into a hypercompressed, columnar format. Unlike the Audit Recorder, it
 prioritizes memory efficiency, bandwidth reduction, and raw
 computational speed over human readability.
 
-##### 2.3.9.A. Destructive RAM Eviction (Stage 3.3 Protocol)
+## 2.3.9.A. Destructive RAM Eviction (Stage 3.3 Protocol)
 
 **To handle massive repositories (10,000+ files) without exhausting
 system memory, the engine employs an aggressive eviction strategy during
@@ -21,7 +21,7 @@ explicitly deleted (*del s*), followed by a manual Python garbage
 collection cycle (*gc.collect()*) to completely clear the heap
 before the massive file-write operation.
 
-##### 2.3.9.B. The Columnar Pivot & Dependency Graphing
+## 2.3.9.B. The Columnar Pivot & Dependency Graphing
 
 The recorder converts the object-oriented manifest into a \"Structure of
 Arrays\" (SoA). The v6.2.0 Protocol introduces advanced dependency
@@ -37,7 +37,7 @@ and *outbound_edges*. This allows the UI to render thousands of 3D
 relational lines instantly without performing expensive
 string-matching in the browser.
 
-##### 2.3.9.C. String Interning & Numerical Quantization
+## 2.3.9.C. String Interning & Numerical Quantization
 
 To achieve maximum compression, the recorder eliminates repetitive text
 and floating-point bloat.
@@ -59,7 +59,7 @@ Structural Mass (e.g., *150.45* becomes *1505*).
 -   **Exposure Scaling (x1000):** Applied to the 18-point Risk Vectors
 and Control Flow Ratios (e.g., *85.4%* becomes *854*).
 
-##### 2.3.9.D. Dynamic Lore & Final Sealing
+## 2.3.9.D. Dynamic Lore & Final Sealing
 
 Before final serialization, the recorder shapes the payload for the
 frontend UI:

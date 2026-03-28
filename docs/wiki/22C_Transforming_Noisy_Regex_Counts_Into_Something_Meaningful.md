@@ -1,4 +1,4 @@
-#### 2.2.C. Transforming Noisy Regex Counts Into Something Meaningful
+# 2.2.C. Transforming Noisy Regex Counts Into Something Meaningful
 
 We recognize that raw heuristic counts are inherently fragile; they are
 easily fooled by \"safety theater\" (like empty catch blocks) and lack
@@ -39,7 +39,7 @@ the module is either sufficiently defended for its context, or it is
 not.
 
 **Instead of a single \"Master Equation\" **for **all** Risk
-Exposure**s**,** we employ a ******Universal Framework****** that is
+Exposure**s**,** we employ a **Universal Framework** that is
 instantiated and calibrated for each of the Risk Exposure domains. ** **
 
 **The Standardization:** While each Risk Exposure equation is unique,
@@ -52,9 +52,9 @@ Irc.
 
 -   **Tier 2** = Structured Languages (Minor Doubt, e.g., Java).
 
--   ****Tier 3**** = Implicit Languages (Fog of War, e.g., Shell).**
+-   Tier 3 = Implicit Languages (Fog of War, e.g., Shell).**
 
-****
+
 
 ```{=html}
 <!-- -->

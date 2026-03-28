@@ -1,6 +1,6 @@
-#### 2.2.K. File Stability (Commit Heat)
+# 2.2.K. File Stability (Commit Heat)
 
-##### 2.2.K.A. The Philosophy
+## 2.2.K.A. The Philosophy
 
 Visualizes the \"Geological Layers\" of the repository. Instead of
 measuring \"Freshness\" (which implies old code is bad/stale), we
@@ -17,7 +17,7 @@ repository\'s timeline.
 -   **ENDURING (Score 81-100, Red):** The \"Foundation.\" The oldest,
 most untouched files in the repository.
 
-##### 2.2.K.B. The Inputs (File System)
+## 2.2.K.B. The Inputs (File System)
 
 We use **Auto-Scaling Normalization**. We scan the entire repository to
 find the absolute oldest and newest timestamps, creating a relative
@@ -30,7 +30,7 @@ Input Variable    Source                  Unit    Rationale
 **RepoMaxTime**   *Calculated (Pass 1)*   Epoch   The timestamp of the *newest* file in the entire repo.
 ----------------- ----------------------- ------- --------------------------------------------------------
 
-##### 2.2.K.C. The Universal Framework Integration
+## 2.2.K.C. The Universal Framework Integration
 
 Stability is a pure temporal measurement. It is not a risk factor that
 requires dampening or amplification.
@@ -40,7 +40,7 @@ requires dampening or amplification.
 -   **Mp (Path Modifier):** Not Applied. The age of a file is a physical
 constant.
 
-##### 2.2.K.D. The Equation: Relative Time Normalization
+## 2.2.K.D. The Equation: Relative Time Normalization
 
 We define Stability as the \"Distance from the Newest moment.\"
 
@@ -60,7 +60,7 @@ or single-file repositories.
 -   If *FileTime == RepoMinTime* (Oldest), the distance equals the full
 range, so *Stability = 100.0*.
 
-##### 2.2.K.E. Implementation (Python Reference)
+## 2.2.K.E. Implementation (Python Reference)
 
 *from typing import Dict, Tuple*
 
@@ -107,7 +107,7 @@ negative \<\-\--*
 
 * return stability_score, raw_churn_freq*
 
-##### 2.2.K.F. Visual Verification (\"The Truth\")
+## 2.2.K.F. Visual Verification (\"The Truth\")
 
 **Scenario:** A project started on Jan 1st (*Min*) and released on Dec
 31st (*Max*). Range = 365 Days.

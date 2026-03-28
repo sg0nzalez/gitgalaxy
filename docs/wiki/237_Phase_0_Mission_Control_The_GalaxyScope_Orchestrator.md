@@ -1,4 +1,4 @@
-#### 2.3.7. Phase 0: Mission Control (The GalaxyScope Orchestrator)
+# 2.3.7. Phase 0: Mission Control (The GalaxyScope Orchestrator)
 
 The GalaxyScope Orchestrator (**galaxyscope.py**) is the central nervous
 system of the blAST engine. It acts as Mission Control, managing the
@@ -7,7 +7,7 @@ serialization of the 3D map. Its primary responsibility is maximizing
 computational velocity while preventing catastrophic memory leaks or
 regex deadlocks during hyper-scale scans.
 
-##### 2.3.7.A. Multi-Core Extraction (The Worker Pool)
+## 2.3.7.A. Multi-Core Extraction (The Worker Pool)
 
 Parsing millions of lines of code on a single thread is a bottleneck. To
 achieve hyper-scale velocity (100,000+ LOC/s), the Orchestrator
@@ -27,7 +27,7 @@ before parsing. If a file was reported by Git but has since vanished
 from the disk, it is silently evaporated as a \"Phantom,\"
 preventing the main thread from logging false anomalies.
 
-##### 2.3.7.B. The Starvation Monitor (ReDoS Shield)
+## 2.3.7.B. The Starvation Monitor (ReDoS Shield)
 
 When scanning massive, auto-generated codebases, poorly written files
 can occasionally trigger Catastrophic Regex Backtracking (ReDoS), which
@@ -43,7 +43,7 @@ caused the hang, relegates them to the Singularity audit log, and
 forcefully shuts down the executor pool to unfreeze the user\'s
 terminal.
 
-##### 2.3.7.C. O(1) Relational Resolution (Pass 1.5)
+## 2.3.7.C. O(1) Relational Resolution (Pass 1.5)
 
 To build the dependency graph, the engine must figure out which files
 are importing which other files. Cross-referencing thousands of raw
@@ -60,7 +60,7 @@ an exponential search into an instantaneous \$O(1)\$ lookup,
 allowing GitGalaxy to resolve millions of dependency links in
 milliseconds.
 
-##### 2.3.7.D. Relational Context & Mass Dampeners (Pass 2)
+## 2.3.7.D. Relational Context & Mass Dampeners (Pass 2)
 
 In Pass 2, the Orchestrator evaluates files based on their surrounding
 neighborhood before handing them off to the Signal Processor.
@@ -80,7 +80,7 @@ physically crushes their mass multiplier so they do not
 mathematically eclipse the human-written architecture in the 3D
 view.
 
-##### 2.3.7.E. The CLI & Smart Threat Switch
+## 2.3.7.E. The CLI & Smart Threat Switch
 
 The **main()** entry point manages user interaction and environment
 overrides.
@@ -90,7 +90,7 @@ registry. If the user is scanning a known legacy repository (like
 the FreeBSD kernel), it dynamically hot-patches the
 **LANGUAGE_DEFINITIONS** in RAM to parse its specific dialect
 perfectly.
--   **The Smart Threat Switch (******\--paranoid******):** If invoked,
+-   **The Smart Threat Switch (**\--paranoid**):** If invoked,
 the Orchestrator loads the \"Hazmat Suit\" threat policy, lowering
 the threshold for the Security Lens to flag deeply hidden
 steganography and logic bombs.
