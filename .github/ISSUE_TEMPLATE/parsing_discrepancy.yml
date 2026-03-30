@@ -1,0 +1,50 @@
+name: 🐛 Report a Parsing/blAST Discrepancy
+description: Report an issue where the blAST engine misidentified or failed to parse a repository structure.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a discrepancy! Please provide the context we need to reproduce the issue.
+  - type: input
+    id: repo_link
+    attributes:
+      label: Repository Link
+      description: Provide a link to the public repository you were scanning (e.g., GitHub, GitLab URL).
+      placeholder: https://github.com/torvalds/linux
+    validations:
+      required: true
+  - type: dropdown
+    id: viewer_used
+    attributes:
+      label: Which Observatory viewer were you using?
+      description: Help us identify if this is a backend parsing issue or a frontend visual constraint.
+      options:
+        - GitGalaxy.io (Web Viewer)
+        - Airgap Observatory (Local Server)
+        - CLI Only (Did not use a visualizer)
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the Discrepancy
+      description: What did GitGalaxy report, and what should it have been? (e.g., "Flagged X files as Python, but they are actually Cython.")
+    validations:
+      required: true
+  - type: textarea
+    id: custom_standards
+    attributes:
+      label: Custom standards.py (If Applicable)
+      description: If you are using a custom `standards.py`, please paste its contents here, or drag and drop the file into this box.
+      render: python
+    validations:
+      required: false
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Info
+      description: An email or Discord handle where we can reach you if we have questions about this specific codebase.
+    validations:
+      required: false
