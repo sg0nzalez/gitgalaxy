@@ -15,6 +15,7 @@ import shutil
 import sys
 import re
 import os
+import signal
 import subprocess
 import multiprocessing
 import concurrent.futures
@@ -50,6 +51,9 @@ _worker_state = {}
 
 # ------START: Updated _init_worker to accept git_tracked files for intent caching
 
+def redos_guillotine(signum, frame):
+    """Hardware-level interrupt for regex saturation."""
+    raise TimeoutError("Structural Saturation (ReDoS Timeout)")
 
 def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int], log_level: int, git_tracked: Set[str], census: Set[str]):
     """
@@ -135,6 +139,7 @@ def resolve_mission_control(target_name: str) -> Path:
     mission_dir.mkdir(parents=True, exist_ok=True)
     return mission_dir
 
+
 def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     """Processes a single file path using the worker's cached hardware modules."""
     global _worker_state
@@ -168,7 +173,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     
     # --- NEW: Extract the physics engines from worker memory ---
     chronometer = _worker_state['chronometer']
-    signal = _worker_state['signal']
+    signal_engine = _worker_state['signal'] # Renamed to avoid shadowing 'import signal'
     security = _worker_state['security']
     # -----------------------------------------------------------
     
@@ -255,12 +260,35 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
         
         # Phase 5: Logic Splicer
         t_splicer = time.perf_counter()
-        logic_data = splicer.splice(
-            code_stream=refraction["code_stream"], 
-            comment_stream=refraction["comment_stream"],
-            confidence=detection_result.get("intensity", 1.0),
-            profile_regex=is_profiling
-        )
+        
+        # =========================================================================
+        # THE HARDWARE GUILLOTINE (ReDoS Protection)
+        # =========================================================================
+        import signal # Explicit local import just in case global import was missed
+        signal.signal(signal.SIGALRM, redos_guillotine)
+        signal.alarm(15) # 15-second fuse
+        
+        try:
+            logic_data = splicer.splice(
+                code_stream=refraction["code_stream"], 
+                comment_stream=refraction["comment_stream"],
+                confidence=detection_result.get("intensity", 1.0),
+                profile_regex=is_profiling
+            )
+        except TimeoutError:
+            # The bomb went off! Rescue the worker and dump the file into Dark Matter.
+            logger.warning(f"⏳ TIMEOUT GUILLOTINE: '{rel_path}' exceeded 15s. Banishing to Singularity.")
+            observation["status"] = "singularity"
+            observation["reason"] = "Unparsable (Structural Saturation / Regex Timeout)"
+            observation["size_bytes"] = filter_res.get("size_bytes", 0)
+            observation["identity_confidence"] = detection_result.get("intensity", 0.0)
+            observation["processing_time"] = time.time() - t_start
+            return observation
+        finally:
+            # IMPORTANT: Defuse the bomb immediately upon success!
+            signal.alarm(0) 
+        # =========================================================================
+
         if is_file_profiling: phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
         
         logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")

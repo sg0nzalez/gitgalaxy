@@ -149,7 +149,9 @@ class ApertureFilter:
            ext.lower() in self.config.get("SECRETS_EXTENSIONS", set()):
             reason = f"CRITICAL LEAK (Exposed Secret: '{path_obj.name}')"
             self.logger.critical(f"🛡️ SECURITY BREACH: {reason} at {relative_path}")
-            return False, size_bytes, reason
+            
+            # THE SHUNT: Return True so it stays in scope, but tag it in the reason
+            return True, size_bytes, reason
 
         # --- TIER 0.5: THE ABSOLUTE EXTENSION SHIELD ---
         if ext.lower() in self.black_hole_exts and ext.lower() not in self.whitelisted_extensions:
@@ -217,9 +219,21 @@ class ApertureFilter:
 
             # --- TIER 1 & 2: Path Gate ---
             is_valid, size_bytes, reason = self.evaluate_path_integrity(path_obj, has_intent=active_intent)
+            
             if not is_valid:
-                band = self.bands.get("QUARANTINE") if "CRITICAL LEAK" in reason else self.bands.get("RADIO")
-                result.update({"band": band, "reason": reason})
+                result.update({"band": self.bands.get("RADIO"), "reason": reason})
+                return result
+
+            # --- THE SHUNT: Content Bypass for Secrets ---
+            # If the path gate tagged this as a secret, skip the hex/binary 
+            # content checks so it doesn't accidentally get dropped.
+            if reason and "CRITICAL LEAK" in reason:
+                result.update({
+                    "is_in_scope": True,
+                    "band": self.bands.get("VISIBLE", "source_code"), 
+                    "reason": reason,
+                    "total_loc": len(content.splitlines()) if content else 0
+                })
                 return result
 
             # --- TIER 3 & 4: Content Gate ---

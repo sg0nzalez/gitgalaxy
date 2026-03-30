@@ -46,6 +46,7 @@ class GPURecorder:
         self.import_lookup: List[str] = [] # <--- NEW: Vectorized Import Registry
         self.texture_lookup: List[str] = schemas.get("GPU_TEXTURE_LOOKUPS", [])
         self.const_lookup: List[str] = [] # <--- NEW: Vectorized Constellation Registry
+        self.archetype_lookup: List[str] = [] # <--- NEW: Vectorized ML Archetypes
 
         # --- POSITION-SENSITIVE SCHEMAS ---
         self.RISK_SCHEMA = schemas.get("RISK_SCHEMA", [])
@@ -67,6 +68,7 @@ class GPURecorder:
             "risks": [], "hits": [], "telemetry": [], "satellites": [],
             "imports": [], # <--- NEW: The dependency string lookup column
             "c_ids": [],   # <--- NEW: The Constellation Mapping Column
+            "a_ids": [],   # <--- NEW: Machine Learning Archetype IDs
             "edges": [],    # <--- NEW: Integer pointers for 3D WebGL lines
             "outbound_edges": []
         }
@@ -103,6 +105,10 @@ class GPURecorder:
             # --- NEW: Map the file to its Constellation via Interning ---
             c_name = s.get("constellation", "__monolith__")
             columns["c_ids"].append(self._intern(c_name, self.const_lookup))
+            
+            # --- NEW: Map the file to its ML Archetype via Interning ---
+            arch_name = tel.get("archetype", "Unknown Archetype")
+            columns["a_ids"].append(self._intern(arch_name, self.archetype_lookup))
             
             columns["paths"].append(path)
             columns["names"].append(s.get("name", Path(path).name))
@@ -282,7 +288,8 @@ class GPURecorder:
                         "reasons": self.reason_lookup,
                         "exts": self.ext_lookup, 
                         "imports": self.import_lookup,
-                        "constellations": self.const_lookup 
+                        "constellations": self.const_lookup,
+                        "archetypes": self.archetype_lookup
                     }
                 }
             },

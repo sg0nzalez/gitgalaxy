@@ -56,108 +56,108 @@ class ThreatPolicy:
 # 1. OPTICAL LAYER (Consumed by aperture.py & guidestar_lens.py)
 # ------------------------------------------------------------------------------
 APERTURE_CONFIG = {
-    # The "Solar Shield" Blocklist: Directories that represent non-maintainable matter.
+    # --- 0. THE SECRETS SHUNT (New) ---
+    # Files caught here will bypass standard physics math and instantly 
+    # register a 100.0 score on the Secrets Risk exposure vector.
+    "SECRETS_EXTENSIONS": {
+        '.pem', '.key', '.pub', '.crt', '.cer', '.p12', '.p7b', 
+        '.asc', '.gpg', '.sig', '.keystore', '.ovpn', '.pfx', '.jks', '.kdbx'
+    },
+    "SECRETS_EXACT": {
+        'id_rsa', 'id_dsa', 'id_ed25519', 'id_ecdsa', 
+        'truststore.jks', 'keystore.jks', '.env', '.env.local', 
+        '.env.production', '.npmrc', '.htpasswd', '.pypirc', 
+        'credentials.json', 'client_secret.json', 'auth.json', 'shadow'
+    },
+
+    # --- 1. The "Solar Shield" Blocklist ---
     "BLACK_HOLES": {
-        # --- 1. Version Control Ghosts (Legacy & Modern) ---
-        # (Fixes the DOOM CVS Super-Giant bug)
+        # 1. Version Control Ghosts
         '.git', '.svn', '.hg', 'CVS', '.bzr', '.gitignore', '.gitmodules',
 
-        # --- 2. Package Managers & Third-Party Dependencies ---
+        # 2. Package Managers & Dependencies
         'node_modules', 'vendor', 'bower_components', 'jspm_packages', 
         'Pods', 'Carthage',
 
-        # --- 3. Virtual Environments (Python/Ruby) ---
+        # 3. Virtual Environments
         'venv', '.venv', 'env', '.env', 'virtualenv', '.tox', '.nox',
 
-        # --- 4. Caches, Meta-Frameworks & Bytecode ---
+        # 4. Caches, Meta-Frameworks & Bytecode
         '__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', 
         '.next', '.nuxt', '.svelte-kit', '.expo', '.angular', 
         '.turbo', '.parcel-cache', '.cache', 'caches', '.serverless',
 
-        # --- 5. Compiled Output & Native Build Targets ---
+        # 5. Compiled Output & Native Build Targets
         'dist', 'build', '_build', 'target', 'obj', 'out', 'out-tsc',
         'Release', 'Debug', 'cmake-build-debug', 'CMakeFiles', 'classes',
 
-        # --- 6. Testing Output & Coverage Reports ---
+        # 6. Testing Output & Coverage Reports
         'coverage', '.nyc_output', 'htmlcov', 'TestResults',
 
-        # --- 7. IDE, OS Metadata, & Editor Blueprints ---
+        # 7. IDE, OS Metadata, & Editor Blueprints
         '.idea', '.vscode', '.vs', '.settings', '.metadata', '.eclipse', 
         '.fleet', 'DerivedData', '__MACOSX', 
 
-        # --- 8. Transitory Runtime Data & Temp Matter ---
+        # 8. Transitory Runtime Data & Temp Matter
         'tmp', 'temp', 'logs', 'log',
         
-        # --- 9. Documentation & Licensing ---
+        # 9. Documentation & Licensing
         'LICENSES', 'licenses', 'LICENSE', 'license', 'DOCS', 'docs', 'LEGAL', 'legal'
     },
 
-    # --- 11. Extension-Level Solar Shield ---
-    # Deflects mathematically dense data files, encoded binaries, and 
-    # media assets that will hang the Prism or dilute the logic map.
-
+    # --- 2. Extension-Level Solar Shield ---
     "BLACK_HOLE_EXTENSIONS": {
-        # 1. Vector & 3D Traps (Massive XML coordinate arrays / JSON blobs)
+        # 1. Vector & 3D Traps
         '.svg', '.eps', '.ai', '.gltf', '.dae', '.stl', '.obj', '.fbx',
 
         # 2. Raster Image Binaries
         '.png', '.jpg', '.jpeg', '.gif', '.ico', '.webp', '.tiff', '.bmp', '.heic',
 
-        # 3. Typography & Fonts (Complex hex/binary tables)
+        # 3. Typography & Fonts
         '.woff', '.woff2', '.ttf', '.eot', '.otf',
 
-        # 4. Cryptographic Keys & Signatures (Dense Base64 / Hex blocks)
-        # Prevents the engine from scanning thousands of lines of raw cryptographic hashes.
-        '.crt', '.cer', '.p12', '.p7b', '.asc', '.gpg', '.sig', '.keystore',
-
-        # 5. Office & Print Documents (Zipped XMLs that cause regex spirals)
+        # 4. Office & Print Documents
         '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp',
 
-        # 6. UI/UX Design Project Files
+        # 5. UI/UX Design Project Files
         '.fig', '.sketch', '.psd', '.xd',
 
-        # 7. Media (Audio/Video Data)
+        # 6. Media (Audio/Video Data)
         '.mp4', '.mp3', '.wav', '.avi', '.mov', '.mkv', '.webm', '.flac', '.ogg', 
 
-        # 8. Archives & Compression Binaries
+        # 7. Archives & Compression Binaries
         '.zip', '.tar', '.gz', '.tgz', '.bz2', '.xz', '.7z', '.rar', '.iso', '.cab',
 
-        # 9. Core Compiled Binaries & Object Files
-        # (Catches things that might accidentally pass a simple UTF-8 sniff test)
+        # 8. Core Compiled Binaries & Object Files
         '.exe', '.dll', '.so', '.dylib', '.class', '.jar', '.war', '.ear', '.o', '.a', '.lib', '.out', '.pyc', '.pyd'
     },
     
-    # --- 12. Contraband Patterns ---
-    # Global glob patterns to natively deflect vendored, compiled, or machine-generated 
-    # source code that bleeds outside of standard vendor/ directories.
+    # --- 3. Contraband Patterns ---
     "CONTRABAND_PATTERNS": [
-        "*.min.js", "*.min.css",          # Universal minification
-        "jquery*.js", "bootstrap*.js",    # Legacy frontend monoliths
-        "typeahead*.js", "vue.global.js", # Common UI plugins
-        "chunk-*.js", "*bundle.js",       # Webpack/Vite compiled output
-        "*_full.html",                    # Minified bundled HTML UIs
-        
-        # THE FIX: GNU Autotools & Libtool procedural monoliths
+        "*.min.js", "*.min.css",          
+        "jquery*.js", "bootstrap*.js",    
+        "typeahead*.js", "vue.global.js", 
+        "chunk-*.js", "*bundle.js",       
+        "*_full.html",                    
         "ltmain.sh", "config.guess", "config.sub", "depcomp", "missing", "install-sh"
     ],
     
-    # Integrity Thresholds: Limits for minification and data-dump detection.
-    "MAX_LINE_LENGTH": 500,           # Saturated Signal threshold (characters)
-    "MINIFICATION_SCAN_LIMIT": 50,    # Performance Guard (lines to check)
-    "MAX_FILE_SIZE_MB": 50,           # Resource Guard (Large Data Dump limit)
+    # --- 4. Integrity Thresholds ---
+    "MAX_LINE_LENGTH": 500,           
+    "MINIFICATION_SCAN_LIMIT": 50,    
+    "MAX_FILE_SIZE_MB": 50,           
     
-    # Spectral Band Definitions: Standardized terminology for the Orchestrator.
-    # These strings are written directly to the galaxy.json manifest.
+    # --- 5. Spectral Band Definitions ---
     "BANDS": {
         "RADIO": "ignored_system_or_hidden_file",       
         "MICROWAVE": "unreadable_binary_or_media",  
         "DARK_MATTER": "unsupported_file_type", 
         "INFRARED": "minified_or_massive_data",      
         "VISIBLE": "valid_source_code",
-        "QUARANTINE": "critical_contraband_leak" 
+        "QUARANTINE": "critical_contraband_leak",
+        "RADIOACTIVE": "exposed_secret_or_key" # New band specifically for your ridge plots
     }
 }
-
 # These files are granted a high confidence score for importance by the GuideStar Lens.
 # If found, their Bayesian confidence is boosted (+0.10) to ensure they
 # remain visible in the 3D map as high-priority architectural anchors.
@@ -1330,8 +1330,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 2. args (The Coupling Mass)
             # Parameter blocks for methods, primary constructors, and lambdas.
+            # THE FIX: Changed `(?:\[[^\]]*\][ \t]*)*` to `{0,5}` to eliminate a nested unbounded wildcard ReDoS trap.
             "args": re.compile(
-                r"(?:(?:\[[^\]]*\][ \t]*)*(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file|ref|scoped|readonly)[ \t]+){0,5}(?:[\w<>\[\]?]+[ \t]+)?\w+\s*\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)[ \t]*=>",
+                r"(?:(?:\[[^\]]*\][ \t]*){0,5}(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file|ref|scoped|readonly)[ \t]+){0,5}(?:[\w<>\[\]?]+[ \t]+)?\w+\s*\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)[ \t]*=>",
                 re.M,
             ),
             # 3. linear (The Smooth Path)
@@ -1340,9 +1341,52 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(var|return|class|interface|struct|record|enum|using|namespace|yield|await|delegate|event|init|required|field|implements|extends|declare)\b|=>"
             ),
             # 4. func_start (The Satellite Spawner)
-            # ONLY executable logic blocks. EXCLUDES types/classes. Steps over attributes.
+            # ONLY executable logic blocks. EXCLUDES types/classes. 
+            #
+            # =====================================================================
+            # [LLM CONTEXT: C# "IRON WALL" FUNCTION EXTRACTOR & REDOS SHIELD]
+            # PURPOSE: Anchors executable logic blocks (methods) in C# up to C# 14.
+            # VULNERABILITY: C# allows massive return types (e.g., nested tuples), 
+            #   generics, and explicit interface implementations. If spaces are allowed 
+            #   freely inside unbounded quantifiers, massive Roslyn test strings cause 
+            #   Catastrophic Backtracking, locking the Python GIL at the C-level.
+            # THE FIX: Strict character exclusion, numeric bounding, and mutual 
+            #   exclusivity between word characters and spaces.
+            # =====================================================================
             "func_start": re.compile(
-                r"^[ \t]*(?:\[[^\]]*\][ \t]*){0,5}(?:(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file)[ \t]+){0,5}(?:[\w<>\[\]?,\s]+[ \t]+)?(?!(?:if|for|foreach|while|switch|catch|using|lock|new|return|class|interface|struct|record|enum)\b)([A-Za-z_$][\w_$]*)\s*\(",
+                # 1. THE HORIZONTAL ANCHOR & ATTRIBUTE SHIELD
+                # Anchors to the line start. Steps over C# attributes [Obsolete], [Fact], etc.
+                # [REDOS ARMOR]: `[^\]]{0,250}` prevents a missing closing bracket from spiraling
+                # across the entire file. `{0,5}` caps the max number of stacked attributes.
+                r"^[ \t]*(?:\[[^\]]{0,250}\][ \t]*){0,5}"
+                
+                # 2. MODIFIERS (Linkage, Storage, & Access)
+                # Matches `public async`, `protected internal static`, etc.
+                r"(?:(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file|ref|readonly)[ \t]+){0,5}"
+                
+                # 3. THE "IRON WALL" RETURN TYPE
+                # Safely captures complex modern C# return types before the function name.
+                # Supports: standard types `int`, arrays `int[]`, generics `List<T>`, 
+                # namespaces `System.Threading.Tasks.Task`, tuples `(int, string)`, and nullables `string?`.
+                # [REDOS ARMOR 1]: `(?![ \t]*#)` prevents the engine from crossing into a #region or #if block.
+                # [REDOS ARMOR 2]: The character class `[...]+` STRICTLY FORBIDS spaces/tabs. The `[ \t]+` 
+                # follows it outside the group. This mutual exclusivity guarantees O(N) parsing and 
+                # makes the overlapping space ReDoS `(Space)+ Space+` mathematically impossible.
+                r"(?:(?![ \t]*#)[a-zA-Z0-9_<>\[\]?,.()?]+[ \t]+){0,10}"
+                
+                # 4. THE "NOT A FUNCTION" SHIELD
+                # Negative lookahead ensuring we don't accidentally capture control flow, 
+                # primitive type keywords, or object instantiations as function names.
+                r"(?!(?:if|for|foreach|while|switch|catch|using|lock|new|return|class|interface|struct|record|enum|yield|throw|await|sizeof|typeof|nameof)\b)"
+                
+                # 5. THE IDENTIFIER CAPTURE (GROUP 1) & GENERIC STEPPER
+                # Captures the actual satellite name:
+                # - `[@A-Za-z_$]` supports C# verbatim identifiers (e.g., `@class`).
+                # - `[\w_$.]*` supports explicit interface implementations (e.g., `IMyInterface.DoWork`).
+                # - `(?:<[^>\n]{0,100}>)?` safely steps over method-level generic definitions 
+                #   like `<T, U>` BEFORE hitting the opening parenthesis, without capturing them.
+                r"([@A-Za-z_$][\w_$.]*)(?:<[^>\n]{0,100}>)?[ \t]*\(",
+                
                 re.M,
             ),
             # 5. class_start (The Entity Census)
@@ -10959,6 +11003,16 @@ PROJECT_OVERRIDES = {
             "exclude_paths": [
                 "translation-tool.pl",
                 "core/report-l10n.rb"
+            ]
+        }
+    },
+    "redis": {
+        # --- 1. SHIELD/APERTURE OVERRIDES ---
+        "_shield_": {
+            "exclude_dirs": [
+                "deps/lua",      # Banish the C-interpreter so it doesn't inflate Redis's mass
+                "deps/jemalloc", # Same for the bundled memory allocator
+                "deps/hiredis"   # Same for the bundled client
             ]
         }
     },

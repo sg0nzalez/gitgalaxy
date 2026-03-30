@@ -250,6 +250,36 @@ class LLMRecorder:
                 lines.append(f"| {lang.upper()} | {stats.get('files', 0)} | {stats.get('loc', 0)} | {pct:.1f}% |")
         lines.append("")
 
+        # --- 4.5 ECOSYSTEM FINGERPRINT (MACHINE LEARNING ARCHETYPES) ---
+        lines.append("## 4.5 ECOSYSTEM FINGERPRINT (THE 15 ARCHETYPES)")
+        lines.append("> **AI CONTEXT:** Every file has been mapped via Euclidean distance to one of 15 Machine Learning Archetypes based on pure structural DNA. This reveals the true 'Tissue Type' of the repository.")
+        lines.append("> * **Cluster 0: Encapsulated Systems Logic** (Expect tight scoping, heavy documentation, and low-level system calls).")
+        lines.append("> * **Cluster 1: Low-Level State Mutators** (Expect heavy variable reassignment, branching, and pointer math).")
+        lines.append("> * **Cluster 2: Static Configuration & Data** (Do not look for logic here, just schema/values).")
+        lines.append("> * **Cluster 3: Abstract Interfaces & DTOs** (Boundary layer file with no execution logic, just type definitions).")
+        lines.append("> * **Cluster 4: Preprocessor Macros & Headers** (Standard C/C++ style compiler directives and headers).")
+        lines.append("> * **Cluster 5: Object-Oriented Boilerplate** (Heavy parameter passing, getters/setters, and class instantiation).")
+        lines.append("> * **Cluster 6: Heavy Computational Math** (Scientific/algorithmic processing).")
+        lines.append("> * **Cluster 7: Dead Code / Comment Graveyard** (Ignore the contents as legacy trash/abandoned code).")
+        lines.append("> * **Cluster 8: I/O-Heavy Pipeline Scripts** (Moving data around the network/disk without safety nets).")
+        lines.append("> * **Cluster 9: High-Silo Legacy Bottlenecks** (File is old, massive, and owned by one person).")
+        lines.append("> * **Cluster 10: Manual Memory Management** (Look for memory leaks, buffer overflows, and unsafe allocations).")
+        lines.append("> * **Cluster 11: Async UI & Concurrency Routers** (Expect Promises, event loops, and UI framework syntax).")
+        lines.append("> * **Cluster 12: Standard Application Logic** (The catch-all for normal, middle-tier execution).")
+        lines.append("> * **Cluster 13: Dependency Injection & Wiring** (Exists purely to connect other modules together at startup).")
+        lines.append("> * **Cluster 14: Unit Test Suites** (Do not penalize for being overly linear or having repetitive assertions).")
+        lines.append("")
+        
+        fingerprint = summary.get("ecosystem_fingerprint", {})
+        if fingerprint:
+            lines.append("| Archetype (Micro-Species) | Repository Ratio |")
+            lines.append("|---|---|")
+            for arch, ratio in fingerprint.items():
+                lines.append(f"| {arch} | {ratio}% |")
+        else:
+            lines.append("*Ecosystem fingerprinting unavailable for this scan.*")
+        lines.append("")
+
         # --- 5. DARK MATTER ---
         lines.append("## 5. DARK MATTER (Non-scanned items ARTIFACTS)")
         lines.append(f"*Total Excluded Artifacts: {total_excluded}*\n")
@@ -446,8 +476,9 @@ class LLMRecorder:
                 rv = s.get("risk_vector", [])
                 
                 lines.append(f"### {rank}. `{p}` ({l}) -> Cumulative Risk: **{c_val}**")
+                lines.append(f"- **Archetype:** `{tel.get('archetype', 'Unknown Archetype')}`")
                 lines.append(f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%")
-                
+                            
                 # Dynamically calculate the top 4 risk drivers pushing this file's score up
                 file_risks = []
                 for i, r_val in enumerate(rv):
@@ -501,6 +532,7 @@ class LLMRecorder:
             if purpose:
                 lines.append(f"> **Stated Purpose:** *{purpose}*")
                 
+            lines.append(f"- **Archetype:** `{tel.get('archetype', 'Unknown Archetype')}`")
             lines.append(f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%")
             lines.append(f"- **Risk Profile:** Cognitive Load ({cog}%), Tech Debt ({debt}%)")
             
@@ -602,6 +634,7 @@ class LLMRecorder:
                     cog_raw REAL,
                     ownership TEXT,
                     popularity INTEGER,
+                    archetype TEXT,
                     {risk_cols}
                 )
             ''')
@@ -691,15 +724,15 @@ class LLMRecorder:
                         path, filename, constellation, language, lock_tier, 
                         total_loc, coding_loc, doc_loc, file_impact, 
                         control_flow_ratio, author_distribution, ownership_entropy,
-                        raw_churn_freq, cog_raw, ownership, popularity, 
+                        raw_churn_freq, cog_raw, ownership, popularity, archetype,
                         {", ".join(self.RISK_SCHEMA)}
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
                 ''', (
                     p, Path(p).name, c_name, star.get("lang_id"), star.get("lock_tier"), 
                     star.get("total_loc"), star.get("coding_loc"), star.get("doc_loc", 0), star.get("file_impact"),
                     tel.get("control_flow_ratio"), tel.get("author_distribution"), tel.get("ownership_entropy"),
-                    tel.get("raw_churn_freq"), tel.get("densities", {}).get("cog_raw"), tel.get("ownership"), pop_count,
+                    tel.get("raw_churn_freq"), tel.get("densities", {}).get("cog_raw"), tel.get("ownership"), pop_count, tel.get("archetype", "Unknown"),
                     *rv
                 ))
                 

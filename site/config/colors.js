@@ -152,3 +152,21 @@ Object.keys(Colors.LEGENDS).forEach(key => {
 });
 
 window.Colors = Colors;
+
+export const ARCHETYPE_COLORS = [
+    "#FF3B30", // 0: Red
+    "#FF9500", // 1: Orange
+    "#FFCC00", // 2: Yellow-Orange
+    "#FFEE58", // 3: Yellow
+    "#A4E720", // 4: Lime Green
+    "#28CD41", // 5: Green
+    "#00C7BE", // 6: Teal/Cyan
+    "#59C8FA", // 7: Light Blue
+    "#007AFF", // 8: Blue
+    "#5856D6", // 9: Indigo
+    "#AF52DE", // 10: Purple
+    "#FF2D55", // 11: Magenta
+    "#F9A8D4", // 12: Pink
+    "#E5E5EA", // 13: Silver/White
+    "#A2845E"  // 14: Bronze/Muted
+];

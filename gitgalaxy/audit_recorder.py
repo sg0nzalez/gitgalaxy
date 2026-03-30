@@ -126,6 +126,9 @@ class AuditRecorder:
                 "Stars / Files": {}
             }
 
+        # Track archetypes per folder for the Constellation Fingerprint
+        folder_archetype_counts = {}
+
         # 2. Row Reconstruction (Visible Stars) mapped into Constellations
         for star in stars:
             path = star.get("path", "Unknown")
@@ -176,6 +179,12 @@ class AuditRecorder:
                 else:
                     exposures_dict[label] = f"{round(v, 2)}%"
 
+            # Track the archetype for the folder-level summary
+            arch = telemetry.get("archetype", "Unknown Archetype")
+            if c_name not in folder_archetype_counts:
+                folder_archetype_counts[c_name] = {}
+            folder_archetype_counts[c_name][arch] = folder_archetype_counts[c_name].get(arch, 0) + 1
+
             # Assemble the star profile
             star_profile = {
                 "1. Identity": identity_block,
@@ -185,6 +194,7 @@ class AuditRecorder:
                     "Z": star.get("pos_z", 0.0)
                 },
                 "3. Galactic Profile": {
+                    "Machine Learning Archetype": arch,
                     "Total LOC": star.get("total_loc", 0),
                     "coding LOC": star.get("coding_loc", 0),
                     "Documentation LOC": star.get("doc_loc", 0),
@@ -216,6 +226,28 @@ class AuditRecorder:
             if c_name not in pretty_constellations:
                 pretty_constellations[c_name] = {"Constellation Mass": 0.0, "Stars / Files": {}}
             pretty_constellations[c_name]["Stars / Files"][path] = star_profile
+
+        # --- CALCULATE FOLDER-LEVEL ARCHETYPE SUMMARIES ---
+        for c_name, c_data in pretty_constellations.items():
+            folder_files = len(c_data.get("Stars / Files", {}))
+            arch_counts = folder_archetype_counts.get(c_name, {})
+            
+            if folder_files > 0 and arch_counts:
+                # Calculate percentages and sort highest to lowest
+                fingerprint = {
+                    name: f"{round((count / folder_files) * 100.0, 1)}%" 
+                    for name, count in sorted(arch_counts.items(), key=lambda x: x[1], reverse=True)
+                }
+                
+                # Reconstruct the dictionary so the Fingerprint sits cleanly at the top of the JSON
+                reordered_c_data = {
+                    "Constellation Mass": c_data.get("Constellation Mass", 0.0),
+                    "File Count": c_data.get("File Count", folder_files),
+                    "Ecosystem Fingerprint (Archetypes)": fingerprint,
+                    "Average Risk Exposures": c_data.get("Average Risk Exposures", {}),
+                    "Stars / Files": c_data.get("Stars / Files", {})
+                }
+                pretty_constellations[c_name] = reordered_c_data
 
         # 3. Format Dark Matter (Excluded Artifacts)
         pretty_singularity = []
@@ -296,12 +328,14 @@ class AuditRecorder:
         # Sweep the stars for security anomalies
         for star in stars:
             path = star.get("path", "Unknown")
-            band = star.get("band", "")
             
-            if band == "critical_secret_leak":
+            # THE FIX: Read the exact bypass alert injected by the SignalProcessor Shunt
+            domain_ctx = star.get("telemetry", {}).get("domain_context", {})
+            
+            if domain_ctx.get("alert") == "CRITICAL LEAK BYPASS":
                 quarantined_files.append({
                     "Path": path,
-                    "Diagnostic": star.get("telemetry", {}).get("domain_context", {}).get("warning", "CRITICAL LEAK (Exposed Secret / Key Detected)")
+                    "Diagnostic": f"CRITICAL LEAK (Exposed Secret/Key): {domain_ctx.get('aperture_reason', 'Manual Bypass')}"
                 })
                 
             risk_vector = star.get("risk_vector", [])

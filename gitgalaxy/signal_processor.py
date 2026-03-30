@@ -96,7 +96,50 @@ class SignalProcessor:
             "web_in_systems": {"flux": 3.0}                       # JS embedded in C firmware = Bizarre architecture
         }
         
-        self.logger.info(f"Signal Processor Online | Context-Aware Risk Schema loaded.")
+        # ======================================================================
+        # THE MACHINE LEARNING CENTROIDS (K=15 Archetypes)
+        # Extracted directly from Scikit-Learn DNA clustering to allow 
+        # real-time Euclidean classification without ML dependencies.
+        # ======================================================================
+        self.ARCHETYPES_K15 = {
+            "Cluster 0: Encapsulated Systems Logic": {"encapsulation": 62.4, "indent_tabs": 58.2, "doc": 34.4, "linear": 30.7, "flux": 15.9, "api": 14.3},
+            "Cluster 1: Low-Level State Mutators": {"indent_tabs": 71.8, "flux": 19.0, "linear": 16.4, "branch": 13.2, "pointers": 12.6, "doc": 10.8},
+            "Cluster 2: Static Configuration & Data": {"indent_spaces": 31.6, "linear": 5.9, "doc": 3.2, "flux": 2.7, "func_start": 1.9, "args": 1.8},
+            "Cluster 3: Abstract Interfaces & DTOs": {"generics": 64.2, "indent_spaces": 37.2, "func_start": 23.5, "args": 22.2, "class_start": 19.6, "linear": 15.5},
+            "Cluster 4: Preprocessor Macros & Headers": {"macros": 66.2, "ownership": 19.0, "doc": 13.7, "linear": 8.7, "api": 8.7, "heat_triggers": 8.1},
+            "Cluster 5: Object-Oriented Boilerplate": {"linear": 44.7, "indent_spaces": 43.0, "args": 25.2, "import": 19.1, "api": 17.9, "doc": 16.6},
+            "Cluster 6: Heavy Computational Math": {"scientific": 730.4, "indent_spaces": 78.9, "branch": 46.6, "flux": 35.3, "linear": 9.9, "safety": 3.8},
+            "Cluster 7: Dead Code / Comment Graveyard": {"graveyard": 2525.0, "doc": 2125.0, "branch": 25.0, "indent_tabs": 25.0},
+            "Cluster 8: I/O-Heavy Pipeline Scripts": {"safety_neg": 46.4, "linear": 34.5, "branch": 30.6, "io": 25.3, "indent_tabs": 21.3, "print_hits": 14.2},
+            "Cluster 9: High-Silo Legacy Bottlenecks": {"ownership": 1454.0, "doc": 107.5, "branch": 38.5, "flux": 16.7, "bitwise_hits": 4.0, "indent_tabs": 2.8},
+            "Cluster 10: Manual Memory Management": {"indent_spaces": 63.6, "flux": 29.4, "pointers": 22.1, "linear": 19.9, "doc": 15.2, "freeze_hits": 14.0},
+            "Cluster 11: Async UI & Concurrency Routers": {"indent_spaces": 59.5, "linear": 31.6, "args": 27.5, "func_start": 18.3, "concurrency": 16.3, "ui_framework": 9.4},
+            "Cluster 12: Standard Application Logic": {"indent_spaces": 77.7, "args": 22.6, "branch": 21.6, "linear": 20.1, "func_start": 11.6, "flux": 6.5},
+            "Cluster 13: Dependency Injection & Wiring": {"indent_spaces": 49.3, "freeze_hits": 22.4, "dependency_injection": 20.8, "args": 9.7, "func_start": 9.2, "class_start": 9.1},
+            "Cluster 14: Unit Test Suites": {"indent_spaces": 60.8, "args": 57.5, "func_start": 30.6, "linear": 30.0, "test": 19.6, "branch": 9.5}
+        }
+        
+        self.logger.info(f"Signal Processor Online | Context-Aware Risk Schema & ML Archetypes loaded.")
+        
+    def _classify_archetype(self, eq: Dict[str, int], loc: int) -> str:
+        """Uses Euclidean Distance to find the closest ML Archetype island for a given file."""
+        safe_loc = max(loc, 1)
+        best_match = "Unknown Archetype"
+        min_dist = float('inf')
+        
+        for name, centroid in self.ARCHETYPES_K15.items():
+            dist_sq = 0.0
+            # Calculate distance across all 60 DNA dimensions
+            for key in self.SIGNAL_SCHEMA:
+                f_val = (eq.get(key, 0) / safe_loc) * 100.0  # File Density
+                c_val = centroid.get(key, 0.0)               # Centroid Density
+                dist_sq += (f_val - c_val) ** 2
+            
+            if dist_sq < min_dist:
+                min_dist = dist_sq
+                best_match = name
+                
+        return best_match
     
     def _get_context_multipliers(self, file_lang: str, folder_lang: str) -> Dict[str, float]:
         """
@@ -167,6 +210,54 @@ class SignalProcessor:
         rel_path = meta.get("path", "unknown")
         
         try:
+            import os
+            filename = os.path.basename(rel_path).lower()
+            ext = f".{filename.split('.')[-1]}" if '.' in filename else ""
+            ghost_meta = meta.get("metadata", {})
+            
+            # ==================================================================
+            # THE EXPOSED SECRET BYPASS PROTOCOL
+            # Treat exposed keyfiles as structural vulnerabilities, skipping math
+            # ==================================================================
+            secrets_exts = self.config.get("SECRETS_EXTENSIONS", set())
+            secrets_exact = self.config.get("SECRETS_EXACT", set())
+            aperture_reason = ghost_meta.get("aperture_reason", "")
+            
+            is_critical_leak = "CRITICAL LEAK" in aperture_reason or ext in secrets_exts or filename in secrets_exact
+            
+            if is_critical_leak:
+                temporal_data = meta.get("temporal_telemetry", {})
+                _, raw_churn_freq = self._calc_raw_temporal_signals(temporal_data)
+                authors_map = meta.get("authors", {})
+                
+                dominant_author = max(authors_map, key=authors_map.get) if authors_map else ghost_meta.get("ownership", "Unknown Architect")
+                
+                # 1. Base array of zeroes
+                blanket_risk_vector = [0.0] * len(self.RISK_SCHEMA)
+                
+                # 2. Spike Hardcoded Secrets Exposure to Maximum
+                if "secrets_risk" in self.RISK_SCHEMA:
+                    secrets_idx = self.RISK_SCHEMA.index("secrets_risk")
+                    blanket_risk_vector[secrets_idx] = 100.0
+                    
+                # 3. Retain Churn so we know if the secret is actively being modified
+                if "churn" in self.RISK_SCHEMA:
+                    churn_idx = self.RISK_SCHEMA.index("churn")
+                    blanket_risk_vector[churn_idx] = min(raw_churn_freq * 10, 100.0)
+
+                return {
+                    "risk_vector": blanket_risk_vector,
+                    "hit_vector": [0] * len(self.SIGNAL_SCHEMA), 
+                    "file_impact": 150.0, # Massive physical footprint for the 3D map
+                    "telemetry": {
+                        "control_flow_ratio": 0.0, 
+                        "ownership_entropy": self._calc_ownership_entropy(authors_map),
+                        "author_distribution": self._calculate_silo_risk(authors_map),
+                        "ownership": dominant_author,
+                        "domain_context": {"alert": "CRITICAL LEAK BYPASS", **ghost_meta}
+                    }
+                }
+
             # ==================================================================
             # THE DOCUMENTATION BYPASS PROTOCOL
             # Treat pure literature as static structural assets, skipping logic math
@@ -174,54 +265,30 @@ class SignalProcessor:
             doc_languages = self.asset_masks.get("DOCUMENTATION_LANGUAGES", {"markdown", "plaintext", "rst", "text"})
                         
             if lang_id.lower() in doc_languages:
-                # We still want temporal history to know if docs are actively maintained
                 temporal_data = meta.get("temporal_telemetry", {})
                 _, raw_churn_freq = self._calc_raw_temporal_signals(temporal_data)
-
-                # --- NEW: Extract rich Git data for ownership & silo risk ---
                 authors_map = meta.get("authors", {})
-                silo_exposure = self._calculate_silo_risk(authors_map)
                 
-                ghost_meta = meta.get("metadata", {})
-                if authors_map:
-                    dominant_author = max(authors_map, key=authors_map.get)
-                else:
-                    dominant_author = ghost_meta.get("ownership", "Unknown Architect")
+                dominant_author = max(authors_map, key=authors_map.get) if authors_map else ghost_meta.get("ownership", "Unknown Architect")
 
-                # 1. Synthetic 13-Point Risk Exposure (The Blanket Scores)
-                blanket_risk_vector = [
-                    0.0,    # Cognitive Load (None)
-                    0.0,  # Safety (Completely safe)
-                    0.0,    # Tech Debt (None)
-                    0.0,    # Verification/Testing (N/A)
-                    0.0,    # API Exposure (N/A)
-                    0.0,    # Concurrency (None)
-                    0.0,    # State Flux (None)
-                    0.0,    # Graveyard (None)
-                    0.0,  # Spec Match (Docs ARE specs)
-                    0.0,  # Stability (Highly stable)
-                    min(raw_churn_freq * 10, 100.0), # Churn (Scales based on commit frequency)
-                    100.0,  # Documentation Coverage (Perfect)
-                    50.0,     # Civil War (N/A)
-                    # --- SECURITY BYPASS ---
-                    0.0,    # Obscured Payload
-                    0.0,    # Logic Bomb
-                    0.0,    # Injection Surface
-                    0.0,    # Memory Corruption
-                    0.0     # Secrets Risk
-                ]
+                blanket_risk_vector = [0.0] * len(self.RISK_SCHEMA)
+                
+                if "churn" in self.RISK_SCHEMA:
+                    blanket_risk_vector[self.RISK_SCHEMA.index("churn")] = min(raw_churn_freq * 10, 100.0)
+                if "documentation" in self.RISK_SCHEMA:
+                    blanket_risk_vector[self.RISK_SCHEMA.index("documentation")] = 100.0
+                if "civil_war" in self.RISK_SCHEMA:
+                    blanket_risk_vector[self.RISK_SCHEMA.index("civil_war")] = 50.0
 
                 return {
                     "risk_vector": blanket_risk_vector,
-                    # 2. Perfect 51-point array of zeroes to prevent hollow UI dictionaries
                     "hit_vector": [0] * len(self.SIGNAL_SCHEMA), 
-                    # 3. Apply a generic light mass purely based on line count
                     "file_impact": round(max(total_loc / 50.0, 1.0), 2),
                     "telemetry": {
-                        "control_flow_ratio": 0.0, # 0% active control flow
+                        "control_flow_ratio": 0.0,
                         "ownership_entropy": self._calc_ownership_entropy(authors_map),
-                        "author_distribution": silo_exposure,  # <-- The new metric!
-                        "ownership": dominant_author,          # <-- The updated ownership!
+                        "author_distribution": self._calculate_silo_risk(authors_map),
+                        "ownership": dominant_author,
                         "domain_context": ghost_meta
                     }
                 }
@@ -236,9 +303,7 @@ class SignalProcessor:
             # Environmental Context (Path-based overrides)
             mp_map = self._get_locational_multipliers(rel_path)
             
-            # ---> NEW: Context vs. Entity Ontology Matrix <---
-            # Fetch the folder's dominant language (Assumes your upstream parser injects this)
-            folder_lang = meta.get("metadata", {}).get("folder_dominant_lang", lang_id)
+            folder_lang = ghost_meta.get("folder_dominant_lang", lang_id)
             eco_mp = self._get_context_multipliers(lang_id, folder_lang)
 
             self.logger.debug(f"[{rel_path}] Physics Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc})")
@@ -259,28 +324,13 @@ class SignalProcessor:
             debt_score = self._calc_tech_debt(loc, equations, irc, mp_map.get("debt", 1.0))
             
             test_score = self._calc_verification(
-                loc, 
-                rel_path, 
-                meta.get("is_protected", False), 
-                equations, 
-                irc, 
-                fc, 
-                mp_map.get("test", 1.0),
-                umbrella_bonus=umbrella_bonus
+                loc, rel_path, meta.get("is_protected", False), equations, irc, fc, mp_map.get("test", 1.0), umbrella_bonus=umbrella_bonus
             )
             
             doc_score = self._calc_documentation(loc, doc_lines, equations, fc, irc, mp_map.get("doc", 1.0))
             spec_score = self._calc_spec_alignment(equations, mp_map.get("spec", 1.0))
             
-            # ---> THE FIX: MICRO-MASS DAMPENER (Cosmopolitan Rule) <---
-            # If a file is extremely small (e.g., < 15 lines of active code), we 
-            # mathematically scale down 'Bureaucratic' risks (Verification, Docs, Specs).
-            # This prevents 7-line boilerplate, routing, or shell scripts from falsely 
-            # masquerading as high-risk architectural choke points just because they 
-            # lack a formal testing suite or docstrings.
-            # (Note: Security, Tech Debt, and Runtime risks remain unaffected).
             bureaucracy_dampener = min(loc / 15.0, 1.0)
-            
             test_score *= bureaucracy_dampener
             doc_score *= bureaucracy_dampener
             spec_score *= bureaucracy_dampener
@@ -296,10 +346,9 @@ class SignalProcessor:
                 "graveyard":      self._calc_graveyard(total_loc, equations, mp_map.get("dead", 1.0)),
                 "spec_match":     spec_score,
                 "stability":      stability_score,
-                "churn":          0.0, # Placeholder: Auto-Scaled globally in Pass 2
+                "churn":          0.0, 
                 "documentation":  doc_score,
                 "civil_war":      self._calc_civil_war(equations),
-                # --- THE SECURITY & VULNERABILITY LENSES ---
                 "obscured_payload":  self._calc_obscured_payload(loc, equations, mp_map.get("obscured", 1.0)),
                 "logic_bomb":        self._calc_logic_bomb(loc, equations, mp_map.get("logic_bomb", 1.0) * eco_mp.get("logic_bomb", 1.0)),
                 "injection_surface": self._calc_injection_surface(loc, equations, mp_map.get("injection", 1.0) * eco_mp.get("injection", 1.0)),
@@ -318,23 +367,16 @@ class SignalProcessor:
             satellites = meta.get("satellites", [])
             func_start = equations.get("func_start", 0)
             
-            # Use actual satellite impacts if available
             if satellites:
                 sum_function_impacts = sum(sat.get("impact", 0) for sat in satellites)
             else:
-                # --- THE HEADER & DATA DUMP CONTINGENCY ---
-                # If there are no functions, global branches and args represent structural 
-                # macros or data, not execution logic. We temporarily treat them as 0 
-                # to prevent a geometric explosion in the fallback math.
                 if func_start == 0:
                     temp_branches = 0
                     temp_args = 0
                 else:
-                    # Fallback for procedural scripts
                     temp_branches = equations.get("branch", 0)
                     temp_args = equations.get("args", 0)
                     
-                # Apply the same Dampener and Effective LOC limits to the fallback math
                 temp_signals = temp_branches + temp_args
                 temp_effective_loc = min(loc, (temp_signals + 1) * 10)
                 temp_arg_multiplier = math.sqrt(temp_args + 1)
@@ -354,19 +396,21 @@ class SignalProcessor:
             ownership_score = self._calc_ownership_entropy(authors_map)
             silo_exposure = self._calculate_silo_risk(authors_map)
             
-            ghost_meta = meta.get("metadata", {})
-            
             if authors_map:
                 dominant_author = max(authors_map, key=authors_map.get)
             else:
                 dominant_author = ghost_meta.get("ownership", "Unknown Architect")
 
+            # Execute the ML classification map!
+            archetype = self._classify_archetype(equations, loc)
+
             telemetry_payload = {
+                "archetype": archetype,
                 "densities": {"cog_raw": round(cog_raw, 3)},
                 "raw_churn_freq": raw_churn_freq,
                 "ownership_entropy": ownership_score,
-                "author_distribution": silo_exposure,  # <-- The new metric!
-                "ownership": dominant_author,          # <-- The updated ownership!
+                "author_distribution": silo_exposure,  
+                "ownership": dominant_author,          
                 "domain_context": ghost_meta 
             }
             
@@ -382,14 +426,13 @@ class SignalProcessor:
 
         except Exception as e:
             self.logger.error(f"Catastrophic physics failure on artifact '{rel_path}': {e}", exc_info=True)
-            # Fail-soft: Return a baseline safe vector
             return {
                 "risk_vector": [0.0] * len(self.RISK_SCHEMA),
                 "hit_vector": [equations.get(k, 0) for k in self.SIGNAL_SCHEMA],
                 "file_impact": max(loc / 50.0, 1.0),
                 "telemetry": {"error": str(e)}
             }
-                    
+                           
     # ==========================================================================
     # GLOBAL SYNTHESIS & 2-PASS NORMALIZATION
     # ==========================================================================
@@ -456,6 +499,19 @@ class SignalProcessor:
             for name, data in constellations_data.items()
         }
 
+        # --- NEW: Ecosystem Fingerprint (Archetype Ratios) ---
+        archetype_counts = {}
+        for s in stars:
+            arch = s.get("telemetry", {}).get("archetype", "Unknown")
+            archetype_counts[arch] = archetype_counts.get(arch, 0) + 1
+            
+        ecosystem_fingerprint = {}
+        if len(stars) > 0:
+            ecosystem_fingerprint = {
+                name: round((count / len(stars)) * 100.0, 1) 
+                for name, count in sorted(archetype_counts.items(), key=lambda x: x[1], reverse=True)
+            }
+
         return {
             "summary": {
                 "total_files": total_files,
@@ -475,6 +531,7 @@ class SignalProcessor:
                 "avg_documentation": get_avg("documentation")
             },
             "composition": lang_comp,
+            "ecosystem_fingerprint": ecosystem_fingerprint,
             "constellations": c_metrics
         }
         

@@ -112,7 +112,29 @@ class SecurityLens:
             
             # 10. THE VAULT DOOR (Credential & Secret Leaks)
             "private_info": re.compile(
-                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*(?:[:=]|=>)[ \t]*[\"'][A-Za-z0-9\-_+/=]{16,}[\"']",
+                # Catches standard variable assignments (your original logic)
+                r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*(?:[:=]|=>)[ \t]*[\"'][A-Za-z0-9\-_+/=]{16,}[\"']|"
+                
+                # Raw PEM / Key / Cert Headers
+                r"-----BEGIN (?:RSA |DSA |EC |OPENSSH |PGP )?(?:PRIVATE KEY|MESSAGE|CERTIFICATE)-----|"
+                
+                # Stripe API Keys (Standard & Restricted)
+                r"\b(?:sk_live|rk_live)_[0-9a-zA-Z]{24,99}\b|"
+                
+                # GitHub Personal Access Tokens
+                r"\bghp_[0-9a-zA-Z]{36}\b|"
+                
+                # Slack Tokens
+                r"\bxox[baprs]-[0-9a-zA-Z]{10,48}\b|"
+                
+                # Google Cloud / YouTube API Keys
+                r"\bAIza[0-9A-Za-z\-_]{35}\b|"
+                
+                # AWS Access Keys
+                r"\b(?:AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16}\b|"
+                
+                # Generic RSA/Ed25519 Private Key Blocks
+                r"ssh-(?:rsa|ed25519)[ \t]+[A-Za-z0-9+/]+[=]{0,2}",
                 re.I
             ),
             

@@ -663,6 +663,7 @@ class LogicSplicer:
             r'""".*?"""|'                       # Python Triple Double
             r"'''.*?'''|"                       # Python Triple Single
             r'R"([a-zA-Z0-9_]*)\(.*?\)\1"|'     # C++ Raw String Literal (e.g. R"EOF(...)EOF")
+            r'@"[^"]*(?:""[^"]*)*"|'            # THE FIX: Unrolled C# Verbatim Shield (O(N) safe)
             r'"(?:\\.|[^"\\])*"|'               # Standard Double
             r"'(?:\\.|[^'\\])*'|"               # Standard Single
             r'`(?:\\.|[^`\\])*`'                # Standard Backtick
@@ -894,8 +895,10 @@ class LogicSplicer:
         if family == 'lisp_semi':
             combined_pattern = r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|;.*|#\|.*?\|#'
         else:
-            combined_pattern = r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|//.*|/\*.*?\*/'
-
+            # THE FIX: Unrolled the C# verbatim string loop using Friedl's optimization 
+            # `[^"]*(?:""[^"]*)*` to guarantee O(N) linear performance on massive test strings.
+            combined_pattern = r'""".*?"""|@"[^"]*(?:""[^"]*)*"|R"([a-zA-Z0-9_]*)\(.*?\)\1"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|//.*|/\*.*?\*/'
+            
         safe_code = re.sub(combined_pattern, fast_shield, code, flags=re.DOTALL)
 
         # 3. Macro Shields (Strictly Gated to C-Family)
