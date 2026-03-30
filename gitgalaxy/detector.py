@@ -266,13 +266,15 @@ class LogicSplicer:
         
         if self.primary_lang_id not in self.languages or 'rules' not in self.languages.get(self.primary_lang_id, {}):
             try:
-                from .gitgalaxy_standards_v011 import LANGUAGE_DEFINITIONS
+                from .gitgalaxy_standards_v1 import LANGUAGE_DEFINITIONS
                 self.languages = LANGUAGE_DEFINITIONS
                 self.logger.warning(f"[AUTO-HEAL] Re-injected LANGUAGE_DEFINITIONS for '{self.primary_lang_id}'")
             except ImportError:
                 pass
 
-    def splice(self, code_stream: str, comment_stream: str = "", confidence: float = 1.0) -> LogicData:
+    def splice(self, code_stream: str, comment_stream: str, confidence: float = 1.0, profile_regex: bool = False) -> Dict[str, Any]:
+        """Executes the structural regex pass over refracted code streams."""
+        regex_telemetry = {}
         t_start = time.time()
         
         # We always extract the metadata first, even for Dark Matter files
@@ -310,6 +312,18 @@ class LogicSplicer:
                 "metadata": ghost_meta
             } 
 
+        # --- THE ANTI-REDOS SHIELD (Line Length Limiter) ---
+        # Identifies absurdly long continuous lines (Make .depend files, C hex arrays)
+        # and blanks them out before they reach the regex engine. Neutralizes Catastrophic
+        # Backtracking while perfectly preserving the file's geometry (mass and LOC).
+        safe_lines = []
+        for line in code_stream.split('\n'):
+            if len(line) > 1500:
+                safe_lines.append(' ' * len(line))
+            else:
+                safe_lines.append(line)
+        code_stream = '\n'.join(safe_lines)
+
         try:
             line_count = sum(1 for l in code_stream.splitlines() if l.strip())
 
@@ -318,12 +332,12 @@ class LogicSplicer:
             segments = self._partition_segments(code_stream, self.primary_lang_id)
             
             t_eq = time.time()
-            equations = self.coding_analysis(segments)
+            equations = self.coding_analysis(segments, regex_telemetry if profile_regex else None)
            
             equations = self.comment_analysis(comment_stream, self.primary_lang_id, equations)
             
             t_slice = time.time()
-            satellites, sum_fxn_impact = self._function_slice(segments)
+            satellites, sum_fxn_impact = self._function_slice(segments, regex_telemetry if profile_regex else None)
 
             branch_hits = equations.get("branch", 0)
             linear_hits = equations.get("linear", 0)
@@ -333,15 +347,18 @@ class LogicSplicer:
             total_signals = sum(equations.values())
             logic_density = round(total_signals / line_count, 3) if line_count > 0 else 0.0
 
-            return {
+            result_payload = {
                 "equations": equations,
                 "satellites": satellites,
                 "logic_density": logic_density,
                 "sum_fxn_impact": sum_fxn_impact,
                 "total_control_flow_ratio": total_control_flow_ratio,
-                "raw_imports": [],
+                # THE FIX: Removed 'raw_imports' so it doesn't overwrite the worker's Phase 6 capture
                 "metadata": ghost_meta
             }
+            if profile_regex:
+                result_payload["regex_telemetry"] = regex_telemetry
+            return result_payload
 
         except Exception as e:
             self.logger.error(f"Catastrophic failure during structural splicing: {e}", exc_info=True)
@@ -351,10 +368,10 @@ class LogicSplicer:
                 "logic_density": 0.0, 
                 "sum_fxn_impact": 0.0, 
                 "total_control_flow_ratio": 0.0, 
-                "raw_imports": [],# <--- Safe empty return
+                "raw_imports": [],
                 "metadata": ghost_meta
             }
-    
+            
     def _decode_comment_stream(self, comment_stream: str) -> Dict[str, str]:
         meta = {"ownership": "Unknown Architect"}
         if not comment_stream:
@@ -383,7 +400,12 @@ class LogicSplicer:
         if not (re_purpose_line or re_purpose_block):
             return meta
 
-        clean_text = re.sub(r'^[ \t]*([#/*!\-]+|[Cc][ \t]+)[ \t]*', '', comment_stream, flags=re.MULTILINE)
+        # ---> MEMORY CAP <---
+        # We only scan the top 500 lines anyway, so hard-cap the string at ~15,000 characters
+        # to prevent massive license blocks or generated data from thrashing the regex engine.
+        capped_stream = comment_stream[:15000]
+
+        clean_text = re.sub(r'^[ \t]*([#/*!\-]+|[Cc][ \t]+)[ \t]*', '', capped_stream, flags=re.MULTILINE)
         lines = clean_text.splitlines()
 
         active_capture = None
@@ -486,29 +508,42 @@ class LogicSplicer:
 
     def _find_balanced_end(self, safe_text: str, start_pos: int, opener: str, closer: str) -> int:
         """
-        Fast brace-tracking algorithm. 
+        C-Optimized jump-tracking algorithm. 
         Expects 'safe_text' where string literals and comments have already been shielded.
         """
         depth = 0
         limit = min(start_pos + self.HANDSHAKE_LOOKAHEAD_LIMIT, len(safe_text))
-        
-        for i in range(start_pos, limit):
-            char = safe_text[i]
-                
-            if char == opener: 
+        pos = start_pos
+
+        while pos < limit:
+            # Ask the C-engine to instantly find the next brace, bypassing Python loops
+            next_open = safe_text.find(opener, pos, limit)
+            next_close = safe_text.find(closer, pos, limit)
+
+            # If there are no more closing braces, the scope is truncated/malformed. Bail out.
+            if next_close == -1:
+                break
+
+            # If the opener comes next, dive one level deeper
+            if next_open != -1 and next_open < next_close:
                 depth += 1
-                # Enforce the depth limit to prevent saturation overflow
+                pos = next_open + 1
+                
                 if depth > self.MAX_DEPTH:
-                    self.logger.warning(f"[DIAGNOSTIC] Scope depth ({self.MAX_DEPTH}) exceeded. Clamping.")
                     depth = self.MAX_DEPTH
-            elif char == closer:
+            
+            # If the closer comes next, surface one level
+            else:
                 depth -= 1
-                if depth <= 0: 
-                    return i + 1
+                pos = next_close + 1
+                
+                # We have cleanly exited the original scope
+                if depth <= 0:
+                    return pos
                     
         return limit
 
-    def coding_analysis(self, segments: List[Tuple[str, str, int]]) -> Dict[str, int]: 
+    def coding_analysis(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Dict[str, int]: 
         # 1. THE FIX: Initialize the dictionary using the strict, ordered schema.
         # This guarantees the dictionary is exactly 51 elements long, in the exact same order every time.
         counts: Dict[str, int] = {key: 0 for key in self.UNIVERSAL_METRICS_SCHEMA}
@@ -540,7 +575,7 @@ class LogicSplicer:
                 try:
                     # --- INJECTED DEBUG TRACE ---
                     self.logger.debug(f"[REGEX-TRACE] Evaluating rule: '{rule_name}' for language '{seg_lang}'...")
-                    t_rule_start = time.time()
+                    t_rule_start = time.perf_counter()
 
                     if hasattr(pattern, 'findall'): 
                         c = len(pattern.findall(seg_code))
@@ -548,7 +583,12 @@ class LogicSplicer:
                         c = len(re.findall(str(pattern), seg_code))
                     
                     # Log if a rule is dangerously slow, but didn't permanently hang
-                    t_elapsed = time.time() - t_rule_start
+                    t_elapsed = time.perf_counter() - t_rule_start
+                    
+                    if regex_telemetry is not None:
+                        key = f"{seg_lang}::{rule_name}"
+                        # Accumulate time in case the same rule is evaluated across multiple segments
+                        regex_telemetry[key] = regex_telemetry.get(key, 0.0) + t_elapsed
                     if t_elapsed > 0.5:
                         self.logger.debug(f"[REGEX-TRACE] ^-- SLOW RULE: '{rule_name}' took {t_elapsed:.4f}s")
 
@@ -711,7 +751,7 @@ class LogicSplicer:
     # THE MASTER DISPATCHER
     # ==============================================================================
 
-    def _function_slice(self, segments: List[Tuple[str, str, int]]) -> Tuple[List[Satellite], float]:
+    def _function_slice(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Tuple[List[Satellite], float]:
         """The Master Routing Dispatcher: Directs the optical signal into the correct integration mode."""
         all_satellites = []
         global_impact = 0.0
@@ -723,9 +763,14 @@ class LogicSplicer:
             
             optical_mode = SemanticScopeRegistry.get_mode(lang_id)
             
+            t_mode_start = time.perf_counter()
+            mode_name = "Unknown"
+            
             if optical_mode == "mode_d":
+                mode_name = "Mode_D_Keywords"
                 sats, impact = self._slice_by_keywords(code, lang_id, rules, offset)
             elif optical_mode == "mode_e":
+                mode_name = "Mode_E_Terminator"
                 sats, impact = self._slice_by_terminator(code, lang_id, rules, offset)
             else:
                 # Fallback to standard optical heuristics (Modes A, B, C)
@@ -734,12 +779,20 @@ class LogicSplicer:
                     continue
                     
                 if lang_id in ('assembly', 'agc_assembly', 'cobol', 'fortran') or family in ('singular', 'positional'):
+                    mode_name = "Mode_A_Labels"
                     sats, impact = self._slice_by_labels(code, rules, offset)
                 elif family in ('pure_hash', 'hybrid_hash') or lang_id in ('python', 'yaml'):
+                    mode_name = "Mode_C_Indentation"
                     sats, impact = self._slice_by_indentation(code, rules, offset)
                 else:
+                    mode_name = "Mode_B_Braces"
                     # FIX: Pass the lexical family down so we can swap {} for ()
-                    sats, impact = self._slice_by_braces(code, rules, offset, family=family)
+                    sats, impact = self._slice_by_braces(code, lang_id, rules, offset, family=family)
+
+            # Record the telemetry if profiling is active
+            if regex_telemetry is not None and mode_name != "Unknown":
+                key = f"{lang_id}::Cartography_{mode_name}"
+                regex_telemetry[key] = regex_telemetry.get(key, 0.0) + (time.perf_counter() - t_mode_start)
 
             all_satellites.extend(sats)
             global_impact += impact
@@ -750,7 +803,7 @@ class LogicSplicer:
 
         all_satellites.sort(key=lambda x: x.get("mag", 0), reverse=True)
         return all_satellites, global_impact
-
+    
     # ==============================================================================
     # INTEGRATION MODES (Slicers)
     # ==============================================================================
@@ -763,6 +816,10 @@ class LogicSplicer:
 
         try: matches = list(func_start.finditer(code))
         except Exception: return [], 0.0
+
+        # --- FAST O(N) LINE TRACKER ---
+        current_line_count = offset + 1
+        last_counted_idx = 0
 
         for i, match in enumerate(matches):
             if len(satellites) >= self.MAX_SATELLITES: break
@@ -789,8 +846,11 @@ class LogicSplicer:
                 
             name = self._extract_name(raw_name)
             
-            # Derive tight boundaries directly from the stripped block
-            start_line = offset + code.count('\n', 0, start_idx) + 1
+            # --- FAST O(N) LINE TRACKER ---
+            current_line_count += code.count('\n', last_counted_idx, start_idx)
+            last_counted_idx = start_idx
+            start_line = current_line_count
+            
             loc = block.count('\n') + 1
             end_line = start_line + loc - 1
 
@@ -801,7 +861,7 @@ class LogicSplicer:
 
         return satellites, sum_fxn_impact
 
-    def _slice_by_braces(self, code: str, rules: Dict[str, Any], offset: int, family: str = 'std_c') -> Tuple[List[Satellite], float]:
+    def _slice_by_braces(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, family: str = 'std_c') -> Tuple[List[Satellite], float]:
         """[INTEGRATION MODE B] - Global Recursive Scope Analysis (C-Family & Lisp)."""
         satellites = []
         sum_fxn_impact = 0.0
@@ -818,46 +878,81 @@ class LogicSplicer:
         opener = '(' if family == 'lisp_semi' else '{'
         closer = ')' if family == 'lisp_semi' else '}'
 
-        # 1. Apply an Atomic Index-Aligned Shield to the entire block.
-        # This replaces strings and comments with blank spaces, preserving exact character 
-        # indices and newline counts so safe_code maps 1:1 with the original code.
-        def index_aligned_shield(m):
+        # 1. High-Performance C-Backed Shield Function
+        def fast_shield(m):
             text = m.group(0)
-            return ''.join('\n' if c == '\n' else ' ' for c in text)
+            if '\n' not in text: 
+                return ' ' * len(text)
+                
+            # --- THE FIX: C-Optimized String Manipulation ---
+            # Replaces the character-by-character regex grind with native split/join.
+            # Instantly blanks massive Doxygen blocks without destroying line-counts.
+            return '\n'.join(' ' * len(line) for line in text.split('\n'))
 
-        # THE FIX: Atomic Alternation Shield.
-        # Evaluates ", ', and ` simultaneously to prevent quote manipulation 
-        # functions (like Dequote) from collapsing the closing braces.
-        atomic_string_pattern = r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`'
-        safe_code = re.sub(atomic_string_pattern, index_aligned_shield, code, flags=re.DOTALL)
-        
-        # Shield comments to prevent scope boundaries inside them from breaking extraction
+        # 2. The Single-Pass Lexer (Massive I/O Reduction)
+        # Combines strings and comments into ONE scan to prevent memory-copy thrashing.
         if family == 'lisp_semi':
-            safe_code = re.sub(r';.*', lambda m: ' ' * len(m.group(0)), safe_code)
-            safe_code = re.sub(r'#\|.*?\|#', index_aligned_shield, safe_code, flags=re.DOTALL)
+            combined_pattern = r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|;.*|#\|.*?\|#'
         else:
-            safe_code = re.sub(r'//.*', lambda m: ' ' * len(m.group(0)), safe_code)
-            safe_code = re.sub(r'/\*.*?\*/', index_aligned_shield, safe_code, flags=re.DOTALL)
+            combined_pattern = r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|//.*|/\*.*?\*/'
 
-            # THE CATASTROPHIC BACKTRACKING FIX
-            # Shield multi-line preprocessor directives securely and instantly without scanning O(N^2).
-            safe_code = re.sub(r'^[ \t]*#(?:[^\n\\]|\\.)*\n', index_aligned_shield, safe_code, flags=re.MULTILINE)
+        safe_code = re.sub(combined_pattern, fast_shield, code, flags=re.DOTALL)
 
-            # ---> NEW: THE C/C++ PREPROCESSOR BRACE SHIELD <---
-            # Prevents C macro branching (like #else { ) from permanently breaking the scope stack
+        # 3. Macro Shields (Strictly Gated to C-Family)
+        if lang_id in ('c', 'cpp', 'objective-c', 'cs', 'swift'):
+            # --- FAST O(N) PREPROCESSOR STATE MACHINE ---
+            # Replaces the ReDoS-vulnerable regexes with a single-pass linear scanner.
+            # Properly handles nested #if blocks and multi-line \ macros in OS-level codebases.
+            lines = safe_code.splitlines(keepends=True)
+            in_dead_branch = False
+            dead_nesting_depth = 0
+            in_multiline_macro = False
             
-            # A) Shield #define macros (which often contain raw floating braces)
-            # Handles multi-line definitions ending in \
-            safe_code = re.sub(r'^[ \t]*#define.*?(?<!\\)\n', index_aligned_shield, safe_code, flags=re.MULTILINE | re.DOTALL)
-            
-            # B) Shield alternative compilation branches (#else, #elif) down to the next directive
-            # This blinds the parser to duplicate braces in the dead structural branches
-            safe_code = re.sub(r'^[ \t]*#(?:else|elif).*?(?=^[ \t]*#(?:endif|else|elif))', index_aligned_shield, safe_code, flags=re.MULTILINE | re.DOTALL)
-            
-            # C) Blank out the remaining preprocessor directives (#if, #ifdef, #ifndef, #endif, #pragma)
-            safe_code = re.sub(r'^[ \t]*#.*', lambda m: ' ' * len(m.group(0)), safe_code, flags=re.MULTILINE)
+            for i in range(len(lines)):
+                line = lines[i]
+                stripped = line.lstrip()
+                
+                # A) Handle Multi-line Macro Continuation
+                if in_multiline_macro:
+                    lines[i] = ' ' * (len(line) - 1) + '\n' if line.endswith('\n') else ' ' * len(line)
+                    if not stripped.rstrip(' \t\r\n').endswith('\\'):
+                        in_multiline_macro = False
+                    continue
+                    
+                # B) Handle Preprocessor Directives
+                if stripped.startswith('#'):
+                    if stripped.startswith('#if'):
+                        if in_dead_branch:
+                            dead_nesting_depth += 1
+                    elif stripped.startswith(('#else', '#elif')):
+                        if not in_dead_branch and dead_nesting_depth == 0:
+                            in_dead_branch = True
+                    elif stripped.startswith('#endif'):
+                        if in_dead_branch:
+                            if dead_nesting_depth > 0:
+                                dead_nesting_depth -= 1
+                            else:
+                                in_dead_branch = False
+                                
+                    if stripped.startswith('#define'):
+                        if stripped.rstrip(' \t\r\n').endswith('\\'):
+                            in_multiline_macro = True
+                            
+                    # Always blank the directive itself to prevent floating syntax
+                    lines[i] = ' ' * (len(line) - 1) + '\n' if line.endswith('\n') else ' ' * len(line)
+                    continue
+                    
+                # C) Blank Dead Branch Content
+                if in_dead_branch:
+                    lines[i] = ' ' * (len(line) - 1) + '\n' if line.endswith('\n') else ' ' * len(line)
+
+            safe_code = "".join(lines)
 
         last_end_idx = 0
+        
+        # --- FAST O(N) LINE TRACKER ---
+        current_line_count = offset + 1
+        last_counted_idx = 0
 
         for match_idx, match in enumerate(matches):
             if len(satellites) >= self.MAX_SATELLITES: break
@@ -890,8 +985,12 @@ class LogicSplicer:
 
             name = self._extract_name(raw_name)
 
-            # Derive tight boundaries directly from the stripped block
-            start_line = offset + code.count('\n', 0, start_idx) + 1
+            # --- FAST O(N) LINE TRACKER ---
+            # Only count the newlines since the last match, preventing O(N^2) quadratic scanning
+            current_line_count += code.count('\n', last_counted_idx, start_idx)
+            last_counted_idx = start_idx
+            start_line = current_line_count
+            
             loc = block.count('\n') + 1
             end_line = start_line + loc - 1
 
@@ -934,6 +1033,10 @@ class LogicSplicer:
         except Exception: return [], 0.0
 
         last_end_idx = 0
+        
+        # --- FAST O(N) LINE TRACKER ---
+        current_line_count = offset + 1
+        last_counted_idx = 0
 
         for match in matches:
             if len(satellites) >= self.MAX_SATELLITES: break
@@ -958,24 +1061,25 @@ class LogicSplicer:
             else:
                 scan_pos += 1
                 
-            # Scan forward line-by-line looking for an indentation break
-            lines_forward = safe_code[scan_pos:].splitlines(keepends=True)
-            for f_line in lines_forward:
+            # --- FAST O(N) INDENT TRACKER ---
+            # Replaced O(N^2) array allocations with zero-copy index jumping
+            while scan_pos < len(safe_code):
+                next_nl = safe_code.find('\n', scan_pos)
+                if next_nl == -1:
+                    line_end = len(safe_code)
+                else:
+                    line_end = next_nl + 1
+                
+                f_line = safe_code[scan_pos:line_end]
                 stripped = f_line.lstrip()
                 
-                # Empty lines, whitespace lines, or fully shielded comment lines don't break scope
-                if not stripped: 
-                    scan_pos += len(f_line)
-                    continue
-                    
-                current_indent = len(f_line) - len(stripped)
-                
-                # If we find a line with actual code that is unindented, the block is over
-                if current_indent <= base_indent:
-                    end_idx = scan_pos
-                    break
-                    
-                scan_pos += len(f_line)
+                if stripped:
+                    current_indent = len(f_line) - len(stripped)
+                    if current_indent <= base_indent:
+                        end_idx = scan_pos
+                        break
+                        
+                scan_pos = line_end
                 
             last_end_idx = end_idx
             
@@ -983,8 +1087,11 @@ class LogicSplicer:
             block = code[start_idx:end_idx].strip()
             if not block or len(block.splitlines()) < 2: continue
             
-            # Derive tight boundaries directly from the stripped block
-            start_line = offset + code.count('\n', 0, start_idx) + 1
+            # --- FAST O(N) LINE TRACKER ---
+            current_line_count += code.count('\n', last_counted_idx, start_idx)
+            last_counted_idx = start_idx
+            start_line = current_line_count
+            
             loc = block.count('\n') + 1
             end_line = start_line + loc - 1
             
@@ -1018,6 +1125,10 @@ class LogicSplicer:
         # 1. Apply the comprehensive Atomic Literal Shield
         safe_code = self._apply_literal_shield(code)
         
+        # ---> FAST SINGLE-PASS COMMENT STRIP <---
+        # Ensures #var or #foo are not erroneously treated as comments if they are not at the start of a word.
+        safe_code = re.sub(r'(^|[ \t])(?:#|--|//).*$', r'\1', safe_code, flags=re.MULTILINE)
+
         # 2. Split both into parallel arrays
         original_lines = code.splitlines(keepends=True)
         safe_lines = safe_code.splitlines(keepends=True)
@@ -1032,10 +1143,6 @@ class LogicSplicer:
 
         # 3. Zip them together. We scan the safe_line for triggers, but save the orig_line into the satellite.
         for idx, (orig_line, safe_line) in enumerate(zip(original_lines, safe_lines)):
-
-            # THE FIX: Shell Variable Leak Shield
-            # Ensures #var or #foo are not erroneously treated as comments if they are not at the start of a word.
-            safe_line = re.sub(r'(^|\s)(?:#|--|//).*$', r'\1', safe_line)
             
             opens = len(open_pattern.findall(safe_line))
             closes = len(close_pattern.findall(safe_line))
@@ -1137,6 +1244,10 @@ class LogicSplicer:
         safe_code = re.sub(r"'(?:\\.|[^'\\])*'", preserve_newlines, safe_code, flags=re.DOTALL)
         safe_code = re.sub(r"`(?:\\.|[^`\\])*`", preserve_newlines, safe_code, flags=re.DOTALL)
 
+        # ---> FAST SINGLE-PASS COMMENT STRIP <---
+        # Execute the regex once globally. Prevents 500,000+ regex calls on massive SQL dumps.
+        safe_code = re.sub(r'(--|%).*$', '', safe_code, flags=re.MULTILINE)
+
         # 2. Split both into parallel arrays
         original_lines = code.splitlines(keepends=True)
         safe_lines = safe_code.splitlines(keepends=True)
@@ -1145,9 +1256,6 @@ class LogicSplicer:
         # but save the orig_line into the satellite block.
         for orig_line, safe_line in zip(original_lines, safe_lines):
             current_line_offset += 1
-            
-            # Strip single-line comments from the safe line to prevent false triggers
-            safe_line = re.sub(r'(--|%).*$', '', safe_line)
 
             if not safe_line.strip() and not is_orbiting:
                 sat_start_line = current_line_offset + 1
@@ -1214,7 +1322,7 @@ class LogicSplicer:
 
         total_hits = branch_hits + linear_hits
         
-        # --- THE FIX: Updated Math Variables ---
+        # --- Updated Math Variables ---
         control_flow_ratio = branch_hits / max(total_hits, 1)
         control_flow_ratio = max(0.0, min(control_flow_ratio, 1.0))
         angle = 22.5 + (1.0 - control_flow_ratio) * 67.5
@@ -1229,12 +1337,25 @@ class LogicSplicer:
                         if ',' in args_str:
                             args_count = args_str.count(',') + 1
                         else:
-                            # FIX: Handle space-separated arguments (Lisp/Scheme/Shell)
+                            # Handle space-separated arguments (Lisp/Scheme/Shell)
                             args_count = len(args_str.strip().split())
             except Exception: pass
 
         texture_str = self._classify_function(name, block, rules)
-        magnitude = float((branch_hits + 1) * (args_count + 1) + (0.05 * loc))
+
+        # ---> THE FIX 1: SIGNAL-ANCHORED LOC <---
+        # Cap the 'weight-bearing' lines to 10x the number of actual logic signals.
+        # A massive dictionary with 0 signals shrinks to an effective_loc of 10.
+        total_signals = branch_hits + linear_hits + args_count
+        effective_loc = min(loc, (total_signals + 1) * 10)
+
+        # ---> THE FIX 2: SUB-LINEAR ARGUMENT DAMPENER <---
+        # Apply a square root to the arguments to prevent combinatorial mass explosions
+        # on edge-case mega-functions, while preserving the core physics philosophy.
+        arg_multiplier = math.sqrt(args_count + 1)
+
+        # Calculate magnitude using the dampened arguments and logic-bounded length
+        magnitude = float((branch_hits + 1) * arg_multiplier + (0.05 * effective_loc))
 
         sat: Satellite = {
             "name": name[:40], 
@@ -1247,11 +1368,8 @@ class LogicSplicer:
             "args_count": args_count,
             "logic_angle": round(angle, 2),
             "angle": round(angle, 2),
-            
-            # --- THE FIX: Updated Dictionary Keys ---
             "control_flow_ratio": round(control_flow_ratio, 3),
             "cf_ratio": round(control_flow_ratio, 3),
-            
             "magnitude": round(magnitude, 1),
             "mag": round(magnitude, 1),
             "impact": round(magnitude, 1), 
@@ -1259,7 +1377,7 @@ class LogicSplicer:
             "end_line": end_line
         }
         return sat, magnitude
-    
+
     def _extract_name(self, raw_match: str) -> str:
         """Safely extracts the function name by isolating the last valid alphanumeric word before parameters."""
         match_strip = raw_match.strip()
@@ -1424,9 +1542,18 @@ class Cartographer:
             
         sector_stats.sort(key=lambda x: x["radius"], reverse=True)
 
-        # 3. DYNAMIC MASK PLACEMENT
-        # Stores [x, z, radius_with_buffer] of every placed constellation
+# 3. DYNAMIC MASK PLACEMENT (Spatial Hashed)
         placed_circles = [[0.0, 0.0, self.CORE_EXCLUSION_RADIUS]] 
+        
+        # --- THE FIX: ANGULAR SPATIAL HASHING ---
+        # Neutralizes the O(N^2) death-spiral. Instead of checking every folder, we divide 
+        # the 360-degree map into 360 buckets. A ray only checks the exact degree it is pointing at.
+        NUM_BINS = 360
+        spatial_grid = [[] for _ in range(NUM_BINS)]
+        
+        # Put the origin exclusion zone into all buckets
+        for b in range(NUM_BINS):
+            spatial_grid[b].append(0)
         
         current_angle = 0.0
         prev_radius = 0.0
@@ -1438,49 +1565,66 @@ class Cartographer:
             sec_radius = sec["radius"]
 
             if i == 0:
-                # First galaxy (Monolith or largest folder) at Angle 0
                 dist = self.CORE_EXCLUSION_RADIUS + sec_radius
                 sec_x, sec_z = dist, 0.0
                 current_angle = 0.0
                 prev_dist_from_center = dist
             else:
-                # Step A: Determine angular offset based on Hull-to-Hull link with previous
-                # arc_length = radius * theta -> theta = arc_length / radius
-                # Using 1.2 * combined radii as required arc length gap
                 arc_step = (prev_radius + sec_radius) * self.MACRO_STEP_FACTOR
                 delta_theta = arc_step / max(prev_dist_from_center, 1.0)
                 current_angle += delta_theta
                 
-                # Step B: Ray-Cast to determine distance (measure mask)
-                # Look down current_angle and find the furthest point where any 
-                # placed circle intersects our ray.
                 cos_th = math.cos(current_angle)
                 sin_th = math.sin(current_angle)
-                
-                # Minimum starting distance is just outside exclusion zone
                 max_r_intersect = self.CORE_EXCLUSION_RADIUS
                 
-                for px, pz, pr in placed_circles:
-                    # Ray-Circle Intersection: (r*cos - px)^2 + (r*sin - pz)^2 = pr^2
-                    # Quadratic: r^2 - 2r(px*cos + pz*sin) + (px^2 + pz^2 - pr^2) = 0
+                # --- FAST O(1) LOOKUP ---
+                # Retrieve only the circles that overlap with our ray's exact degree trajectory
+                ray_deg = int(math.degrees(current_angle)) % 360
+                bins_to_check = [(ray_deg - 1) % 360, ray_deg, (ray_deg + 1) % 360]
+                
+                candidates = set()
+                for b in bins_to_check:
+                    candidates.update(spatial_grid[b])
+                
+                for idx in candidates:
+                    px, pz, pr = placed_circles[idx]
+                    
                     b = -2 * (px * cos_th + pz * sin_th)
                     c = (px**2 + pz**2) - (pr * self.MACRO_STEP_FACTOR)**2
                     disc = b**2 - 4*c
                     
                     if disc >= 0:
-                        # We only care about the furthest intersection point (r2)
                         r2 = (-b + math.sqrt(disc)) / 2.0
                         if r2 > max_r_intersect:
                             max_r_intersect = r2
                             
-                # Lock position at furthest obstruction + its own radius
                 dist = max_r_intersect + sec_radius
                 sec_x = dist * cos_th
                 sec_z = dist * sin_th
                 prev_dist_from_center = dist
 
-            # Add to mask for subsequent galaxies
+            # Add to memory array
+            new_idx = len(placed_circles)
             placed_circles.append([sec_x, sec_z, sec_radius])
+            
+            # --- REGISTER IN SPATIAL GRID ---
+            # Calculate which angular slices this new constellation occupies and stash its index
+            eff_pr = sec_radius * self.MACRO_STEP_FACTOR
+            dist_to_center = math.hypot(sec_x, sec_z)
+            center_a = math.atan2(sec_z, sec_x)
+            
+            if eff_pr >= dist_to_center:
+                # It's huge, it overlaps the center, it goes in all bins
+                for b in range(NUM_BINS): spatial_grid[b].append(new_idx)
+            else:
+                # Stash it only in the degrees its radius touches
+                half_a = math.asin(eff_pr / dist_to_center)
+                start_deg = int(math.degrees(center_a - half_a))
+                end_deg = int(math.degrees(center_a + half_a))
+                
+                for deg in range(start_deg, end_deg + 1):
+                    spatial_grid[deg % 360].append(new_idx)
 
             # Jitter and Tilt logic
             sec_y = self._hash_jitter(s_name, 250.0)

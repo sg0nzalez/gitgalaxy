@@ -258,10 +258,35 @@ class Prism:
             elif fam_key == 'polyglot' and len(d) >= 3: # Fallback
                 p = rf'({d[1]}.*?{d[2]}|{d[0]}[^\n]*)'
             elif fam_key == 'singular':
-                # THE FIX: Prevent O(N^2) ReDoS caused by empty array indices.
-                # Explicitly maps the grab-bag of singular tokens safely to prevent code deletion.
-                # Covers HTML/XML (), Matlab (%{ %}), Assembly/Lisp (;), C-style (//), M4 (dnl), and Matlab (%).
-                p = r'(|^[ \t]*%\{.*?%\}|;[^\n]*|//[^\n]*|(?i)\bdnl\b[^\n]*|%[^\n]*)'
+                # =====================================================================
+                # THE FIX: Neutralized the Zero-Width ReDoS Bomb.
+                # 
+                # HISTORICAL CONTEXT FOR FUTURE MAINTAINERS & LLMS:
+                # A previous iteration of this regex started with `(|^[ \t]...`.
+                # The leading `|` (OR) without a preceding token created a zero-width 
+                # assertion. This told Python's `re.sub` engine that matching an "empty 
+                # string" was a valid success state. Consequently, `re.sub` would 
+                # evaluate and trigger a callback at EVERY SINGLE CHARACTER BOUNDARY 
+                # in the file. For a 1MB Assembly file, this caused 1,000,000 redundant 
+                # Python loop executions, freezing the pipeline. 
+                #
+                # DO NOT ADD A LEADING OR TRAILING `|` TO THIS CAPTURE GROUP.
+                #
+                # REGEX TOKEN BREAKDOWN:
+                # This pattern explicitly maps a grab-bag of legacy/singular comment 
+                # tokens safely. It evaluates sequentially:
+                #
+                # 1. `^[ \t]*%\{.*?%\}` : Matlab block comments. Matches start of line, 
+                #                         optional whitespace, then %{ ... %} natively.
+                #                         (Relies on re.M and re.S flags applied later).
+                # 2. `;[^\n]*`          : Assembly, Lisp, and INI single-line comments.
+                # 3. `//[^\n]*`         : C-style single-line comments.
+                # 4. `(?i)\bdnl\b[^\n]*`: M4 macro comments ("Discard to Next Line"). 
+                #                         (?i) sets case-insensitivity, \b ensures exact 
+                #                         word match.
+                # 5. `%[^\n]*`          : TeX and Matlab single-line comments.
+                # =====================================================================
+                p = r'(^[ \t]*%\{.*?%\}|;[^\n]*|//[^\n]*|(?i)\bdnl\b[^\n]*|%[^\n]*)'
             
             if p:
                 try:
@@ -281,11 +306,14 @@ class Prism:
         return matrix
 
     def _strip_python_docstrings(self, text: str) -> Tuple[str, List[str]]:
-        """Hardened extraction for standalone triple-quoted literature blocks."""
-        docs = self.PYTHON_DOC_PATTERN.findall(text)
-        # Substitute with newline to prevent adjoining line concatenation
-        clean = self.PYTHON_DOC_PATTERN.sub('\n', text)
-        return clean, [d.strip() for d in docs]
+        """Hardened extraction for standalone triple-quoted literature blocks (O(N) Single Pass)."""
+        docs = []
+        def callback(m: re.Match) -> str:
+            docs.append(m.group(0).strip())
+            return '\n'
+            
+        clean = self.PYTHON_DOC_PATTERN.sub(callback, text)
+        return clean, docs
 
     def _strip_php_string_mass(self, text: str) -> Tuple[str, List[str]]:
         """Surgically extracts PHP Heredoc and multi-line strings to prevent structural hallucinations."""
@@ -311,7 +339,20 @@ class Prism:
         last_idx = 0
         
         triggers = []
+        # --- FAST PATH: The Universal Web Tax Shield ---
+        # Bypasses expensive case-insensitive regex scans unless the trigger literal is actually present.
+        content_lower = None
+
         for h in self.HANDSHAKES:
+            # Extract a reliable literal hint (e.g., 'script', 'style', 'asm')
+            hint = h["trigger"].pattern.lower().replace('\\s*', '').replace('\\b', '').replace('__', '').split('<')[-1].split('(')[0].split('!')[0].strip()
+            
+            if len(hint) >= 3:
+                if content_lower is None:
+                    content_lower = content.lower() # One fast C-level allocation
+                if hint not in content_lower:
+                    continue # Skip the expensive regex entirely!
+                    
             for m in h["trigger"].finditer(content):
                 triggers.append({
                     "start": m.start(), 
@@ -416,15 +457,19 @@ class Prism:
             
         protected_code = shield.sub(_shield_replacer, text)
         
+        # --- FAST O(1) UNMASKING ROUTINE ---
+        def unmask(chunk: str) -> str:
+            if "__GALAXY_STR_MASK_" not in chunk:
+                return chunk
+            # Instantly find masks via regex and retrieve the original string via O(1) dictionary lookup
+            return re.sub(r'__GALAXY_STR_MASK_\d+__', lambda match: string_cache.get(match.group(0), match.group(0)), chunk)
+        
         # 2. Peel single-line comments safely
         s_line_pattern = re.compile(rf'{re.escape(s_line)}[^\n]*')
         
         def single_callback(m: re.Match) -> str:
             comment = m.group(0)
-            # Unmask any string that was legally part of the comment
-            for key, val in string_cache.items():
-                comment = comment.replace(key, val)
-            lits.append(comment.strip())
+            lits.append(unmask(comment).strip())
             return ""
             
         protected_code = s_line_pattern.sub(single_callback, protected_code)
@@ -440,11 +485,8 @@ class Prism:
             
             block_content = protected_code[start_idx:end_match.end()]
             
-            # Unmask any strings safely captured within the comment block
-            for key, val in string_cache.items():
-                block_content = block_content.replace(key, val)
-                
-            lits.append(block_content.strip())
+            # Unmask any strings safely captured within the comment block using O(1) lookup
+            lits.append(unmask(block_content).strip())
             
             # Remove from logic stream
             protected_code = protected_code[:start_idx] + protected_code[end_match.end():]
@@ -454,10 +496,7 @@ class Prism:
             self.logger.warning(f"Nested Peel Guard triggered: Reached max iteration limit ({self.NESTED_PEEL_LIMIT}).")
             
         # 4. Final Logic Unmasking
-        for key, val in string_cache.items():
-            protected_code = protected_code.replace(key, val)
-            
-        return protected_code, lits
+        return unmask(protected_code), lits
 
     def _refract_positional(self, text: str) -> Tuple[str, str]:
         """Column-anchored and Inline stripping for legacy species (COBOL/Fortran)."""

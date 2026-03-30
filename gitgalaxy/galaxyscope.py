@@ -21,6 +21,7 @@ import concurrent.futures
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Union, Set
+from collections import defaultdict
 
 # Hardware Layer (Strategy v6.2 Protocol - Optical Pipeline)
 from .aperture import ApertureFilter, ApertureError, InaccessibleArtifactError
@@ -174,8 +175,16 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     has_prior, intent_vector = guidestar.get_intent_status(full_path_str)
     observation = {"rel_path": rel_path, "status": "filtered", "reason": "Aperture block", "data": {}}
 
+    # --- PHASE PROFILING STATE ---
+    is_file_profiling = _worker_state['config'].get("FILE_SPEED", False)
+    is_profiling = _worker_state['config'].get("SPLICING_SPEED", False)
+    phase_times = {}
+
     try:
+        # Phase 1: Aperture Filter
+        t_aperture = time.perf_counter()
         is_valid, size_bytes, reason = aperture.evaluate_path_integrity(full_path_str, has_intent=has_prior)
+        if is_file_profiling: phase_times["1_Aperture_Filter"] = time.perf_counter() - t_aperture
         
         if not is_valid:
             observation["status"] = "singularity"
@@ -184,6 +193,8 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["processing_time"] = time.time() - t_start
             return observation
             
+        # Phase 2: Disk I/O
+        t_io = time.perf_counter()
         try:
             with open(full_path_str, 'r', encoding='utf-8', errors='ignore') as f:
                 content_buffer = f.read()
@@ -197,6 +208,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["reason"] = f"I/O Error: {str(e)}"
             observation["processing_time"] = time.time() - t_start
             return observation
+        if is_file_profiling: phase_times["2_Disk_IO"] = time.perf_counter() - t_io
 
         filter_res = aperture.is_in_scope(full_path_str, content=content_buffer, has_intent=has_prior)
         if not filter_res["is_in_scope"]:
@@ -205,13 +217,17 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["processing_time"] = time.time() - t_start
             return observation
 
+        # Phase 3: Linguistic Detector
+        t_detector = time.perf_counter()
         detection_result = detector.inspect(
             full_path_str, 
             content_sample=content_buffer, 
             has_intent=has_prior, 
             intent_vector=intent_vector, 
-            ext_tally=_worker_state.get('ext_tally', {})
+            ext_tally=_worker_state.get('ext_tally', {}),
+            census=_worker_state['census']
         )
+        if is_file_profiling: phase_times["3_Language_Detector"] = time.perf_counter() - t_detector
         
         lang_id = detection_result["lang_id"]
         is_supported = lang_id in lang_defs or lang_id in ("plaintext", "markdown")
@@ -223,7 +239,10 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["processing_time"] = time.time() - t_start
             return observation
         
+        # Phase 4: Prism Refraction
+        t_prism = time.perf_counter()
         refraction = prism.refract(content_buffer, lang_id)
+        if is_file_profiling: phase_times["4_Prism_Refraction"] = time.perf_counter() - t_prism
         
         if lang_id not in splicer_cache:
             from .detector import LogicSplicer
@@ -234,16 +253,20 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
         # --- INJECTED DEBUG TRACE ---
         logger.debug(f"[WORKER-TRACE] >>> ENTERING SPLICER: {rel_path} (Lang: {lang_id})")
         
+        # Phase 5: Logic Splicer
+        t_splicer = time.perf_counter()
         logic_data = splicer.splice(
             code_stream=refraction["code_stream"], 
             comment_stream=refraction["comment_stream"],
-            confidence=detection_result.get("intensity", 1.0)
+            confidence=detection_result.get("intensity", 1.0),
+            profile_regex=is_profiling
         )
+        if is_file_profiling: phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
         
         logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
         
-        # --- NEW: EXTRACT RAW IMPORTS FOR FUZZY MATCHING ---
-        # We run this on the raw content_buffer to ensure string paths aren't stripped by Prism
+        # Phase 6: Raw Imports
+        t_imports = time.perf_counter()
         import_regex = lang_defs.get(lang_id, {}).get("rules", {}).get("_dependency_capture")
         raw_imports = set()
         if import_regex:
@@ -255,9 +278,20 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                         raw_imports.add(extracted_path)
             except Exception:
                 pass
+        if is_file_profiling: phase_times["6_Import_Regex"] = time.perf_counter() - t_imports
 
+        # Phase 7: Tokenization & Census
+        t_token = time.perf_counter()
         popularity_hits = set(tokenizer.findall(refraction["code_stream"])) & census
+        t_end = time.perf_counter()
+        if is_file_profiling: phase_times["7_Token_Intersection"] = t_end - t_token
         
+        # Append the new blind-spot telemetry to the regex output
+        if is_profiling:
+            logic_data["regex_telemetry"] = logic_data.get("regex_telemetry", {})
+            logic_data["regex_telemetry"][f"{lang_id}::Worker_Imports"] = t_token - t_imports
+            logic_data["regex_telemetry"][f"{lang_id}::Worker_Popularity_Tokens"] = t_end - t_token
+
         data_payload = {
             "path": rel_path,
             "stem": Path(rel_path).stem.lower(), 
@@ -270,16 +304,21 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             "prior_lock": has_prior,
             "coding_loc": refraction["coding_loc"],
             "doc_loc": refraction["doc_loc"],
-            "raw_imports": raw_imports,          
-            "popularity_hits": popularity_hits   
+            "raw_imports": list(raw_imports),          
+            "popularity_hits": popularity_hits,
+            "regex_telemetry": logic_data.pop("regex_telemetry", {}) if is_profiling else {}
         }
         
         data_payload.update(logic_data)
-        data_payload["raw_imports"] = list(raw_imports) 
         data_payload["control_flow_ratio"] = logic_data.get("total_control_flow_ratio", 0.0)
         data_payload["file_impact"] = logic_data.get("sum_fxn_impact", 0.0)
 
-        observation.update({"status": "success", "reason": None, "data": data_payload})
+        observation.update({
+            "status": "success", 
+            "reason": None, 
+            "data": data_payload,
+            "phase_times": phase_times if is_file_profiling else {}
+        })
 
     except Exception as e:
         observation["status"] = "anomaly"
@@ -292,9 +331,6 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     # ---> NEW: REAL-TIME SLOW FILE ALERT <---
     if total_time > 10.0:
         logger.warning(f"🐌 SLOW PARSE DETECTED: '{rel_path}' took {total_time:.2f} seconds.")
-
-    # ---> RECORD THE FINAL TIME <---
-    observation["processing_time"] = time.time() - t_start
 
     return observation
 
@@ -349,7 +385,23 @@ class Orchestrator:
         self.popularity_scores: Dict[str, int] = {}
         self.ext_tally: Dict[str, int] = {}
         self.git_tracked_files: Set[str] = set()
-
+        
+        # ---> NEW: NEIGHBORHOOD MICRO-MASS QUOTA STATE <---
+        self.MICRO_MASS_BYTES = 50
+        self.MICRO_MASS_GRACE_LIMIT = 15
+        self.neighborhood_tracker = defaultdict(int)
+        
+        self.splicing_telemetry = {
+            "top_slowest": [], 
+            "regex_totals": defaultdict(float),
+            "files_sampled": 0,
+            "regex_limit_reached": False
+        }
+        
+        self.file_speed_telemetry = {
+            "phase_totals": defaultdict(float),
+            "file_count": 0
+        }
 
     def run_mission(self, output_file: str = "galaxy.json"):
         """Executes the synthesis protocol with dual-recorder exit strategy."""
@@ -357,25 +409,45 @@ class Orchestrator:
         logger.info(f"--- MISSION_IGNITION: {self.root.name} (v{self.version}) ---")
 
         try:
-            # PHASE 0-3: Extraction
+            # PHASE 0: Radar & Pre-Flight
+            t_phase = time.time()
             self.guidestar.align_telescope()
             self._ignite_radar()
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 0 - Radar]: {time.time() - t_phase:.2f}s")
+
+            # PHASE 1: Workers & IPC Transfer
+            t_phase = time.time()
             self._first_pass_extraction()
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 1 - Workers & IPC]: {time.time() - t_phase:.2f}s")
+
+            # PHASE 1.5: Dependency Resolution
+            t_phase = time.time()
             self._calculate_galactic_popularity()
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 1.5 - Imports]: {time.time() - t_phase:.2f}s")
+
+            # PHASE 2: Relational Physics
+            t_phase = time.time()
             self._second_pass_relational()
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 2 - Relational]: {time.time() - t_phase:.2f}s")
 
             # PHASE 4: Audit Verification
+            t_phase = time.time()
             visible_galaxy, audit_singularity = self.auditor.audit(self.stars)
             total_singularity = self.singularity_candidates + audit_singularity
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 4 - Auditor]: {time.time() - t_phase:.2f}s")
             
-            # PHASE 5: Cartography
+            # PHASE 5: 3D Cartography
+            t_phase = time.time()
             if visible_galaxy:
                 visible_galaxy = self.cartographer.map_galaxy(visible_galaxy)
             stars_mapped_count = len(visible_galaxy) if visible_galaxy else 0
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 5 - Cartography]: {time.time() - t_phase:.2f}s")
             
             # PHASE 6: Metrics Synthesis
+            t_phase = time.time()
             summary = self.processor.summarize_galaxy_metrics(visible_galaxy, total_singularity)
             report = self.processor.generate_forensic_report(visible_galaxy)
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 6 - Synthesis]: {time.time() - t_phase:.2f}s")
             
             # --- PHASE 7.5: SHARED METADATA LOCKING ---
             # Calculate physical mass before the GPU Recorder destroys the visible_galaxy list
@@ -470,6 +542,12 @@ class Orchestrator:
             logger.info(f"--- ENGINE_TELEMETRY: Processed {total_loc:,} lines of code at {loc_per_sec:,} LOC/s ---")
             logger.info(f"--- ARCHIVES_SEALED: {output_file} & {audit_output} ---")
             
+            if self.config.get("FILE_SPEED"):
+                self._render_file_speed_chart()
+
+            if self.config.get("SPLICING_SPEED"):
+                self._render_splicing_chart()
+                
             # --- THE FINAL CALL TO ACTION (CLI BILLBOARD) ---
             print("\n" + "="*75)
             print(" 🌌 READY FOR VISUALIZATION (100% LOCAL / ZERO UPLOAD)")
@@ -485,8 +563,7 @@ class Orchestrator:
             raise
         finally:
             self.cleanup()
-
-
+            
     def _ignite_radar(self):
         """Phase 0: Building the Census via Git Authority with Fallback."""
         try:
@@ -496,18 +573,31 @@ class Orchestrator:
             git_paths = raw_output.splitlines()
             self.git_tracked_files = set(git_paths)
             
-            for rel_path in git_paths:
+            # --- FAST I/O: ThreadPool for os.stat operations ---
+            def _inspect_path(rel_path):
                 path_obj = Path(rel_path)
                 full_path = self.root / path_obj
-                
-                # --- THE FIX: Pre-flight check in the main thread ---
-                # Check intent first so the Shield knows if it's a VIP
                 has_intent, _ = self.guidestar.get_intent_status(path_obj)
-                
-                # Evaluate path integrity before waking up a worker
                 is_valid, size_bytes, reason = self.filter.evaluate_path_integrity(
                     full_path, has_intent=has_intent
                 )
+                return rel_path, path_obj, is_valid, size_bytes, reason
+
+            # Use 32 threads to saturate the disk I/O queue
+            with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+                inspections = executor.map(_inspect_path, git_paths)
+            
+            # Process the results synchronously to prevent race conditions on state maps
+            for rel_path, path_obj, is_valid, size_bytes, reason in inspections:
+                
+                # ---> NEW: THE NEIGHBORHOOD MICRO-MASS QUOTA <---
+                if is_valid and size_bytes < self.MICRO_MASS_BYTES:
+                    dir_path = str(path_obj.parent)
+                    self.neighborhood_tracker[dir_path] += 1
+                    if self.neighborhood_tracker[dir_path] > self.MICRO_MASS_GRACE_LIMIT:
+                        is_valid = False
+                        reason = "Excluded: Neighborhood Micro-Mass Limit Exceeded"
+                # ------------------------------------------------
                 
                 if is_valid:
                     stem = path_obj.stem.lower()
@@ -543,9 +633,20 @@ class Orchestrator:
             dirs[:] = [d for d in dirs if self.filter.evaluate_path_integrity(Path(root) / d)[0]]
             for file in files:
                 full_p = Path(root) / file
-                # Add [0] here as well
-                if self.filter.evaluate_path_integrity(full_p)[0]:
-                    rel_p = str(full_p.relative_to(self.root))
+                is_valid, size_bytes, reason = self.filter.evaluate_path_integrity(full_p)
+                
+                # ---> NEW: THE NEIGHBORHOOD MICRO-MASS QUOTA <---
+                if is_valid and size_bytes < self.MICRO_MASS_BYTES:
+                    dir_path = str(full_p.parent.relative_to(self.root))
+                    self.neighborhood_tracker[dir_path] += 1
+                    if self.neighborhood_tracker[dir_path] > self.MICRO_MASS_GRACE_LIMIT:
+                        is_valid = False
+                        reason = "Excluded: Neighborhood Micro-Mass Limit Exceeded"
+                # ------------------------------------------------
+
+                rel_p = str(full_p.relative_to(self.root))
+
+                if is_valid:
                     stem = full_p.stem.lower()
                     ext = full_p.suffix.lower()
                     name = full_p.name.lower()  # <-- Extract lowercased filename
@@ -555,7 +656,15 @@ class Orchestrator:
                     
                     # ---> Tally both the extension AND the full filename
                     self.ext_tally[ext] = self.ext_tally.get(ext, 0) + 1
-                    self.ext_tally[name] = self.ext_tally.get(name, 0) + 1        
+                    self.ext_tally[name] = self.ext_tally.get(name, 0) + 1 
+                else:
+                    self.singularity_candidates.append({
+                        "path": rel_p,
+                        "reason": reason,
+                        "identity_confidence": 0.0,
+                        "size_bytes": size_bytes
+                    })
+                    self._record_anomaly(rel_p, reason)     
 
     def _first_pass_extraction(self):
         """Pass 1: Parallel Refraction & Matter Eviction via Multi-Core Map-Reduce."""
@@ -585,44 +694,14 @@ class Orchestrator:
                 for rel_path in self.stem_map.values()
             }
             
-            # THE STARVATION MONITOR
-            # Instead of blind iteration, we loop through the active queue with a hard timeout.
-            while active_futures:
-                # Wait up to 60 seconds for at least ONE file to finish
-                done, not_done = concurrent.futures.wait(
-                    active_futures, 
-                    timeout=60.0, 
-                    return_when=concurrent.futures.FIRST_COMPLETED
-                )
-                
-                # If `done` is empty, the timeout popped. All workers are locked in an infinite loop.
-                if not done:
-                    logger.critical("\n" + "="*60)
-                    logger.critical("🚨 FATAL MULTIPROCESSING STARVATION DETECTED 🚨")
-                    logger.critical("All CPU workers have been locked in regex loops for 60 seconds.")
-                    logger.critical("THE FOLLOWING FILES CAUSED THE HANG:")
-                    
-                    for future in not_done:
-                        stuck_file = active_futures[future]
-                        logger.critical(f" [☠️] -> {stuck_file}")
-                        
-                        # Relegate them to the Singularity audit log so they aren't lost
-                        self._record_anomaly(stuck_file, "FATAL HANG: Regex ReDoS Timeout")
-                        self.singularity_candidates.append({
-                            "path": stuck_file,
-                            "reason": "FATAL HANG: Regex ReDoS Timeout",
-                            "identity_confidence": 0.0,
-                            "size_bytes": 0
-                        })
-                        
-                    logger.critical("="*60 + "\n")
-                    
-                    # Abort the mission and force shutdown to unfreeze the terminal
-                    executor.shutdown(wait=False, cancel_futures=True)
-                    break
-                
-                # Process the files that successfully completed
-                for future in done:
+# THE STARVATION MONITOR (Event-Driven Generator)
+            # as_completed yields instantly upon future completion, averting O(N^2) polling wait states.
+            try:
+                # THE FIX: Removed `timeout=60.0`. Python's timeout is an absolute mission timer, 
+                # not an idle worker timer. Massive repositories (80k+ files) take more than 
+                # 60 seconds to scan end-to-end. Infinite loops are now prevented 
+                # natively by the 1500-char Line Limiter and strict Regex bounds.
+                for future in concurrent.futures.as_completed(active_futures):
                     rel_path = active_futures.pop(future)
                     completed_count += 1
                     
@@ -635,6 +714,39 @@ class Orchestrator:
                         
                         if status == "success":
                             self.cryolink[rel_path] = res["data"]
+                            
+                            if self.config.get("FILE_SPEED"):
+                                p_times = res.get("phase_times", {})
+                                for phase, duration in p_times.items():
+                                    self.file_speed_telemetry["phase_totals"][phase] += duration
+                                self.file_speed_telemetry["file_count"] += 1
+
+                            if self.config.get("SPLICING_SPEED"):
+                                process_time = res.get("processing_time", 0)
+                                
+                                # 1. Always track the globally slowest files (bounded to save RAM)
+                                self.splicing_telemetry["top_slowest"].append({
+                                    "path": rel_path,
+                                    "time": process_time
+                                })
+                                
+                                # Keep the array tiny: Sort and truncate every 50 files
+                                if len(self.splicing_telemetry["top_slowest"]) > 50:
+                                    self.splicing_telemetry["top_slowest"].sort(key=lambda x: x["time"], reverse=True)
+                                    self.splicing_telemetry["top_slowest"] = self.splicing_telemetry["top_slowest"][:10]
+                                
+                                # 2. Cap Regex Telemetry at 5,000 files to save RAM
+                                if not self.splicing_telemetry["regex_limit_reached"]:
+                                    regex_stats = res["data"].pop("regex_telemetry", {})
+                                    
+                                    for regex_name, duration in regex_stats.items():
+                                        self.splicing_telemetry["regex_totals"][regex_name] += duration
+                                        
+                                    self.splicing_telemetry["files_sampled"] += 1
+                                    if self.splicing_telemetry["files_sampled"] >= 5000:
+                                        self.splicing_telemetry["regex_limit_reached"] = True
+                                        logger.warning("SPLICING SPEED: 5,000 file sample reached. Halting regex telemetry (Global file speeds still tracking).")
+                                    
                         elif status == "singularity":
                             logger.debug(f"SINGULARITY_BYPASS: '{rel_path}' lacks structural integrity. Relegating to Dark Matter.")
                             self.singularity_candidates.append({
@@ -652,6 +764,31 @@ class Orchestrator:
                         logger.error(f"WORKER_CRASH on {rel_path}: {e}")
                         self._record_anomaly(rel_path, f"Fatal Worker Crash: {str(e)}")
 
+            except concurrent.futures.TimeoutError:
+                logger.error("\n" + "="*75)
+                logger.error(" SYSTEM HALT: Worker Thread Starvation")
+                logger.error(" All CPU workers have exceeded the 60.0s execution limit.")
+                logger.error(" This indicates Catastrophic Backtracking (ReDoS) in the regex engine.")
+                logger.error(" The following artifacts paralyzed the thread pool:")
+                
+                for future in active_futures:
+                    stuck_file = active_futures[future]
+                    logger.error(f"  -> TIMEOUT: {stuck_file}")
+                    
+                    self._record_anomaly(stuck_file, "Thread Timeout (Regex ReDoS)")
+                    self.singularity_candidates.append({
+                        "path": stuck_file,
+                        "reason": "Thread Timeout (Regex ReDoS)",
+                        "identity_confidence": 0.0,
+                        "size_bytes": 0
+                    })
+                    
+                logger.error("="*75 + "\n")
+                logger.warning("Aborting synthesis to unfreeze the terminal. Please check the Anti-ReDoS shields.")
+                
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise TimeoutError("Mission aborted due to worker starvation (ReDoS or IPC Deadlock).")
+                
     def _calculate_galactic_popularity(self):
         """
         Pass 1.5: Optimized relational token aggregation & Fuzzy Suffix Matching.
@@ -1038,6 +1175,63 @@ class Orchestrator:
         }
             
         return summary
+
+    def _render_file_speed_chart(self):
+        """Generates a terminal ASCII chart for macro file phases."""
+        count = self.file_speed_telemetry["file_count"]
+        if count == 0:
+            return
+
+        print("\n" + "="*75)
+        print(" ⏱️  FILE SPEED (MACRO PHASE) TELEMETRY REPORT")
+        print("="*75)
+        print(f"\n [ CUMULATIVE TIME SPENT ACROSS {count} FILES ]")
+        
+        sorted_phases = sorted(self.file_speed_telemetry["phase_totals"].items(), key=lambda x: x[1], reverse=True)
+        max_time = sorted_phases[0][1] if sorted_phases else 1
+        
+        for phase, duration in sorted_phases:
+            bar_len = int((duration / max_time) * 30)
+            bar = "█" * bar_len
+            avg_ms = (duration / max(count, 1)) * 1000
+            print(f" {duration:.2f}s | {bar:<30} | {phase} (Avg: {avg_ms:.2f}ms/file)")
+            
+        print("="*75 + "\n")
+
+    def _render_splicing_chart(self):
+        """Generates a terminal ASCII chart for regex and file performance."""
+        if not self.splicing_telemetry["top_slowest"]:
+            return
+
+        print("\n" + "="*75)
+        print(" ⏱️  SPLICING SPEED TELEMETRY REPORT")
+        print("="*75)
+        
+        print("\n [ TOP 10 SLOWEST FILES (Global Search) ]")
+        
+        # Ensure it's fully sorted before displaying
+        sorted_files = sorted(self.splicing_telemetry["top_slowest"], key=lambda x: x["time"], reverse=True)[:10]
+        max_file_time = sorted_files[0]["time"] if sorted_files else 1
+        
+        for f in sorted_files:
+            bar_len = int((f["time"] / max_file_time) * 30)
+            bar = "█" * bar_len
+            print(f" {f['time']:.3f}s | {bar:<30} | {f['path']}")
+
+        sample_size = min(self.splicing_telemetry["files_sampled"], 5000)
+        print(f"\n [ CUMULATIVE REGEX EXECUTION TIME (Sampled {sample_size} Files) ]")
+        sorted_regex = sorted(self.splicing_telemetry["regex_totals"].items(), key=lambda x: x[1], reverse=True)[:15]
+        
+        if sorted_regex:
+            max_rx_time = sorted_regex[0][1]
+            for name, duration in sorted_regex:
+                bar_len = int((duration / max_rx_time) * 30)
+                bar = "█" * bar_len
+                print(f" {duration:.3f}s | {bar:<30} | {name}")
+        else:
+            print(" No regex telemetry collected.")
+            
+        print("="*75 + "\n")
     
     def _get_git_audit(self) -> Dict[str, str]:
         """Extracts forensic Git metadata for audit tracking."""
@@ -1099,6 +1293,8 @@ def main():
     parser.add_argument("--llm-only", action="store_true", help="Run ONLY the LLM recorder")
     parser.add_argument("--gpu-only", action="store_true", help="Run ONLY the GPU recorder")
     parser.add_argument("--audit-only", action="store_true", help="Run ONLY the Audit recorder")
+    parser.add_argument("--splicing-speed", action="store_true", help="Profile regex and file processing speeds (capped at 5000 files)")
+    parser.add_argument("--file-speed", action="store_true", help="Profile the macro lifecycle phases of file processing")
     
     args = parser.parse_args()
 
@@ -1126,8 +1322,10 @@ def main():
         # ---------------------------------------------------------
         base_langs = getattr(scanning_config, "LANGUAGE_DEFINITIONS", {})
         project_overrides = getattr(scanning_config, "PROJECT_OVERRIDES", {})
+        base_aperture = getattr(scanning_config, "APERTURE_CONFIG", {})
         
         merged_langs = copy.deepcopy(base_langs) 
+        merged_aperture = copy.deepcopy(base_aperture)
         
         if project_name in project_overrides:
             logging.info(f"🌌 DIALECT DETECTED: Injecting Project Overrides for '{project_name}'")
@@ -1135,7 +1333,18 @@ def main():
             
             for lang, overrides in dialect_dict.items():
                 if lang == "_shield_":
-                    continue # Handled by ApertureFilter
+                    if "exclude_dirs" in overrides:
+                        if "BLACK_HOLES" not in merged_aperture:
+                            merged_aperture["BLACK_HOLES"] = set()
+                        merged_aperture["BLACK_HOLES"].update(overrides["exclude_dirs"])
+                        logging.debug(f"   -> Patched Aperture Shield (Added {len(overrides['exclude_dirs'])} Black Holes).")
+                    
+                    if "exclude_paths" in overrides:
+                        if "CONTRABAND_PATTERNS" not in merged_aperture:
+                            merged_aperture["CONTRABAND_PATTERNS"] = []
+                        merged_aperture["CONTRABAND_PATTERNS"].extend(overrides["exclude_paths"])
+                        logging.debug(f"   -> Patched Contraband Shield (Added {len(overrides['exclude_paths'])} exact paths).")
+                    continue 
                     
                 if lang in merged_langs:
                     if "extensions" in overrides:
@@ -1164,7 +1373,7 @@ def main():
         full_config = {
             "LANGUAGE_DEFINITIONS": merged_langs,
             "COMMENT_DEFINITIONS": getattr(scanning_config, "COMMENT_DEFINITIONS", {}),
-            "APERTURE_CONFIG": getattr(scanning_config, "APERTURE_CONFIG", {}),
+            "APERTURE_CONFIG": merged_aperture,
             "PATH_MODIFIERS": getattr(scanning_config, "PATH_MODIFIERS", {}),
             "PRIORITY_WHITELIST": getattr(scanning_config, "PRIORITY_WHITELIST", []),
             "DOCUMENTATION_LANGUAGES": getattr(scanning_config, "DOCUMENTATION_LANGUAGES", set()),
@@ -1172,9 +1381,10 @@ def main():
             # --- NEW: PASS EXCLUSIVE FLAGS TO ORCHESTRATOR ---
             "LLM_ONLY": args.llm_only,
             "GPU_ONLY": args.gpu_only,
-            "AUDIT_ONLY": args.audit_only
+            "AUDIT_ONLY": args.audit_only,
+            "SPLICING_SPEED": args.splicing_speed,
+            "FILE_SPEED": args.file_speed
         }
-
         # ---------------------------------------------------------
         # 4. Ignite the Engine
         # ---------------------------------------------------------

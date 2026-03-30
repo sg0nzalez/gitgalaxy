@@ -180,10 +180,10 @@ class Chronometer:
             tracked_files = set()
             total_files = 1000 # Fallback safety
             
-        # 2. Configure the Kiosk Thresholds
-        # Set an impossible required_files target to disable the coverage early-exit (Kill Switch 2).
-        # This forces the engine to chew through the full 1-year history or hit the time limit.
-        required_files = 9999999 
+        # 2. Configure the Dynamic Thresholds
+        # Stop grinding the Git history once we've mapped 50% of the active repository,
+        # or hit a hard cap of 5000 files to save RAM and CPU.
+        required_files = min(int(total_files * 0.50), 5000)
         
         # The Kiosk Safety Net: Ensure this pulls from your config (e.g., 15.0 or 60.0)
         timeout_limit = self.chrono_config.get("STREAM_TIMEOUT_SECONDS", 15.0)

@@ -316,13 +316,13 @@ class LLMRecorder:
             lines.append("")
 
         # 7.B: Structural Pillars (Imported By)
-        pillars = sorted(stars, key=lambda x: len(inbound_map.get(x.get("path", ""), [])), reverse=True)[:5]
+        pillars = sorted(stars, key=lambda x: x.get("telemetry", {}).get("popularity", 0), reverse=True)[:5]
         lines.append("### Top 5 Structural Pillars (Highest 'Imported By' / Blast Radius)")
         lines.append("These files act as core load-bearing infrastructure. Changes here carry a high risk of cascading breaks.\n")
         for rank, star in enumerate(pillars, 1):
             name = star.get("name", "Unknown")
             path = star.get("path", "Unknown")
-            count = len(inbound_map.get(path, []))
+            count = star.get("telemetry", {}).get("popularity", 0)
             lines.append(f"{rank}. **{name}** (`{path}`) — {count} inbound connections")
         lines.append("")
 
@@ -531,15 +531,14 @@ class LLMRecorder:
             lines.append(f"* *Defense:* {', '.join(def_hits) if def_hits else 'None'}")
             
             # Dependency Graph Mapping (Named Edges)
-            inbound = inbound_map.get(p, [])
             outbound = s.get("raw_imports", [])
+            inbound_count = tel.get("popularity", 0)
             
-            in_names = ", ".join([Path(x).name for x in inbound[:8]]) + ("..." if len(inbound) > 8 else "")
             out_names = ", ".join([Path(x).name for x in outbound[:8]]) + ("..." if len(outbound) > 8 else "")
             
             lines.append(f"* *Dependencies:*")
             lines.append(f"  * `Imports ({len(outbound)}):` {out_names if out_names else 'None'}")
-            lines.append(f"  * `Imported By ({len(inbound)}):` {in_names if in_names else 'None (Orphan / Entrypoint)'}")
+            lines.append(f"  * `Imported By ({inbound_count}):` {'(Excluded from Brief to save tokens)' if inbound_count > 0 else 'None (Orphan / Entrypoint)'}")
             lines.append("")
             
         # ==============================================================================

@@ -97,9 +97,15 @@ class SpectralAuditor:
         # 2. Build the Ecosystem Consensus Map
         # Structure: { ".ext": { "lang1": count, "lang2": count } }
         consensus_map: Dict[str, Dict[str, int]] = {}
+        global_lang_counts: Dict[str, int] = {}
+        
         for s in confident_core:
             ext = os.path.splitext(s.get("path", ""))[1].lower()
             lang = s.get("lang_id")
+            
+            if lang:
+                global_lang_counts[lang] = global_lang_counts.get(lang, 0) + 1
+                
             if ext and lang:
                 if ext not in consensus_map:
                     consensus_map[ext] = {}
@@ -133,8 +139,33 @@ class SpectralAuditor:
                         resolved_count += 1
                         continue
             
+            # ---> THE GLOBAL C-FAMILY HEADER FALLBACK <---
+            # If the 80% threshold fails (e.g., a 3-way tie), look at the macro-state of the entire repo.
+            if ext in {'.h', '.hpp', '.inc'}:
+                c_counts = {
+                    'c': global_lang_counts.get('c', 0),
+                    'cpp': global_lang_counts.get('cpp', 0),
+                    'objective-c': global_lang_counts.get('objective-c', 0)
+                }
+                
+                # If there is ANY C-family presence in the confident core, give the header to the dominant one.
+                if sum(c_counts.values()) > 0:
+                    winner_lang = max(c_counts, key=c_counts.get)
+                    s["lang_id"] = winner_lang
+                    
+                    if "telemetry" not in s:
+                        s["telemetry"] = {}
+                    s["telemetry"]["identity_source_proof"] = f"Heuristic Loop-Back (Global C-Family Dominance: {winner_lang})"
+                    s["telemetry"]["identity_lock_tier"] = 2
+                    
+                    self.logger.debug(f"[Consensus] Global C-Family Tie-Breaker triggered for '{s.get('name')}': Defaulting to {winner_lang}.")
+                    confident_core.append(s)
+                    resolved_count += 1
+                    continue
+            
             # If we reach here, the file was ambiguous and the ecosystem couldn't save it.
             # Banish it to the Singularity immediately to prevent hallucinations.
+                    
             reason = f"Unresolved Ambiguity (Tier 4 Fallback failed Ecosystem Consensus)"
             singularity.append(self._format_for_singularity(s, reason))
             
@@ -298,6 +329,15 @@ class SpectralAuditor:
                 if loc > 50 and rho == 0:
                     is_outlier = True
                     relegation_reason = f"50/0 Law (LOC: {loc}, Signals: 0)"
+                    
+                # ---> NEW: THE SUPERNOVA GUARD (Impossible Density Law) <---
+                # Normal human code rarely sustains > 1.5 logic hits per physical line. 
+                # If a file sustains > 3.0 across 30+ lines, it is mathematically guaranteed 
+                # to be minified, obfuscated, or packed with embedded binaries.
+                elif loc > 30 and rho > 3.0:
+                    is_outlier = True
+                    relegation_reason = f"Supernova Guard (Impossible Density: {rho:.2f} hits/line)"
+                    
                 # THE ROBUST Z-SCORE (MAD)
                 # Bypassed if the file is a heavy polyglot (its density is blended)
                 elif use_stats and not is_blended:

@@ -258,7 +258,6 @@ class SignalProcessor:
             saf_score = self._calc_safety(loc, equations, irc, fc, mp_map.get("safety", 1.0))
             debt_score = self._calc_tech_debt(loc, equations, irc, mp_map.get("debt", 1.0))
             
-            # --- FIX: Passing umbrella_bonus into the verification calculation ---
             test_score = self._calc_verification(
                 loc, 
                 rel_path, 
@@ -271,7 +270,21 @@ class SignalProcessor:
             )
             
             doc_score = self._calc_documentation(loc, doc_lines, equations, fc, irc, mp_map.get("doc", 1.0))
+            spec_score = self._calc_spec_alignment(equations, mp_map.get("spec", 1.0))
             
+            # ---> THE FIX: MICRO-MASS DAMPENER (Cosmopolitan Rule) <---
+            # If a file is extremely small (e.g., < 15 lines of active code), we 
+            # mathematically scale down 'Bureaucratic' risks (Verification, Docs, Specs).
+            # This prevents 7-line boilerplate, routing, or shell scripts from falsely 
+            # masquerading as high-risk architectural choke points just because they 
+            # lack a formal testing suite or docstrings.
+            # (Note: Security, Tech Debt, and Runtime risks remain unaffected).
+            bureaucracy_dampener = min(loc / 15.0, 1.0)
+            
+            test_score *= bureaucracy_dampener
+            doc_score *= bureaucracy_dampener
+            spec_score *= bureaucracy_dampener
+
             exposure_vector = {
                 "cognitive_load": cog_score,
                 "safety_score":   saf_score,
@@ -281,7 +294,7 @@ class SignalProcessor:
                 "concurrency":    self._calc_concurrency(loc, equations, irc, mp_map.get("async", 1.0)),
                 "state_flux":     self._calc_state_flux(loc, equations, irc, mp_map.get("flux", 1.0)),
                 "graveyard":      self._calc_graveyard(total_loc, equations, mp_map.get("dead", 1.0)),
-                "spec_match":     self._calc_spec_alignment(equations, mp_map.get("spec", 1.0)),
+                "spec_match":     spec_score,
                 "stability":      stability_score,
                 "churn":          0.0, # Placeholder: Auto-Scaled globally in Pass 2
                 "documentation":  doc_score,
@@ -321,7 +334,12 @@ class SignalProcessor:
                     temp_branches = equations.get("branch", 0)
                     temp_args = equations.get("args", 0)
                     
-                sum_function_impacts = ((temp_branches + 1) * (temp_args + 1) + (0.05 * loc)) * 10
+                # Apply the same Dampener and Effective LOC limits to the fallback math
+                temp_signals = temp_branches + temp_args
+                temp_effective_loc = min(loc, (temp_signals + 1) * 10)
+                temp_arg_multiplier = math.sqrt(temp_args + 1)
+                
+                sum_function_impacts = ((temp_branches + 1) * temp_arg_multiplier + (0.05 * temp_effective_loc)) * 10
                 
             api_exposure = equations.get("api", 0)
             concurrency = equations.get("concurrency", 0)
@@ -735,14 +753,14 @@ class SignalProcessor:
         t = self.risk_tuning.get("concurrency", {})
         weighted_hits = hits + (irc * t.get("irc_mult", 0.1))
         density = (weighted_hits / max(loc, 1)) * 100.0
-        threshold = t.get("threshold_base", 4.0) * mp
+        threshold = t.get("threshold_base", 4.0)
         
         try:
             score = 100.0 / (1.0 + math.exp(-t.get("sigmoid_slope", 0.4) * (density - threshold)))
         except OverflowError:
             score = 100.0 if density > threshold else 0.0
             
-        return min(score, 100.0)
+        return min(score * mp, 100.0)
 
     def _calc_state_flux(self, loc: int, eq: Dict[str, int], irc: int, mp: float) -> float:
         hits = eq.get("flux", 0)
@@ -750,14 +768,14 @@ class SignalProcessor:
                 
         t = self.risk_tuning.get("state_flux", {})
         density = ((hits + (irc * t.get("irc_mult", 0.15))) / max(loc, 1)) * 100.0
-        threshold = t.get("threshold_base", 15.0) * mp
+        threshold = t.get("threshold_base", 15.0)
         
         try:
             score = 100.0 / (1.0 + math.exp(-t.get("sigmoid_slope", 0.20) * (density - threshold)))
         except OverflowError:
             score = 100.0 if density > threshold else 0.0
             
-        return min(score, 100.0)
+        return min(score * mp, 100.0)
 
     def _calc_spec_alignment(self, eq: Dict[str, int], mp: float) -> float:
         entities = max(eq.get("func_start", 0) + eq.get("class_start", 0), 1)

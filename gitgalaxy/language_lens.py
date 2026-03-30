@@ -133,7 +133,8 @@ class LanguageDetector:
         has_intent: bool = False,
         intent_lang: str = "",
         intent_vector: Optional[Dict[str, Any]] = None,
-        ext_tally: Optional[Dict[str, int]] = None
+        ext_tally: Optional[Dict[str, int]] = None,
+        **kwargs
     ) -> DetectorResult:
         
         path_obj = Path(file_path)
@@ -242,9 +243,24 @@ class LanguageDetector:
                 target_id = "plaintext"
             return self._forge_result(target_id, self.thresholds.get("PROSE_CONFIDENCE", 0.95), 1, anchor_proof, result, content_sample)
 
+        # ---> THE FIX: Use ext_tally which holds full filenames <---
+        if ext in self.COLLISION_FREQUENCIES and ext_tally:
+            base_stem = path_obj.stem.lower()
+            if ext == '.h':
+                if f"{base_stem}.c" in ext_tally:
+                    return self._forge_result("c", 0.99, 0, "Sibling Anchor (.c)", result, content_sample)
+                elif f"{base_stem}.cpp" in ext_tally or f"{base_stem}.cc" in ext_tally:
+                    return self._forge_result("cpp", 0.99, 0, "Sibling Anchor (C++)", result, content_sample)
+                elif f"{base_stem}.m" in ext_tally:
+                    return self._forge_result("objective-c", 0.99, 0, "Sibling Anchor (.m)", result, content_sample)
+            # ---> THE OBJECTIVE-C SIBLING ANCHOR <---
+            elif ext == '.m':
+                if f"{base_stem}.h" in ext_tally:
+                    return self._forge_result("objective-c", 0.99, 0, "Sibling Anchor (.h)", result, content_sample)
+
         # 1. Gather Physical Signals
         ext_lang = self._tier_1_metadata_lock(ext, name)
-        shebang_lang = self._tier_2_fingerprint_check(content_sample)
+        shebang_lang = self._tier_2_fingerprint_check(content_sample, ext)
         
         # =========================================================================
         # THE IDENTITY CRISIS TRAP (Security Lens Integration)
@@ -305,8 +321,9 @@ class LanguageDetector:
         # TIER 1.5: THE ECOSYSTEM GRAVITY LOCK (Collision Resolution)
         # =========================================================================
         gravity_lang = None
-        if ext in self.COLLISION_FREQUENCIES and ext_tally and lock_tier > 0:
-            gravity_lang, dominance = self._evaluate_ecosystem_gravity(ext, ext_tally)
+        # Only apply Ecosystem Gravity if we don't already have a strong Tier 2 internal signature
+        if ext in self.COLLISION_FREQUENCIES and ext_tally and lock_tier > 2:
+            gravity_lang, dominance = self._evaluate_ecosystem_gravity(file_path, ext, ext_tally)
             
             if gravity_lang:
                 loc_estimate = content_sample.count('\n')
@@ -341,9 +358,14 @@ class LanguageDetector:
         if needs_spectral:
             self.logger.debug(f"[{name}] Claim Unverified ({best_lang} at Tier {lock_tier}). Engaging Spectral Verification.")
             
-            if lock_tier == 4 and best_lang in ("undeterminable", "unknown"):
+            # ---> THE ROUTING FIX <---
+            # Only send to Tier 4 Deep Space if it's TRULY an unknown extension.
+            # Collisions MUST go to Tier 3 to evaluate their specific candidates.
+            is_true_unknown = (lock_tier == 4 and best_lang in ("undeterminable", "unknown") and ext not in self.COLLISION_FREQUENCIES)
+            
+            if is_true_unknown:
                 coding_loc = max(content_sample.count('\n') + (1 if content_sample else 0), 1)                
-                spectral_id, spec_intensity = self._tier_4_deep_space_discovery(content_sample, coding_loc)
+                spectral_id, spec_intensity = self._tier_4_deep_space_discovery(content_sample, coding_loc, ext, gravity_lang)
             else:
                 spectral_id, spec_intensity = self._tier_3_spectral_scan(content_sample, ext, claimed_lang=best_lang, gravity_lang=gravity_lang)
             
@@ -389,84 +411,101 @@ class LanguageDetector:
 
         return self._forge_result(best_lang, best_conf, lock_tier, source_proof, result, content_sample)
 
-    def _evaluate_ecosystem_gravity(self, ext: str, ext_tally: Dict[str, int]) -> Tuple[Optional[str], float]:
+    def _evaluate_ecosystem_gravity(self, file_path: Union[str, Path], ext: str, global_tally: Dict[str, int]) -> Tuple[Optional[str], float]:
         # 1. GATHER CANDIDATES
         candidates = [lid for lid, data in self.languages.items() if ext in data.get('extensions', [])]
         
-        # C++ MUST be allowed to compete for .h files
         if ext == '.h' and 'cpp' not in candidates and 'cpp' in self.languages:
             candidates.append('cpp')
             
         if not candidates:
             return None, 0.0
             
-        scores = {}
-        debug_scoreboard = {} 
-        
-        for lid in candidates:
-            data = self.languages.get(lid, {})
-            
-            # 2. BASE ECOSYSTEM MASS
-            support_exts = [e for e in data.get('extensions', []) if e != ext]
-            base_contributors = {e: ext_tally.get(e.lower(), 0) for e in support_exts if ext_tally.get(e.lower(), 0) > 0}
-            base_mass = sum(base_contributors.values())
-            
-            # 3. DISCRIMINATOR MASS
-            discriminators = data.get('discriminators', [])
-            discrim_contributors = {d: ext_tally.get(d.lower(), 0) for d in discriminators if ext_tally.get(d.lower(), 0) > 0}
-            discrim_mass = sum(discrim_contributors.values())
-            
-            # 4. TOXIC MASS
-            disqualifiers = data.get('disqualifiers', [])
-            toxic_contributors = {dq: ext_tally.get(dq.lower(), 0) for dq in disqualifiers if ext_tally.get(dq.lower(), 0) > 0}
-            toxic_mass = sum(toxic_contributors.values())
-            
-            # ==========================================
-            # THE PHYSICS ENGINE
-            # ==========================================
-            final_score = 0.0
-            status = "Evaluated"
-            
-            if toxic_mass > 0:
-                final_score = 0.0  # Thermodynamic collapse
-                status = f"Collapsed (Toxic: {toxic_contributors})"
-            elif base_mass == 0:
-                final_score = discrim_mass * 0.1  # Ghost Ecosystem
-                status = "Ghost (Discrim only)"
-            else:
-                final_score = base_mass + (discrim_mass * 2.0) # Healthy Ecosystem
-                status = "Healthy"
+        # 2. NEW: GATHER LOCAL FOLDER CENSUS
+        local_tally = {}
+        try:
+            parent_dir = Path(file_path).parent
+            for child in parent_dir.iterdir():
+                if child.is_file():
+                    local_tally[child.suffix.lower()] = local_tally.get(child.suffix.lower(), 0) + 1
+                    local_tally[child.name.lower()] = local_tally.get(child.name.lower(), 0) + 1
+        except Exception:
+            pass
+
+        # 3. TWO-PASS PHYSICS (Local Neighborhood -> Global Repository)
+        for scope_name, tally in [("Local", local_tally), ("Global", global_tally)]:
+            if not tally:
+                continue
                 
-            scores[lid] = final_score
+            scores = {}
+            debug_scoreboard = {} 
             
-            # Only build the debug data if the user is actively debugging to save CPU cycles
-            if self.logger.isEnabledFor(logging.DEBUG):
-                debug_scoreboard[lid] = {
-                    "base": f"{base_mass} {base_contributors}",
-                    "discrim": f"{discrim_mass} {discrim_contributors}",
-                    "toxic": f"{toxic_mass} {toxic_contributors}",
-                    "score": final_score,
-                    "status": status
-                }
+            for lid in candidates:
+                data = self.languages.get(lid, {})
                 
-        total_gravity = sum(scores.values())
-        if total_gravity == 0:
-            return None, 0.0 
-        
-        # Calculate final dominance ratio
-        top_lid = max(scores, key=scores.get)
-        dominance = scores[top_lid] / total_gravity
-        
-        # Output the professional debug receipt
-        if self.logger.isEnabledFor(logging.DEBUG):
-            log_lines = [f"Ecosystem Gravity Calculation for '{ext}':"]
-            for lid, stats in debug_scoreboard.items():
-                log_lines.append(f"  -> [{lid}] Score: {stats['score']:.1f} ({stats['status']})")
-                log_lines.append(f"       Base: {stats['base']} | Discrim: {stats['discrim']} | Toxic: {stats['toxic']}")
-            log_lines.append(f"  => Winner: {top_lid} ({dominance*100:.1f}% dominance)")
-            self.logger.debug("\n" + "\n".join(log_lines) + "\n")
-        
-        return top_lid, dominance
+                support_exts = [e for e in data.get('extensions', []) if e != ext]
+                base_contributors = {e: tally.get(e.lower(), 0) for e in support_exts if tally.get(e.lower(), 0) > 0}
+                
+                # ---> THE MATLAB FIX (Single-Extension Ecosystems) <---
+                if sum(base_contributors.values()) == 0:
+                    base_contributors[ext] = tally.get(ext.lower(), 0)
+                    
+                base_mass = sum(base_contributors.values())
+                
+                discriminators = data.get('discriminators', [])
+                discrim_contributors = {d: tally.get(d.lower(), 0) for d in discriminators if tally.get(d.lower(), 0) > 0}
+                discrim_mass = sum(discrim_contributors.values())
+                
+                disqualifiers = data.get('disqualifiers', [])
+                toxic_contributors = {dq: tally.get(dq.lower(), 0) for dq in disqualifiers if tally.get(dq.lower(), 0) > 0}
+                toxic_mass = sum(toxic_contributors.values())
+                
+                final_score = 0.0
+                status = "Evaluated"
+                
+                if toxic_mass > 0:
+                    final_score = 0.0 
+                    status = f"Collapsed (Toxic: {toxic_contributors})"
+                elif base_mass == 0:
+                    final_score = discrim_mass * 0.1  
+                    status = "Ghost (Discrim only)"
+                else:
+                    final_score = base_mass + (discrim_mass * 2.0) 
+                    status = "Healthy"
+                    
+                scores[lid] = final_score
+                
+                if self.logger.isEnabledFor(logging.DEBUG):
+                    debug_scoreboard[lid] = {
+                        "base": f"{base_mass} {base_contributors}",
+                        "discrim": f"{discrim_mass} {discrim_contributors}",
+                        "toxic": f"{toxic_mass} {toxic_contributors}",
+                        "score": final_score,
+                        "status": status
+                    }
+                    
+            total_gravity = sum(scores.values())
+            if total_gravity == 0:
+                continue # Inconclusive. Fall back to the Global tally loop.
+            
+            top_lid = max(scores, key=scores.get)
+            dominance = scores[top_lid] / total_gravity
+            
+            if ext == '.h' and set(scores.keys()).issubset({'c', 'cpp', 'objective-c'}):
+                if dominance >= 0.55:
+                    dominance = max(dominance, self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70))
+            
+            # Evaluate if this scope produced a winner
+            threshold = self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70)
+            if scope_name == "Local":
+                threshold = 0.60 # Local folders need slightly less dominance to prove a point
+                
+            if dominance >= threshold:
+                if self.logger.isEnabledFor(logging.DEBUG):
+                    self.logger.debug(f"\n{scope_name} Ecosystem Gravity for '{ext}': Winner {top_lid} ({dominance*100:.1f}%)\n")
+                return top_lid, dominance
+
+        return None, 0.0
     
     
     def _tier_1_metadata_lock(self, ext: str, file_name: str) -> Optional[str]:
@@ -483,17 +522,29 @@ class LanguageDetector:
             return self.extension_map[ext]
         return None
 
-    def _tier_2_fingerprint_check(self, content: str) -> Optional[str]:
-        if not content.startswith('#!'): 
-            return None
+    def _tier_2_fingerprint_check(self, content: str, ext: str) -> Optional[str]:
+        # 1. Standard Shebang Check (Only runs if a shebang exists)
+        if content.startswith('#!'): 
+            first_line = content.split('\n', 1)[0].lower()
+            self.logger.debug(f"Fingerprint Scan: Analyzing shebang line: '{first_line.strip()}'")
             
-        first_line = content.split('\n', 1)[0].lower()
-        self.logger.debug(f"Fingerprint Scan: Analyzing shebang line: '{first_line.strip()}'")
-        
-        for lang_id, data in self.languages.items():
-            for trigger in data.get('shebangs', []):
-                if trigger in first_line: 
-                    return lang_id
+            for lang_id, data in self.languages.items():
+                for trigger in data.get('shebangs', []):
+                    if trigger in first_line: 
+                        return lang_id
+
+        # 2. ---> THE INTERNAL DISCRIMINATOR (Collision Resolution Only) <---
+        # THE FIX: Internal discriminators are strictly for resolving known extension 
+        # collisions (e.g., .m). They MUST NOT be used as global scanners for 
+        # extensionless or shebang-less files.
+        if ext:
+            for lang_id, data in self.languages.items():
+                if ext in data.get('extensions', []):
+                    internal_disc = data.get('internal_discriminator')
+                    if internal_disc and internal_disc.search(content):
+                        self.logger.debug(f"Fingerprint Scan: Internal discriminator matched for '{lang_id}' via '{ext}'")
+                        return lang_id
+
         return None
 
     def _tier_3_spectral_scan(self, content: str, ext: str, claimed_lang: str = "undeterminable", gravity_lang: Optional[str] = None) -> Tuple[str, float]:
@@ -540,8 +591,12 @@ class LanguageDetector:
                     if c > content_len: c = 0 # Hallucination shield
                     raw_score += (c * 10.0)
                 except Exception: pass
+                
+            if lid == gravity_lang:
+                raw_score *= 1.25
             
             # Delimiter Bonus
+            
             family_key = data.get('lexical_family', 'std_c')
             delims = self.comment_defs.get("mechanical_families", {}).get(family_key, {}).get("delimiters", [])
             for d in delims:
@@ -567,10 +622,7 @@ class LanguageDetector:
     # =========================================================================
     # THE TIER 4 DEEP SPACE DISCOVERY FUNNEL
     # =========================================================================
-        # =========================================================================
-    # THE TIER 4 DEEP SPACE DISCOVERY FUNNEL
-    # =========================================================================
-    def _tier_4_deep_space_discovery(self, content: str, coding_loc: int) -> Tuple[str, float]:
+    def _tier_4_deep_space_discovery(self, content: str, coding_loc: int, ext: str = "", gravity_lang: Optional[str] = None) -> Tuple[str, float]:
         """
         The redesigned Tier 4 Deep Space Discovery Funnel.
         Prioritizes graceful failure over guessing by enforcing a strict 1.5x margin logic.
@@ -647,12 +699,12 @@ class LanguageDetector:
         # PHASE 3: Structural Density Scan
         # =========================================================================
         density_scores = {}
-        friction_scores = {}  # <-- ADDED: Initialize the missing dictionary
+        friction_scores = {}
         
         for lid in surviving_candidates:
             regex_hits = 0
             rules = self.languages.get(lid, {}).get('rules', {})
-            t_start = time.time() # <-- ADDED: Start the friction timer
+            t_start = time.time()
             
             for _, regex in rules.items():
                 if not regex: continue
@@ -694,12 +746,7 @@ class LanguageDetector:
             # PHASE 4: The Density Equation (Hits / loc)
             # =====================================================================
             density_scores[lid] = regex_hits / loc
-            friction_scores[lid] = time.time() - t_start # <-- ADDED: Record the friction time
-            
-            # =====================================================================
-            # PHASE 4: The Density Equation (Hits / loc)
-            # =====================================================================
-            density_scores[lid] = regex_hits / loc
+            friction_scores[lid] = time.time() - t_start
 
         if not density_scores:
             self.logger.debug("Tier 4 [Phase 3]: No structural signals detected for any candidate.")
@@ -717,7 +764,7 @@ class LanguageDetector:
             return "undeterminable", 0.0
 
         # =========================================================================
-        # PHASE 4: The Ensemble Reconciliation Engine
+        # PHASE 5: The Ensemble Reconciliation Engine
         # =========================================================================
         if len(sorted_scores) > 1:
             runner_up_id = sorted_scores[1][0]
@@ -737,7 +784,7 @@ class LanguageDetector:
                     self.logger.warning(f"Tier 4 [Reconciliation]: TEMPORAL ANOMALY on {top_id}...")
                     return "undeterminable", 0.0
                 
-                return top_id, top_density # <-- ADDED SUCCESS RETURN
+                return top_id, top_density 
             
             # 2. The Friction Tie-Breaker
             elif density_margin >= self.thresholds.get("TIER_4_OUTLIER_MARGIN", 1.10):
@@ -746,16 +793,24 @@ class LanguageDetector:
                     self.logger.debug(f"Tier 4 [Reconciliation]: Collision. {top_id} density margin ({density_margin:.2f}x) was too weak, and friction ratio ({friction_ratio:.2f}x) failed to break the tie.")
                     return "undeterminable", 0.0
                 self.logger.debug(f"Tier 4 [Reconciliation]: Friction Tie-Breaker utilized for {top_id}.")
-                
-                return top_id, top_density # <-- ADDED SUCCESS RETURN
+                return top_id, top_density 
                 
             # 3. Absolute Ambiguity
             else:
+                # ---> THE FIX: Add objective-c to the allowed subset <---
+                if ext == '.h' and {top_id, runner_up_id}.issubset({'c', 'cpp', 'objective-c'}):
+                    if gravity_lang in {'c', 'cpp', 'objective-c'}:
+                        self.logger.debug(f"Tier 4 [Reconciliation]: C/C++ Tie broken by Ecosystem Gravity -> {gravity_lang}")
+                        return gravity_lang, top_density
+                    # If no gravity exists, default to C as the structural base for .h files
+                    self.logger.debug(f"Tier 4 [Reconciliation]: C/C++ Tie broken by default base -> c")
+                    return "c", top_density
+                    
                 return "undeterminable", 0.0
 
-        # 4. Single Candidate Victory (or falling out of the block safely)
-        return top_id, top_density # <-- ADDED FALLBACK RETURN
-
+        # 4. Single Candidate Victory
+        return top_id, top_density
+    
     def _forge_result(self, lang_id: str, intensity: float, tier: int, proof: str, base: DetectorResult, content_sample: str = "") -> DetectorResult:
         family = self.languages.get(lang_id, {}).get('lexical_family')
         

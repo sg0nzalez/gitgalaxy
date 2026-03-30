@@ -3,6 +3,12 @@ site_description: The structural DNA of massive software repositories.
 site_url: https://squid-protocol.github.io/gitgalaxy/
 site_dir: docs_build
 
+repo_name: squid-protocol/gitgalaxy
+repo_url: https://github.com/squid-protocol/gitgalaxy
+
+### ADDED: Global Copyright Footer
+copyright: Copyright &copy; 2026 Joseph Michael Esquibel
+
 theme:
   name: material
   palette:
@@ -10,8 +16,17 @@ theme:
     primary: deep purple
     accent: cyan
 
+### ADDED: Social links for the bottom footer
+extra:
+  social:
+    - icon: fontawesome/solid/globe
+      link: https://gitgalaxy.io/
+      name: GitGalaxy Visualizer
+    - icon: fontawesome/brands/github
+      link: https://github.com/squid-protocol/gitgalaxy
+      name: GitHub Source Code
+
 docs_dir: docs/wiki
-site_dir: docs_build
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -26,6 +41,8 @@ extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js
 
 nav:
+  ### ADDED: External link back to the main visualizer app (Shows at the top of the sidebar)
+  - '🌌 Open GitGalaxy Visualizer': https://gitgalaxy.io/
   - Home: index.md
   - '1. Foundation & Architecture': 
       - 'Project Overview': 1_Foundation__Architecture.md

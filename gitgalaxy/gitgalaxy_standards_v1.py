@@ -127,6 +127,20 @@ APERTURE_CONFIG = {
         '.exe', '.dll', '.so', '.dylib', '.class', '.jar', '.war', '.ear', '.o', '.a', '.lib', '.out', '.pyc', '.pyd'
     },
     
+    # --- 12. Contraband Patterns ---
+    # Global glob patterns to natively deflect vendored, compiled, or machine-generated 
+    # source code that bleeds outside of standard vendor/ directories.
+    "CONTRABAND_PATTERNS": [
+        "*.min.js", "*.min.css",          # Universal minification
+        "jquery*.js", "bootstrap*.js",    # Legacy frontend monoliths
+        "typeahead*.js", "vue.global.js", # Common UI plugins
+        "chunk-*.js", "*bundle.js",       # Webpack/Vite compiled output
+        "*_full.html",                    # Minified bundled HTML UIs
+        
+        # THE FIX: GNU Autotools & Libtool procedural monoliths
+        "ltmain.sh", "config.guess", "config.sub", "depcomp", "missing", "install-sh"
+    ],
+    
     # Integrity Thresholds: Limits for minification and data-dump detection.
     "MAX_LINE_LENGTH": 500,           # Saturated Signal threshold (characters)
     "MINIFICATION_SCAN_LIMIT": 50,    # Performance Guard (lines to check)
@@ -163,37 +177,7 @@ PRIORITY_WHITELIST = [
     "docker-compose.yml", "Dockerfile", "Jenkinsfile"
 ]
 
-APERTURE_CONFIG = {
-    # --- [Keep your existing BLACK_HOLES and BLACK_HOLE_EXTENSIONS here] ---
-    
-# ==========================================================================
-    # THE SECRETS RADAR (Credential Leaks)
-    # Files that should never be committed to a repository. Aperture will block 
-    # them from being scanned (to save CPU) but will flag them as critical leaks.
-    # ==========================================================================
-    "SECRETS_EXACT": {
-        '.env', '.env.local', '.env.production', 
-        'id_rsa', 'id_dsa', 'id_ecdsa', 'id_ed25519', # SSH Private Keys
-        'secret_token.rb', 'credentials.yml', 'master.key', 'htpasswd',
-        'aws_credentials', 'gcp_credentials.json'
-    },
-    
-    "SECRETS_EXTENSIONS": {
-        '.pem', '.key', '.pkcs12', '.p12', '.pfx', '.keystore', '.jks', 
-        '.ovpn', '.kdbx', '.sqlite3', '.db' # Keys, VPN configs, and raw databases
-    },
 
-    # ... [Keep MAX_LINE_LENGTH, etc] ...
-    
-    "BANDS": {
-        "RADIO": "ignored_system_or_hidden_file",       
-        "MICROWAVE": "unreadable_binary_or_media",  
-        "DARK_MATTER": "unsupported_file_type", 
-        "INFRARED": "minified_or_massive_data",      
-        "VISIBLE": "valid_source_code",
-        "QUARANTINE": "critical_secret_leak" # <--- Fully aligned terminology
-    }
-}
 # Defines the rules for Bayesian Intent inference used by the GuideStar Lens
 GUIDESTAR_CONFIG = {
     "MANIFEST_MAP": {
@@ -267,8 +251,9 @@ LENS_CONFIG = {
         'polyglot': r'^\s*IDENTIFICATION\s+DIVISION\.'
     },
     "HANDSHAKE_REGISTRY": [
-        {"trigger": r'<script', "end": r'</script>', "target": "javascript", "pair": None},
-        {"trigger": r'<style', "end": r'</style>', "target": "css", "pair": None},
+        # Added strict line-start anchors to prevent matching generics like `List<script>`
+        {"trigger": r'^[ \t]*<script\b', "end": r'</script>', "target": "javascript", "pair": None},
+        {"trigger": r'^[ \t]*<style\b', "end": r'</style>', "target": "css", "pair": None},
         {"trigger": r'asm!\s*\(|__asm__', "end": r'\)', "target": "assembly", "pair": ("(", ")")},
     ],
     "THRESHOLDS": {
@@ -279,8 +264,8 @@ LENS_CONFIG = {
         "PROSE_BASELINE_SIGNAL": 3.0,
         "HANDSHAKE_LOOKAHEAD_LIMIT": 50000,
         "ECOSYSTEM_DOMINANCE_MIN": 0.70,
-        "TIER_4_MIN_LINES": 20,
-        "TIER_4_OUTLIER_MARGIN": 1.2
+        "TIER_4_MIN_LINES": 100,
+        "TIER_4_OUTLIER_MARGIN": 1.3
     }
 }
 
@@ -344,6 +329,7 @@ LANGUAGE_DEFINITIONS = {
             "poetry.lock",
             "setup.cfg",
         ],
+        "internal_discriminator": re.compile(r"^[ \t]*(?:import|from)\s+(?:subprocess|multiprocessing|threading|requests|pandas|numpy|django|flask|fastapi|sqlalchemy|boto3|httpx|matplotlib|scipy|tensorflow|torch)\b", re.M),
         # EXECUTION SIGNATURES: Interpreters found on Line 1.
         "shebangs": ["python", "python3", "python2", "pypy", "pypy3", "jython"],
         # UPGRADED: Maps to Family 3 (Pure Hash)
@@ -861,7 +847,7 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # CRITICAL FIX: Added negative lookahead for control flow, and `[^=;{]*` to support TypeScript return types.
             "args": re.compile(
-                r"function\s+\w*(?:<[^>]*>)?\s*\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w$]*)[^=;{]*=>|^[ \t]*(?:(?:public|private|protected|static|override|abstract)[ \t]+){0,3}(?:async[ \t]+)?(?:get\s+|set[ \t]+)?(?!(?:if|for|while|switch|catch)\b)[a-zA-Z_$][\w$]*\s*\([^)]*\)",
+                r"function\s+\w*(?:<[^>]*>)?\s*\([^)]*\)|\([^)]*\)[^=;{]*=>|[a-zA-Z_$][\w$]*[ \t]*=>|^[ \t]*(?:(?:public|private|protected|static|override|abstract)[ \t]+){0,3}(?:async[ \t]+)?(?:get\s+|set[ \t]+)?(?!(?:if|for|while|switch|catch)\b)[a-zA-Z_$][\w$]*\s*\([^)]*\)",
                 re.M,
             ),
             # 3. linear (The Smooth Path)
@@ -1681,8 +1667,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import (The Gravity Links)
             "import": re.compile(r'^[ \t]*import\s*(?:\(|"[^"]+")', re.M),
             
-            "_dependency_capture": re.compile(r'^[ \t]*(?:import\s+)?(?:\(\s*)?(?:[a-zA-Z0-9_.]+\s+)?["`]([^"`]+)["`](?:\s*\))?[ \t]*$', re.M),
-            
+            # ---> THE FIX: Strictly bounded to valid Go import path characters <---
+            # Prevents raw HTTP string literals in test files from being hallucinated as packages.
+            "_dependency_capture": re.compile(r'^[ \t]*(?:import\s+)?(?:\(\s*)?(?:[a-zA-Z0-9_.]+\s+)?["`]([a-zA-Z0-9_.\-/]+)["`]', re.M),
+                        
             # 25. ownership (The Authorship)
             "ownership": re.compile(
                 r"(?://|#|/\*)\s*(?:Author|Maintainer|Created by|Owner):?\s+([a-zA-Z0-9_ -]+)",
@@ -2055,7 +2043,7 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # Parameter blocks of functions and lambdas. Bounded to prevent ReDoS on massive signatures.
             "args": re.compile(
-                r"\b[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?\s*\([^)]*\)|\[[^\]]*\]\s*\([^)]*\)"
+                r"\b[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?\s*\(\s*(?:const\s+|volatile\s+)?(?:int|char|void|float|double|bool|long|short|unsigned|signed|struct|class|std::|[A-Z]\w*)\b[^)]*\)|\[[^\]]*\]\s*\([^)]*\)"
             ),
             # 3. linear (The Smooth Path)
             # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and const (freeze_hits).
@@ -2104,10 +2092,17 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:[ \t\n]+(?:const|volatile|noexcept|override|final|&{1,2}|__attribute__\s*\([^)]*\)|\[\[[^\]]*\]\])){0,10}"
                 r"(?:[ \t\n]*->[ \t]*[a-zA-Z_:\w*<>]+)?"
                 
-                # 9. THE K&R C AND C++ CONSTRUCTOR GAP (ReDoS mitigated)
+                # 9. THE K&R C AND C++ CONSTRUCTOR GAP (ReDoS mitigated via Strict Bounding)
                 # Handles C++ initializer lists (e.g., `MyClass() : a(1) {`) and legacy K&R declarations.
-                # [IRON WALL]: Highly prone to ReDoS on line wrap. Lookahead blocks runaway macro parsing.
-                r"(?:[ \t\n]*(?![ \t]*#):[^{;]+|(?:[ \t\n]+(?![ \t]*#)[a-zA-Z_][^(){};]*;){1,20})?"
+                # [IRON WALL - CATASTROPHIC BACKTRACKING FIX]: 
+                # Previously, this used unbounded wildcards (`[^{;]+` and `[^(){};]*`). 
+                # When parsing massive 50,000-line OS headers with complex macro arrays, 
+                # the regex engine would attempt millions of permutations on failure, 
+                # completely deadlocking the CPU (ReDoS) and causing starvation timeouts.
+                # THE FIX: We enforce strict numeric bounds (`{0,500}` and `{0,100}`) 
+                # instead of `+` or `*`. This caps the permutation tree instantly while 
+                # perfectly accommodating valid constructor lists and K&R types.
+                r"(?:[ \t\n]*(?![ \t]*#):[^{;]{0,500}|(?:[ \t\n]+(?![ \t]*#)[a-zA-Z_][^(){};]{0,100};){1,20})?"
                 
                 # 10. THE IGNITION (The opening brace confirming it is a definition, not a declaration)
                 r"[ \t\n]*\{",
@@ -2312,7 +2307,8 @@ LANGUAGE_DEFINITIONS = {
             "status": "production",
         },
         # COMPREHENSIVE SURFACE AREA: Standard sources, headers, OpenCL kernels, Yacc grammars, and C-like scripting/ATS language files.
-        "extensions": [".c", ".h", ".cl", ".inc", ".y", ".idc", ".cats"],
+        # THE FIX: Added .dts and .dtsi (Device Tree Source) to parse hardware maps.
+        "extensions": [".c", ".h", ".cl", ".inc", ".y", ".idc", ".cats", ".dts", ".dtsi"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": [],
         # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files (like .h or .inc).
@@ -2350,7 +2346,7 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # Parameter blocks. Bounded negation [^)]* to prevent ReDoS on massive param lists.
             "args": re.compile(
-                r"(?!(?:if|for|while|switch|return)\b)\b[a-zA-Z_]\w*(?:\s*\*){0,3}\s*\([^)]*\)",
+                r"(?!(?:if|for|while|switch|return)\b)\b[a-zA-Z_]\w*[ \t*]*\(\s*(?:const\s+|volatile\s+)?(?:int|char|void|float|double|long|short|unsigned|signed|struct|enum)\b[^)]*\)",
                 re.M,
             ),
             # 3. linear (The Smooth Path)
@@ -2358,8 +2354,6 @@ LANGUAGE_DEFINITIONS = {
             "linear": re.compile(
                 r"\b(struct|union|enum|typedef|return|void|restrict|auto|bool|true|false|_BitInt|alignas|alignof)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
-            # ONLY executable logic blocks. Purged of C++ concepts but fully shielded with a 10-stage optical lock.
             "func_start": re.compile(
                 # =====================================================================
                 # [LLM CONTEXT: C-FUNCTION AST EXTRACTOR & REDOS SHIELD]
@@ -2367,9 +2361,12 @@ LANGUAGE_DEFINITIONS = {
                 # VULNERABILITY: C allows multi-line function signatures. In files with 
                 #   massive macro lists (e.g., 20k lines of `#define`), the `[ \t\n]+` 
                 #   allowances caused catastrophic backtracking (ReDoS).
-                # THE "IRON WALL" FIX: `(?![ \t]*#)` is a negative lookahead injected at 
+                # THE "IRON WALL" FIX 1 (Lookaheads): `(?![ \t]*#)` is a negative lookahead injected at 
                 #   high-risk multi-line boundaries. It explicitly forbids the regex engine 
                 #   from crossing into preprocessor directives, capping the permutation tree.
+                # THE "IRON WALL" FIX 2 (Strict Bounding): Unbounded wildcards (`*` or `+`) 
+                #   are STRICTLY FORBIDDEN inside the K&R parameter gap. They must use 
+                #   numeric bounds (e.g., `{0,100}`) to starve ReDoS traps on massive files.
                 # =====================================================================
                 
                 # 1. THE HORIZONTAL ANCHOR (Stops O(N^2) vertical spirals)
@@ -2402,8 +2399,11 @@ LANGUAGE_DEFINITIONS = {
                 
                 # 9. THE K&R C PARAMETER GAP (Crucial for legacy codebases like DOOM/FreeBSD)
                 # Legacy C allows type declarations between the closing ')' and opening '{'.
-                # [IRON WALL]: This area is highly prone to ReDoS. The lookahead prevents runaway macro parsing.
-                r"(?:(?:[ \t\n]+(?![ \t]*#)[a-zA-Z_][^(){};]*;){1,20})?"
+                # [IRON WALL - CATASTROPHIC BACKTRACKING FIX]: 
+                # Previously used unbounded wildcards (`[^(){};]*`). On massive macro arrays,
+                # this caused millions of permutations and 60+ second timeouts.
+                # We enforce strict numeric bounds (`{0,100}`) to instantly cap the permutation tree.
+                r"(?:(?:[ \t\n]+(?![ \t]*#)[a-zA-Z_][^(){};]{0,100};){1,20})?"
                 
                 # 10. THE IGNITION (The opening brace confirming it is a definition, not a declaration)
                 r"[ \t\n]*\{",
@@ -2433,8 +2433,8 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 10. api (The Event Horizon)
             # Physical Reality: C functions are public by default.
-            "api": re.compile(r'\b(extern|__declspec\(dllexport\)|__attribute__\(\(visibility\("default"\)\)\))\b|^[ \t]*(?!static\b)[a-zA-Z_]\w*(?:\s*\*){0,3}\s+[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=?|^[ \t]*[a-zA-Z_]\w*(?:\s*\*){0,3}\s+[a-zA-Z_]\w*\s*\([^)]*\)\s*;', re.M),
-            
+            "api": re.compile(r'\b(extern|__declspec\(dllexport\)|__attribute__\(\(visibility\("default"\)\)\))\b|^[ \t]*(?!static\b)[a-zA-Z_]\w*[ \t*]+[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=?|^[ \t]*[a-zA-Z_]\w*[ \t*]+[a-zA-Z_]\w*\s*\([^)]*\)\s*;', re.M),
+                        
             # 11. flux (The Boiling Plasma)
             # Mutation of state. EXCLUDES const/constexpr (freeze_hits).
             "flux": re.compile(
@@ -2464,7 +2464,7 @@ LANGUAGE_DEFINITIONS = {
             "closures": None,  # Strict C23 lacks native closures (blocks are non-standard).
             # 18. globals (The Shared Void)
             "globals": re.compile(
-                r"^[ \t]*(?:static\s+|extern[ \t]+)?[a-zA-Z_]\w*(?:\s*\*){0,3}\s+[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=(?![ \t]*==)",
+                r"^[ \t]*(?:static\s+|extern[ \t]+)?[a-zA-Z_]\w*[ \t*]+[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=(?![ \t]*==)",
                 re.M,
             ),
             # 19. decorators (The Metadata Hooks)
@@ -2485,8 +2485,8 @@ LANGUAGE_DEFINITIONS = {
             # 24. import (The Gravity Links)
             "import": re.compile(r'^[ \t]*#[ \t]*(?:include|embed)\s*[<"][^>"]+[>"]', re.M),
                         
-            "_dependency_capture": re.compile(r'^[ \t]*#[ \t]*(?:include|embed)\s*[<"](?:[^>"]*/)?([^>"]+\.[a-zA-Z0-9_]+)[>"]', re.M),
-                        
+            "_dependency_capture": re.compile(r'^[ \t]*#[ \t]*(?:include|embed)\s*[<"]([^>"]+)[>"]', re.M),
+                                    
             # 25. ownership (The Authorship)
             "ownership": re.compile(
                 r"(?:@author|\\author|Author:|Created by:|Copyright)\s+(.*)", re.I
@@ -3215,9 +3215,9 @@ LANGUAGE_DEFINITIONS = {
             # 22. scientific (The Compute Core)
             "scientific": re.compile(r"\b(bc|awk|dc|expr|jq|RANDOM|SRANDOM)\b|\$\(\("),
             # 23. heat_triggers (The Thermal Radiation)
-            # Sub-languages and indirect expansion.
+            # Sub-languages and indirect expansion. (ReDoS Shielded)
             "heat_triggers": re.compile(
-                r'\$\([^)]+\)|`[^`]+`|\b(?:awk|sed|perl|python[23]?|ruby)\s+[\'"](?:[^"\'\\]|\\.)*[\'"]|\beval\s+\$|\$\{!?[a-zA-Z0-9_]+\}'
+                r'\$\([^)]+\)|`[^`]+`|\b(?:awk|sed|perl|python[23]?|ruby)\s+[\'"][^\'"]{0,500}|\beval\s+\$|\$\{!?[a-zA-Z0-9_]+\}'
             ),
             # 24. import (The Gravity Links)
             "import": re.compile(r"^[ \t]*(?:source|\.)\s+[^\s]+", re.M),
@@ -3308,6 +3308,7 @@ LANGUAGE_DEFINITIONS = {
             ".rb",
             ".rbw",
             ".rake",
+            ".rbi",
             ".gemspec",
             ".rbx",
             ".builder",
@@ -3804,7 +3805,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: (CORRECTION) While Kotlin uses // and /* */, it officially allows nested
         # block comments (/* /* */ */). Using standard C parsing would cause early termination here.
-        "lexical_family": "nested_c",
+        "lexical_family": "std_c",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token
@@ -3823,25 +3824,23 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(if|else|when|for|while|do|try|catch|finally|break|continue|return)\b|\?:|&&|\|\|"
             ),
             # 2. args (The Coupling Mass)
-            # Parameter blocks of functions, constructors, and lambda bindings.
+            # OPTIMIZED: Removed overlapping whitespace quantifiers to fix Regex Sludge.
             "args": re.compile(
-                r"\b(?:fun|constructor)(?:<[^>]*>)?\s*(?:[a-zA-Z_]\w*\.)?[a-zA-Z_]\w*\s*\([^)]*\)|\{\s*[a-zA-Z_]\w*(?:\s*:\s*[a-zA-Z_]\w*(?:<[^>]*>)?)?(?:\s*,\s*[a-zA-Z_]\w*(?:\s*:\s*[a-zA-Z_]\w*(?:<[^>]*>)?)?){0,10}\s*->",
+                r"\b(?:fun|constructor)(?:<[^>\n]{0,100}>)?[ \t]*(?:[a-zA-Z_]\w*\.)?[a-zA-Z_]\w*[ \t]*\([^)\{]{0,500}\)|\{[ \t\n]*[a-zA-Z_][a-zA-Z0-9_ \t\n:<>,.?]{0,150}?->",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
-            # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and val (freeze_hits).
-            "linear": re.compile(
-                r"\b(class|interface|object|enum|typealias|import|package|yield|suspend|inline|crossinline|noinline|sealed|data|value|annotation|companion|context|expect|actual|return)\b"
-            ),
+
             # 4. func_start (The Satellite Spawner)
-            # ONLY executable logic blocks. EXCLUDES class/interface. Steps over Context Parameters.
+            # OPTIMIZED: Bound annotation parenthesis scanning to prevent multi-line bleeding.
             "func_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,10}(?:(?:public|private|protected|internal|open|override|abstract|final|suspend|inline|tailrec|infix|operator|external|expect|actual)[ \t]+){0,5}(?:context\s*\([^)]*\)\s*)?(?:fun\s+(?:<[^>]*>\s*)?(?:[a-zA-Z_]\w*\.)?([a-zA-Z_]\w*)|(init)|(constructor))(?=[ \t]*[\(\{])",
+                r"^[ \t]*(?:@[\w.]+(?:\([^)\{]{0,300}\))?[ \t]+){0,10}(?:(?:public|private|protected|internal|open|override|abstract|final|suspend|inline|tailrec|infix|operator|external|expect|actual)[ \t]+){0,5}(?:context\s*\([^)]*\)\s*)?(?:fun\s+(?:<[^>\n]{0,100}>\s*)?(?:[a-zA-Z_]\w*\.)?([a-zA-Z_]\w*)|(init)|(constructor))(?=[ \t]*[\(\{])",
                 re.M,
             ),
+            
             # 5. class_start (The Entity Census)
+            # OPTIMIZED: Applied the same 300-char bounds to class annotations.
             "class_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]*){0,10}(?:(?:public|private|protected|internal|open|abstract|final|sealed|data|value|annotation|expect|actual|inner)[ \t]+){0,5}(?:class|interface|object|enum\s+class)\s+[a-zA-Z_]\w*",
+                r"^[ \t]*(?:@[\w.]+(?:\([^)\{]{0,300}\))?[ \t]*){0,10}(?:(?:public|private|protected|internal|open|abstract|final|sealed|data|value|annotation|expect|actual|inner)[ \t]+){0,5}(?:class|interface|object|enum\s+class)\s+[a-zA-Z_]\w*",
                 re.M,
             ),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
@@ -3867,9 +3866,10 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(public|internal)\b|@(RestController|Controller|Service|Component|RequestMapping|GetMapping|PostMapping|Route)\b"
             ),
             # 11. flux (The Boiling Plasma)
-            # Mutation of state. EXCLUDES val (freeze_hits).
+            # CRITICAL FIX: Added re.M so it scans every line, not just the first line of the file!
             "flux": re.compile(
-                r"\b(var|MutableList|MutableMap|MutableSet|MutableState|MutableStateFlow|Atomic[A-Za-z0-9]+)\b|^[ \t]*(?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*\s*[-+*/%]?=|\.(?:add|addAll|remove|put|set|update)\("
+                r"\b(var|MutableList|MutableMap|MutableSet|MutableState|MutableStateFlow|Atomic[A-Za-z0-9]+)\b|^[ \t]*(?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*\s*[-+*/%]?=|\.(?:add|addAll|remove|put|set|update)\(",
+                re.M,
             ),
             # 12. graveyard (The Necrosis)
             "graveyard": re.compile(
@@ -3893,8 +3893,9 @@ LANGUAGE_DEFINITIONS = {
                 r"@Composable|Modifier|\b(Column|Row|Box|Text|Image|Button|Scaffold|LazyColumn|LazyRow|Surface|remember|mutableStateOf|findViewById|View|Activity|Fragment)\b"
             ),
             # 17. closures (The Functional Depth)
+            # OPTIMIZED: Removed overlapping whitespace quantifiers to fix ReDoS.
             "closures": re.compile(
-                r"\{\s*(?:[a-zA-Z_]\w*(?:\s*:\s*[a-zA-Z_]\w*(?:<[^>]*>)?)?(?:\s*,\s*[a-zA-Z_]\w*(?:\s*:\s*[a-zA-Z_]\w*(?:<[^>]*>)?)?)*\s*)?->"
+                r"\{[ \t\n]*[a-zA-Z_][a-zA-Z0-9_ \t\n:<>,.?]{0,150}?->"
             ),
             # 18. globals (The Shared Void)
             "globals": re.compile(
@@ -3902,10 +3903,12 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 19. decorators (The Metadata Hooks)
-            "decorators": re.compile(r"@[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\([^)]*\))?"),
-            # 20. generics (The Type Abstractions)
+            # OPTIMIZED: Bounded arguments.
+            "decorators": re.compile(r"@[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\([^)\{]{0,300}\))?"),
+                        # 20. generics (The Type Abstractions)
+            # Prevented catastrophic backtracking across newlines.
             "generics": re.compile(
-                r"<\s*(?:in|out)?\s*[A-Z][^>]*>|\breified\b|\bwhere\b"
+                r"<\s*(?:in|out)?\s*[A-Z][^>\n]{0,100}>|\breified\b|\bwhere\b"
             ),
             # 21. comprehensions (The High-Density Loops)
             # Functional collection transformations.
@@ -4618,16 +4621,30 @@ LANGUAGE_DEFINITIONS = {
             # Extreme tech debt and legacy engine thrashing.
             "danger": re.compile(r"\b(?:expression|behavior|-ms-filter)\b"),
             # 9. io (The Boundaries)
-            # External asset fetching.
-            "io": re.compile(r"\burl\s*\([^)]*\)|@import\b", re.I),
+            # =====================================================================
+            # THE FIX: Prevent False I/O Latency Flags.
+            # HISTORICAL CONTEXT FOR FUTURE LLMS: CSS is a declarative language. 
+            # Using `url()` or `@import` fetches a visual asset during browser paint; 
+            # it does NOT block a computational thread to read from a database or 
+            # write to a file system. If given a regex, the engine will hallucinate 
+            # severe I/O bottlenecks on standard stylesheets. Must remain `None`.
+            # =====================================================================
+            "io": None,
             # 10. api (The Event Horizon)
             # Design Tokens and global properties exposed for script/component consumption.
             "api": re.compile(
                 r":root\b|@property\b|--[a-zA-Z0-9_-]+\s*:|::part\s*\([^)]*\)", re.I
             ),
             # 11. flux (The Boiling Plasma)
-            # Mutation of state via user interaction pseudo-classes.
-            "flux": re.compile(r"--[a-zA-Z0-9_-]+\s*:", re.I),
+            # =====================================================================
+            # THE FIX: Prevent 'Declarative Hallucination' of State Flux.
+            # HISTORICAL CONTEXT FOR FUTURE LLMS: Defining a CSS custom property 
+            # (`--color: red;`) is a static declaration, not a sequential state 
+            # mutation (like `x = x + 1` in Turing-complete languages). Treating it 
+            # as flux causes stylesheets to mathematically outrank complex controllers 
+            # in volatility. Must remain `None`.
+            # =====================================================================
+            "flux": None,
             # 12. graveyard (The Necrosis)
             # Commented-out structural rules.
             "graveyard": re.compile(
@@ -4724,7 +4741,14 @@ LANGUAGE_DEFINITIONS = {
             # 38. telemetry
             "telemetry": None,
             # 39. print_hits (The Amateur / Space Debris)
-            "print_hits": re.compile(r"\b(?:console\.log)\s*\([^)]*\)", re.I),
+            # =====================================================================
+            # THE FIX: Prevent String Literal Hallucinations.
+            # HISTORICAL CONTEXT FOR FUTURE LLMS: CSS does not possess a runtime 
+            # console or a `console.log` function. If a regex here triggers, it is 
+            # guaranteed to be a false positive hallucinating on a string literal 
+            # (e.g., `content: "console.log";`). Must remain `None`.
+            # =====================================================================
+            "print_hits": None,
             # 40. cast_hits
             "cast_hits": None,
             # 41. bailout_hits (The Detonators)
@@ -4743,7 +4767,15 @@ LANGUAGE_DEFINITIONS = {
             # Explicit locks on data mutation.
             "freeze_hits": re.compile(r"!important\b|\bconstant\b", re.I),
             # 46. cleanup (The Janitor)
-            "cleanup": re.compile(r"\b(clear|clearvars)\b", re.I),
+            # =====================================================================
+            # THE FIX: Prevent False Memory Management Flags.
+            # HISTORICAL CONTEXT FOR FUTURE LLMS: In CSS, `clear: both;` is a 
+            # layout formatting property used to push elements below floats. It 
+            # does absolutely nothing to destroy variables, clear cache, or free up 
+            # RAM. Giving this a regex tricks the physics engine into thinking the 
+            # stylesheet is performing active memory management. Must remain `None`.
+            # =====================================================================
+            "cleanup": None,
             # 47. encapsulation (The Vault)
             # Scoping and part boundaries.
             "encapsulation": re.compile(r"@scope\b|::part|::slotted", re.I),
@@ -6167,9 +6199,9 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(r"\b(ignore|pending|skip|xit|xdescribe)\b"),
         },
     },
-    "micropython": {
+    "embedded_python": {
         "_meta": {
-            "target_version": "MicroPython v1.27.0 (RP2040, ESP32, STM32 / Modern Async & Viper)",
+            "target_version": "Embedded Python (MicroPython / CircuitPython / Bare-Metal)",
             "last_updated": "2026-02-18",
             "blueprint_version": "v5.0",
             "status": "production",
@@ -6182,6 +6214,10 @@ LANGUAGE_DEFINITIONS = {
         "discriminators": ["boot.py", "mip.json", "upip"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for embedded discovery and cross-compilation.
         "shebangs": ["micropython", "mpy-cross"],
+        
+        # Instantly claims any .py file utilizing embedded electronics networking or GPIO libraries
+        "internal_discriminator": re.compile(r"^[ \t]*(?:import|from)\s+(?:machine|board|microcontroller|busio|digitalio|analogio|usb_hid|neopixel|rp2|esp32|pyb|wifi|socketpool)\b", re.M),
+        
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Uses '#' for line-level literature; multi-line literature
         # (docstrings) is handled by the Section 2.3.C.3 Heuristic Pass.
@@ -7050,7 +7086,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: (CORRECTION) Like Swift and Rust, Dart officially supports nested multi-line
         # comments (/* /* */ */). Standard C parsing would prematurely terminate here causing geometry failure.
-        "lexical_family": "nested_c",
+        "lexical_family": "std_c",
         "rules": {
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
@@ -7746,6 +7782,11 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         # ECOSYSTEM GRAVITY & DISAMBIGUATION: Critical for resolving the massive .m collision with Objective-C. Binary workspace and figure files act as absolute anchors.
         "discriminators": [".m", ".mat", ".fig", ".mlx", "project.prj"],
+        # Instantly claims any .m file that uses MATLAB's unique comment character (%) 
+        # or the MATLAB function declaration syntax. Defeats Objective-C gravity theft.
+        # Instantly claims any .m file via a definitive MATLAB section break (%%) 
+        # or properly formatted comment. (Removed 'function' to prevent stealing extensionless shell scripts).
+        "internal_discriminator": re.compile(r"^[ \t]*(?:%[ \t]+|%%)", re.M),
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for GNU Octave or headless MATLAB CLI scripts.
         "shebangs": ["octave", "matlab"],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
@@ -8188,6 +8229,11 @@ LANGUAGE_DEFINITIONS = {
         ],
         # EXECUTION SIGNATURES: Compiled natively via LLVM/Clang; no shebangs exist.
         "shebangs": [],
+        "internal_discriminator": re.compile(
+            r'^[ \t]*#import\s+[<"][^>"]+\.h[>"]|'
+            r'^[ \t]*@(?:interface|implementation|protocol|property|class)\b', 
+            re.M
+        ),
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Uses standard '//' for line-level literature and '/*' '*/' for blocks.
         "lexical_family": "std_c",
@@ -8796,6 +8842,7 @@ LANGUAGE_DEFINITIONS = {
             ".plist",
             ".wsdl",
             ".config",
+            ".jelly",
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Universally recognized XML architectural and build manifests.
         "exact_matches": ["pom.xml", "build.xml", "AndroidManifest.xml", "phpunit.xml"],
@@ -8811,11 +8858,11 @@ LANGUAGE_DEFINITIONS = {
     },
     "markdown": {
         "_meta": {
-            "target_version": "CommonMark / GitHub Flavored",
+            "target_version": "CommonMark / GitHub Flavored / AsciiDoc",
             "status": "production",
         },
-        # COMPREHENSIVE SURFACE AREA: Standard modern suffixes, legacy extensions, and MDX (JSX embedded in Markdown).
-        "extensions": [".md", ".markdown", ".mdown", ".mkd", ".mdx"],
+        # COMPREHENSIVE SURFACE AREA: Standard modern suffixes, legacy extensions, MDX, and AsciiDoc formats.
+        "extensions": [".md", ".markdown", ".mdown", ".mkd", ".mdx", ".adoc", ".asciidoc"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: The universally recognized, extensionless repository documentation anchors.
         "exact_matches": ["README", "LICENSE", "CHANGELOG", "CONTRIBUTING", "SECURITY"],
         # ECOSYSTEM GRAVITY & DISAMBIGUATION: Static site generators and documentation build configs acting as gravity anchors.
@@ -9551,7 +9598,11 @@ LANGUAGE_DEFINITIONS = {
             "status": "production",
         },
         # COMPREHENSIVE SURFACE AREA: Standard text, log outputs, raw data dumps, and information files.
-        "extensions": [".txt", ".text", ".log", ".out", ".err", ".nfo"],
+        # THE FIX: Added standard UNIX Man Page extensions (.1 through .9).
+        "extensions": [
+            ".txt", ".text", ".log", ".out", ".err", ".nfo", ".golden", ".properties",
+            ".1", ".2", ".3", ".4", ".5", ".6", ".7", ".8", ".9"
+        ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: The universally recognized, extensionless plaintext anchors of open-source repositories.
         "exact_matches": [
             "AUTHORS",
@@ -9583,18 +9634,12 @@ LANGUAGE_DEFINITIONS = {
             "blueprint_version": "v6.3.0",
             "status": "production",
         },
-        # COMPREHENSIVE SURFACE AREA: Standard scripts, SQLite's massive .test suite, and Tcl modules.
-        "extensions": [".tcl", ".test", ".itcl", ".tbc", ".tm"],
-        # ABSOLUTE IDENTITY & EXACT FILENAMES: Tcl package index files are pure Tcl code.
+        # COMPREHENSIVE SURFACE AREA: Standard scripts and Tcl modules.
+        "extensions": [".tcl", ".itcl", ".tbc", ".tm"], # Removed .test
+        # ABSOLUTE IDENTITY & EXACT FILENAMES:
         "exact_matches": ["tclIndex", "pkgIndex.tcl"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Critical for pulling in ambiguous .test files out of Dark Matter.
-        "discriminators": [
-            ".tcl",
-            "tclIndex",
-            "pkgIndex.tcl",
-            "Makefile",
-            "configure.ac",
-        ],
+        # ECOSYSTEM GRAVITY: Added .test here so it only anchors, but doesn't claim globally.
+        "discriminators": [".tcl", "tclIndex", ".test", "Makefile"],
         # EXECUTION SIGNATURES: Standard interpreters found on Line 1.
         "shebangs": ["tclsh", "wish", "bin/expect", "jimsh"],
         # UPGRADED: Maps to Family 3 (Pure Hash)
@@ -9812,7 +9857,12 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 2. args (The Coupling Mass)
             # Captures standard method arguments and Groovy closures (x, y ->)
-            "args": re.compile(r"\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)\s*->"),
+            # CRITICAL FIX: Anchored the parenthesis capture to method signatures so it 
+            # doesn't hallucinate every standard method call or if-statement in the file.
+            "args": re.compile(
+                r"^[ \t]*(?:(?:public|private|protected|static|final|def|abstract)[ \t]+){0,5}(?:[A-Z][a-zA-Z0-9_<>\[\]?]*[ \t]+){0,2}[A-Za-z_$][\w_$]*\s*\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)\s*->",
+                re.M,
+            ),
             # 3. linear (The Smooth Path)
             "linear": re.compile(
                 r"\b(def|class|interface|trait|enum|record|import|package|extends|implements|return|yield)\b"
@@ -9975,6 +10025,84 @@ LANGUAGE_DEFINITIONS = {
             ),
         },
     },
+    "json": {
+        "_meta": {
+            "target_version": "JSON & ARB Localization",
+            "status": "production",
+        },
+        # COMPREHENSIVE SURFACE AREA: Standard JSON and Flutter ARB files.
+        "extensions": [".json", ".arb"],
+        # ABSOLUTE IDENTITY & EXACT FILENAMES: Tooling configurations mapped as JSON.
+        "exact_matches": [".prettierrc", ".eslintrc", ".babelrc", ".stylelintrc"],
+        "discriminators": [".json", ".arb"],
+        "shebangs": [],
+        # Maps to Family 3 (Pure Hash) to trigger the Singularity Bypass for inert data.
+        "lexical_family": "pure_hash",
+        "rules": {
+            "_line_anchor": None,
+            "_inline_comment": None,
+            "_block_start": None,
+            "_block_end": None,
+        },
+    },
+    "glsl": {
+        "_meta": {"target_version": "OpenGL Shading Language", "status": "production"},
+        "extensions": [".glsl", ".vert", ".frag", ".geom", ".comp"],
+        "exact_matches": [],
+        "discriminators": [".glsl", ".vert", ".frag"],
+        "shebangs": [],
+        "lexical_family": "std_c",
+        "rules": {
+            "_line_anchor": re.compile(r"//"),
+            "_inline_comment": re.compile(r"//"),
+            "_block_start": re.compile(r"/\*"),
+            "_block_end": re.compile(r"\*/"),
+        }
+    },
+    "nix": {
+        "_meta": {"target_version": "Nix Expression Language", "status": "production"},
+        "extensions": [".nix"],
+        "exact_matches": [],
+        "discriminators": ["flake.nix", "default.nix", "shell.nix"],
+        "shebangs": [],
+        "lexical_family": "pure_hash",
+        "rules": {
+            "_line_anchor": re.compile(r"#"),
+            "_inline_comment": re.compile(r"#"),
+            "_block_start": None,
+            "_block_end": None,
+        }
+    },
+    "blp": {
+        "_meta": {"target_version": "Blueprint UI Markup", "status": "production"},
+        "extensions": [".blp"],
+        "exact_matches": [],
+        "discriminators": [".blp", ".ui"],
+        "shebangs": [],
+        "lexical_family": "std_c",
+        "rules": {
+            "_line_anchor": re.compile(r"//"),
+            "_inline_comment": re.compile(r"//"),
+            "_block_start": re.compile(r"/\*"),
+            "_block_end": re.compile(r"\*/"),
+        }
+    },
+    "batch": {
+        "_meta": {"target_version": "Windows CMD/Batch", "status": "production"},
+        "extensions": [".bat", ".cmd"],
+        "exact_matches": [],
+        "discriminators": [],
+        "shebangs": [],
+        "lexical_family": "pure_hash",
+        "rules": {
+            # Uses REM or :: for comments. No active logic rules needed (Inert Matter Bypass).
+            "_line_anchor": re.compile(r"^[ \t]*(?:REM|::)", re.I | re.M),
+            "_inline_comment": None,
+            "_block_start": None,
+            "_block_end": None,
+        }
+    },
+    
 }
 
 EXACT_FILE_MATCH = {
@@ -10007,17 +10135,20 @@ EXACT_FILE_MATCH = {
 # ------------------------------------------------------------------------------
 # 3. ORCHESTRATOR LAYER (Consumed by galaxyscope.py)
 # ------------------------------------------------------------------------------
+
 ORCHESTRATOR_RULES = {
     # Stems that are too common to count as relational popularity (The Hallucination Filter)
     "POPULARITY_STOP_STEMS": {
-        "text", "type", "index", "main", "util", "config", "core", "base"
+        # Your existing structural stems:
+        "text", "type", "index", "main", "util", "config", "core", "base",
+        
+        # --- THE NEW SHADOW IMPORT SHIELD ---
+        # Python Stdlib:
+        "sys", "os", "time", "math", "re", "json", "collections", "datetime", "string", "pathlib",
+        # C/C++ Stdlib (Often imported without extensions in modern C++):
+        "stdio", "stdlib", "string", "math", "vector", "map", "iostream", "memory", "algorithm"
     },
-    # Regex to determine if a directory is a testing umbrella
-    "TEST_DIR_REGEX": r'/tests?/|/testing/|\.test$',
-    # The sibling conventions used to detect 1:1 Proximity Shielding
-    "TEST_SIBLING_PATTERNS": [
-        "{stem}_test", "test_{stem}", "{stem}.test", "{stem}test", "{stem}spec"
-    ]
+    # ... [Keep your existing TEST_DIR_REGEX, etc.] ...
 }
 
 # ------------------------------------------------------------------------------
@@ -10135,7 +10266,11 @@ PATH_MODIFIERS = {
         # 6. The Brain (Global State Management)
         # Reducers, stores (Redux/Vuex/MobX), and global contexts. These files manipulate 
         # data that affects the entire application, requiring massive mental overhead to edit safely.
-        (re.compile(r'(?:^|/)(?:stores?|states?|reducers?|contexts?)/', re.I), 1.15)
+        (re.compile(r'(?:^|/)(?:stores?|states?|reducers?|contexts?)/', re.I), 1.15),
+        # 7. The Verification Sieve
+        # Test files are naturally dense with assertions and mocked data. 
+        # Dampen their cognitive load so they don't outweigh actual application logic.
+        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-z]+$|\.test\.[a-z]+$', re.I), 0.50)
     ],
     'Error & Exception Exposure': [
         # 1. The Sentinel (Core Security & Auth)
@@ -10186,20 +10321,31 @@ PATH_MODIFIERS = {
         # 5. The Graveyard (Dead / Backup Files)
         # If files with these extensions bypassed the Aperture filter and made it 
         # to the pipeline, they are pure cognitive load and high debt.
-        (re.compile(r'\.(?:bak|old|orig|conflict)$', re.I), 1.20)
+        (re.compile(r'\.(?:bak|old|orig|conflict)$', re.I), 1.20),
+        # The Build Config Exemption 
+        # Gradle files often contain tooling TODOs that do not reflect architectural logic debt.
+        (re.compile(r'\.gradle$', re.I), 0.0),
+
+        # The Verification Exemption
+        # Tests often contain mocked "TODO" strings to test parsers, or deliberate hacks 
+        # for negative testing. They do not represent architectural debt.
+        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-z]+$|\.test\.[a-z]+$|.*IT\.java$', re.I), 0.0),
+
+        # ---> NEW: The Documentation/Examples Exemption <---
+        # Forgive example code for lacking production-grade tests/safety
+        (re.compile(r'(?:^|/)examples?/', re.I), 0.0)
     ],
     'Documentation Exposure': [
         # 1. The Blueprint (Standard Directories)
         # Expanded to catch singular /doc/, /tutorials/, /guides/, and /wiki/
-        (re.compile(r'(?:^|/)(?:docs?|examples?|tutorials?|guides?|wiki|man)/', re.I), 0.90),
+        (re.compile(r'(?:^|/)(?:docs?|examples?|tutorials?|guides?|wiki|man)/', re.I), 0.0),
         
         # 2. The Glossary (Core Repository Literature)
         # Catches standard root or nested community files (README, CHANGELOG, CONTRIBUTING, etc.)
-        (re.compile(r'(?:^|/)(?:README|CHANGELOG|CONTRIBUTING|LICENSE|INSTALL|AUTHORS|SECURITY)\b', re.I), 0.95),
-        
+        (re.compile(r'(?:^|/)(?:README|CHANGELOG|CONTRIBUTING|LICENSE|INSTALL|AUTHORS|SECURITY)\b', re.I), 0.0),        
         # 3. The Atlas (Standard Documentation Formats)
         # Captures Markdown, MDX (React Markdown), and reStructuredText (Python) anywhere in the repo
-        (re.compile(r'\.(?:md|mdx|rst)$', re.I), 0.95),
+        (re.compile(r'\.(?:md|mdx|rst)$', re.I), 0.00),
         
         # 4. The Interactive Spec (API Docs & Notebooks)
         # Catches Swagger/OpenAPI schemas and Jupyter Notebooks (executable examples)
@@ -10207,7 +10353,10 @@ PATH_MODIFIERS = {
 
         # 5. The Story (UI Component Documentation)
         # Expanded slightly to catch singular `.story.` formats just in case
-        (re.compile(r'\.(?:stories|story|visual)\.', re.I), 0.90)
+        (re.compile(r'\.(?:stories|story|visual)\.', re.I), 0.90),
+        # 6. The Verification Exemption
+        # Unit tests rarely require formal JSDoc/RDoc blocks. Drop doc risk to 0.
+        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-z]+$|\.test\.[a-z]+$', re.I), 0.0)
     ],
     'Testing Exposure': [
         # 1. The Universal Standard: 'test' is safe across all languages
@@ -10223,8 +10372,8 @@ PATH_MODIFIERS = {
         (re.compile(r'(?:^|/)t/.*\.t$', re.I), 0.0),
         
         # 4. Standard E2E and Mock Blankets
-        (re.compile(r'^e2e/|^cypress/|^playwright/', re.I), 0.85),
-        (re.compile(r'/mocks/|/__mocks__/', re.I), 0.90),
+        (re.compile(r'^e2e/|^cypress/|^playwright/', re.I), 0.00),
+        (re.compile(r'/mocks/|/__mocks__/', re.I), 0.00),
         
         # 5. Build Orchestration Exemption (Do not punish build scripts for lacking unit tests)
         (re.compile(r'(?:^|/)tools?/|(?:^|/)build/|(?:^|/)scripts?/', re.I), 0.0),
@@ -10240,7 +10389,15 @@ PATH_MODIFIERS = {
         (re.compile(r'(?:^|/)configure\.sh$', re.I), 0.0),
         
         # Forgive WordPress UI Pattern arrays for lacking PHPUnit tests
-        (re.compile(r'(?:^|/)inc/patterns/', re.I), 0.0)
+        (re.compile(r'(?:^|/)inc/patterns/', re.I), 0.0),
+
+        # 7. The Legacy CGI Exemption
+        # Root-level CGI scripts (common in 90s/00s Perl) are tested via E2E browser automation.
+        (re.compile(r'^[^/]+\.cgi$', re.I), 0.0),
+
+        # ---> NEW: The Documentation/Examples Exemption <---
+        # Forgive example code for lacking production-grade tests/safety
+        (re.compile(r'(?:^|/)examples?/', re.I), 0.0)
     ],
     'Dead Code Exposure': [
         # 1. The Template (Expected Dead Code)
@@ -10311,7 +10468,7 @@ PATH_MODIFIERS = {
         # 5. The Declarative Baseline (Material Science)
         # HTML/CSS/XML use declarative tags for resource fetching (lazy loading, async scripts).
         # This is handled by the browser engine, not the developer, carrying near-zero execution risk.
-        (re.compile(r'\.(html|htm|css|scss|svg|xml)$', re.I), 10.0)
+        (re.compile(r'\.(html|htm|css|scss|svg|xml)$', re.I), 00.0)
     ],
     'State Flux Exposure': [
         # 1. The Warehouse (Expected State Mutations)
@@ -10341,47 +10498,106 @@ PATH_MODIFIERS = {
         # The absolute highest state flux risk. Files designated for environments, 
         # constants, or configs should be completely static after boot. If the 
         # engine detects state mutations here, the application is poisoning its own roots.
-        (re.compile(r'(?:^|/)(?:configs?|envs?|globals?|constants?|settings?)/', re.I), 1.25)
+        (re.compile(r'(?:^|/)(?:configs?|envs?|globals?|constants?|settings?)/', re.I), 1.25),
+        # The Migration Exemption (Database State Changes)
+        # SQL and migration scripts are designed to mutate state. Dampen to 0.
+        (re.compile(r'(?:^|/)migrations?/|\.sql$', re.I), 0.0),
+        # The Migration Exemption (Database State Changes)
+        # SQL, migration scripts, and Gradle configs are designed to mutate state. Dampen to 0.
+        (re.compile(r'(?:^|/)migrations?/|\.sql$|\.gradle$', re.I), 0.0),
+
+        # ---> NEW: The Verification Exemption (Integration Tests & Mocks) <---
+        # Integration tests (*IT.java) are highly volatile by design to mock state changes.
+        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|.*IT\.java$', re.I), 0.0),
+
+        # ---> NEW: The Documentation/Examples Exemption <---
+        # Forgive example code for lacking production-grade tests/safety
+        (re.compile(r'(?:^|/)examples?/', re.I), 0.0)
     ],
     'Structural Mass': [        
-        # The Wycheproof / Test Vector Dampener
-        # Auto-generated cryptographic data arrays explode the C-parser's argument math.
-        # We apply an extreme 99.9% mass reduction (0.001) to neutralize the supernova.
-        (re.compile(r'(?:^|/)(?:wycheproof_tests|test_vectors|testdata)/', re.I), 0.001),
+        # The Cryptographic & Test Vector Dampener
+        # Auto-generated data arrays explode parser argument math. Extreme reduction 
+        # prevents these static payloads from registering as massive logic hubs.
+        (re.compile(r'(?:^|/)(?:wycheproof_tests|test_vectors|testdata|tests/data)/', re.I), 0.001),
         
-        # The Code-Gen Dampener (Kubernetes / gRPC)
-        # Deeply dampens auto-generated Protocol Buffers and DeepCopy files 
-        # so they do not mathematically outweigh human-written architecture.
+        # The Code-Generation Dampener
+        # Deeply dampens auto-generated files (e.g., Protobufs, boilerplate) 
+        # so machine-written code doesn't mathematically outweigh human architecture.
         (re.compile(r'(?:^|/)(?:zz_generated.*|.*\.pb\.go|.*\.generated\.go)', re.I), 0.05), 
+
+        # ---> NEW: The DB Migration & Schema Dampener <---
+        # Dampens auto-generated database migrations and schema snapshots. These are 
+        # declarative mappings of state, not complex, human-maintained execution paths.
+        (re.compile(r'(?:^|/)(?:migrations?|schema)/.*\.(?:sql|ts|js|rb|py)$|(?:\d{10,}_[a-z0-9_]+\.(?:ts|js|rb|py|sql))$', re.I), 0.05),
         
-        # The Vendored Library Dampener (MediaWiki / Web Frontends)
-        # Neutralizes massive third-party frontend frameworks (Vue, jQuery, node_modules) 
-        # so they do not mathematically outweigh the core repository architecture.
+        # The Vendored Directory Dampener
+        # Neutralizes standard third-party ecosystem folders (vendor, node_modules) 
+        # to prevent external dependencies from eclipsing the core repository.
         (re.compile(r'(?:^|/)(?:resources/lib|vendor|node_modules|third_party)/', re.I), 0.02),
+
+        # The Global Frontend Vendor Dampener
+        # Neutralizes massive JS bundles (jQuery, React, minified files) that hide 
+        # outside standard vendor folders, preventing them from crushing the physics engine.
+        (re.compile(r'(?:^|/)(?:jquery[^/]*\.js|bootstrap[^/]*\.js|typeahead[^/]*\.js|.*\.min\.js)$', re.I), 0.01),
+
+        # ---> NEW: The Compiled Chunk & Bundle Dampener <---
+        # Neutralizes Webpack/Vite production build outputs (e.g., main.a8b9.js, chunk-123.js)
+        # that leak into public/ or static/ directories, mimicking massive logic hubs.
+        (re.compile(r'(?:^|/)(?:chunk-[a-z0-9_.-]+|main\.[a-f0-9]{8,}\.(?:js|css)|[a-z0-9_.-]+\.bundle\.js)$', re.I), 0.01),
+
+        # ---> NEW: The React SVG / Vector Graphics Dampener <---
+        # Dampens UI components that are purely exported SVG path data (e.g., Icon.jsx).
+        # Prevents raw vector math from artificially inflating UI framework density.
+        (re.compile(r'(?:^|/)(?:icons?|illustrations?|logos?|assets?)/.*\.jsx?|tsx?$', re.I), 0.10),
+
+        # ---> NEW: The Test Snapshot & Fixture Dampener <---
+        # Neutralizes auto-generated UI snapshots and massive mock data payloads (like cryptographic keys)
+        # so they do not artificially inflate the mass of the verification suite.
+        (re.compile(r'(?:^|/)(?:__snapshots__|__mocks__|fixtures?)/|.*\.snap$', re.I), 0.001),
+
+        # ---> NEW: The Academic Test Script Dampener <---
+        # Heavily reduces the mass of massive procedural test/bug scripts in academic MATLAB/Python repos.
+        (re.compile(r'(?:^|/)test/test_.*\.m$', re.I), 0.05),
         
-        # The DevOps Dampener
+        # The DevOps & Automation Dampener
+        # Reduces the structural weight of CI/CD shell scripts and automation tooling 
+        # so deployment pipelines don't mimic core application complexity.
         (re.compile(r'(?:^|/)(?:scripts?|ci|cd|docker|e2e)/.*\.(?:sh|bash|zsh)$', re.I), 0.10),
         
-        # The Declarative / Type Definition Dampener
-        # TS Types and CSS files explode the (branch * args) math due to union types (|) 
-        # and CSS vars. Dampen their physical mass to reflect their lack of execution logic.
+        # The Declarative & Type Definition Dampener
+        # Dampens TS types and CSS files, as union types and variables artificially 
+        # inflate branch/argument math without containing active execution logic.
         (re.compile(r'\.css$|\.scss$|\.d\.ts$|\.types\.ts$|/types\.ts$|params?\.ts$|schema\.ts$', re.I), 0.05),
         
-        # --- THE WRF BLACK HOLES ---
-        # The WRF Lexer & Generator Dampener
-        # C-based lexers, parsers, and code generators (KPP, makedepf90, tools) explode
-        # the mass calculations due to giant auto-generated switch statements.
+        # The Parser & Lexer Tooling Dampener
+        # C-based lexers and code generators explode mass calculations due to giant 
+        # auto-generated switch statements. Neutralizes their structural gravity.
         (re.compile(r'(?:^|/)(?:tools|chem/KPP/kpp|var/da/makedepf90[^/]*)/', re.I), 0.001),
         
-        # The WRF External Dependencies Dampener
-        # RSL_LITE and io_grib1 are heavy external I/O and comms libraries, not core atmospheric physics.
+        # The External Modules Dampener
+        # Heavily reduces the weight of external I/O or bundled communication libraries 
+        # so they do not distort the physical footprint of the primary application.
         (re.compile(r'(?:^|/)external/', re.I), 0.001),   
-        # ... your other dampeners ...
         
-        # The FreeBSD Third-Party Dampener
-        # Reduces the mass of vendored upstream projects by 99% so they don't 
-        # mathematically eclipse the actual FreeBSD kernel architecture.
+        # The Upstream Ports Dampener
+        # Reduces the mass of vendored upstream ecosystem ports (like contrib/crypto) 
+        # ensuring the map focuses on the native system architecture.
         (re.compile(r'(?:^|/)(?:contrib|crypto)/', re.I), 0.01),
+        # The Translation & Localization Dampener
+        # Crushes massive i18n YAML/JSON dictionaries so they don't outweigh application logic.
+        (re.compile(r'(?:^|/)locales?/', re.I), 0.001),
+
+        # ---> NEW: The Generated HTML Docs Dampener <---
+        # Prevents auto-generated HTML reference tables from mimicking web-app architecture mass.
+        (re.compile(r'(?:^|/)html/.*\.html$', re.I), 0.001), 
+        # ---> NEW: The Dart Code-Generation Dampener <---
+        # Dampens auto-generated Dart files (.g.dart, .freezed.dart) so their massive 
+        # static data arrays don't masquerade as thousands of logic functions.
+        (re.compile(r'\.(?:g|freezed)\.dart$', re.I), 0.05), 
+        # ---> NEW: The Go Compiler & CGO Auto-Gen Dampener <---
+        # Crushes massive compiler-generated SSA rules and CGO-generated system 
+        # bindings so they don't masquerade as dense human logic.
+        (re.compile(r'(?:^|/)(?:rewrite[A-Za-z0-9_]+\.go|z[a-z0-9_]+\.go|opGen\.go|malloc_generated\.go)$', re.I), 0.001),
     ]
     }
 
@@ -10587,7 +10803,6 @@ RECORDING_SCHEMAS = {
 # ------------------------------------------------------------------------------
 # 6. DIALECTS (Project-Specific Overrides)
 # ------------------------------------------------------------------------------
-
 PROJECT_OVERRIDES = {
     "freebsd-src": {
         # FreeBSD uses .m for KOBJ (Kernel Object) files which are pure C.
@@ -10596,9 +10811,11 @@ PROJECT_OVERRIDES = {
             "extensions": ['.mm', '.h'] # Removed .m
         },
         "c": {
-            "extensions": ['.c', '.h', '.cl', '.inc', '.y', '.idc', '.cats', '.m'] # Added .m
+            # THE FIX: Preserved the .m override, but synced with the new .dts/.dtsi baseline!
+            "extensions": ['.c', '.h', '.cl', '.inc', '.y', '.idc', '.cats', '.m', '.dts', '.dtsi'] 
         }
     },
+    
     "wrf-fortran": {
         # --- 1. SHIELD/APERTURE OVERRIDES ---
         "_shield_": {
@@ -10609,6 +10826,7 @@ PROJECT_OVERRIDES = {
             "concurrency": re.compile(r'\b(COARRAY|SYNC\s+ALL|CRITICAL|MPI_[A-Za-z_]+|wrf_dm[A-Za-z0-9_]*|RSL[A-Za-z0-9_]*)\b|!\$(?:OMP|ACC)\b', re.I)        
         }
     },
+    
     "Apollo-11": {
         "agc_assembly": {
             # The multi-line block header (e.g., "FUNCTIONAL DESCRIPTION")
@@ -10620,5 +10838,128 @@ PROJECT_OVERRIDES = {
             # The Escape Hatch. If the parser is reading the fallback Purpose line, hitting any of these headers tells it to stop.
             '_meta_boundary': re.compile(r'^[ \t]*(?:Assembler|Filename|Pages|Website|Mod history|Copyright|Reference|PROGRAM NAME)[\s:\-]+', re.I)
         }
-    }
+    },
+
+    "cpython": {
+        # --- 1. SHIELD/APERTURE OVERRIDES ---
+        "_shield_": {
+            "exclude_paths": [
+                "Lib/pydoc_data/topics.py", # The Supermassive Documentation Dictionary
+                "configure",                # The 36,000-line generated autotools script
+            ],
+            "exclude_dirs": [
+                "Modules/clinic",           # Auto-generated C-API boilerplate
+            ]
+        }
+    },
+    "AppFlowy": {
+        # --- 1. SHIELD/APERTURE OVERRIDES ---
+        "_shield_": {
+            "exclude_dirs": [
+                "scripts",           # Hard-blocks the shell script invasion (overrides VIP intent)
+                "integration_test"   # Hard-blocks the massive test suites we saw earlier
+            ],
+            "exclude_paths": [
+                "install.sh"         # Kills the specific root-level installer
+            ]
+        }
+    },
+    
+    "ansible": {
+        # --- 1. SHIELD/APERTURE OVERRIDES ---
+        "_shield_": {
+            "exclude_dirs": [
+                ".azure-pipelines",  # Hard-blocks all Azure pipeline YAMLs and shell scripts
+                ".github"            # Blocks GitHub Actions noise
+            ]
+        }
+    },
+    "bugzilla": {
+        "html": {
+            # Injects .tmpl into the standard HTML extension surface area
+            "extensions": [
+                ".html", ".htm", ".xhtml", ".cshtml", ".vue", ".svelte", 
+                ".astro", ".ejs", ".hbs", ".twig", ".erb", ".tmpl"
+            ]
+        }
+    },
+    "bun": {
+        # --- 1. SHIELD/APERTURE OVERRIDES ---
+        "_shield_": {
+            "exclude_dirs": [
+                "scripts" # Hard-blocks the CI/CD shell scripts from grabbing a VIP pass
+            ]
+        },
+    },
+    "curl": {
+        "plaintext": {
+            # Injects man pages and text docs into the plaintext surface area
+            "extensions": [
+                ".txt", ".text", ".log", ".out", ".err", ".nfo", 
+                ".1", ".3", ".d"
+            ]
+        }
+    },
+    "discourse": {
+        # --- 1. SHIELD/APERTURE OVERRIDES ---
+        "_shield_": {
+            "exclude_paths": [
+                "config/unicorn_launcher", # Hard-blocks the server boot script
+                "pnpm-lock.yaml",          # Banishes the massive lockfile
+                "yarn.lock"
+            ]
+        },
+        # --- 2. LINGUISTIC OVERRIDES ---
+        "javascript": {
+            # Maps Ember Glimmer components (.gjs) so the frontend isn't invisible
+            "extensions": [
+                ".js", ".jsx", ".mjs", ".cjs", ".gjs"
+            ]
+        }
+    },
+
+    "elasticsearch": {
+        # --- LINGUISTIC OVERRIDES ---
+        "plaintext": {
+            # Injects JSON REST API specs and YAML integration tests into the parsable surface area
+            "extensions": [
+                ".txt", ".text", ".log", ".json", ".yaml", ".yml"
+            ]
+        }
+    },
+    "exiftool": {
+        "plaintext": {
+            # Rescues ExifTool's gold-standard test outputs and config formats from Dark Matter
+            "extensions": [
+                ".txt", ".text", ".out", ".args", ".fmt", ".xmp"
+            ]
+        }
+    },
+    "express": {
+        "html": {
+            # Rescues Express view templates used in tests/examples
+            "extensions": [
+                ".html", ".htm", ".ejs", ".tmpl"
+            ]
+        }
+    },
+    "fieldtrip": {
+        # --- 1. SHIELD/APERTURE OVERRIDES ---
+        "_shield_": {
+            "exclude_dirs": [
+                "external" # Hard-blocks vendored third-party toolboxes (EEGLAB, SPM, etc.)
+            ]
+        }
+    },
+    "jenkins": {
+        # --- 1. SHIELD/APERTURE OVERRIDES ---
+        "_shield_": {
+            # Banish the translation tooling scripts to Dark Matter so they 
+            # don't falsely dominate the core Java architectural risk rankings.
+            "exclude_paths": [
+                "translation-tool.pl",
+                "core/report-l10n.rb"
+            ]
+        }
+    },
 }
