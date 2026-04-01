@@ -27,6 +27,8 @@ GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is 
 
 > **📖 Official Documentation:** Read the full technical specifications, architecture blueprints, and the Taxonomical Equivalence Map at **[squid-protocol.github.io/gitgalaxy](https://squid-protocol.github.io/gitgalaxy/)**.
 
+![GitGalaxy Data HUD](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/data_hud.png)
+
 ![GitGalaxy Meta Visualizer](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/assets/metaview.png)
 
 ---
@@ -69,6 +71,8 @@ python3 -m http.server 8000
 Open your web browser and go to http://localhost:8000.
 
 Drag and drop your newly generated _galaxy.json file to instantly render your architecture.
+
+![GitGalaxy SQLite Overview](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/sqlite_overview.png)
 
 ## 🧬 The blAST Paradigm: Sequencing the DNA of Software
 
