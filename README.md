@@ -13,6 +13,7 @@
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)](https://pypi.org/project/gitgalaxy/)
 [![Airgap Ready](https://img.shields.io/badge/Security-Airgap_Ready-teal.svg)](#)
 
+![Apollo 11 State Flux Analysis](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/assets/apollo-11%20screenshot.png)
 
 Code is art. Logic is art. Systems engineering is art.
 
@@ -25,6 +26,8 @@ GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is 
 **Live Demo:** View 3D galaxy examples of Apollo-11, Linux, Tensorflow and more at [GitGalaxy.io](https://gitgalaxy.io/)
 
 > **📖 Official Documentation:** Read the full technical specifications, architecture blueprints, and the Taxonomical Equivalence Map at **[squid-protocol.github.io/gitgalaxy](https://squid-protocol.github.io/gitgalaxy/)**.
+
+![GitGalaxy Meta Visualizer](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/assets/metaview.png)
 
 ---
 

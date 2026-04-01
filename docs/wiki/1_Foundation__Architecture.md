@@ -68,6 +68,7 @@ By analyzing the structural density of I/O hits, execution triggers, and securit
 GitGalaxy operates on the principle that source code can be used as a procedural generation seed. Just as a random string of text in Minecraft dictates the rise of mountains or the depth of oceans, your codebase's logic dictates the topology of the galaxy that emerges. We treat code not as a set of instructions to be compiled, but as a seed for a generative galaxy.
 
 GitGalaxy renders code bases with the following visual metaphors:
+
 * **Files** = Stars orbiting around an unseen black hole
 * **External libraries** = Rings around planets
 * **File Relationships** = Relative locations of stars in the galaxy

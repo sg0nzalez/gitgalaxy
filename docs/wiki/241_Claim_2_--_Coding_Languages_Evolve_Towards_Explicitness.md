@@ -100,6 +100,4 @@ By trading the microscope of an AST for the telescope of blAST, we accept a 5% m
 
 ### 2.4.1.D. Conclusion: Design for Scannability
 
-The progression from Tier 3 (Implicit) to Tier 1 (Explicit) proves that Scannability is an Evolutionary Trait. The younger the language, the louder it "screams" its intent. GitGalaxy leverages this by normalizing all eras into the same 3D physics, but applying the Fidelity Coefficient ($Fc$) to account for the silence of the ancients.
-
-This suggests a future where "scannability"—the ease with which intent can be derived from the surface of the code—becomes a core design goal for language architects.
+The progression from Tier 3 (Implicit) to Tier 1 (Explicit) suggests that Scannability, the trending towards explicitness is increase. The younger the language, the louder it "screams" its intent. The blAST engine attempts normalize this variation in explicitiness by applying the Fidelity Coefficient ($Fc$) to account for the silence of the ancients/the fog of war/the opaqueness of the language. 

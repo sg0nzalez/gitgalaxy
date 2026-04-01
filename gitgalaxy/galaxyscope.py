@@ -292,6 +292,20 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
         if is_file_profiling: phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
         
         logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
+
+        # --- Phase 5.5: Security Lens (Passive Observers) ---
+        t_security = time.perf_counter()
+        security_hits = security.scan_content(content_buffer, filter_res.get("total_loc", 0))
+        
+        # Ensure the equations dictionary exists, then inject the prefixed security hits
+        if "equations" not in logic_data:
+            logic_data["equations"] = {}
+            
+        for sec_key, hit_count in security_hits.items():
+            logic_data["equations"][f"sec_{sec_key}"] = hit_count
+            
+        if is_file_profiling: phase_times["5.5_Security_Lens"] = time.perf_counter() - t_security
+        # ----------------------------------------------------
         
         # Phase 6: Raw Imports
         t_imports = time.perf_counter()

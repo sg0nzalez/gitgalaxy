@@ -881,7 +881,7 @@ class SignalProcessor:
         executioner = eq.get("sec_danger", 0) * 5.0
         poisoning = eq.get("sec_flux", 0) * 3.0
         shadow_logic = eq.get("sec_graveyard", 0) * 2.0
-        secrets = eq.get("private_info", 0) * 1.5
+        secrets = eq.get("sec_private_info", 0) * 1.5
         steganography = eq.get("sec_shadow_imports", 0) * 10.0
         unicode_smuggling = eq.get("sec_homoglyphs", 0) * 10.0
 
