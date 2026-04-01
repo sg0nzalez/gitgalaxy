@@ -508,8 +508,12 @@ class Prism:
                 lits.append(line)
                 continue
             
-            # 2. Modern Inline Fortran comments (!)
-            if '!' in line:
+            # 2. Modern Inline Fortran (!) and COBOL (*>) comments
+            if '*>' in line:
+                parts = line.split('*>', 1)
+                code.append(parts[0])
+                lits.append('*>' + parts[1])
+            elif '!' in line:
                 parts = line.split('!', 1)
                 code.append(parts[0])
                 lits.append('!' + parts[1])

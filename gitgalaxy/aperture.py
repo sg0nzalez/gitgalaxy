@@ -150,8 +150,8 @@ class ApertureFilter:
             reason = f"CRITICAL LEAK (Exposed Secret: '{path_obj.name}')"
             self.logger.critical(f"🛡️ SECURITY BREACH: {reason} at {relative_path}")
             
-            # THE SHUNT: Return True so it stays in scope, but tag it in the reason
-            return True, size_bytes, reason
+            # THE FIX: Return False so it drops into Dark Matter for the Supernova Injection
+            return False, size_bytes, reason
 
         # --- TIER 0.5: THE ABSOLUTE EXTENSION SHIELD ---
         if ext.lower() in self.black_hole_exts and ext.lower() not in self.whitelisted_extensions:
@@ -310,7 +310,8 @@ class ApertureFilter:
 
         # --- TIER 3.7: THE LEXICAL MONOTONY SHIELD (Generated Code) ---
         # Detects massive generated boilerplate by checking structural entropy
-        if report["loc"] > 2000 and not has_intent:
+        # EXEMPTION: COBOL Data Divisions and Copybooks are naturally highly repetitive.
+        if report["loc"] > 2000 and not has_intent and not low_path.endswith(('.cpy', '.cbl', '.cob')):
             sample_lines = lines_list[:500]
             meaningful_lines = [l for l in sample_lines if l.strip()]
             
@@ -370,9 +371,12 @@ class ApertureFilter:
 
         # --- TIER 4: INFRARED GATE (Minification & Saturation) ---
         max_line = self.config.get("MAX_LINE_LENGTH", 500)
+        
+        # Prose and documentation often have long unbroken strings (URLs, paragraphs)
+        is_prose = low_path.endswith(('.md', '.markdown', '.txt', '.json', '.csv', '.rst'))
 
         for i, line in enumerate(lines_list[:100]): 
-            if len(line) > max_line:
+            if len(line) > max_line and not is_prose:
                 report.update({
                     "valid": False, 
                     "band": self.bands.get("INFRARED", "saturated"), 

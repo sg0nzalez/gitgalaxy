@@ -5,7 +5,7 @@
 The ultimate realization of the GitGalaxy standard is the transition
 from point-in-time inspections to a 24/7 Rolling Risk Exposure
 model. By deploying a headless version of the
-engine---*scanner.py*---directly into the publishing pipeline,
+engine directly into the publishing pipeline,
 we move beyond the \"User-Triggered Audit\" into a state of continuous
 architectural awareness. Every push or pull request triggers a
 full-fidelity scan, ensuring the system's health is never more than one
@@ -105,7 +105,7 @@ providing a no-blame way to understand why a specific module is taking
 more time: because the team is busy \"civilizing\" five different
 sub-specs that were required to make the high-level plan a reality.
 
-### .6. The Field of AI Forensics
+### 7.6. The Field of AI Forensics
 
 Large Language Models (LLMs) do not write code like humans. Humans are
 pragmatic, lazy, and highly contextual. AI agents are deterministic,
@@ -124,3 +124,52 @@ a new ability to track one model's produced code throughout the world
 (\...There is a 95% chance that Gemini 3 wrote this function,\...this
 code was likely human generated\...10% of the files on github are from
 an OpenAI model...).
+
+### 7.7. White Box Neural Networks: The Deterministic Brain
+Modern Deep Learning models operate as "Black Boxes"—massive arrays of neurons where data enters, opaque mathematical weights shift, and an output magically emerges. While powerful, this opacity makes it impossible to audit exactly why a specific analytical decision was made. GitGalaxy flips this paradigm by operating as a "White Box Neural Network."
+
+In this architecture, the ~50 distinct lexical and structural heuristics act as individual neurons. However, unlike the hidden nodes in a traditional Large Language Model, every single "neuron" in GitGalaxy is fully transparent, deterministic, and manually controllable. We can look inside the engine and see exactly why the "Cognitive Load" or "State Flux" neurons fired, tracing the signal back to the exact physical structure of the code.
+
+This explicit routing allows for the creation of vastly smarter, highly specialized networks. Because each heuristic is isolated, we can optimize an individual "neuron" independently. If we need the security lens to be more acute for a specific modern web framework, we can upgrade that single node without needing to retrain an entire model, hallucinate new rules, or risk degrading the rest of the system's accuracy.
+
+By networking these simple, transparent, and highly-tuned heuristics together, the resulting information flow generates emergent, high-level architectural awareness. It delivers the sweeping, multi-dimensional analytical power of a neural network, but retains the clinical, verifiable precision of a deterministic engineering tool.
+
+### 7.8. The Genomic Taxonomy of Software: Sequencing the 15 Archetypes
+To truly understand the health of a biological organism, you cannot simply weigh it; you must sequence its DNA and compare it to its species. Software is no different. For decades, the industry has relied on subjective, human-assigned labels to categorize code—calling a file a "Controller," a "Model," or a "Service" based entirely on the developer's naming conventions or the directory it lives in. This is the equivalent of classifying an animal as a "fish" because someone said so. 
+
+I used the blAST engine's DNA/regex hit profiles per file, placed that through a k-means clustering algorithm to identify 15 different file architecture families. This process mimics the exact stages of modern genomic sequencing:
+
+1. Extraction and Sequencing (The Regex Hits)
+Just as a sequencer breaks down DNA into its fundamental base pairs (Adenine, Cytosine, Guanine, Thymine), the GitGalaxy physics engine breaks down raw source code into its structural primitives. The 60-point Hit Vector—which tallies the exact density of control flow branches, safety nets, I/O boundaries, and state mutations—acts as the raw genetic sequence of the file.
+
+2. Unsupervised Machine Learning (K-Means Clustering)
+Once we sequenced the "genomes" of over 500,000 files across 90 different enterprise codebases, we didn't use human rules to categorize them. We fed these massive, multi-dimensional genetic sequences into an unsupervised K-Means clustering algorithm. We simply asked the machine learning model to find the natural, physical groupings within the data.
+
+3. Taxonomic Classification (The 15 Archetypes)
+Without any human bias, the algorithm organically separated the half-million files into 15 distinct, mathematically verifiable groups. It discovered that a "Unit Test" in Python shares the exact same structural DNA footprint as a "Unit Test" in Go. It proved that "Static Configuration" files form a completely isolated genetic cluster entirely devoid of control flow.
+
+The Power of a Mathematical Fingerprint
+By defining files mathematically rather than semantically, we have established a hard, quantifiable definition for software architecture. Every file scanned by the blAST engine is instantly compared against the centroids of these 15 clusters and assigned an Archetype.
+
+This is the ultimate key to contextualizing risk. A file exhibiting a 60% Concurrency density and heavy State Flux might trigger a massive security alarm if the system thinks it is looking at a "Static Configuration" file. But by knowing its true genetic identity—that it is actually an "Async UI Router"—the engine understands that this high density is perfectly natural for its species, and adjusts the risk exposure accordingly. We are no longer guessing what a file is supposed to do; we are reading its DNA.
+
+### 7.9. The X-Ray Machine: Reconceptualizing Malicious Package Inspection
+The cybersecurity industry’s current approach to malicious package inspection is functionally Victorian. Traditional static analysis tools search for specific, hardcoded strings, known malicious URLs, or exact byte signatures. They are searching for threats using the digital equivalent of a Sherlock Holmes magnifying glass—effective only if the attacker leaves a perfectly recognizable fingerprint at the scene.
+
+GitGalaxy fundamentally reconceptualizes this process by operating as an X-ray machine. By relying on structural DNA (regex-based heuristics) rather than semantic signatures, we map the underlying "physics" of the code.
+
+The Genomic Advantage Against Zero-Days
+The algorithms underpinning GitGalaxy are descended from bioinformatics—tools originally designed to detect heavily mutated fragments of a flu virus within the sequenced genome of an extinct ape. These algorithms are mathematically built to handle extreme permutations, mutations, and noise.
+
+This makes the system uniquely suited to detect zero-day attack vectors. An attacker can obfuscate their variables, encrypt their payloads, and constantly shift their command-and-control servers to evade traditional scanners. However, they cannot escape the structural physics of what their code must do to execute the attack.
+
+Just as every cold virus must possess specific genes to breach a cell and replicate, every digital attack vector has inescapable structural markers:
+
+The Glassworm: To hide a payload, an attacker must use high-entropy strings, base64 encoding, or invisible Unicode characters, paired with dynamic execution (eval, exec).
+
+The Trojan: To bypass environments, it must actively suppress safety nets, alter runtime configurations, or suppress errors.
+
+The Exfiltration Vector: To steal data or pull down a secondary payload, it must utilize network I/O boundaries.
+
+The Supply Chain attack: When a payload is snuck into a random file on the outskirts of a project, its structural composition changes entirely. A simple differential scan during a pull request will immediately flag the sudden spike in regex hits and the deviation from its expected Archetype. Regardless of who made the change, manual review could be required with human verification before the mutated architecture is accepted. Even if the change was slowly dripped in over the course of days, one could easily employ a weekly or monthly diff analysis to look for outliers. 
+

@@ -1,4 +1,4 @@
-# Mapping the DNA of Software: The 15 Architectural Archetypes
+# Mapping the DNA of Software: The 15 File Archetypes
 
 To truly understand software health, we had to stop judging every file by the same generic standard. A frontend UI router should not be penalized for having high concurrency, just as a low-level memory handler shouldn't be penalized for lacking dependency injection. Context matters.
 

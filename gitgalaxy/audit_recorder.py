@@ -139,8 +139,8 @@ class AuditRecorder:
             # --- THE ULTIMATE UPSTREAM BYPASS FIX ---
             doc_languages = {"markdown", "plaintext", "rst", "text", "md"}
             if lang_raw in doc_languages and len(star.get("risk_vector", [])) < len(self.RISK_SCHEMA):
-                # Inject 13-point synthetic Risk Blanket
-                star["risk_vector"] = [0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 100.0, 0.0]
+                # Inject 18-point synthetic Risk Blanket
+                star["risk_vector"] = [0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
                 telemetry["control_flow_ratio"] = 0.0
                 if not star.get("file_impact"):
                     star["file_impact"] = round(max(star.get("total_loc", 1) / 50.0, 1.0), 2)
@@ -195,12 +195,17 @@ class AuditRecorder:
                 },
                 "3. Galactic Profile": {
                     "Machine Learning Archetype": arch,
+                    "Archetype Fingerprint (Euclidean Distances)": telemetry.get("archetype_fingerprint", {}),
                     "Total LOC": star.get("total_loc", 0),
                     "coding LOC": star.get("coding_loc", 0),
                     "Documentation LOC": star.get("doc_loc", 0),
                     "Structural Mass": round(star.get("file_impact", 0.0), 3),
                     "Control Flow Ratio": f"{round(telemetry.get('control_flow_ratio', 0.0) * 100, 1)}%",
-                    "Popularity Rank": telemetry.get("popularity", 0)
+                    "Popularity Rank": telemetry.get("popularity", 0),
+                    "Raw Churn Frequency": telemetry.get("raw_churn_freq", 0.0),
+                    "Author Distribution": telemetry.get("author_distribution", 0.0),
+                    "Ownership Entropy": telemetry.get("ownership_entropy", 0.0),
+                    "Raw Cognitive Density": telemetry.get("densities", {}).get("cog_raw", 0.0)
                 },
                 "4. Risk Exposures": exposures_dict,
                 "5. Function Analysis (Satellites)": [
@@ -389,8 +394,17 @@ class AuditRecorder:
         # ==========================================================
         # 5. Final Mission Archive Packaging
         # ==========================================================
+        
+        # --- THE FIX: Format the Global Ecosystem Fingerprint ---
+        global_fingerprint = summary.get("ecosystem_fingerprint", {})
+        pretty_global_fingerprint = {
+            k: f"{v}%" for k, v in global_fingerprint.items()
+        } if global_fingerprint else "No archetypes detected."
+        
+        summary["Global Architectural Fingerprint"] = pretty_global_fingerprint
+
         mission_audit = {
-            "Audit Protocol": "GitGalaxy v6.2.0-Audit",
+            "Audit Protocol": "GitGalaxy v6.3.2-Audit",
             "1. Forensic Trail (Traceability)": forensic_trail,
             "2. Global Synthesis Summary": summary,
             "3. Forensic Security & Vulnerability Audit": security_audit,

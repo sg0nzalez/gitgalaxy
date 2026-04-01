@@ -69,6 +69,7 @@ class GPURecorder:
             "imports": [], # <--- NEW: The dependency string lookup column
             "c_ids": [],   # <--- NEW: The Constellation Mapping Column
             "a_ids": [],   # <--- NEW: Machine Learning Archetype IDs
+            "a_dists": [], # <--- NEW: Quantized Distances for the Archetypes
             "edges": [],    # <--- NEW: Integer pointers for 3D WebGL lines
             "outbound_edges": []
         }
@@ -106,9 +107,33 @@ class GPURecorder:
             c_name = s.get("constellation", "__monolith__")
             columns["c_ids"].append(self._intern(c_name, self.const_lookup))
             
-            # --- NEW: Map the file to its ML Archetype via Interning ---
-            arch_name = tel.get("archetype", "Unknown Archetype")
-            columns["a_ids"].append(self._intern(arch_name, self.archetype_lookup))
+            # --- NEW: DYNAMIC ML FINGERPRINT EXTRACTION ---
+            fingerprint = tel.get("archetype_fingerprint", {})
+            file_a_ids = []
+            file_a_dists = []
+            
+            if fingerprint and len(fingerprint) >= 2:
+                # Sort archetypes by distance ascending (lowest = best match)
+                sorted_archs = sorted(fingerprint.items(), key=lambda x: x[1])
+                prim_name, prim_dist = sorted_archs[0]
+                sec_name, sec_dist = sorted_archs[1]
+                
+                # 1. Always append the Primary Archetype
+                file_a_ids.append(self._intern(prim_name, self.archetype_lookup))
+                file_a_dists.append(int(round(prim_dist * 1000))) # Quantize float to int
+                
+                # 2. Append Secondary ONLY if it is drifting (<= 0.9 IQR gap)
+                if (sec_dist - prim_dist) <= 0.9:
+                    file_a_ids.append(self._intern(sec_name, self.archetype_lookup))
+                    file_a_dists.append(int(round(sec_dist * 1000)))
+            else:
+                # Fallback if fingerprint is missing (e.g. bypass files)
+                arch_name = tel.get("archetype", "Unknown Archetype")
+                file_a_ids.append(self._intern(arch_name, self.archetype_lookup))
+                file_a_dists.append(0)
+                
+            columns["a_ids"].append(file_a_ids)
+            columns["a_dists"].append(file_a_dists)
             
             columns["paths"].append(path)
             columns["names"].append(s.get("name", Path(path).name))

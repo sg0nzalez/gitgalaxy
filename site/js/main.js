@@ -329,9 +329,21 @@ class AppController {
         // Insert Language Identity right after Civil War (which is the 14th element in the select DOM)
         select.insertBefore(langOption, select.children[14]);
 
+        // --- NEW: Inject File Architecture (Mode 20) ---
+        const archModeId = 20;
+        const archModeName = "File Architecture";
+        this.METRIC_NAMES[archModeId] = archModeName;
+
+        const archOption = document.createElement('option');
+        archOption.value = archModeId;
+        archOption.innerText = archModeName;
+        select.appendChild(archOption); // Adds it to the very bottom of the dropdown
+
         // 4. Restore previous selection
         if (this.METRIC_NAMES[currentVal]) {
             select.value = currentVal;
+            // --- THE FIX: Force the UI to re-evaluate the active data ---
+            this.handleMetricChange(currentVal); 
         } else {
             select.value = "0";
             this.handleMetricChange("0");
@@ -638,19 +650,15 @@ class AppController {
         const mode = parseInt(val);
         this.engine.uMetricMode.value = mode; 
         
-        // Broadcast the legend update globally
         if (window.updateLegend) {
             let schemaKey = null;
-            if (mode === 14) {
-                schemaKey = 'language_identity'; 
-            } else if (mode >= 15) {
-                schemaKey = window.RISK_SCHEMA[mode - 2]; // Map IDs 15-19 back to array indices 13-17
-            } else if (mode > 0) {
-                schemaKey = window.RISK_SCHEMA[mode - 1]; // Map IDs 1-13 to array indices 0-12
-            }
+            if (mode === 14) schemaKey = 'language_identity'; 
+            else if (mode === 20) schemaKey = 'file_architecture'; // <-- ADD THIS
+            else if (mode >= 15) schemaKey = window.RISK_SCHEMA[mode - 2]; 
+            else if (mode > 0) schemaKey = window.RISK_SCHEMA[mode - 1]; 
+            
             window.updateLegend(mode, schemaKey);
         }
-
         this.syncHUDWithSelection(); 
     }
 

@@ -129,7 +129,10 @@ APERTURE_CONFIG = {
         '.zip', '.tar', '.gz', '.tgz', '.bz2', '.xz', '.7z', '.rar', '.iso', '.cab',
 
         # 8. Core Compiled Binaries & Object Files
-        '.exe', '.dll', '.so', '.dylib', '.class', '.jar', '.war', '.ear', '.o', '.a', '.lib', '.out', '.pyc', '.pyd'
+        '.exe', '.dll', '.so', '.dylib', '.class', '.jar', '.war', '.ear', '.o', '.a', '.lib', '.out', '.pyc', '.pyd',
+        
+        # 9. Cryptographic Binaries & Keystores (Lethal to text parsers)
+        '.p12', '.pfx', '.p7b', '.jks', '.kdbx', '.der'
     },
     
     # --- 3. Contraband Patterns ---
@@ -4181,10 +4184,8 @@ LANGUAGE_DEFINITIONS = {
             # 16. ui_framework
             "ui_framework": None,
             # 17. closures (The Functional Depth)
-            # Common Table Expressions (CTEs).
-            "closures": re.compile(
-                r"\bWITH\s+(?:RECURSIVE[ \t]+)?[a-zA-Z_]\w*\s+(?:AS[ \t]+)?\(", re.I
-            ),
+            # SQLite does not support functional closures/lambdas. (CTEs are structural boundaries/loops).
+            "closures": None,
             # 18. globals (The Shared Void)
             "globals": re.compile(
                 r"\b(sqlite_master|sqlite_schema|sqlite_sequence|sqlite_temp_schema|sqlite_stat\d+|PRAGMA\s+global_)\b",
@@ -4398,10 +4399,8 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 8. danger (The Heavy Load)
-            # Deprecated tags and catastrophic runtime behaviors.
-            "danger": re.compile(
-                r'\b(?:eval|document\.write|setTimeout\s*\(\s*["\'])\b', re.I
-            ),
+            # HTML is declarative markup. Execution dangers (eval, setTimeout) belong in JS.
+            "danger": None,
             # 9. io (The Boundaries)
             # Hyperlink navigation and resource fetching. (The core of the Web).
             "io": re.compile(
@@ -4415,11 +4414,8 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 11. flux (The Boiling Plasma)
-            # Mutation of state via user inputs and popover targets.
-            "flux": re.compile(
-                r"\b(?:innerHTML|innerText|textContent|value)\s*=|\b(?:setAttribute|appendChild|remove)\s*\(",
-                re.I,
-            ),
+            # HTML is declarative markup. State mutation (DOM manipulation) belongs in JS.
+            "flux": None,
             # 12. graveyard (The Necrosis)
             # Commented-out structural logic.
             "graveyard": re.compile(
@@ -4454,10 +4450,8 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 18. globals (The Shared Void)
-            # Document root boundaries.
-            "globals": re.compile(
-                r"\b(?:window|document|localStorage|sessionStorage|globalThis)\.", re.I
-            ),
+            # HTML is declarative markup. Browser globals (window, document) belong in JS.
+            "globals": None,
             # 19. decorators (The Metadata Hooks)
             # Directive-based logic mutation (HTMX, Vue, Alpine).
             "decorators": re.compile(
@@ -4903,14 +4897,54 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 4. func_start (The Satellite Spawner)
-            # CRITICAL GUARDRAIL: Spawns satellites. ONLY executable logic blocks (Program, Subroutine, Function).
-            # Safely steps over modern prefixes, captures explicit memory sizing (REAL*8, INTEGER(KIND=4)),
-            # and utilizes a robust lookahead to survive line continuations (&), comments (!), and explicit RESULT/BIND markers.
+            # =====================================================================
+            # [LLM CONTEXT: FORTRAN FUNCTION AST EXTRACTOR & REDOS SHIELD]
+            # PURPOSE: Anchors executable logic blocks (Program, Subroutine, Function, Entry) 
+            #   across 60+ years of Fortran dialects (F77 through F2018).
+            # VULNERABILITY: Fortran allows extreme signature variability: prefix stacking 
+            #   (PURE RECURSIVE), legacy memory sizing (REAL*8), modern kinds (INTEGER(KIND=4)), 
+            #   derived types (TYPE(MyStruct)), object-oriented classes (CLASS(Obj)), and 
+            #   trailing attributes (RESULT, BIND(C)). Using unbounded `\s+` across these 
+            #   permutations causes Catastrophic Backtracking (ReDoS) on large legacy files.
+            # THE "IRON WALL" FIX: 
+            #   1. Strict `[ \t]` horizontal bounds prevent vertical newline bleeding.
+            #   2. Negative lookahead `(?!\bEND\b)` prevents ghosting `END SUBROUTINE FOO`.
+            #   3. Clamped quantifiers `{0,5}` on prefixes stop runaway recursion.
+            #   4. Added `CLASS` to the base types to support modern Object-Oriented Fortran.
+            #   5. Positive lookaheads on the tail `(?=...)` safely handle line continuations (`&`) 
+            #      and F90 comments (`!`) without consuming them into the capture group.
+            # =====================================================================
             "func_start": re.compile(
-                r"^[ \t]*(?!\bEND\b)(?:(?:PURE|ELEMENTAL|RECURSIVE|IMPURE|MODULE)[ \t]+){0,5}"
-                r"(?:(?:(?:INTEGER|REAL|COMPLEX|LOGICAL|CHARACTER|TYPE|DOUBLE[ \t]+PRECISION)(?:\s*(?:\*\s*\d+|\([^)]*\)))?[ \t]+)?FUNCTION|SUBROUTINE|PROGRAM|ENTRY)[ \t]+"
+                # 1. THE HORIZONTAL ANCHOR & END SHIELD
+                # Stops O(N^2) vertical spirals. Explicitly blocks "END SUBROUTINE FOO" from triggering.
+                r"^[ \t]*(?!\bEND\b)"
+                
+                # 2. THE PREFIX STACK
+                # F95/F2008 allows stacking prefixes. Capped at {0,5} to prevent ReDoS.
+                r"(?:(?:PURE|ELEMENTAL|RECURSIVE|IMPURE|MODULE)[ \t]+){0,5}"
+                
+                # 3. THE RETURN TYPE
+                # Optional for Subroutines/Programs, mandatory for explicit Functions.
+                r"(?:"
+                    # 3a. Base Types (Primitives + Derived + Classes + Legacy)
+                    r"(?:INTEGER|REAL|COMPLEX|LOGICAL|CHARACTER|TYPE|CLASS|DOUBLE[ \t]+PRECISION)"
+                    # 3b. Legacy Sizing (*8) or Modern Kinds/Lengths ((KIND=4, LEN=*))
+                    r"(?:[ \t]*(?:\*[ \t]*\d+|\([^)]*\)))?"
+                    r"[ \t]+"
+                r")?"
+                
+                # 4. THE EXECUTION BLOCK KEYWORD
+                r"(?:FUNCTION|SUBROUTINE|PROGRAM|ENTRY)[ \t]+"
+                
+                # 5. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
+                # Extracts the actual block name.
                 r"([A-Za-z_]\w*)"
+                
+                # 6. THE TRAILING ANCHOR (Lookahead)
+                # Confirms the boundary without consuming it. Handles opening parens `(`, comments `!`, 
+                # line continuations `&`, EOF `$`, or explicit F2003+ modifiers (RESULT, BIND).
                 r"(?=[ \t]*(?:[\(!&\n\r]|$|\bRESULT\b|\bBIND\b))",
+                
                 re.I | re.M,
             ),
             # 5. class_start (The Entity Census)
@@ -4969,7 +5003,7 @@ LANGUAGE_DEFINITIONS = {
             # 13. doc (The Intent / Gold Library)
             # Documentation meant to be parsed by generators (Doxygen style `!>`, `!<`, or `! @`).
             "doc": re.compile(
-                r"^[Cc*!dD]\s*[@><\\]|^[ \t]*!\s*(?:Author|Description|Param|Return):",
+                r"^[Cc*!dD][ \t]*[@><\\]|^[ \t]*![ \t]*(?:Author|Description|Param|Return):",
                 re.I | re.M,
             ),
             # 14. test (The Verification / Teal Glow)
@@ -5032,7 +5066,7 @@ LANGUAGE_DEFINITIONS = {
             # 25. ownership (The Authorship)
             # Identifying the developer, maintainer, or copyright holder natively.
             "ownership": re.compile(
-                r"^[cCdD*!]\s*(?:Author|Created by|Maintainer|Developer):\s+(.*)",
+                r"^[cCdD*!][ \t]*(?:Author|Created by|Maintainer|Developer):\s+(.*)",
                 re.I | re.M,
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
@@ -6484,7 +6518,7 @@ LANGUAGE_DEFINITIONS = {
             "status": "production",
         },
         # COMPREHENSIVE SURFACE AREA: Standard COBOL source files and copybooks (.cpy) which act as legacy header files.
-        "extensions": [".cbl", ".cob", ".cpy", ".cobol", ".pco"],
+        "extensions": [".cbl", ".cob", ".cpy", ".cobol", ".pco",".cut"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Mainframe environments do not typically use extensionless execution scripts.
         "exact_matches": [],
         # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions and Job Control Language (.jcl) files which orchestrated legacy COBOL execution.
@@ -6524,16 +6558,54 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 4. func_start: Satellite Spawner. Anchors logic blocks (Paragraphs and Sections).
-            # FIX 1: Explicitly ban `END-[A-Za-z0-9_-]+` scope terminators to prevent Area B indentation bleed.
-            # FIX 2: Explicitly ban `[WORD] DIVISION` (e.g., ID DIVISION) to prevent massive structural ghosting.
+            # =====================================================================
+            # [LLM CONTEXT: COBOL FUNCTION/PARAGRAPH AST EXTRACTOR & REDOS SHIELD]
+            # PURPOSE: Anchors executable logic blocks (Paragraphs and Sections) in COBOL.
+            # VULNERABILITY: COBOL spans 60 years of formatting rules (Fixed vs Free format).
+            #   Without strict column boundaries, standard verbs or data definitions 
+            #   (like 01 levels) resting against the margin will hallucinate Ghost Satellites.
+            # THE "IRON WALL" FIX: Combines strict leading-margin allowances with 
+            #   comprehensive negative lookaheads to explicitly ban COBOL reserved words, 
+            #   data structures, and Division headers.
+            # =====================================================================
             "func_start": re.compile(
+                
+                # 1. THE HORIZONTAL ANCHOR & FORMAT SHIELD
+                # Safely handles both strict 80-column punched card formats (6-char sequence + indicator)
+                # and modern free-format code. Strictly bounded `{6}` to prevent O(N^2) ReDoS margin scanning.
                 r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*"
+                
+                # 2. THE DATA DIVISION SHIELD
+                # Explicitly bans data level indicators (01 through 88). 
+                # Prevents massive "01 POLICY." data structures from being hallucinated as executable paragraphs.
+                r"(?!(?:01|02|03|04|05|10|15|20|66|77|88)\s+)"
+                
+                # 3. THE RESERVED VERB & SCOPE TERMINATOR SHIELD
+                # Explicitly bans standard COBOL execution verbs, divisions, and scope terminators (`END-*`).
+                # Prevents rogue commands like "PERFORM." or "END-IF." from spawning ghost satellites if poorly indented.
                 r"(?!(?:WORKING-STORAGE|DATA|ENVIRONMENT|IDENTIFICATION|ID|LINKAGE|FILE|DECLARATIVES|"
+                r"AUTHOR|DATE-WRITTEN|DATE-COMPILED|INSTALLATION|REMARKS|SECURITY|"
                 r"INPUT-OUTPUT|CONFIGURATION|DISPLAY|CALL|MOVE|COMPUTE|PERFORM|ADD|SUBTRACT|MULTIPLY|"
                 r"DIVIDE|INITIALIZE|SET|IF|ELSE|GOBACK|EXIT|STOP|EVALUATE|WHEN|READ|WRITE|REWRITE|"
                 r"DELETE|OPEN|CLOSE|PROGRAM-ID|CLASS-ID|END-[A-Za-z0-9_-]+)\b)"
+                
+                # 4. THE DIVISION/SECTION HEADER SHIELD
+                # Bans any word followed immediately by DIVISION (e.g., "PROCEDURE DIVISION") 
+                # to prevent massive structural ghosting.
                 r"(?![A-Za-z0-9_-]+\s+DIVISION\b)"
-                r"([A-Za-z0-9_-]+)(?=(?:\s+SECTION)?[ \t]*\.)",
+                
+                # 5. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
+                # Safely extracts the actual paragraph or section name using standard COBOL character sets.
+                r"([A-Za-z0-9_-]+)"
+                
+                # 6. THE IGNITION & TRAILING ANCHOR (Lookahead)
+                # Confirms this is a paragraph/section declaration by looking ahead for an optional 
+                # "SECTION" keyword, immediately followed by the mandatory COBOL period ".".
+                # THE "SQL GHOST" FIX: Added `(?:\s|$)` to ensure the period is followed by 
+                # whitespace or EOF. This explicitly blocks SQL qualifiers (e.g., "POLICY.CUSTOMERNUMBER")
+                # from being hallucinated as paragraphs when heavily indented into Area B.
+                r"(?=(?:\s+SECTION)?[ \t]*\.(?:\s|$))",
+                
                 re.I | re.M,
             ),
             # 5. class_start: Entity Census. Defines structural program and modern OO boundaries.
@@ -8249,6 +8321,195 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(r"\b(skip\s+test)\b", re.I),
         },
     },
+    "solidity": {
+        "_meta": {
+            "target_version": "Solidity 0.8.20+ (Smart Contracts / Foundry / Hardhat)",
+            "last_updated": "2026-04-01",
+            "blueprint_version": "v6.3.2",
+            "status": "production",
+        },
+        # COMPREHENSIVE SURFACE AREA: Standard Solidity contracts and library files.
+        "extensions": [".sol"],
+        # ABSOLUTE IDENTITY & EXACT FILENAMES: Solidity compiles to EVM bytecode; no extensionless scripts exist.
+        "exact_matches": [],
+        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Hardhat, Truffle, and Foundry configurations acting as gravitational anchors.
+        "discriminators": [
+            "hardhat.config.js",
+            "hardhat.config.ts",
+            "truffle-config.js",
+            "foundry.toml",
+            "remappings.txt"
+        ],
+        # EXECUTION SIGNATURES: Smart contracts are compiled; no shebangs exist.
+        "shebangs": [],
+        # UPGRADED: Maps to Family 1 (Standard C-Style)
+        # Rationale: Solidity strictly adheres to C-style line (//) and block (/* */) comments.
+        "lexical_family": "std_c",
+        "rules": {
+            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            "_line_anchor": re.compile(r"//"),
+            "_inline_comment": re.compile(r"//"),
+            "_block_start": re.compile(r"/\*"),
+            "_block_end": re.compile(r"\*/"),
+            
+            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # 1. branch: Decisions that split flow. Includes Solidity 0.6+ try/catch.
+            "branch": re.compile(r"\b(if|else|for|while|do|break|continue|return|try|catch)\b|\?|:"),
+            
+            # 2. args: Coupling Mass. Captures parameters for functions, errors, events, and modifiers.
+            # Bounded `{0,50}` to prevent ReDoS on massive tuple returns or complex signatures.
+            "args": re.compile(r"\b(?:function|modifier|error|event|constructor)\s+(?:[a-zA-Z_]\w*[ \t]*)?\([^)]{0,500}\)"),
+            
+            # 3. linear: Smooth Path. Structural boundaries defining scope and data definitions.
+            "linear": re.compile(r"\b(pragma|import|contract|interface|library|struct|enum|type|mapping|address|uint\d*|int\d*|bytes\d*|bool|string)\b"),
+            
+            # 4. func_start: Satellite Spawner. Anchors executable logic (Functions, Modifiers, Custom Errors, Events).
+            # LOOKAHEAD MANDATE APPLIED: Stops exactly at the identifier name before the parenthesis.
+            "func_start": re.compile(r"^[ \t]*(?:function|modifier|error|event)\s+([a-zA-Z_]\w*)(?=\s*\()", re.M),
+            
+            # 5. class_start: Entity Census. Defines structural entities (Contracts, Interfaces, Libraries).
+            "class_start": re.compile(r"^[ \t]*(?:abstract\s+)?(?:contract|interface|library)\s+([a-zA-Z_]\w*)(?=\s*(?:is|\{))", re.M),
+            
+            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
+            # 6. safety: Cyan Fortification. State reversion, assertions, and defensive modifier usage.
+            "safety": re.compile(r"\b(require|assert|revert|modifier|nonReentrant|onlyOwner)\b"),
+            
+            # 7. safety_neg: Fractures. Bypassing overflow checks (0.8+) or dangerous delegation.
+            "safety_neg": re.compile(r"\b(unchecked|assembly|delegatecall)\b"),
+            
+            # 8. danger: Heavy Load. Contract destruction and absolute value termination.
+            "danger": re.compile(r"\b(selfdestruct|suicide)\b"),
+            
+            # 9. io: Boundaries. EVM blockchains are closed systems. (Cross-contract calls are mapped as API/Generics).
+            "io": None,
+            
+            # 10. api: Event Horizon. Exposed boundaries to external wallets or contracts.
+            "api": re.compile(r"\b(external|public)\b"),
+            
+            # 11. flux: Boiling Plasma. State mutation. Captures array mutators, payable states, and explicit assignment.
+            "flux": re.compile(r"\b(payable|push|pop)\b|(?<![=<>!])=(?![=])|\+\+|--|\+=|-=|\*=|/="),
+            
+            # 12. graveyard: Necrosis. Commented out execution flow or structural definitions.
+            "graveyard": re.compile(r"//[ \t]*(?:function|contract|if|require|uint|address)\b"),
+            
+            # 13. doc: Intent. NatSpec (Ethereum Natural Specification Format).
+            "doc": re.compile(r"///|/\*\*|@(?:param|return|dev|notice|custom|title|author)"),
+            
+            # 14. test: Verification. Foundry/Forge testing hooks and assertions.
+            "test": re.compile(r"\b(?:setUp|test[A-Za-z0-9_]*|assertEq|assertTrue|assertFalse|assertGt|assertLt|vm\.expectRevert)\b"),
+            
+            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # 15. concurrency: Temporal Static. EVM execution is strictly synchronous per transaction.
+            "concurrency": None,
+            
+            # 16. ui_framework: View Layer. Solidity has no UI rendering capacity.
+            "ui_framework": None,
+            
+            # 17. closures: Functional Depth. Solidity lacks native closures/lambdas.
+            "closures": None,
+            
+            # 18. globals: Shared Void. Global transaction, block, and message state context variables.
+            "globals": re.compile(r"\b(msg\.(?:sender|value|data|sig)|block\.(?:timestamp|number|chainid|coinbase|difficulty)|tx\.(?:gasprice|origin))\b"),
+            
+            # 19. decorators: Metadata Hooks. Modifiers act structurally similar to decorators.
+            "decorators": None, # Modifiers are inline in Solidity, not on preceding lines.
+            
+            # 20. generics: Type Abstractions. Solidity uses Mappings for parameterized K/V associations.
+            "generics": re.compile(r"\bmapping\s*\([^=>]+=>[^)]+\)"),
+            
+            # 21. comprehensions: High-Density Loops. Solidity lacks native comprehensions.
+            "comprehensions": None,
+            
+            # 22. scientific: Compute Core. Cryptographic hashing and elliptic curve recovery.
+            "scientific": re.compile(r"\b(keccak256|sha256|ripemd160|ecrecover|addmod|mulmod)\b"),
+            
+            # 23. heat_triggers: Thermal Radiation. Low-level assembly injections and fallback routers.
+            "heat_triggers": re.compile(r"\b(fallback|receive|assembly|delegatecall|call|staticcall)\b"),
+            
+            # 24. import: Gravity Links. Resolving dependencies across files.
+            "import": re.compile(r"^[ \t]*import\s+(?:\{[^}]+\}\s+from\s+)?[\"'][^\"']+[\"'];", re.M),
+            
+            # 24b. _dependency_capture: Graph resolution extracting exactly ONE path string.
+            "_dependency_capture": re.compile(r"^[ \t]*import\s+(?:\{[^}]+\}\s+from\s+)?[\"']([^\"']+)[\"'];", re.M),
+            
+            # 25. ownership: Authorship indicators. Strictly targets SPDX license tags and authorship notes.
+            "ownership": re.compile(r"//[ \t]*SPDX-License-Identifier:|(?:@author|Created by):\s+(.*)", re.I),
+            
+            # --- 🌌 PHASE 4: EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # 26. planned_debt: The Promise.
+            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            
+            # 27. fragile_debt: The Fracture.
+            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX)\b", re.I),
+            
+            # 28. private_info: Hardcoded credentials or private keys. Requires assignment.
+            "private_info": re.compile(r"\b(private_key|secret|mnemonic|api_key)\b[ \t]*[:=]", re.I),
+
+            # 29. spec_exposure: Map vs. Territory. ERC/EIP standards and audit tags.
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|audit)[^\]]*\]|\b(ERC-\d+|EIP-\d+)\b", re.I),
+            
+            # 30. civil_war: Indentation Tracker. Handled natively.
+            "civil_war": None,
+            
+            # 31. ssr_boundaries: View Horizon.
+            "ssr_boundaries": None,
+            
+            # 32. events: Pub/Sub Network. Logging state to the blockchain EVM logs.
+            "events": re.compile(r"\b(emit|event)\b"),
+            
+            # 33. dependency_injection: Inversion of Control.
+            "dependency_injection": None,
+            
+            # 34. macros: Preprocessor Hooks. (Solidity lacks macros).
+            "macros": None,
+            
+            # 35. pointers: Memory Map. Explicit storage vs memory pointer semantics.
+            "pointers": re.compile(r"\b(memory|storage|calldata)\b"),
+            
+            # 36. memory_alloc: Explicit heap generation inside arrays or structs.
+            "memory_alloc": re.compile(r"\b(new)\b"),
+            
+            # 37. inline_asm: Bare Metal Yul integration.
+            "inline_asm": re.compile(r"\bassembly\s*\{"),
+            
+            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # 38. telemetry: Professional diagnostics. (Hardhat console logging).
+            "telemetry": re.compile(r"\b(console\.log[a-zA-Z0-9_]*)\b"),
+            
+            # 39. print_hits: Amateur space debris. (Solidity lacks native printing outside Hardhat).
+            "print_hits": None,
+            
+            # 40. cast_hits: "Trust Me" Tax. Explicit type coercion (e.g., uint256(addr)).
+            "cast_hits": re.compile(r"\b(address|uint\d*|int\d*|bytes\d*|uint|int|bytes)\s*\("),
+            
+            # 41. bailout_hits: Detonators. Aborting transaction state.
+            "bailout_hits": re.compile(r"\b(revert)\b"),
+            
+            # 42. halt_hits: Temporal Duct Tape. (EVM cannot sleep).
+            "halt_hits": None,
+            
+            # 43. bitwise_hits: Sub-Atomic Math. Bitwise operations for gas optimization.
+            "bitwise_hits": re.compile(r"<<|>>|\^|~|(?<!&)&(?!&)|(?<!\|)\|(?!\|)"),
+            
+            # 44. sync_locks: Barricades. Native Reentrancy guards.
+            "sync_locks": re.compile(r"\b(nonReentrant)\b"),
+            
+            # 45. freeze_hits: Data Cryogenics. Gas-saving immutability constraints.
+            "freeze_hits": re.compile(r"\b(constant|immutable|view|pure)\b"),
+            
+            # 46. cleanup: The Janitor. Deleting state variables to claim gas refunds.
+            "cleanup": re.compile(r"\b(delete)\b"),
+            
+            # 47. encapsulation: The Vault. Access limitation to prevent external calls.
+            "encapsulation": re.compile(r"\b(private|internal)\b"),
+            
+            # 48. listeners: The Sinks. (Contracts cannot actively listen asynchronously).
+            "listeners": None,
+            
+            # 49. test_skip: Safety Theater.
+            "test_skip": None,
+        },
+    },
     "objective-c": {
         "_meta": {
             "target_version": "Objective-C 2.0 (ARC) & Modern Runtime",
@@ -9636,34 +9897,35 @@ LANGUAGE_DEFINITIONS = {
     },
     "plaintext": {
         "_meta": {
-            "target_version": "Universal Plaintext",
-            "last_updated": "2026-03-11",
-            "blueprint_version": "1.0",
+            "target_version": "Universal Plaintext & ASCII Secrets",
+            "last_updated": "2026-04-01",
+            "blueprint_version": "1.1",
             "status": "production",
         },
-        # COMPREHENSIVE SURFACE AREA: Standard text, log outputs, raw data dumps, and information files.
-        # THE FIX: Added standard UNIX Man Page extensions (.1 through .9).
+        # COMPREHENSIVE SURFACE AREA: Standard text, log outputs, and UNIX man pages.
+        # FIX: Removed JCL/BMS (executable) and p12/pfx/jks/kdbx (lethal binary blobs).
         "extensions": [
             ".txt", ".text", ".log", ".out", ".err", ".nfo", ".golden", ".properties",
-            ".1", ".2", ".3", ".4", ".5", ".6", ".7", ".8", ".9"
+            ".1", ".2", ".3", ".4", ".5", ".6", ".7", ".8", ".9",
+            # --- THE SECRETS SHUNT (ASCII ONLY) ---
+            ".pem", ".key", ".pub", ".crt", ".cer", ".asc", ".gpg", ".sig", ".ovpn"
         ],
-        # ABSOLUTE IDENTITY & EXACT FILENAMES: The universally recognized, extensionless plaintext anchors of open-source repositories.
+        # ABSOLUTE IDENTITY: The universally recognized, extensionless plaintext anchors.
+        # FIX: Added ubiquitous community files. Removed binary keystore exact matches.
         "exact_matches": [
-            "AUTHORS",
-            "NOTICE",
-            "COPYING",
-            "INSTALL",
-            "acknowledgements",
+            "AUTHORS", "NOTICE", "COPYING", "INSTALL", "acknowledgements",
+            "CHANGELOG", "CONTRIBUTING", "CODE_OF_CONDUCT", "SECURITY", "MAINTAINERS",
+            # --- THE SECRETS SHUNT (ASCII ONLY) ---
+            "id_rsa", "id_dsa", "id_ed25519", "id_ecdsa", 
+            ".env", ".env.local", ".env.production", ".npmrc", ".htpasswd", ".pypirc", 
+            "credentials.json", "client_secret.json", "auth.json", "shadow"
         ],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Plaintext is universal, but often orbits standard documentation.
+        # ECOSYSTEM GRAVITY: Universal fallback discriminators.
         "discriminators": [".txt", ".md", "README", "LICENSE"],
-        # EXECUTION SIGNATURES: Plaintext is uncompiled, unexecuted raw string data; no shebangs exist.
+        # EXECUTION SIGNATURES: Plaintext is unexecuted raw string data.
         "shebangs": [],
-        # UPGRADED: Maps to Family 3 (Pure Hash) / Singularity Bypass
-        # Rationale: As noted, Prism uses the 'Singularity Bypass' here. Because plaintext has
-        # no structural syntax or comments to strip, it bypasses standard lexical parsing and
-        # is treated entirely as raw literal mass.
-        "lexical_family": "pure_hash",
+        # THE FIX: Plaintext is mathematically inert. It has no lexical family.
+        "lexical_family": "inert",
         "rules": {
             "_line_anchor": None,
             "_inline_comment": None,
@@ -10071,22 +10333,29 @@ LANGUAGE_DEFINITIONS = {
     },
     "json": {
         "_meta": {
-            "target_version": "JSON & ARB Localization",
+            "target_version": "Modern JSON & Configuration Ecosystem",
             "status": "production",
         },
-        # COMPREHENSIVE SURFACE AREA: Standard JSON and Flutter ARB files.
-        "extensions": [".json", ".arb"],
-        # ABSOLUTE IDENTITY & EXACT FILENAMES: Tooling configurations mapped as JSON.
-        "exact_matches": [".prettierrc", ".eslintrc", ".babelrc", ".stylelintrc"],
-        "discriminators": [".json", ".arb"],
+        # COMPREHENSIVE SURFACE AREA: Standard, commented, line-delimited, and geospatial JSON.
+        "extensions": [
+            ".json", ".arb", ".jsonc", ".json5", 
+            ".jsonl", ".ndjson", ".geojson", ".topojson"
+        ],
+        # ABSOLUTE IDENTITY & EXACT FILENAMES: Extended modern web/node tooling.
+        "exact_matches": [
+            ".prettierrc", ".eslintrc", ".babelrc", ".stylelintrc", 
+            ".bowerrc", ".hintrc", ".nycrc", ".lintstagedrc", ".swcrc"
+        ],
+        "discriminators": [".json", ".jsonc", ".json5", ".arb"],
         "shebangs": [],
-        # Maps to Family 3 (Pure Hash) to trigger the Singularity Bypass for inert data.
-        "lexical_family": "pure_hash",
+        # THE FIX: JSON with comments relies on C-style comment structures, not Python/Ruby hashes.
+        "lexical_family": "std_c", 
         "rules": {
+            # Provide the engine with the actual delimiters for .jsonc/.json5
             "_line_anchor": None,
-            "_inline_comment": None,
-            "_block_start": None,
-            "_block_end": None,
+            "_inline_comment": r"//",
+            "_block_start": r"/\*",
+            "_block_end": r"\*/",
         },
     },
     "glsl": {
@@ -10174,7 +10443,25 @@ EXACT_FILE_MATCH = {
     "pyproject.toml": "plaintext",
     "Pipfile": "plaintext",
     "tox.ini": "plaintext",
-    "MANIFEST.in": "plaintext"
+    "MANIFEST.in": "plaintext",
+
+    # --- 4. Secrets Bypass ---
+    "id_rsa": "plaintext",
+    "id_dsa": "plaintext",
+    "id_ed25519": "plaintext",
+    "id_ecdsa": "plaintext",
+    "truststore.jks": "plaintext",
+    "keystore.jks": "plaintext",
+    ".env": "plaintext",
+    ".env.local": "plaintext",
+    ".env.production": "plaintext",
+    ".npmrc": "plaintext",
+    ".htpasswd": "plaintext",
+    ".pypirc": "plaintext",
+    "credentials.json": "plaintext",
+    "client_secret.json": "plaintext",
+    "auth.json": "plaintext",
+    "shadow": "plaintext"
 }
 # ------------------------------------------------------------------------------
 # 3. ORCHESTRATOR LAYER (Consumed by galaxyscope.py)
@@ -10238,20 +10525,38 @@ PHYSICS_ASSET_MASKS = {
     "DOCUMENTATION_LANGUAGES": {"plaintext", "markdown", "restructuredtext", "asciidoc", "org-mode", "tex", "latex"},
 
     
-    # Files excluded from unit test exposure (Cannot be tested)
+        # ==============================================================================
+    # FILES EXCLUDED FROM UNIT TEST EXPOSURE (The "Cannot Be Tested" Mask)
+    # RATIONALE: We do not penalize inert data, stylesheets, or documentation 
+    # for lacking unit tests. Crucially, we also exclude test artifacts themselves 
+    # (snapshots, mock data) to prevent the recursive trap of "testing the tester."
+    # ==============================================================================
     "UNTESTABLE_EXTENSIONS": {
-        "css", "html", "json", "yaml", "xml", "sql", "proto", "cmake",
-        "scss", "sass", "less", "htm", "md", "mdx", "txt", "text", 
-        "rst", "csv", "tsv", "log", "out", "err", "toml", "ini", 
-        "cfg", "conf", "rc", "plist", "pbtxt", "graphql", "gql",
-        "mk", "make", "in", "ac", "m4", "patch", "diff"
+        # 1. UI, Styling & Markup (Declarative layout, no active logic)
+        "css", "scss", "sass", "less", "html", "htm", "svg",
+        
+        # 2. Data & Configuration (Inert structures and environment settings)
+        "json", "yaml", "yml", "toml", "ini", "cfg", "conf", "rc", "xml", "plist", "pbtxt",
+        
+        # 3. Documentation & Plaintext (Human-readable prose, tables, and logs)
+        "md", "mdx", "txt", "text", "rst", "csv", "tsv", "log", "out", "err",
+        
+        # 4. Build, Infra & Schemas (Scaffolding and type definitions)
+        "cmake", "mk", "make", "in", "ac", "m4", "patch", "diff", "sql", "proto", "graphql", "gql",
+        
+        # 5. Mainframe Inert Matter (Copybooks and Job Control definitions)
+        "cpy", "jcl",
+        
+        # 6. TEST ARTIFACTS (The "Tester" Exclusions)
+        # Prevents the engine from demanding test coverage on test outputs/snapshots.
+        "snap", "tst", "cut"
     },
     
     "UNTESTABLE_NAMES": {
         'readme', 'license', 'manifest', 'version', 'manifest.uuid', 
         'authors', 'notice', 'copying', 'changelog', 'contributing',
         'configure', 'cmake-configure', 'makefile', 'gnumakefile', 
-        'cmakelists.txt', 'kbuild', 'makeconf', 'makevars',
+        'cmakelists.txt', 'kbuild', 'makeconf', 'makevars', 'gradlew',
         'build', 'install', 'setup', 'bootstrap', '__init__.py'
     },
     
@@ -10291,11 +10596,11 @@ PATH_MODIFIERS = {
         # 2. The Abstraction (Declarations & Headers)
         # Expanded to catch C++ headers (.hpp, .hxx). These files outline structure 
         # without containing execution mass.
-        (re.compile(r'\.(?:d\.ts|h|hpp|hxx)$', re.I), 0.85),
+        (re.compile(r'\.(?:d\.ts|h|hpp|hxx|cpy)$', re.I), 0.85),
 
         # 3. The Config (Application Setup)
         # Expanded to catch environments and setup scripts. Usually highly declarative.
-        (re.compile(r'(?:^|/)(?:configs?|settings|environments?|setup|makefile|\.env)\b', re.I), 0.70),
+        (re.compile(r'(?:^|/)(?:configs?|settings|environments?|setup|makefile|\.env|cntl|jcl)\b', re.I), 0.70),
         
         # 4. The Junk Drawer (Low-Context Logic)
         # Utilities and helpers lack specific domain context. Developers have to guess 
@@ -10326,8 +10631,9 @@ PATH_MODIFIERS = {
         # Expanded to catch DTOs, Schemas, Contracts, TypeScript declaration files, 
         # and standard POJO/Entity bags (e.g., /data/, /models/). 
         # Shields simple data buckets from being penalized for lacking defensive logic.
-        (re.compile(r'(?:^|/)(?:types|interfaces|schemas|dtos|contracts|data|models|entities|pojos)/|\.d\.ts$', re.I), 0.85),
-
+        (re.compile(r'(?:^|/)(?:types|interfaces|schemas|dtos|contracts|data|models|entities|pojos|copybooks?|cpy|copy)/|\.cpy$', re.I), 0.85),
+        (re.compile(r'\.d\.ts$', re.I), 0.05), # Heavy dampen for pure type definitions
+        
         # 3. The Validator (Input & Boundary Defense)
         # Expanded to catch modern request pipelines like middleware and interceptors.
         (re.compile(r'(?:^|/)(?:validators?|sanitizers?|guards?|middlewares?|interceptors?)/', re.I), 0.90),
@@ -10441,7 +10747,9 @@ PATH_MODIFIERS = {
 
         # ---> NEW: The Documentation/Examples Exemption <---
         # Forgive example code for lacking production-grade tests/safety
-        (re.compile(r'(?:^|/)examples?/', re.I), 0.0)
+        (re.compile(r'(?:^|/)examples?/', re.I), 0.0),
+        # Catch mainframe 8-char test prefixes (e.g., lgtestp1.cbl)
+        (re.compile(r'(?:^|/)[a-z]{0,2}test[a-z0-9]*\.(?:cbl|cob)$', re.I), 0.0),
     ],
     'Dead Code Exposure': [
         # 1. The Template (Expected Dead Code)
@@ -10611,7 +10919,7 @@ PATH_MODIFIERS = {
         # The Declarative & Type Definition Dampener
         # Dampens TS types and CSS files, as union types and variables artificially 
         # inflate branch/argument math without containing active execution logic.
-        (re.compile(r'\.css$|\.scss$|\.d\.ts$|\.types\.ts$|/types\.ts$|params?\.ts$|schema\.ts$', re.I), 0.05),
+        (re.compile(r'\.css$|\.scss$|\.d\.ts$|\.types\.ts$|/types\.ts$|params?\.ts$|schema\.ts$|\.cpy$|\.bms$', re.I), 0.05),
         
         # The Parser & Lexer Tooling Dampener
         # C-based lexers and code generators explode mass calculations due to giant 
@@ -10737,6 +11045,32 @@ LANGUAGE_SECURITY_PROFILES = {
 }
 
 # ------------------------------------------------------------------------------
+# 4.7 ML INFERENCE BRAIN (67-Dimensional Matrix Coordinates)
+# ------------------------------------------------------------------------------
+ML_INFERENCE_BRAIN = {
+    'SCALER_MEDIANS': [1.813, 2.928, 2.197, 1.88, 0.339, 0.0, 0.0, 0.0, 0.0, 0.0, 0.551, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.329, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.095, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.167, 1.946, 1.099, 0.0, 0.0, 0.916, 0.0],
+    'SCALER_IQRS': [2.887, 3.568, 3.258, 2.727, 1.549, 1.14, 1.0, 1.0, 1.0, 2.474, 2.778, 1.0, 1.17, 1.0, 1.0, 1.0, 1.0, 1.0, 0.326, 0.41, 1.0, 1.0, 1.0, 2.463, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.431, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.043, 1.0, 1.626, 1.0, 1.0, 1.0, 4.419, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.51, 3.807, 2.079, 0.693, 1.946, 1.335, 1.0],
+    'ARCHETYPES_K16': {
+        'Cluster 0: Low-Level Systems & Go Routines': [0.043, -0.217, -0.278, -0.215, 0.117, 0.569, 0.114, 0.044, 0.198, 0.667, 0.818, 0.108, 1.103, 0.163, 0.092, 0.011, 0.222, 0.231, 0.062, 0.149, 0.007, 0.041, 0.141, -0.123, 0.408, 0.128, 0.02, 0.005, 0.0, 0.014, 0.012, 0.001, 0.219, 4.568, 0.205, 0.002, 0.005, 0.118, 0.376, 0.115, 0.037, 0.188, 0.114, 0.128, 0.166, 1.492, 0.024, 0.011, 4.238, -0.889, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.601, 0.398, 0.304, 0.516, 0.75, 0.008, 0.0],
+        'Cluster 1: Annotated Service Layer': [-0.016, 0.063, 0.332, 0.27, 0.611, 0.605, 0.824, 0.009, 0.214, 0.841, 0.101, 0.079, 0.874, 0.413, 0.246, 0.114, 0.758, 0.127, 6.929, 5.493, 0.26, 0.057, 0.189, 0.458, 0.114, 0.112, 0.007, 0.0, 0.0, 0.007, 0.014, 0.074, 0.099, 0.246, 0.034, 0.0, 0.045, 0.03, 0.271, 0.322, 0.009, 0.267, 0.062, 0.662, 0.075, 0.988, 0.078, 0.025, 0.344, -0.063, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.135, 0.068, 0.431, 0.943, 0.558, 0.22, 0.0],
+        'Cluster 2: Documented Core Definitions': [-0.155, 0.11, -0.12, -0.076, 0.698, 0.302, 0.21, 0.015, 0.146, 0.726, 0.112, 0.139, 3.406, 0.062, 0.058, 0.041, 0.131, 0.135, 0.064, 0.058, 0.062, 0.146, 0.097, 0.04, 0.3, 0.248, 0.039, 0.001, 0.0, 0.008, 0.011, 0.011, 0.147, 0.061, 0.044, 0.0, 0.006, 0.069, 0.168, 0.108, 0.002, 0.234, 0.014, 0.337, 0.017, 0.763, 0.025, 0.001, 0.624, -0.406, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.061, -0.243, -0.201, 0.505, 0.167, -0.272, 0.0],
+        'Cluster 3: Heavy Pointer Implementations': [0.246, -0.072, -0.247, -0.118, 0.358, 0.44, 0.236, 0.027, 0.25, 0.979, 0.851, 0.056, 0.51, 0.077, 0.036, 0.002, 0.018, 0.533, 0.369, 0.019, 0.001, 0.06, 0.425, 0.037, 0.817, 0.048, 0.081, 0.001, 0.0, 0.0, 0.017, 0.014, 0.755, 8.04, 0.352, 0.003, 0.023, 0.224, 0.346, 0.161, 0.011, 0.543, 0.055, 0.344, 0.224, 0.821, 0.04, 0.001, 4.05, -0.78, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.614, 0.585, 0.397, 0.147, 1.213, -0.008, 0.0],
+        'Cluster 4: Static Configuration & Data': [-0.575, -0.508, -0.422, -0.366, 0.198, 0.03, 0.08, 0.012, 0.053, 0.16, -0.08, 0.103, 0.017, 0.082, 0.039, 0.053, 0.11, 0.109, 0.007, 0.006, 0.008, 0.022, 0.091, -0.367, 0.066, 0.017, 0.005, 0.0, 0.0, 0.007, 0.003, 0.039, 0.015, 0.009, 0.013, 0.0, 0.003, 0.064, 0.038, 0.025, 0.001, 0.035, 0.003, 0.186, 0.01, 0.113, 0.011, 0.001, 0.009, -0.214, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.269, -0.471, -0.455, 0.187, 0.01, -0.52, 0.0],
+        'Cluster 5: Generic Type Abstractions': [-0.29, -0.299, 0.124, 0.25, 1.033, 0.353, 0.433, 0.003, 0.062, 0.556, -0.004, 0.199, 0.753, 0.295, 0.241, 0.096, 0.465, 0.217, 0.079, 8.06, 0.101, 0.022, 0.236, 0.028, 0.09, 0.16, 0.004, 0.0, 0.0, 0.004, 0.017, 0.121, 0.093, 0.142, 0.023, 0.0, 0.002, 0.055, 0.22, 0.351, 0.014, 0.219, 0.017, 0.633, 0.025, 0.431, 0.021, 0.002, 0.143, -0.177, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.087, -0.267, -0.195, 0.555, 0.168, -0.103, 0.0],
+        'Cluster 6: Dependency Injected Services': [-0.365, -0.077, 0.035, -0.024, 0.827, 0.223, 0.289, 0.015, 0.157, 0.663, 0.018, 0.054, 0.892, 0.344, 0.091, 0.118, 0.191, 0.147, 9.758, 0.16, 0.05, 0.038, 0.248, 0.228, 0.166, 0.038, 0.004, 0.0, 0.0, 0.023, 0.022, 0.086, 0.123, 0.147, 0.019, 0.0, 0.013, 0.067, 0.09, 0.156, 0.002, 0.068, 0.053, 0.466, 0.049, 0.602, 0.036, 0.016, 0.416, -0.294, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.073, -0.3, -0.043, 0.442, 0.137, -0.162, 0.0],
+        'Cluster 7: Algorithmic & Defensive Scripts': [0.361, -0.179, 0.008, 0.016, 0.143, 0.961, 0.524, 0.098, 0.506, 0.299, 0.364, 0.249, 0.226, 0.518, 0.193, 0.122, 0.622, 0.324, 0.143, 0.126, 0.188, 0.214, 0.283, -0.143, 0.087, 0.064, 0.027, 0.002, 0.0, 0.012, 0.038, 0.069, 0.074, 0.108, 0.193, 0.0, 0.018, 0.398, 0.338, 0.648, 0.025, 0.151, 0.026, 0.405, 0.139, 0.304, 0.052, 0.015, 0.015, 0.009, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.844, 0.371, -0.157, 0.216, 0.862, 0.072, 0.0],
+        'Cluster 8: High-Dependency C Headers': [-0.37, 0.023, -0.147, -0.542, 0.569, 0.655, 0.127, 0.01, 0.055, 1.18, 0.123, 0.073, 0.508, 0.023, 0.017, 0.0, 0.002, 0.185, 0.011, 0.008, 0.0, 0.023, 0.793, 0.0, 1.58, 0.038, 0.038, 0.0, 0.0, 0.0, 0.007, 0.017, 2.777, 8.027, 0.033, 0.002, 0.004, 0.027, 0.099, 0.014, 0.002, 0.31, 0.025, 0.79, 0.014, 0.168, 0.037, 0.0, 1.154, -0.516, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.112, -0.214, -0.069, 3.581, 0.085, -0.572, 0.0],
+        'Cluster 9: Object-Oriented Structures': [0.239, -0.063, 0.301, 0.212, 0.285, 1.107, 0.688, 0.034, 0.257, 0.527, 0.26, 0.13, 0.783, 0.435, 0.505, 0.211, 1.143, 0.33, 1.187, 4.35, 0.519, 0.105, 0.207, 0.284, 0.04, 0.103, 0.011, 0.001, 0.0, 0.009, 0.04, 0.104, 0.094, 0.143, 0.094, 0.0, 0.074, 0.071, 0.402, 0.534, 0.013, 0.263, 0.06, 0.807, 0.101, 0.896, 0.092, 0.033, 0.271, 0.004, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.544, 0.45, 0.514, 0.666, 1.006, 0.259, 0.0],
+        'Cluster 10: Software Verification & Testing': [0.053, 0.02, 0.259, 0.208, 0.412, 0.698, 0.678, 0.031, 0.347, 0.64, 0.126, 0.095, 0.627, 0.9, 0.346, 0.116, 0.719, 0.235, 5.51, 0.799, 0.214, 0.171, 0.161, 0.304, 0.082, 0.071, 0.009, 0.0, 0.0, 0.02, 0.021, 0.068, 0.077, 0.097, 0.045, 0.0, 0.041, 0.1, 0.328, 0.312, 0.013, 0.117, 0.042, 0.557, 0.12, 0.77, 0.075, 0.043, 0.337, -0.023, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.27, 0.215, 0.342, 0.539, 0.693, 0.188, 0.0],
+        'Cluster 11: Documented Native Headers': [-0.183, 0.11, 0.104, -0.035, 0.739, 1.044, 0.13, 0.025, 0.01, 0.088, 0.872, 0.212, 1.768, 0.031, 0.021, 0.004, 0.064, 0.743, 0.062, 1.282, 0.005, 0.036, 1.005, 0.222, 0.595, 0.127, 0.065, 0.0, 0.0, 0.0, 0.026, 0.0, 1.624, 6.204, 0.092, 0.001, 0.0, 0.016, 1.649, 0.026, 0.002, 0.515, 0.071, 1.205, 0.041, 0.032, 0.051, -0.0, 0.02, -0.022, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.048, 0.004, 0.281, 2.611, 0.357, -0.249, 0.0],
+        'Cluster 12: Complex Control Flow & Manual Memory': [0.25, -0.093, -0.108, -0.062, -0.05, 0.612, 0.198, 0.054, 0.07, 0.438, 0.881, 0.107, 0.524, 0.135, 0.016, 0.006, 0.153, 0.808, 0.064, 0.199, 0.009, 0.048, 0.253, 0.099, 0.526, 0.105, 0.059, 0.0, 0.0, 0.001, 0.022, 0.002, 0.585, 7.086, 0.22, 0.004, 0.011, 0.098, 1.042, 0.156, 0.004, 0.391, 0.052, 0.775, 0.115, 0.269, 0.06, 0.002, 0.024, 0.036, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.624, 0.58, 0.406, 0.09, 1.148, -0.052, 0.0],
+        'Cluster 13: Build, Infra & I/O Automation': [-0.012, -0.191, -0.327, -0.222, -0.0, 0.41, 0.762, 0.098, 0.556, 0.351, 0.401, 0.103, 0.741, 0.149, 0.2, 0.089, 0.243, 0.167, 0.124, 0.218, 0.085, 0.127, 0.346, -0.15, 0.375, 0.075, 0.027, 0.002, 0.0, 0.005, 0.041, 0.032, 0.079, 0.075, 0.199, 0.001, 0.018, 0.26, 0.12, 0.211, 0.061, 0.188, 0.047, 0.227, 0.261, 0.618, 0.061, 0.018, 4.059, -0.884, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.314, 0.07, -0.129, 0.376, 0.544, -0.278, 0.0],
+        'Cluster 14: Preprocessor Macros & Metaprogramming': [-0.355, -0.275, -0.325, -0.531, 0.197, 0.356, 0.017, 0.009, 0.018, 0.294, 0.205, 0.068, 0.342, 0.011, 0.007, 0.002, 0.01, 0.318, 0.009, 0.059, 0.002, 0.059, 1.142, 0.164, 1.644, 0.073, 0.027, 0.0, 0.0, 0.0, 0.006, 0.001, 3.265, 0.26, 0.013, 0.008, 0.001, 0.012, 0.628, 0.009, 0.002, 0.316, 0.028, 0.446, 0.009, 0.023, 0.016, 0.0, 0.227, -0.524, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.016, -0.26, -0.083, 1.723, 0.05, -0.604, 0.0],
+        'Cluster 15: Universal Dependencies & Architectural Keystones': [-0.151, -0.081, -0.067, -0.116, 0.353, 0.567, 0.362, 0.019, 0.144, 0.584, 0.15, 0.212, 0.832, 0.105, 0.11, 0.072, 0.295, 0.317, 0.426, 0.567, 0.103, 0.081, 0.332, 0.179, 0.562, 0.091, 0.023, 0.001, 0.0, 0.013, 0.027, 0.04, 0.661, 0.297, 0.079, 0.001, 0.017, 0.074, 0.419, 0.215, 0.008, 0.182, 0.039, 0.569, 0.045, 0.417, 0.04, 0.005, 0.295, -0.245, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12, 0.014, 0.103, 5.334, 0.426, -0.206, 0.0],
+    }
+}
+
+# ------------------------------------------------------------------------------
 # 5. SCHEMA & EXPORT REGISTRY (Consumed by recorders & SQLite)
 # ------------------------------------------------------------------------------
 RECORDING_SCHEMAS = {
@@ -10821,11 +11155,11 @@ RECORDING_SCHEMAS = {
         
         # --- VULNERABILITY EXPOSURE MAPPINGS (Plain English) ---
         "obscured_payload": "Obfuscation & Evasion Surface",
-        "logic_bomb": "Exploit Generation Surface",
-        "injection_surface": "Weaponized Injection Vectors",
-        "memory_corruption": "Raw Memory Manipulation",
-        "secrets_risk": "Hardcoded Payload Artifacts"
-    },
+        "logic_bomb": "Destructive Execution Surface",
+        "injection_surface": "Weaponizable Injection Vectors",
+        "memory_corruption": "Weaponizable Memory Operations",
+        "secrets_risk": "Hardcoded Credential Exposure"
+        },
     "EXPOSURE_LABELS": {
         "cognitive_load": "Cognitive Load Exposure", "safety_score": "Error & Exception Exposure",
         "tech_debt": "Tech Debt Exposure", "verification": "Testing Exposure",
@@ -10838,7 +11172,7 @@ RECORDING_SCHEMAS = {
         # --- SECURITY LENS UI LABELS (Plain English) ---
         "obscured_payload": "Obfuscation & Evasion Surface",
         "logic_bomb": "Exploit Generation Surface",
-        "injection_surface": "Weaponized Injection Vectors",
+        "injection_surface": "Weaponizable Injection Vectors",
         "memory_corruption": "Raw Memory Manipulation",
         "secrets_risk": "Hardcoded Payload Artifacts"
     }

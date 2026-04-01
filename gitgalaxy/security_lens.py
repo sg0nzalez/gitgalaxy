@@ -10,9 +10,6 @@ class SecurityLens:
     def __init__(self, policy=None):
         # ------------------------------------------------------------------
         # DYNAMIC POLICY INJECTION
-        # The lens no longer makes the rules. It receives its thresholds 
-        # from gitgalaxy_standards.ThreatPolicy. If none is provided, it 
-        # defaults to a safe baseline.
         # ------------------------------------------------------------------
         self.policy = policy or {
             "secrets_risk_threshold": 0.001,
@@ -24,7 +21,6 @@ class SecurityLens:
 
         # ------------------------------------------------------------------
         # RAW SENSORS (The Physics Engine)
-        # These remain untouched. They strictly measure structural reality.
         # ------------------------------------------------------------------
         self.THREAT_SIGNATURES = {
             # 1. THE GLASSWORM (Obfuscation & Heat Signatures)
@@ -58,6 +54,9 @@ class SecurityLens:
 
             # 4. THE EXECUTIONER (Dynamic Payloads)
             "danger": re.compile(
+                # ---> NEW: MAINFRAME SHELL SPAWNING & DYNAMIC CICS <---
+                r'\b(?:BPXBATCH|IKJEFT01|IRXJCL)\b|'
+                r'\bEXEC\s+CICS\s+(?:START|LINK\s+PROGRAM|XCTL)\b\s*\(\s*[A-Za-z_-]+\s*\)|'
                 r'\b(?:eval|Function|setTimeout|setInterval)\b\s*\(\s*(?:atob|base64|["\']|`)|'
                 r'\b(?:document\.write|location\.replace|assert|create_function|passthru|shell_exec|system)\b|'
                 r'child_process\.(?:exec|spawn|fork)|'
@@ -81,7 +80,8 @@ class SecurityLens:
 
             # 6. SHADOW LOGIC (Necrosis / Graveyard)
             "graveyard": re.compile(
-                r'(?://|#|--)[^\n]*?\b(?:http|bash|curl|wget|eval|base64|nc\s+-e|/dev/tcp)\b|'
+                # ---> NEW: INJECTED COBOL COMMENT ANCHORS (*> and Column 7 *) <---
+                r'(?://|#|--|\*>|^.{6}\*)[^\n]*?\b(?:http|bash|curl|wget|eval|base64|nc\s+-e|/dev/tcp|BPXBATCH)\b|'
                 r'/\*(?:(?!\*/).){0,500}?\b(?:http|bash|curl|wget|eval|base64|nc\s+-e|/dev/tcp)\b',
                 re.I
             ),
@@ -112,13 +112,16 @@ class SecurityLens:
             
             # 10. THE VAULT DOOR (Credential & Secret Leaks)
             "private_info": re.compile(
-                # Catches standard variable assignments (your original logic)
+                # Catches standard variable assignments
                 r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*(?:[:=]|=>)[ \t]*[\"'][A-Za-z0-9\-_+/=]{16,}[\"']|"
+                
+                # ---> NEW: COBOL VALUE CLAUSE SECRETS <---
+                r"\b(PASSWORD|SECRET|TOKEN|KEY|CREDENTIALS)[A-Za-z0-9_-]*\b[ \t]+(?:IS[ \t]+)?(?:PIC[ \t]+[A-Za-z0-9\-\(\)]+[ \t]+)?VALUE[ \t]+['\"][^'\"]+['\"]|"
                 
                 # Raw PEM / Key / Cert Headers
                 r"-----BEGIN (?:RSA |DSA |EC |OPENSSH |PGP )?(?:PRIVATE KEY|MESSAGE|CERTIFICATE)-----|"
                 
-                # Stripe API Keys (Standard & Restricted)
+                # Stripe API Keys
                 r"\b(?:sk_live|rk_live)_[0-9a-zA-Z]{24,99}\b|"
                 
                 # GitHub Personal Access Tokens
@@ -138,8 +141,11 @@ class SecurityLens:
                 re.I
             ),
             
-            # 11. RAW MEMORY OVERRIDES (From previous context)
+            # 11. RAW MEMORY OVERRIDES 
             "memory_corruption": re.compile(
+                # ---> NEW: CICS MANUAL MEMORY & COBOL POINTER MATH <---
+                r'\bEXEC\s+CICS\s+(?:GETMAIN|FREEMAIN)\b|'
+                r'\bSET\s+ADDRESS\s+OF\b|'
                 r'\b(?:malloc|calloc|realloc|free|memcpy|memset|memmove|strcpy|strcat|sprintf)\b\s*\(|'
                 r'\b(?:asm|__asm__|__asm)\b\s*[\(\{]',
                 re.I
@@ -163,7 +169,7 @@ class SecurityLens:
         
         exposures = {}
         
-        # 1. Hidden Malware Risk (Combines heat, bitwise math, and shadow imports)
+        # 1. Hidden Malware Risk
         malware_hits = aggregated_hits.get("heat_triggers", 0) + aggregated_hits.get("bitwise_hits", 0) + aggregated_hits.get("shadow_imports", 0) + aggregated_hits.get("homoglyphs", 0)
         malware_density = malware_hits / loc_safe
         if malware_density >= self.policy["hidden_malware_threshold"]:
@@ -187,7 +193,7 @@ class SecurityLens:
         if memory_density >= self.policy["memory_corruption_threshold"]:
             exposures["Memory Corruption Risk"] = memory_density
 
-        # 5. Secrets Risk (Highly sensitive)
+        # 5. Secrets Risk
         secrets_hits = aggregated_hits.get("private_info", 0)
         secrets_density = secrets_hits / loc_safe
         if secrets_density >= self.policy["secrets_risk_threshold"]:

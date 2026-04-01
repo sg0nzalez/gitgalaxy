@@ -619,7 +619,9 @@ class Orchestrator:
             for rel_path, path_obj, is_valid, size_bytes, reason in inspections:
                 
                 # ---> NEW: THE NEIGHBORHOOD MICRO-MASS QUOTA <---
-                if is_valid and size_bytes < self.MICRO_MASS_BYTES:
+                # Exempt mainframe files (COBOL/JCL) from being flagged as micro-debris
+                safe_ext = path_obj.suffix.lower()
+                if is_valid and size_bytes < self.MICRO_MASS_BYTES and safe_ext not in {'.cpy', '.cbl', '.cob', '.jcl'}:
                     dir_path = str(path_obj.parent)
                     self.neighborhood_tracker[dir_path] += 1
                     if self.neighborhood_tracker[dir_path] > self.MICRO_MASS_GRACE_LIMIT:
@@ -664,7 +666,9 @@ class Orchestrator:
                 is_valid, size_bytes, reason = self.filter.evaluate_path_integrity(full_p)
                 
                 # ---> NEW: THE NEIGHBORHOOD MICRO-MASS QUOTA <---
-                if is_valid and size_bytes < self.MICRO_MASS_BYTES:
+                # Exempt mainframe files (COBOL/JCL) from being flagged as micro-debris
+                safe_ext = full_p.suffix.lower()
+                if is_valid and size_bytes < self.MICRO_MASS_BYTES and safe_ext not in {'.cpy', '.cbl', '.cob', '.jcl'}:
                     dir_path = str(full_p.parent.relative_to(self.root))
                     self.neighborhood_tracker[dir_path] += 1
                     if self.neighborhood_tracker[dir_path] > self.MICRO_MASS_GRACE_LIMIT:
@@ -995,27 +999,13 @@ class Orchestrator:
             ]
             meta["is_protected"] = any(cand in self.census for cand in sibling_candidates)
                     
-            # --- THE DOCUMENTATION BYPASS ---
-            if meta.get("lang_id") in self.config.get("DOCUMENTATION_LANGUAGES", set()):
-                # Inject a perfectly neutral payload for human prose
-                # Risk Vector matches the 13 standard indices expected by the SignalProcessor
-                forensic_result = {
-                    "risk_vector": [0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 100.0, 0.0], 
-                    "hit_vector": {},
-                    "file_impact": 0.0,
-                    "telemetry": {
-                        "structural_mass": 0.0,
-                        "logic_density": 0.0,
-                        "average_fxn_mass": 0.0
-                    }
-                }
-            else:
-                # Inject the umbrella_bonus into the risk calculator for actual code
-                forensic_result = self.processor.calculate_risk_vector(
-                    meta, 
-                    meta.get("equations", {}),
-                    umbrella_bonus=umbrella_bonus
-                )
+            # The physics engine natively handles the Exposed Secret and Documentation bypass protocols.
+            # We unconditionally route to the Signal Processor so it can execute the 18-point math.
+            forensic_result = self.processor.calculate_risk_vector(
+                meta, 
+                meta.get("equations", {}),
+                umbrella_bonus=umbrella_bonus
+            )
 
             # =========================================================
             # THE GRAVITY SHIELD: APPLY STRUCTURAL MASS DAMPENERS
@@ -1115,9 +1105,9 @@ class Orchestrator:
                 }
             }
             
-            # Manually flag the private_info hit so UI tooltips show the exact trigger
-            if "private_info" in SignalProcessor.SIGNAL_SCHEMA:
-                idx = SignalProcessor.SIGNAL_SCHEMA.index("private_info")
+            # Manually flag the sec_private_info hit so UI tooltips show the exact trigger
+            if "sec_private_info" in SignalProcessor.SIGNAL_SCHEMA:
+                idx = SignalProcessor.SIGNAL_SCHEMA.index("sec_private_info")
                 synthetic_star["hit_vector"][idx] = 1
                 
             self.stars.append(synthetic_star)

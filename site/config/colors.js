@@ -94,13 +94,30 @@ const Colors = {
         injection_surface: { title: "Injection Surface Exposure", bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"] },
         memory_corruption: { title: "Raw Memory Manipulation Exposure", bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"] },
         secrets_risk: { title: "Hardcoded Secrets Exposure", bins: [10, 40, 60, 80], labels: ["SECURE", "LOW", "MODERATE", "HIGH", "CRITICAL"] },
-        
+
         // Custom Diverging Spectrum (Excluded from Universal Injection)
         civil_war: { 
             title: "Civil War (Tabs vs Spaces)", 
             gradient: "linear-gradient(90deg, #39ff14 0%, #0000ff 50%, #ffff00 100%)", 
             bins: [20, 80], labels: ["TABS", "MIXED", "SPACES"],
             colors: ["#39ff14", "#0000ff", "#ffff00"]
+        },
+        
+        file_architecture: { 
+            title: "File Architecture", 
+            isCategorical: true,
+            colors: [
+                "#FF3B30", "#FF9500", "#FFCC00", "#FFEE58", "#A4E720", 
+                "#28CD41", "#00C7BE", "#59C8FA", "#007AFF", "#5856D6", 
+                "#AF52DE", "#FF2D55", "#F9A8D4", "#E5E5EA", "#A2845E", 
+                "#64748B" // <--- The new 16th color (Slate Gray)
+            ],
+            labels: [
+                "0: Encapsulated Logic", "1: State Mutators", "2: Static Config", "3: Abstract Interfaces", "4: Macros/Headers", 
+                "5: OO Boilerplate", "6: Heavy Math", "7: Code Graveyard", "8: I/O Pipelines", "9: Siloed Legacy", 
+                "10: Manual Memory", "11: Async/UI Routers", "12: Application Logic", "13: Dependency Wiring", "14: Unit Tests",
+                "15: Docs & Literature" // <--- The new 16th label
+            ]
         }
     },
 
@@ -145,28 +162,11 @@ const Colors = {
 // --- GLOBAL METRIC COLOR INJECTION ---
 // Automatically wires up the UI Legends to the Universal Spectrum
 Object.keys(Colors.LEGENDS).forEach(key => {
-    if (key === 'civil_war') return; // Skip diverging scales
+    // Skip diverging scales AND categorical palettes like File Architecture
+    if (key === 'civil_war' || Colors.LEGENDS[key].isCategorical) return; 
 
     Colors.LEGENDS[key].gradient = UNIVERSAL_GRADIENT;
     Colors.LEGENDS[key].colors = UNIVERSAL_COLORS.slice(0, Colors.LEGENDS[key].labels.length);
 });
 
 window.Colors = Colors;
-
-export const ARCHETYPE_COLORS = [
-    "#FF3B30", // 0: Red
-    "#FF9500", // 1: Orange
-    "#FFCC00", // 2: Yellow-Orange
-    "#FFEE58", // 3: Yellow
-    "#A4E720", // 4: Lime Green
-    "#28CD41", // 5: Green
-    "#00C7BE", // 6: Teal/Cyan
-    "#59C8FA", // 7: Light Blue
-    "#007AFF", // 8: Blue
-    "#5856D6", // 9: Indigo
-    "#AF52DE", // 10: Purple
-    "#FF2D55", // 11: Magenta
-    "#F9A8D4", // 12: Pink
-    "#E5E5EA", // 13: Silver/White
-    "#A2845E"  // 14: Bronze/Muted
-];

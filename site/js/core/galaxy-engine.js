@@ -197,6 +197,8 @@ export class GalaxyEngine {
             geo.setAttribute('aRiskPack4', createEmptyAttr(4)); 
             geo.setAttribute('aRiskPack5', createEmptyAttr(4)); 
             geo.setAttribute('aMetaPack1', createEmptyAttr(4));
+            geo.setAttribute('aMetaPack2', createEmptyAttr(4));
+
 
             const isHighTier = ['icosa', 'dodeca', 'octa', 'tetra'].includes(key);
             let mat = isHighTier ? this.wireMat : this.solidMat;
@@ -703,7 +705,7 @@ export class GalaxyEngine {
         Object.keys(this.meshGroups).forEach(key => {
             groupData[key] = { 
                 matrices: [], 
-                attrs: { pack1: [], pack2: [], pack3: [], pack4: [], pack5: [], meta: [] } 
+                attrs: { pack1: [], pack2: [], pack3: [], pack4: [], pack5: [], meta: [], meta2: [] } 
             };
         });
 
@@ -775,6 +777,10 @@ export class GalaxyEngine {
                 g.attrs.pack4.push((risks[13]||0)/es, (risks[14]||0)/es, (risks[15]||0)/es, (risks[16]||0)/es);
                 g.attrs.pack5.push((risks[17]||0)/es, rVal, gVal, bVal); 
                 g.attrs.meta.push((risks[12]||0)/es, popScore, targetGid, targetCid);
+                
+                // Map to the actual 'a_ids' key found in the JSON
+                const clusterId = raw.galaxy.a_ids ? raw.galaxy.a_ids[i] : 0;
+                g.attrs.meta2.push(clusterId, 0, 0, 0);
             };
 
             const cId = raw.galaxy.c_ids ? raw.galaxy.c_ids[i] : -1; // <-- Grab it from JSON
@@ -856,6 +862,7 @@ export class GalaxyEngine {
             setAttr('aRiskPack4', g.attrs.pack4, 4); 
             setAttr('aRiskPack5', g.attrs.pack5, 4); 
             setAttr('aMetaPack1', g.attrs.meta, 4);
+            setAttr('aMetaPack2', g.attrs.meta2, 4);
         });
 
         const statNodesEl = document.getElementById('stat-nodes');

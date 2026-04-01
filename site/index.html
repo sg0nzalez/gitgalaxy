@@ -317,9 +317,55 @@
             if (metricMode > 0 && schemaKey && window.Colors && window.Colors.LEGENDS[schemaKey]) {
                 const leg = window.Colors.LEGENDS[schemaKey];
                 document.getElementById('legend-title').innerText = leg.title.toUpperCase();
-                document.getElementById('legend-gradient').style.background = leg.gradient;
-                document.getElementById('legend-min').innerText = leg.labels[0];
-                document.getElementById('legend-max').innerText = leg.labels[leg.labels.length - 1];
+
+                const gradDiv = document.getElementById('legend-gradient');
+                const lblDiv = document.querySelector('.legend-labels');
+
+                if (leg.isCategorical) {
+                    // 1. DYNAMIC DATA FILTERING: Find which clusters actually exist in this repo
+                    let activeIndices = [];
+                    const raw = window.currentRawGalaxyData;
+                    if (raw && raw.galaxy && raw.galaxy.a_ids) {
+                        const clusters = raw.galaxy.a_ids;
+                        // Use a Set to instantly find the unique values, then sort them
+                        activeIndices = Array.from(new Set(clusters)).sort((a, b) => a - b);
+                    } else {
+                        // Fallback: If no cluster data exists, just show index 0 (Core Base)
+                        activeIndices = [0]; 
+                    }
+
+                    // 2. AESTHETIC UPGRADE: Clean 2-column grid with wrapping text
+                    gradDiv.style.background = 'transparent';
+                    gradDiv.style.height = 'auto';
+                    gradDiv.style.border = 'none';
+                    gradDiv.style.boxShadow = 'none';
+                    
+                    // Enforce 2 columns to maximize horizontal text space
+                    gradDiv.innerHTML = `<div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px 15px; padding-top: 5px;">` +
+                        activeIndices.map(i => {
+                            const c = leg.colors[i];
+                            const rawLabel = leg.labels[i] || 'Type ' + i;
+                            // Strip the "0: ", "1: " prefix off the text to make it sleeker
+                            const cleanLabel = rawLabel.replace(/^\d+:\s*/, '');
+                            
+                            return `<div style="display:flex; align-items:flex-start; gap:10px;">
+                                        <div style="width:10px; height:10px; background:${c}; border-radius:50%; box-shadow: 0 0 8px ${c}; flex-shrink:0; margin-top:2px;"></div>
+                                        <span style="font-family:'Space Mono', monospace; font-size:11px; font-weight:bold; color:#fff; text-transform:uppercase; letter-spacing:0.5px; line-height:1.3;" title="${cleanLabel}">${cleanLabel}</span>
+                                    </div>`;
+                        }).join('') +
+                        `</div>`;
+                    lblDiv.style.display = 'none';
+                } else {
+                    // Standard Gradient UI (Restore CSS properties removed by categorical mode)
+                    gradDiv.innerHTML = ''; 
+                    gradDiv.style.height = '12px'; 
+                    gradDiv.style.background = leg.gradient;
+                    gradDiv.style.border = '1px solid rgba(255,255,255,0.3)';
+                    gradDiv.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.5)';
+                    lblDiv.style.display = 'flex';
+                    document.getElementById('legend-min').innerText = leg.labels[0];
+                    document.getElementById('legend-max').innerText = leg.labels[leg.labels.length - 1];
+                }
                 legend.classList.add('active');
             } else {
                 legend.classList.remove('active');
@@ -1054,15 +1100,16 @@
             // Sync the GITGALAXY.IO button
             if (window.updateAboutButtonVisibility) window.updateAboutButtonVisibility();
         };
-        // --- MOBILE AUTO-HIDE INIT ---
+        // --- INITIAL STATE SYNC ---
         // If the screen is phone/tablet sized, start with the main menu hidden
         if (window.innerWidth <= 768) {
             window.isMainUIOpen = false;
-            // Force the DOM to apply the hidden transforms immediately on load
-            window.addEventListener('DOMContentLoaded', () => {
-                window.updateNavStates();
-            });
         }
+
+        // Force the DOM to sync the HUD buttons and menus immediately on load for EVERYONE
+        window.addEventListener('DOMContentLoaded', () => {
+            window.updateNavStates();
+        });
 
         // --- POPULATE THE STORY HUD ---
         window.populateStoryHUD = (story, key) => {

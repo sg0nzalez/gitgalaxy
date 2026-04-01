@@ -22,6 +22,7 @@ export const createPhase6Shaders = (engine) => {
     const aRiskPack4 = attribute('aRiskPack4', 'vec4'); 
     const aRiskPack5 = attribute('aRiskPack5', 'vec4'); 
     const aMetaPack1 = attribute('aMetaPack1', 'vec4');
+    const aMetaPack2 = attribute('aMetaPack2', 'vec4');
 
     // =====================================================================
     // 🚨 THE EXPLICIT VARYING SUITCASE 🚨
@@ -32,6 +33,7 @@ export const createPhase6Shaders = (engine) => {
     const vRiskPack4 = varying(aRiskPack4);
     const vRiskPack5 = varying(aRiskPack5);
     const vMetaPack1 = varying(aMetaPack1);
+    const vMetaPack2 = varying(aMetaPack2);
     const vInstIndex = varying(float(instanceIndex));
 
     // 3. Unpack Vectors into Variables (Executing safely in the Fragment Shader)
@@ -60,6 +62,7 @@ export const createPhase6Shaders = (engine) => {
     const aPopularity = vMetaPack1.y;        
     const aGlobalId = vMetaPack1.z;          
     const aConstellationId = vMetaPack1.w;       
+    const aClusterId = vMetaPack2.x;
 
     // 4. Ice Crystal Theme
     const iceSeed = hash(vInstIndex.add(1.0));
@@ -160,6 +163,26 @@ export const createPhase6Shaders = (engine) => {
 
     // EXCEPTION C: Base State (Mode 0) falls back to the native environment Theme Color
     gradientColor = select(uMetricMode.equal(0), themeColor, gradientColor);
+
+    // EXCEPTION D: File Architecture (Mode 20) gets 16 categorical colors
+    const archColor = select(aClusterId.equal(0), color(0xFF3B30),
+                      select(aClusterId.equal(1), color(0xFF9500),
+                      select(aClusterId.equal(2), color(0xFFCC00),
+                      select(aClusterId.equal(3), color(0xFFEE58),
+                      select(aClusterId.equal(4), color(0xA4E720),
+                      select(aClusterId.equal(5), color(0x28CD41),
+                      select(aClusterId.equal(6), color(0x00C7BE),
+                      select(aClusterId.equal(7), color(0x59C8FA),
+                      select(aClusterId.equal(8), color(0x007AFF),
+                      select(aClusterId.equal(9), color(0x5856D6),
+                      select(aClusterId.equal(10), color(0xAF52DE),
+                      select(aClusterId.equal(11), color(0xFF2D55),
+                      select(aClusterId.equal(12), color(0xF9A8D4),
+                      select(aClusterId.equal(13), color(0xE5E5EA),
+                      select(aClusterId.equal(14), color(0xA2845E),
+                      color(0x64748B)))))))))))))))); // Fallback to 15 (Slate Gray)
+
+    gradientColor = select(uMetricMode.equal(20), archColor, gradientColor);
 
     // --- 13. Glow & Pulse ---
     let baseGlow = float(2.0); 

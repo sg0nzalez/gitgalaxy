@@ -214,8 +214,8 @@ class LLMRecorder:
         lines.append("> 13. **Civil War - DONT MENTION:** Measures formatting consistency regarding indentation. 0% = File is in pure Tabs, 100% = File is in Pure Spaces, 50% = Mixed indentation. (Provided for human context, not a functional risk) DO NOT MENTION THIS ONE .")
         lines.append("> ")
         lines.append("> **--- THE SECURITY & VULNERABILITY LENS ---**")
-        lines.append("> 14. **Hidden Malware Risk Exposure (obscured_payload):** Measures the density of obfuscation, steganography, and hidden payloads. High scores indicate active attempts to bypass static analysis.")
-        lines.append("> 15. **Logic Bomb / Sabotage Risk Exposure (logic_bomb):** Measures condition-heavy execution leading to destructive OS or process commands. High scores indicate potential sabotage or time-bomb scripts.")
+        lines.append("> 14. **Obfuscation & Evasion Risk (obscured_payload):** Measures the density of obfuscated logic, packed strings, and non-standard encoding. High scores indicate code that is structurally evading human readability or static analysis.")
+        lines.append("> 15. **Destructive Execution Surface (logic_bomb):** Measures condition-heavy execution leading to destructive OS, memory, or process commands. High scores indicate a weaponizable surface where logic could easily be hijacked for sabotage.")
         lines.append("> 16. **Injection Surface Risk Exposure (injection_surface):** Measures external network/I/O input flowing directly into dynamic execution contexts without safety nets (XSS, SQLi, RCE).")
         lines.append("> 17. **Memory Corruption Risk Exposure (memory_corruption):** Measures the density of raw pointer math, manual memory allocations, and forceful casts without mitigations (Buffer Overflows, UAF). Primarily affects C/C++/Rust.")
         lines.append("> 18. **Secrets Risk Exposure (secrets_risk):** Measures the presence of hardcoded credentials (RHS assignments) exposed to logs, globals, or graveyard code. Any score > 0 is a critical alert.")
@@ -251,23 +251,24 @@ class LLMRecorder:
         lines.append("")
 
         # --- 4.5 ECOSYSTEM FINGERPRINT (MACHINE LEARNING ARCHETYPES) ---
-        lines.append("## 4.5 ECOSYSTEM FINGERPRINT (THE 15 ARCHETYPES)")
-        lines.append("> **AI CONTEXT:** Every file has been mapped via Euclidean distance to one of 15 Machine Learning Archetypes based on pure structural DNA. This reveals the true 'Tissue Type' of the repository.")
-        lines.append("> * **Cluster 0: Encapsulated Systems Logic** (Expect tight scoping, heavy documentation, and low-level system calls).")
-        lines.append("> * **Cluster 1: Low-Level State Mutators** (Expect heavy variable reassignment, branching, and pointer math).")
-        lines.append("> * **Cluster 2: Static Configuration & Data** (Do not look for logic here, just schema/values).")
-        lines.append("> * **Cluster 3: Abstract Interfaces & DTOs** (Boundary layer file with no execution logic, just type definitions).")
-        lines.append("> * **Cluster 4: Preprocessor Macros & Headers** (Standard C/C++ style compiler directives and headers).")
-        lines.append("> * **Cluster 5: Object-Oriented Boilerplate** (Heavy parameter passing, getters/setters, and class instantiation).")
-        lines.append("> * **Cluster 6: Heavy Computational Math** (Scientific/algorithmic processing).")
-        lines.append("> * **Cluster 7: Dead Code / Comment Graveyard** (Ignore the contents as legacy trash/abandoned code).")
-        lines.append("> * **Cluster 8: I/O-Heavy Pipeline Scripts** (Moving data around the network/disk without safety nets).")
-        lines.append("> * **Cluster 9: High-Silo Legacy Bottlenecks** (File is old, massive, and owned by one person).")
-        lines.append("> * **Cluster 10: Manual Memory Management** (Look for memory leaks, buffer overflows, and unsafe allocations).")
-        lines.append("> * **Cluster 11: Async UI & Concurrency Routers** (Expect Promises, event loops, and UI framework syntax).")
-        lines.append("> * **Cluster 12: Standard Application Logic** (The catch-all for normal, middle-tier execution).")
-        lines.append("> * **Cluster 13: Dependency Injection & Wiring** (Exists purely to connect other modules together at startup).")
-        lines.append("> * **Cluster 14: Unit Test Suites** (Do not penalize for being overly linear or having repetitive assertions).")
+        lines.append("## 4.5 ECOSYSTEM FINGERPRINT (THE 16 ARCHETYPES)")
+        lines.append("> **AI CONTEXT:** Every file is mapped via Robust Euclidean Distance to one of 16 Machine Learning Archetypes based on pure structural DNA. This reveals the true architectural patterns of the repository, independent of language.")
+        lines.append("> * **Cluster 0: Low-Level Systems & Go Routines** (Tight scoping, error handling, system interactions).")
+        lines.append("> * **Cluster 1: Annotated Service Layer** (Heavy use of decorators/annotations, API exposure, Java/C# backend).")
+        lines.append("> * **Cluster 2: Documented Core Definitions** (Highly documented interfaces, entities, structural boundaries).")
+        lines.append("> * **Cluster 3: Heavy Pointer Implementations** (Raw memory manipulation, C-style procedural architecture).")
+        lines.append("> * **Cluster 4: Static Configuration & Data** (Inert matter, YAML/JSON, declarative data, no control flow).")
+        lines.append("> * **Cluster 5: Generic Type Abstractions** (Heavy parameter passing, generic types, abstract OOP models).")
+        lines.append("> * **Cluster 6: Dependency Injected Services** (Massive decorator density, Spring Boot/Angular style injection).")
+        lines.append("> * **Cluster 7: Algorithmic & Defensive Scripts** (Math-heavy, defensive programming, fatal aborts, Python/MATLAB).")
+        lines.append("> * **Cluster 8: High-Dependency C Headers** (Core `.h` files with high inbound popularity and preprocessor macros).")
+        lines.append("> * **Cluster 9: Object-Oriented Structures** (Standard OOP, generic types, class encapsulation).")
+        lines.append("> * **Cluster 10: Software Verification & Testing** (Unit test assertions, mock setups, intentional safety bypasses).")
+        lines.append("> * **Cluster 11: Documented Native Headers** (C++ headers, heavy generics, extensive documentation).")
+        lines.append("> * **Cluster 12: Complex Control Flow & Manual Memory** (The 'meat grinder'—massive state flux, branching, and casting).")
+        lines.append("> * **Cluster 13: Build, Infra & I/O Automation** (Shell scripts, Makefiles, type-safety bypasses, external network/disk I/O).")
+        lines.append("> * **Cluster 14: Preprocessor Macros & Metaprogramming** (C/C++ macros, reflection, compiler directives).")
+        lines.append("> * **Cluster 15: Universal Dependencies & Architectural Keystones** (The 'God Nodes'—massive inbound popularity, critical system bindings).")
         lines.append("")
         
         fingerprint = summary.get("ecosystem_fingerprint", {})
@@ -427,9 +428,9 @@ class LLMRecorder:
         lines.append("")
 
         # --- 10.5 CRITICAL VULNERABILITY EXPOSURES ---
-        lines.append("## 10.5 CRITICAL VULNERABILITY EXPOSURES (SECURITY LENS)")
-        lines.append("> The following files have tripped specific threat signatures generated by the Security Lens. Any score > 0% indicates a mathematically significant detection of vulnerability or malicious obfuscation.\n")
-        
+        lines.append("## 10.5 WEAPONIZABLE SURFACE EXPOSURES (SECURITY LENS)")
+        lines.append("> The following files have tripped specific threat signatures generated by the Security Lens. Any score > 0% indicates a mathematically significant detection of structural fragility, dangerous OS-level access, or active evasion patterns.\n")
+
         vuln_keys = ["obscured_payload", "logic_bomb", "injection_surface", "memory_corruption", "secrets_risk"]
         vuln_found = False
         for v_key in vuln_keys:
@@ -476,7 +477,9 @@ class LLMRecorder:
                 rv = s.get("risk_vector", [])
                 
                 lines.append(f"### {rank}. `{p}` ({l}) -> Cumulative Risk: **{c_val}**")
-                lines.append(f"- **Archetype:** `{tel.get('archetype', 'Unknown Archetype')}`")
+                arch = tel.get('archetype', 'Unknown Archetype')
+                dist = tel.get('archetype_fingerprint', {}).get(arch, 'N/A')
+                lines.append(f"- **Archetype:** `{arch}` (Distance: {dist} IQR)")
                 lines.append(f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%")
                             
                 # Dynamically calculate the top 4 risk drivers pushing this file's score up
@@ -532,7 +535,15 @@ class LLMRecorder:
             if purpose:
                 lines.append(f"> **Stated Purpose:** *{purpose}*")
                 
-            lines.append(f"- **Archetype:** `{tel.get('archetype', 'Unknown Archetype')}`")
+            arch = tel.get('archetype', 'Unknown Archetype')
+            fingerprint = tel.get('archetype_fingerprint', {})
+            dist = fingerprint.get(arch, 'N/A')
+            lines.append(f"- **Archetype:** `{arch}` (Distance: {dist} IQR)")
+            
+            if fingerprint:
+                fp_strs = [f"{k.split(':')[0]}: {v}" for k, v in sorted(fingerprint.items(), key=lambda x: x[1])]
+                lines.append(f"- **Full Fingerprint:** {', '.join(fp_strs)}")
+                
             lines.append(f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%")
             lines.append(f"- **Risk Profile:** Cognitive Load ({cog}%), Tech Debt ({debt}%)")
             
@@ -572,9 +583,70 @@ class LLMRecorder:
             lines.append(f"  * `Imports ({len(outbound)}):` {out_names if out_names else 'None'}")
             lines.append(f"  * `Imported By ({inbound_count}):` {'(Excluded from Brief to save tokens)' if inbound_count > 0 else 'None (Orphan / Entrypoint)'}")
             lines.append("")
-            
+        
         # ==============================================================================
-        # --- 13. SYSTEM PROMPT: HOW TO RESPOND ---
+        # --- 13. ARCHITECTURAL DRIFT (Chimeric / Boundary Files) ---
+        # ==============================================================================
+        lines.append("## 13. ARCHITECTURAL DRIFT (Chimeric / Boundary Files)")
+        lines.append("> **AI CONTEXT:** These files are 'drifting' between multiple architectural patterns. Their Euclidean distance to their primary archetype is almost identical (within 0.9 IQR) to a secondary archetype. This usually indicates a violation of the Single Responsibility Principle, where a file is trying to do two vastly different jobs simultaneously.\n")
+        
+        drifting_files = []
+        for s in stars:
+            tel = s.get("telemetry", {})
+            fingerprint = tel.get("archetype_fingerprint", {})
+            
+            # We need at least 2 distances to calculate a delta
+            if len(fingerprint) >= 2:
+                # Sort archetypes by distance ascending (lowest distance = best match)
+                sorted_archs = sorted(fingerprint.items(), key=lambda x: x[1])
+                
+                primary_arch, primary_dist = sorted_archs[0]
+                secondary_arch, secondary_dist = sorted_archs[1]
+                
+                # Calculate the tension between the top two identities
+                delta = secondary_dist - primary_dist
+                
+                # If the gap is less than or equal to 0.9 IQR, it's a chimeric file
+                if delta <= 0.9:
+                    drifting_files.append({
+                        "star": s,
+                        "delta": delta,
+                        "primary": (primary_arch, primary_dist),
+                        "secondary": (secondary_arch, secondary_dist)
+                    })
+                    
+        if drifting_files:
+            from collections import defaultdict
+            drift_by_cluster = defaultdict(list)
+            
+            for drift in drifting_files:
+                drift_by_cluster[drift["primary"][0]].append(drift)
+                
+            for cluster_name, files in sorted(drift_by_cluster.items()):
+                lines.append(f"### Refactoring Targets for: {cluster_name}")
+                files.sort(key=lambda x: x["delta"])
+                
+                for drift in files[:5]:
+                    s = drift["star"]
+                    p = s.get("path", "UNK")
+                    l = s.get("lang_id", "UNK").upper()
+                    m = s.get("file_impact", 0.0)
+                    sec_a, sec_d = drift["secondary"]
+                    
+                    lines.append(f"- `{p}` ({l}) | Mass: {m} | Delta: **{round(drift['delta'], 3)} IQR** | Secondary Pull: `{sec_a}`")
+                    
+                    struct_hits = [(self.SIGNAL_SCHEMA[i], val) for i, val in enumerate(s.get("hit_vector", [])) if val > 0 and i < len(self.SIGNAL_SCHEMA)]
+                    struct_hits.sort(key=lambda x: x[1], reverse=True)
+                    top_hits = ", ".join([f"{k}: {v}" for k, v in struct_hits[:4]])
+                    
+                    lines.append(f"  * Top DNA Signatures: {top_hits if top_hits else 'None'}")
+                lines.append("")
+        else:
+            lines.append("*No highly conflicted/drifting files detected within the 0.9 IQR threshold.*")
+            lines.append("")
+        
+        # ==============================================================================
+        # --- 14. SYSTEM PROMPT: HOW TO RESPOND ---
         # ==============================================================================
         lines.append("## AI SYSTEM INSTRUCTIONS (OUTPUT FORMAT)")
         lines.append("> **When the user asks for an architectural review, structure your response using plain, common descriptions suitable for engineers and managers:**")

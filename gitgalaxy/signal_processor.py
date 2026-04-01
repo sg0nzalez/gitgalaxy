@@ -60,6 +60,14 @@ class SignalProcessor:
         self.logger.debug("Initializing Universal Exposure Framework...")
         self.config = aperture_config or {}
     
+        # ======================================================================
+        # 🧠 FETCH THE ML INFERENCE BRAIN
+        # ======================================================================
+        ml_brain = getattr(config, "ML_INFERENCE_BRAIN", {})
+        self.SCALER_MEDIANS = ml_brain.get("SCALER_MEDIANS", [0.0] * 67)
+        self.SCALER_IQRS = ml_brain.get("SCALER_IQRS", [1.0] * 67)
+        self.ARCHETYPES_K16 = ml_brain.get("ARCHETYPES_K16", {})
+
         # Fetch Physics Constants
         physics = getattr(config, "PHYSICS_CONSTANTS", {})
         self.WEIGHT_RISK = physics.get("WEIGHT_RISK", 2.5)
@@ -85,61 +93,39 @@ class SignalProcessor:
         security_profiles = getattr(config, "LANGUAGE_SECURITY_PROFILES", {})
         self.ECOSYSTEMS = security_profiles.get("ECOSYSTEMS", {})
         self.NATIVE_WEIGHTS = security_profiles.get("NATIVE_WEIGHTS", {})
-        self.ALIEN_WEIGHTS = security_profiles.get("ALIEN_WEIGHTS", {})
         
-        self.logger.info(f"Signal Processor Online | Context-Aware Security Profiles loaded.")
-        
-        # Aggressive penalties applied when the file is an ALIEN in its neighborhood
-        self.ALIEN_WEIGHTS = {
+        # Fetch ALIEN_WEIGHTS dynamically, with a fallback to the hardcoded dictionary
+        self.ALIEN_WEIGHTS = security_profiles.get("ALIEN_WEIGHTS", {
             "systems_in_web": {"memory": 5.0, "logic_bomb": 3.0}, # C code hiding in a JS app = Trojan
             "infra_in_web":   {"logic_bomb": 4.0},                # Shell script hiding in a JS app = Backdoor
             "web_in_systems": {"flux": 3.0}                       # JS embedded in C firmware = Bizarre architecture
-        }
-        
-        # ======================================================================
-        # THE MACHINE LEARNING CENTROIDS (K=15 Archetypes)
-        # Extracted directly from Scikit-Learn DNA clustering to allow 
-        # real-time Euclidean classification without ML dependencies.
-        # ======================================================================
-        self.ARCHETYPES_K15 = {
-            "Cluster 0: Encapsulated Systems Logic": {"encapsulation": 62.4, "indent_tabs": 58.2, "doc": 34.4, "linear": 30.7, "flux": 15.9, "api": 14.3},
-            "Cluster 1: Low-Level State Mutators": {"indent_tabs": 71.8, "flux": 19.0, "linear": 16.4, "branch": 13.2, "pointers": 12.6, "doc": 10.8},
-            "Cluster 2: Static Configuration & Data": {"indent_spaces": 31.6, "linear": 5.9, "doc": 3.2, "flux": 2.7, "func_start": 1.9, "args": 1.8},
-            "Cluster 3: Abstract Interfaces & DTOs": {"generics": 64.2, "indent_spaces": 37.2, "func_start": 23.5, "args": 22.2, "class_start": 19.6, "linear": 15.5},
-            "Cluster 4: Preprocessor Macros & Headers": {"macros": 66.2, "ownership": 19.0, "doc": 13.7, "linear": 8.7, "api": 8.7, "heat_triggers": 8.1},
-            "Cluster 5: Object-Oriented Boilerplate": {"linear": 44.7, "indent_spaces": 43.0, "args": 25.2, "import": 19.1, "api": 17.9, "doc": 16.6},
-            "Cluster 6: Heavy Computational Math": {"scientific": 730.4, "indent_spaces": 78.9, "branch": 46.6, "flux": 35.3, "linear": 9.9, "safety": 3.8},
-            "Cluster 7: Dead Code / Comment Graveyard": {"graveyard": 2525.0, "doc": 2125.0, "branch": 25.0, "indent_tabs": 25.0},
-            "Cluster 8: I/O-Heavy Pipeline Scripts": {"safety_neg": 46.4, "linear": 34.5, "branch": 30.6, "io": 25.3, "indent_tabs": 21.3, "print_hits": 14.2},
-            "Cluster 9: High-Silo Legacy Bottlenecks": {"ownership": 1454.0, "doc": 107.5, "branch": 38.5, "flux": 16.7, "bitwise_hits": 4.0, "indent_tabs": 2.8},
-            "Cluster 10: Manual Memory Management": {"indent_spaces": 63.6, "flux": 29.4, "pointers": 22.1, "linear": 19.9, "doc": 15.2, "freeze_hits": 14.0},
-            "Cluster 11: Async UI & Concurrency Routers": {"indent_spaces": 59.5, "linear": 31.6, "args": 27.5, "func_start": 18.3, "concurrency": 16.3, "ui_framework": 9.4},
-            "Cluster 12: Standard Application Logic": {"indent_spaces": 77.7, "args": 22.6, "branch": 21.6, "linear": 20.1, "func_start": 11.6, "flux": 6.5},
-            "Cluster 13: Dependency Injection & Wiring": {"indent_spaces": 49.3, "freeze_hits": 22.4, "dependency_injection": 20.8, "args": 9.7, "func_start": 9.2, "class_start": 9.1},
-            "Cluster 14: Unit Test Suites": {"indent_spaces": 60.8, "args": 57.5, "func_start": 30.6, "linear": 30.0, "test": 19.6, "branch": 9.5}
-        }
+        })
         
         self.logger.info(f"Signal Processor Online | Context-Aware Risk Schema & ML Archetypes loaded.")
         
-    def _classify_archetype(self, eq: Dict[str, int], loc: int) -> str:
-        """Uses Euclidean Distance to find the closest ML Archetype island for a given file."""
-        safe_loc = max(loc, 1)
+    def _classify_archetype(self, scaled_vector: List[float]) -> Tuple[str, Dict[str, float]]:
+        """
+        Uses Euclidean Distance in 67D space to find the distance to ALL 15 Archetypes.
+        Returns the closest match (String) AND the full 15-point fingerprint.
+        """
+        fingerprint = {}
         best_match = "Unknown Archetype"
         min_dist = float('inf')
         
-        for name, centroid in self.ARCHETYPES_K15.items():
+        for arch_name, centroid_vector in self.ARCHETYPES_K16.items():
             dist_sq = 0.0
-            # Calculate distance across all 60 DNA dimensions
-            for key in self.SIGNAL_SCHEMA:
-                f_val = (eq.get(key, 0) / safe_loc) * 100.0  # File Density
-                c_val = centroid.get(key, 0.0)               # Centroid Density
-                dist_sq += (f_val - c_val) ** 2
             
-            if dist_sq < min_dist:
-                min_dist = dist_sq
-                best_match = name
+            for i in range(len(scaled_vector)):
+                dist_sq += (scaled_vector[i] - centroid_vector[i]) ** 2
                 
-        return best_match
+            distance = math.sqrt(dist_sq)
+            fingerprint[arch_name] = round(distance, 3) 
+            
+            if distance < min_dist:
+                min_dist = distance
+                best_match = arch_name
+                
+        return best_match, fingerprint
     
     def _get_context_multipliers(self, file_lang: str, folder_lang: str) -> Dict[str, float]:
         """
@@ -219,8 +205,9 @@ class SignalProcessor:
             # THE EXPOSED SECRET BYPASS PROTOCOL
             # Treat exposed keyfiles as structural vulnerabilities, skipping math
             # ==================================================================
-            secrets_exts = self.config.get("SECRETS_EXTENSIONS", set())
-            secrets_exact = self.config.get("SECRETS_EXACT", set())
+            aperture_cfg = getattr(config, "APERTURE_CONFIG", {})
+            secrets_exts = aperture_cfg.get("SECRETS_EXTENSIONS", set())
+            secrets_exact = aperture_cfg.get("SECRETS_EXACT", set())
             aperture_reason = ghost_meta.get("aperture_reason", "")
             
             is_critical_leak = "CRITICAL LEAK" in aperture_reason or ext in secrets_exts or filename in secrets_exact
@@ -250,6 +237,7 @@ class SignalProcessor:
                     "hit_vector": [0] * len(self.SIGNAL_SCHEMA), 
                     "file_impact": 150.0, # Massive physical footprint for the 3D map
                     "telemetry": {
+                        "archetype": "Cluster 4: Static Configuration & Data", # Fallback for static secrets
                         "control_flow_ratio": 0.0, 
                         "ownership_entropy": self._calc_ownership_entropy(authors_map),
                         "author_distribution": self._calculate_silo_risk(authors_map),
@@ -276,7 +264,7 @@ class SignalProcessor:
                 if "churn" in self.RISK_SCHEMA:
                     blanket_risk_vector[self.RISK_SCHEMA.index("churn")] = min(raw_churn_freq * 10, 100.0)
                 if "documentation" in self.RISK_SCHEMA:
-                    blanket_risk_vector[self.RISK_SCHEMA.index("documentation")] = 100.0
+                    blanket_risk_vector[self.RISK_SCHEMA.index("documentation")] = 0.0 # <-- The Fix! 0% Risk.
                 if "civil_war" in self.RISK_SCHEMA:
                     blanket_risk_vector[self.RISK_SCHEMA.index("civil_war")] = 50.0
 
@@ -285,6 +273,7 @@ class SignalProcessor:
                     "hit_vector": [0] * len(self.SIGNAL_SCHEMA), 
                     "file_impact": round(max(total_loc / 50.0, 1.0), 2),
                     "telemetry": {
+                        "archetype": "Cluster 16: Documentation & Literature", # <--- THE 17TH ARCHETYPE
                         "control_flow_ratio": 0.0,
                         "ownership_entropy": self._calc_ownership_entropy(authors_map),
                         "author_distribution": self._calculate_silo_risk(authors_map),
@@ -401,11 +390,53 @@ class SignalProcessor:
             else:
                 dominant_author = ghost_meta.get("ownership", "Unknown Architect")
 
-            # Execute the ML classification map!
-            archetype = self._classify_archetype(equations, loc)
+            # ------------------------------------------------------------------
+            # 6. BUILD THE 67-POINT ML VECTOR & FINGERPRINT
+            # ------------------------------------------------------------------
+            cfr = telemetry.get("control_flow_ratio", 0.0) if 'telemetry' in locals() else 0.0
+            logic_loc = max(int(round(meta.get("coding_loc", 0) * cfr)), 1)
+            safe_denom = max(logic_loc, meta.get("coding_loc", 1))
+            
+            max_func_comp = 0
+            avg_func_args = 0.0
+            if satellites:
+                max_func_comp = max([s.get("branch", 0) for s in satellites])
+                avg_func_args = sum([s.get("args", 0) for s in satellites]) / len(satellites)
+            
+            raw_imports_count = len(meta.get("raw_imports", []))
+            popularity = telemetry.get("popularity", 0) if 'telemetry' in locals() else 0
+
+            log_logic_loc = math.log1p(logic_loc)
+            log_imports_out = math.log1p(raw_imports_count)
+            log_popularity_in = math.log1p(popularity)
+            log_max_func_comp = math.log1p(max_func_comp)
+            log_avg_func_args = math.log1p(avg_func_args)
+            log_churn = math.log1p(raw_churn_freq)
+
+            raw_vector = []
+            for key in self.SIGNAL_SCHEMA:
+                raw_hit = equations.get(key, 0)
+                raw_density = (raw_hit / safe_denom) * 100.0
+                raw_vector.append(math.log1p(raw_density))
+                
+            raw_vector.extend([
+                cfr, log_logic_loc, log_imports_out, log_popularity_in,
+                log_max_func_comp, log_avg_func_args, log_churn
+            ])
+
+            scaled_vector = []
+            for i, val in enumerate(raw_vector):
+                median = self.SCALER_MEDIANS[i]
+                iqr = self.SCALER_IQRS[i]
+                safe_iqr = iqr if iqr > 0 else 1.0 
+                robust_z_score = (val - median) / safe_iqr
+                scaled_vector.append(robust_z_score)
+
+            archetype, arch_fingerprint = self._classify_archetype(scaled_vector)
 
             telemetry_payload = {
                 "archetype": archetype,
+                "archetype_fingerprint": arch_fingerprint,
                 "densities": {"cog_raw": round(cog_raw, 3)},
                 "raw_churn_freq": raw_churn_freq,
                 "ownership_entropy": ownership_score,

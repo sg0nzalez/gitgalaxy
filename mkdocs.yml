@@ -75,6 +75,7 @@ nav:
       - 'API Exposure': 22O_API_Exposure_Metric_The_Event_Horizon.md
       - 'Concurrency Exposure': 22P_Concurrency_Exposure.md
       - 'State Flux Exposure': 22Q_State_Flux_Exposure.md
+      - 'File Archetypes': 22R_File_Archetypes.md
   - '4. Data Pipeline':
       - 'Pipeline Overview': 23_Data_Analysis_Pipeline.md
       - 'Optical Orchestration': 230_The_GalaxyScope_Chassis_--_Optical_Orchestration.md
