@@ -38,7 +38,7 @@ class AppController {
     }
 
     async init() {
-        console.log("Visualizer: Initializing neural matrix...");
+        console.log("Warp Core Loading");
         
         try {
             // PHASE 11.1: Await Engine Readiness
@@ -483,6 +483,10 @@ class AppController {
             const brand = document.getElementById('brand-title');
             if (brand) brand.innerText = displayName.toUpperCase();
 
+            // --- THE FIX: Update the Floating Canvas Title ---
+            const floatingTitle = document.getElementById('floating-title');
+            if (floatingTitle) floatingTitle.innerText = displayName.toUpperCase();
+
         } catch (err) {
             console.warn("Visualizer: RAM load failed", err);
             this.clearLoader();
@@ -582,6 +586,20 @@ class AppController {
     handleThemeChange(val) { 
         const index = parseInt(val);
         this.engine.uThemeIndex.value = index; 
+
+        // --- THE FIX: DYNAMIC UI COLORS ---
+        // This updates the global --accent variable so the entire HTML UI
+        // (including buttons, titles, and borders) matches the 3D WebGPU scene!
+        const root = document.documentElement;
+        if (index === 3) {
+            root.style.setProperty('--accent', '#00ff41'); // Matrix Green
+        } else if (index === 4) {
+            root.style.setProperty('--accent', '#ffffff'); // High-Vis White
+        } else if (index === 2) {
+            root.style.setProperty('--accent', '#bc13fe'); // Galactic Purple
+        } else {
+            root.style.setProperty('--accent', '#00f3ff'); // Crystalline Teal
+        }
 
         // Cache the default bloom strength the first time we switch themes
         if (this.engine.defaultBloomStrength === undefined && this.engine.uBloomStrength) {

@@ -65,7 +65,9 @@ class GPURecorder:
             "mass": [], "author_distribution": [], 
             "ownership_entropy": [], "raw_churn_freq": [], "cog_raw": [], # <--- ADDED THE 3 DNA COLUMNS
             "pos_x": [], "pos_y": [], "pos_z": [],
-            "risks": [], "hits": [], "telemetry": [], "satellites": [],
+            "risks_flat": [], "hits_flat": [], 
+            "tel_aid": [], "tel_pid": [], "tel_purp": [], "tel_lt": [], "tel_pop": [], "tel_cfr": [],
+            "satellite_data_flat": [], "satellite_offsets": [0],
             "imports": [], # <--- NEW: The dependency string lookup column
             "c_ids": [],   # <--- NEW: The Constellation Mapping Column
             "a_ids": [],   # <--- NEW: Machine Learning Archetype IDs
@@ -153,37 +155,26 @@ class GPURecorder:
             columns["pos_y"].append(int(round(s.get("pos_y", 0.0) * 10)))
             columns["pos_z"].append(int(round(s.get("pos_z", 0.0) * 10)))
 
-            # Vector Quantization
-            columns["risks"].append([int(v * 10) for v in s.get("risk_vector", [0]*len(self.RISK_SCHEMA))])
-            columns["hits"].append([int(v) for v in s.get("hit_vector", [0]*len(self.HIT_SCHEMA))])
+           # Vector Quantization (Flattened for WebGPU)
+            columns["risks_flat"].extend([int(v * 10) for v in s.get("risk_vector", [0]*len(self.RISK_SCHEMA))])
+            columns["hits_flat"].extend([int(v) for v in s.get("hit_vector", [0]*len(self.HIT_SCHEMA))]) 
 
-            # Telemetry Interning
-            domain_ctx = tel.get("domain_context", {}) # <-- FIXED BUG: purpose was nested here
-            columns["telemetry"].append(
-                {
-                    "aid": self._intern(
-                        tel.get("ownership", "unknown"), self.author_lookup
-                    ),
-                    "pid": self._intern(
-                        tel.get("identity_source_proof", "Discovery"), self.proof_lookup
-                    ),
-                    "purp": self._intern(
-                        domain_ctx.get("purpose", "Standard Logic Matrix"), self.purpose_lookup # <-- FIXED BUG
-                    ),
-                    "lt": tel.get("identity_lock_tier", 4),
-                    "pop": tel.get("popularity", 0),
-                    "cfr": int(
-                        round(tel.get("control_flow_ratio", 0.0) * 1000) # <-- FIXED BUG: was grabbing from root
-                    ),
-                }
-            )
+            # Telemetry Interning (Columnar AoS to SoA)
+            domain_ctx = tel.get("domain_context", {})
+            columns["tel_aid"].append(self._intern(tel.get("ownership", "unknown"), self.author_lookup))
+            columns["tel_pid"].append(self._intern(tel.get("identity_source_proof", "Discovery"), self.proof_lookup))
+            columns["tel_purp"].append(self._intern(domain_ctx.get("purpose", "Standard Logic Matrix"), self.purpose_lookup))
+            columns["tel_lt"].append(tel.get("identity_lock_tier", 4))
+            columns["tel_pop"].append(tel.get("popularity", 0))
+            columns["tel_cfr"].append(int(round(tel.get("control_flow_ratio", 0.0) * 1000)))
 
-            # Satellite Minification (Internal Destructive Loop)
+            # Satellite Minification (CSR Format)
             sat_list = []
             s_sats = s.get("satellites", [])
             while s_sats:
                 sat = s_sats.pop()
-                sat_list.append([
+                # Extend a temporary flat list with the 10 data points
+                sat_list.extend([
                     sat.get("name", "unk"), 
                     sat.get("loc", 0), 
                     sat.get("branch", 0), 
@@ -191,15 +182,21 @@ class GPURecorder:
                     sat.get("args", 0),
                     self._intern(sat.get("texture", "standard"), self.texture_lookup),
                     int(sat.get("control_flow_ratio", 0.0) * 1000),
-                    int(sat.get("impact", sat.get("magnitude", 0)) * 10), # <-- FIXED BUG: Added impact
+                    int(sat.get("impact", sat.get("magnitude", 0)) * 10), 
                     int(sat.get("start_line", 0)),
                     int(sat.get("end_line", 0))
                 ])
 
             # ---> FLIP THE ARRAY BACK TO HIGHEST-FIRST <---
-            sat_list.reverse()
-
-            columns["satellites"].append(sat_list)
+            # Chunk the flat list into groups of 10, reverse the groups, and extend the main column
+            chunks = [sat_list[i:i+10] for i in range(0, len(sat_list), 10)]
+            chunks.reverse()
+            for chunk in chunks:
+                columns["satellite_data_flat"].extend(chunk)
+                
+            # Append the new offset marker (total number of satellite elements divided by 10)
+            current_total_sats = len(columns["satellite_data_flat"]) // 10
+            columns["satellite_offsets"].append(current_total_sats)
 
             # --- DEPENDENCY INTERNING & EDGE RESOLUTION ---
             # Cast to a sorted list for determinism, then convert strings to integer IDs

@@ -113,10 +113,22 @@ const Colors = {
                 "#64748B" // <--- The new 16th color (Slate Gray)
             ],
             labels: [
-                "0: Encapsulated Logic", "1: State Mutators", "2: Static Config", "3: Abstract Interfaces", "4: Macros/Headers", 
-                "5: OO Boilerplate", "6: Heavy Math", "7: Code Graveyard", "8: I/O Pipelines", "9: Siloed Legacy", 
-                "10: Manual Memory", "11: Async/UI Routers", "12: Application Logic", "13: Dependency Wiring", "14: Unit Tests",
-                "15: Docs & Literature" // <--- The new 16th label
+                "0: Testing & Verification",
+                "1: Heavy Pointers",
+                "2: Documented Procedural",
+                "3: Extreme Memory",
+                "4: Stateful C/C++",
+                "5: Annotated OOP",
+                "6: Complex C/Go",
+                "7: High-Density Macros",
+                "8: Dependency Keystones",
+                "9: Formatting Outliers",
+                "10: Static Config & Data",
+                "11: Documented Native",
+                "12: Defensive Logic",
+                "13: Injected Services",
+                "14: Native Scoping",
+                "15: Core Architecture"
             ]
         }
     },
