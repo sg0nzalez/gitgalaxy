@@ -67,3 +67,6 @@ museum/
 docs_build/
 updated_results/
 utilities/
+# Ignore local data symlinks
+site/museum/
+museum/
