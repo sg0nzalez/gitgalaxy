@@ -11,47 +11,56 @@
     <script>
         Sentry.onLoad(function() {
             Sentry.init({
-            // The loader handles defaults automatically
+                // Force Sentry to catch unhandled promises and global errors
+                tracePropagationTargets: ["localhost", /^https:\/\/gitgalaxy\.io/],
             });
 
             // =====================================================================
-            // HOOK 1: Catch Hard GPU Memory Crashes (Buffer Overflows)
+            // HOOK 1: Context Loss
             // =====================================================================
             document.addEventListener('webglcontextlost', function(event) {
-            event.preventDefault(); 
-            Sentry.withScope(function(scope) {
-                scope.setTag("error_type", "gpu_crash");
-                scope.setLevel("fatal");
-                Sentry.captureMessage("WebGL Context Lost: Possible memory or buffer overflow on mobile.");
-            });
+                event.preventDefault(); 
+                Sentry.captureMessage("FATAL: WebGL Context Lost on Mobile");
             }, false);
 
             // =====================================================================
-            // HOOK 2: Catch Three.js Shader Compilation Failures (Attribute Limits)
+            // HOOK 2: Catch Unhandled Promise Rejections (The Async Crash)
+            // =====================================================================
+            window.addEventListener('unhandledrejection', function(event) {
+                const reason = event.reason ? event.reason.toString() : 'Unknown Async Rejection';
+                Sentry.withScope(function(scope) {
+                    scope.setTag("error_type", "async_gpu_crash");
+                    scope.setLevel("fatal");
+                    Sentry.captureMessage("Async Crash: " + reason.substring(0, 500));
+                });
+            });
+
+            // =====================================================================
+            // HOOK 3: Console Error & Warning Interceptor
             // =====================================================================
             const originalConsoleError = console.error;
+            const originalConsoleWarn = console.warn; // Three.js sometimes uses warnings for failures!
+
+            const interceptLog = (level, ...args) => {
+                const errorString = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ');
+                
+                if (errorString.includes('THREE') || errorString.includes('WebGPU') || errorString.includes('vertex') || errorString.includes('shader')) {
+                    Sentry.withScope(function(scope) {
+                        scope.setTag("error_type", "engine_compilation_failure");
+                        scope.setLevel(level);
+                        Sentry.captureMessage(`Three.js ${level}: ` + errorString.substring(0, 500)); 
+                    });
+                }
+            };
+
             console.error = function(...args) {
-            // Convert console arguments to a single string for searching
-            const errorString = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ');
-            
-            // Look for the specific keywords Three.js uses when WebGPU/WebGL shaders fail
-            const isGpuError = 
-                errorString.includes('THREE.WebGLProgram') || 
-                errorString.includes('vertex attributes') || 
-                errorString.includes('WebGPU') || 
-                errorString.includes('shader compilation');
+                interceptLog("fatal", ...args);
+                originalConsoleError.apply(console, args);
+            };
 
-            if (isGpuError) {
-                Sentry.withScope(function(scope) {
-                scope.setTag("error_type", "shader_compilation_failure");
-                scope.setLevel("fatal");
-                // Send the specific Three.js error output to your Sentry dashboard
-                Sentry.captureMessage("Shader/Buffer Error: " + errorString.substring(0, 500)); 
-                });
-            }
-
-            // Resume normal console.error behavior so you can still see it in dev tools
-            originalConsoleError.apply(console, args);
+            console.warn = function(...args) {
+                interceptLog("warning", ...args);
+                originalConsoleWarn.apply(console, args);
             };
         });
     </script>
