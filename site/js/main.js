@@ -268,7 +268,7 @@ class AppController {
     async discoverGalaxies() {
         try {
             // 🚨 THE FIX: Fetch the static JSON directly from Nginx!
-            const response = await fetch('data/manifest.json');
+            const response = await fetch('/api/list_galaxies');
             if (response.ok) {
                 this.discoveredGalaxies = await response.json();
                 this.renderSystemMenu();
