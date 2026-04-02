@@ -57,6 +57,12 @@ export const createPhase6Shaders = (engine) => {
     const aSecrets = vRiskPack5.x;
     const aLangColor = vec3(vRiskPack5.y, vRiskPack5.z, vRiskPack5.w);
     
+    // =================================================================
+    // 🚨 DATA UNPACKING: BUFFER OVERFLOW PREVENTION 🚨
+    // We retrieve the integer (Cluster ID) and decimal (Popularity) from the 
+    // single compressed float. This trick saves an entire vertex buffer binding,
+    // preventing silent mobile GPU crashes.
+    // =================================================================
     const aCivilWar = vMetaPack1.x;          
     const packedMeta = vMetaPack1.y;
     const aPopularity = fract(packedMeta);        

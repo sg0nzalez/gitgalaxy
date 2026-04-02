@@ -197,6 +197,14 @@ export class GalaxyEngine {
             geo.setAttribute('aRiskPack4', createEmptyAttr(4)); 
             geo.setAttribute('aRiskPack5', createEmptyAttr(4)); 
             geo.setAttribute('aMetaPack1', createEmptyAttr(4));
+            // =================================================================
+            // 🚨 [LLM CONTEXT: MOBILE GPU BUFFER LIMITS] 🚨
+            // Future AI Agents: Do NOT add an `aMetaPack2` or any 7th custom attribute here.
+            // Mobile GPUs have a hardcap of 8 Vertex Buffer Bindings.
+            // Three.js uses 2 (Position + Matrix). We are using 6 custom attributes here.
+            // Total = 8. Adding one more will cause a silent WebGL crash.
+            // To add more data, compress it mathematically into existing floats (see pushAttrs).
+            // =================================================================
 
 
             const isHighTier = ['icosa', 'dodeca', 'octa', 'tetra'].includes(key);
@@ -772,7 +780,13 @@ export class GalaxyEngine {
                 const es = 1000.0;
                 const clusterId = raw.galaxy.a_ids ? raw.galaxy.a_ids[i] : 0;
                 
-                // DATA COMPRESSION: Pack clusterId (integer) and popScore (decimal) into ONE float
+                // =================================================================
+                // 🚨 DATA COMPRESSION: BUFFER OVERFLOW PREVENTION 🚨
+                // We pack `clusterId` (integer) and `popScore` (decimal) into ONE float.
+                // e.g., clusterId 12 + popScore 0.85 = 12.85.
+                // This eliminates the need for an extra buffer, keeping us strictly under
+                // the mobile GPU 8-buffer limit. Unpacked in the shader via floor/fract.
+                // =================================================================
                 const safePopScore = Math.min(popScore, 0.999);
                 const packedMeta = clusterId + safePopScore;
 
