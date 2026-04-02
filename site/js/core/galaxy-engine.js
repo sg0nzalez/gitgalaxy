@@ -173,31 +173,45 @@ export class GalaxyEngine {
 
         Object.keys(this.geos).forEach(key => {
             const geo = this.geos[key];
+
             // =================================================================
-            // [LLM CONTEXT: MOBILE GPU VERTEX ATTRIBUTE LIMITS]
-            // Mobile WebGL2/WebGPU enforces a strict HARD LIMIT of 16 vertex attributes (slots).
-            // - Three.js Base overhead: 3 slots (Position, Normal, UV)
-            // - InstancedMesh Matrix: 4 slots (4x4 transform matrix)
-            // - Available Custom Slots: 9 slots
-            // - Currently Used Below: 6 slots
-            // - REMAINING BUDGET: 3 slots (12 floats total).
-            // IF EXCEEDED: The mobile GPU compiler will silently crash and nothing will render.
-            // DO NOT add new attributes if the limit is reached; use bit-packing instead.
+            // 🚨 [LLM CONTEXT: MOBILE GPU HARDWARE LIMITS ROADMAP] 🚨
+            // Future AI Agents: Read this carefully before adding new data to the InstancedMesh.
+            // Mobile WebGL2/WebGPU enforces TWO strict hardware limits. Exceeding either
+            // causes a silent compiler crash (black screen) with no standard JS exception.
+            //
+            // LIMIT 1: MAX_VERTEX_ATTRIBS (Hardcap: 16 slots)
+            // - Three.js Base: ~1 slot (Position. Normal/UV deleted below).
+            // - Instanced Matrix: 4 slots.
+            // - Custom Available: ~11 slots. (We use 7 below).
+            // -> FIX 1: If you exceed 16 attributes, do NOT add new ones. You must use 
+            //    bit-packing (storing multiple smaller integers inside a single float).
+            //
+            // LIMIT 2: MAX_VERTEX_ATTRIB_BINDINGS (Hardcap: 8 buffers)
+            // - This is the "shipping container" limit.
+            // - Three.js uses 1 buffer for Position, and 1 buffer for the Matrix.
+            // - If we use standard `InstancedBufferAttribute` for our 7 custom packs, 
+            //   we hit 9 total buffers and the mobile GPU compiler crashes.
+            // -> FIX 2: We MUST use an `InstancedInterleavedBuffer`. This packs all 7 custom 
+            //    attributes (28 floats total) into a SINGLE buffer. 
+            //    Total buffers used: 3 (Pos + Mat + Interleaved). Safe for all mobile GPUs.
             // =================================================================
-            // =================================================================
-            // THE 8-BUFFER LIMIT FIX
-            // Delete unused generated attributes (Normals/UVs) to free up 2 slots.
-            // =================================================================
+
             geo.deleteAttribute('normal');
             geo.deleteAttribute('uv');
 
-            geo.setAttribute('aRiskPack1', createEmptyAttr(4));
-            geo.setAttribute('aRiskPack2', createEmptyAttr(4));
-            geo.setAttribute('aRiskPack3', createEmptyAttr(4));
-            geo.setAttribute('aRiskPack4', createEmptyAttr(4)); 
-            geo.setAttribute('aRiskPack5', createEmptyAttr(4)); 
-            geo.setAttribute('aMetaPack1', createEmptyAttr(4));
-            geo.setAttribute('aMetaPack2', createEmptyAttr(4));
+            // STRIDE: 7 vec4s * 4 floats = 28 floats per instance
+            const stride = 28;
+            const interleavedBuffer = new THREE.InstancedInterleavedBuffer(new Float32Array(this.maxInstancesPerGroup * stride), stride);
+
+            // Point the attributes to their specific offsets inside the single shared buffer
+            geo.setAttribute('aRiskPack1', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 0));
+            geo.setAttribute('aRiskPack2', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 4));
+            geo.setAttribute('aRiskPack3', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 8));
+            geo.setAttribute('aRiskPack4', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 12));
+            geo.setAttribute('aRiskPack5', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 16));
+            geo.setAttribute('aMetaPack1', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 20));
+            geo.setAttribute('aMetaPack2', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 24));
 
 
             const isHighTier = ['icosa', 'dodeca', 'octa', 'tetra'].includes(key);
@@ -701,11 +715,11 @@ export class GalaxyEngine {
         const dummy = new THREE.Object3D();
         const groupData = {};
 
-        // 1. Restore standard vec4 arrays
+        // 1. Prepare flat Interleaved Array
         Object.keys(this.meshGroups).forEach(key => {
             groupData[key] = { 
                 matrices: [], 
-                attrs: { pack1: [], pack2: [], pack3: [], pack4: [], pack5: [], meta: [], meta2: [] } 
+                interleavedData: [] // Replaces all separate pack arrays
             };
         });
 
@@ -768,19 +782,20 @@ export class GalaxyEngine {
                 el: labelEl, baseScale: dummy.scale.x     
             });
 
-            // 2. Push attributes back into standard 4-float vectors
+            // 2. Push attributes into a flat, interleaved sequence
             const pushAttrs = (g, targetGid, targetCid) => { 
                 const es = 1000.0;
-                g.attrs.pack1.push((risks[0]||0)/es, (risks[1]||0)/es, (risks[2]||0)/es, (risks[3]||0)/es);
-                g.attrs.pack2.push((risks[4]||0)/es, (risks[5]||0)/es, (risks[6]||0)/es, (risks[7]||0)/es);
-                g.attrs.pack3.push((risks[8]||0)/es, (risks[9]||0)/es, (risks[10]||0)/es, (risks[11]||0)/es);
-                g.attrs.pack4.push((risks[13]||0)/es, (risks[14]||0)/es, (risks[15]||0)/es, (risks[16]||0)/es);
-                g.attrs.pack5.push((risks[17]||0)/es, rVal, gVal, bVal); 
-                g.attrs.meta.push((risks[12]||0)/es, popScore, targetGid, targetCid);
-                
-                // Map to the actual 'a_ids' key found in the JSON
                 const clusterId = raw.galaxy.a_ids ? raw.galaxy.a_ids[i] : 0;
-                g.attrs.meta2.push(clusterId, 0, 0, 0);
+                
+                g.interleavedData.push(
+                    (risks[0]||0)/es, (risks[1]||0)/es, (risks[2]||0)/es, (risks[3]||0)/es, // pack1 (Offset 0)
+                    (risks[4]||0)/es, (risks[5]||0)/es, (risks[6]||0)/es, (risks[7]||0)/es, // pack2 (Offset 4)
+                    (risks[8]||0)/es, (risks[9]||0)/es, (risks[10]||0)/es, (risks[11]||0)/es, // pack3 (Offset 8)
+                    (risks[13]||0)/es, (risks[14]||0)/es, (risks[15]||0)/es, (risks[16]||0)/es, // pack4 (Offset 12)
+                    (risks[17]||0)/es, rVal, gVal, bVal,                                     // pack5 (Offset 16)
+                    (risks[12]||0)/es, popScore, targetGid, targetCid,                       // meta1 (Offset 20)
+                    clusterId, 0, 0, 0                                                       // meta2 (Offset 24)
+                );
             };
 
             const cId = raw.galaxy.c_ids ? raw.galaxy.c_ids[i] : -1; // <-- Grab it from JSON
@@ -854,15 +869,17 @@ export class GalaxyEngine {
             g.matrices.forEach((m, idx) => mesh.setMatrixAt(idx, m.matrix));
             mesh.instanceMatrix.needsUpdate = true;
             
-            const setAttr = (n, d, size) => mesh.geometry.setAttribute(n, new THREE.InstancedBufferAttribute(new Float32Array(d), size));
+            // Apply the flat array to the master Interleaved Buffer
+            const stride = 28;
+            const interleavedBuffer = new THREE.InstancedInterleavedBuffer(new Float32Array(g.interleavedData), stride);
             
-            setAttr('aRiskPack1', g.attrs.pack1, 4); 
-            setAttr('aRiskPack2', g.attrs.pack2, 4); 
-            setAttr('aRiskPack3', g.attrs.pack3, 4);
-            setAttr('aRiskPack4', g.attrs.pack4, 4); 
-            setAttr('aRiskPack5', g.attrs.pack5, 4); 
-            setAttr('aMetaPack1', g.attrs.meta, 4);
-            setAttr('aMetaPack2', g.attrs.meta2, 4);
+            mesh.geometry.setAttribute('aRiskPack1', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 0));
+            mesh.geometry.setAttribute('aRiskPack2', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 4));
+            mesh.geometry.setAttribute('aRiskPack3', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 8));
+            mesh.geometry.setAttribute('aRiskPack4', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 12));
+            mesh.geometry.setAttribute('aRiskPack5', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 16));
+            mesh.geometry.setAttribute('aMetaPack1', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 20));
+            mesh.geometry.setAttribute('aMetaPack2', new THREE.InterleavedBufferAttribute(interleavedBuffer, 4, 24));
         });
 
         const statNodesEl = document.getElementById('stat-nodes');
