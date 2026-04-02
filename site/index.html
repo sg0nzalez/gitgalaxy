@@ -15,13 +15,55 @@
         }
     </script>
 
+    <script
+        src="https://js.sentry-cdn.com/7f9d03714fb4d30ac0cc541eabd2b415.min.js"
+        crossorigin="anonymous"></script>
     <script>
-        if (typeof Sentry !== 'undefined') {
+        Sentry.onLoad(function() {
             Sentry.init({
-                // dsn: "https://YOUR_ACTUAL_DSN_KEY_HERE.ingest.sentry.io/YOUR_PROJECT_ID",
-                tracesSampleRate: 1.0, 
+            // The loader handles defaults automatically
             });
-        }
+
+            // =====================================================================
+            // HOOK 1: Catch Hard GPU Memory Crashes (Buffer Overflows)
+            // =====================================================================
+            document.addEventListener('webglcontextlost', function(event) {
+            event.preventDefault(); 
+            Sentry.withScope(function(scope) {
+                scope.setTag("error_type", "gpu_crash");
+                scope.setLevel("fatal");
+                Sentry.captureMessage("WebGL Context Lost: Possible memory or buffer overflow on mobile.");
+            });
+            }, false);
+
+            // =====================================================================
+            // HOOK 2: Catch Three.js Shader Compilation Failures (Attribute Limits)
+            // =====================================================================
+            const originalConsoleError = console.error;
+            console.error = function(...args) {
+            // Convert console arguments to a single string for searching
+            const errorString = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ');
+            
+            // Look for the specific keywords Three.js uses when WebGPU/WebGL shaders fail
+            const isGpuError = 
+                errorString.includes('THREE.WebGLProgram') || 
+                errorString.includes('vertex attributes') || 
+                errorString.includes('WebGPU') || 
+                errorString.includes('shader compilation');
+
+            if (isGpuError) {
+                Sentry.withScope(function(scope) {
+                scope.setTag("error_type", "shader_compilation_failure");
+                scope.setLevel("fatal");
+                // Send the specific Three.js error output to your Sentry dashboard
+                Sentry.captureMessage("Shader/Buffer Error: " + errorString.substring(0, 500)); 
+                });
+            }
+
+            // Resume normal console.error behavior so you can still see it in dev tools
+            originalConsoleError.apply(console, args);
+            };
+        });
     </script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
