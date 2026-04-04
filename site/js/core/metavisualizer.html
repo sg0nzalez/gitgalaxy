@@ -440,8 +440,19 @@
                     const langTable = schemas.lookups?.languages || [];
                     const ids = source.lang_ids || source.language || [];
                     values = ids.map(id => typeof id === 'number' ? (langTable[id] || 'Unknown') : id);
-                } else if (m.id === 'functions') {
-                    values = (source.satellites || []).map(s => Array.isArray(s) ? s.length : 0);
+                    } else if (m.id === 'functions') {
+                    // --- THE FIX: Use offsets for flattened arrays, fallback to old nested arrays ---
+                    if (source.satellite_offsets) {
+                        let prevOffset = 0;
+                        values = source.satellite_offsets.map(offset => {
+                            const count = offset - prevOffset;
+                            prevOffset = offset;
+                            return count;
+                        });
+                    } else {
+                        values = (source.satellites || []).map(s => Array.isArray(s) ? s.length : 0);
+                    }
+
                 // FIX 3: Updated to check for control_flow_ratio
                 } else if (m.isLogicRatio || m.id === 'control_flow_ratio') {
                     // Read directly from the new telemetry data if it exists
@@ -470,12 +481,21 @@
 
             // 2. RISK PILLAR (Locked 0 - 100 Fixed Scale)
             const riskSchema = schemas.risk_vector_x1000 || [];
-            if (source.risks) {
+            if (source.risks_flat || source.risks) {
+                const stride = riskSchema.length;
                 CONFIG.risk.forEach(target => {
                     const sIdx = findIdx(riskSchema, [target.slug]);
                     if (sIdx !== -1) {
-                        // NORMALIZATION: Divide by 1,000 to transform engine integers to 0 - 100 range
-                        const values = source.risks.map(r => Math.max(0, Math.min(100, (r[sIdx] || 0) / 10)));
+                        let values = [];
+                        // --- THE FIX: Handle the new 1D flat array with a stride ---
+                        if (source.risks_flat) {
+                            for (let i = sIdx; i < source.risks_flat.length; i += stride) {
+                                values.push(Math.max(0, Math.min(100, (source.risks_flat[i] || 0) / 10)));
+                            }
+                        } else {
+                            values = source.risks.map(r => Math.max(0, Math.min(100, (r[sIdx] || 0) / 10)));
+                        }
+                        
                         const s = getStats(values);
                         values.forEach(v => { if (v > s.avg + (s.std * 3)) anomalyCount++; });
                         renderMetric('col-risk', target, values, "bar-risk");
@@ -485,17 +505,32 @@
 
             // 3. SATELLITE PILLAR
             const satSchema = schemas.satellites || [];
-            if (source.satellites) {
-                const flattened = source.satellites.flat();
+            if (source.satellite_data_flat || source.satellites) {
+                const stride = satSchema.length || 10;
+                
                 CONFIG.satellite.forEach(target => {
                     const sIdx = findIdx(satSchema, target.keys);
                     if (sIdx !== -1) {
-                        const values = flattened.map(f => {
-                            let val = f[sIdx] || 0;
-                            if (satSchema[sIdx].endsWith('_x10')) val /= 10;
-                            if (satSchema[sIdx].endsWith('_x1000')) val /= 1000; 
-                            return val;
-                        });
+                        let values = [];
+                        
+                        // --- THE FIX: Extract properties directly from the 1D flat array ---
+                        if (source.satellite_data_flat) {
+                            for (let i = sIdx; i < source.satellite_data_flat.length; i += stride) {
+                                let val = source.satellite_data_flat[i] || 0;
+                                if (satSchema[sIdx].endsWith('_x10')) val /= 10;
+                                if (satSchema[sIdx].endsWith('_x1000')) val /= 1000; 
+                                values.push(val);
+                            }
+                        } else {
+                            const flattened = source.satellites.flat();
+                            values = flattened.map(f => {
+                                let val = f[sIdx] || 0;
+                                if (satSchema[sIdx].endsWith('_x10')) val /= 10;
+                                if (satSchema[sIdx].endsWith('_x1000')) val /= 1000; 
+                                return val;
+                            });
+                        }
+                        
                         renderMetric('col-satellite', target, values, "bar-satellite");
                     }
                 });
