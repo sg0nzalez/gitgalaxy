@@ -288,8 +288,8 @@ class LogicSplicer:
             confidence = 1.0
         
         # 1. The Custom Singularity Bypass & Prose Deflection
-        # Rejects unverified artifacts AND English text files before wasting compute
-        if confidence < 0.42 or self.primary_lang_id in ("plaintext", "markdown"):
+        # Rejects unverified artifacts AND Inert Matter files before wasting compute
+        if confidence < 0.42 or self.primary_lang_id in ("plaintext", "markdown", "json", "yaml", "csv"):
             self.logger.debug(f"[DIAGNOSTIC] Bypass triggered (Conf: {confidence:.2f} | Lang: {self.primary_lang_id}). Relegating to Dark Matter/Ghost Mass.")
             return {
                 "equations": {}, 

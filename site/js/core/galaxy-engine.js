@@ -719,10 +719,20 @@ export class GalaxyEngine {
         const languages = raw.meta?.schemas?.lookups?.languages || [];
         const pScalar = raw.meta?.scalars?.physics || 10;
 
+
+
+        // How many elements are in each flattened vector per star?
+        const RISK_LENGTH = raw.meta?.schemas?.risk_vector_x1000?.length || 18;
+        const HIT_LENGTH = raw.meta?.schemas?.hit_vector?.length || 60;
+
         for (let i = 0; i < count; i++) {
             const loc = raw.galaxy.locs[i];
             const mass = raw.galaxy.mass[i];
-            const risks = raw.galaxy.risks[i] || Array(13).fill(0); 
+            
+            // --- NEW: Slice the flattened risk array for this specific star ---
+            const rStart = i * RISK_LENGTH;
+            const risks = raw.galaxy.risks_flat ? raw.galaxy.risks_flat.slice(rStart, rStart + RISK_LENGTH) : Array(RISK_LENGTH).fill(0);
+            
             const m_loc = raw.galaxy.m_locs ? raw.galaxy.m_locs[i] : 0;
             const logicRatio = (loc > 0) ? (m_loc / loc) : 0;
             const langString = languages[raw.galaxy.lang_ids[i]] || "UNKNOWN";
@@ -752,7 +762,10 @@ export class GalaxyEngine {
             
             starGroup.matrices.push({ matrix: dummy.matrix.clone(), baseScale: dummy.scale.x, pos: new THREE.Vector3(x,y,z), rot: dummy.rotation.clone() });
             
-            const hits = raw.galaxy.hits && raw.galaxy.hits[i] ? raw.galaxy.hits[i] : [];
+            // --- NEW: Slice the flattened hit array for this specific star ---
+            const hStart = i * HIT_LENGTH;
+            const hits = raw.galaxy.hits_flat ? raw.galaxy.hits_flat.slice(hStart, hStart + HIT_LENGTH) : Array(HIT_LENGTH).fill(0);
+            
             const importCount = hits[23] || 0; 
             const popScore = Math.min(Math.log2(Math.max(importCount, 1)) / 6.0, 1.0);
             
@@ -775,10 +788,15 @@ export class GalaxyEngine {
                 el: labelEl, baseScale: dummy.scale.x     
             });
 
+
+
             // 2. Push attributes back into standard 4-float vectors
             const pushAttrs = (g, targetGid, targetCid) => { 
                 const es = 1000.0;
-                const clusterId = raw.galaxy.a_ids ? raw.galaxy.a_ids[i] : 0;
+                
+                // --- THE FIX: Handle array of arrays AND correct the lookup path ---
+                const clusterData = raw.galaxy.a_ids ? raw.galaxy.a_ids[i] : 0;
+                let clusterId = Array.isArray(clusterData) ? clusterData[0] : clusterData;
                 
                 // =================================================================
                 // 🚨 DATA COMPRESSION: BUFFER OVERFLOW PREVENTION 🚨
@@ -787,8 +805,26 @@ export class GalaxyEngine {
                 // This eliminates the need for an extra buffer, keeping us strictly under
                 // the mobile GPU 8-buffer limit. Unpacked in the shader via floor/fract.
                 // =================================================================
+                
+                // Try to get the string from the lookups table (where it actually lives!)
+                const archetypesList = raw.meta?.schemas?.lookups?.archetypes || [];
+                const archString = archetypesList[clusterId] || "";
+                
+                let absoluteClusterId = 15; // Default to 15 (Slate Gray)
+                
+                // If the string exists, regex it. If not, maybe clusterId IS the absolute ID (legacy support)
+                const match = archString.match(/Cluster (\d+)/);
+                if (match) {
+                    absoluteClusterId = parseInt(match[1], 10);
+                } else if (typeof clusterId === 'number' && clusterId >= 0 && clusterId <= 15) {
+                    absoluteClusterId = clusterId; // Legacy fallback for older JSONs
+                }
+
+
+
+                // Now pack the absolute ID into your metadata float
                 const safePopScore = Math.min(popScore, 0.999);
-                const packedMeta = clusterId + safePopScore;
+                const packedMeta = absoluteClusterId + safePopScore;
 
                 g.attrs.pack1.push((risks[0]||0)/es, (risks[1]||0)/es, (risks[2]||0)/es, (risks[3]||0)/es);
                 g.attrs.pack2.push((risks[4]||0)/es, (risks[5]||0)/es, (risks[6]||0)/es, (risks[7]||0)/es);
@@ -803,25 +839,47 @@ export class GalaxyEngine {
 
             // 2. SATELLITE (MOON) REFRACTION
             // --- NEW: Hard-cull satellites for massive galaxies to save geometry ---
+            const moonGroup = groupData['moon'];
 
-            if (sats.length > 0) {
-                const moonGroup = groupData['moon'];
-                
-                // --- 1. DYNAMIC FRACTAL DEPTH (The Step Function) ---
-                // Calculate Composite Complexity using the parent star's hits
-                // Branch is index 0, Safety is index 5 in the hit_vector
-                const structural = hits[0] || 0; 
-                const defensive = (hits[5] || 0) * 0.5; 
-                const compositeScore = structural + defensive;
+            // Calculate Composite Score for fractal depth
+            const structural = hits[0] || 0; 
+            const defensive = (hits[9] || 0) * 0.5;
+            const compositeScore = structural + defensive;
 
-                let maxMoons = 1; // Level 0: The Bamboo
-                if (compositeScore > 25) maxMoons = 12;      // Level 4: The Jungle
-                else if (compositeScore > 15) maxMoons = 8;  // Level 3: The Thicket
-                else if (compositeScore > 8) maxMoons = 4;   // Level 2: The Tree
-                else if (compositeScore > 2) maxMoons = 2;   // Level 1: The Fork
+            // --- NEW: Reconstruct the Satellite array from the flattened data ---
+            let moonData = sats; // Fallback to the original array if flat map isn't available
+            
+            if (raw.galaxy.satellite_data_flat && raw.galaxy.satellite_offsets) {
+                moonData = []; // clear and build from flat data
+                const startOffset = i === 0 ? 0 : raw.galaxy.satellite_offsets[i - 1];
+                const endOffset = raw.galaxy.satellite_offsets[i];
                 
-                // --- 2. IMPACT SCORING & FILTERING ---
-                const scoredSats = sats.map(s => ({
+                // Each satellite has exactly 10 properties in the flat array
+                for (let j = startOffset; j < endOffset; j++) {
+                    const sIdx = j * 10;
+                    moonData.push([
+                        raw.galaxy.satellite_data_flat[sIdx],      // name
+                        raw.galaxy.satellite_data_flat[sIdx + 1],  // loc
+                        raw.galaxy.satellite_data_flat[sIdx + 2],  // branch
+                        raw.galaxy.satellite_data_flat[sIdx + 3],  // angle
+                        raw.galaxy.satellite_data_flat[sIdx + 4],  // args
+                        raw.galaxy.satellite_data_flat[sIdx + 5],  // texture
+                        raw.galaxy.satellite_data_flat[sIdx + 6],  // cfr
+                        raw.galaxy.satellite_data_flat[sIdx + 7],  // impact
+                        raw.galaxy.satellite_data_flat[sIdx + 8],  // start_line
+                        raw.galaxy.satellite_data_flat[sIdx + 9]   // end_line
+                    ]);
+                }
+            }
+
+            let maxMoons = 1; // Level 0: The Bamboo
+            if (compositeScore > 25) maxMoons = 12;      // Level 4: The Jungle
+            else if (compositeScore > 15) maxMoons = 8;  // Level 3: The Thicket
+            else if (compositeScore > 8) maxMoons = 4;   // Level 2: The Tree
+            else if (compositeScore > 2) maxMoons = 2;   // Level 1: The Fork
+            
+            // --- 2. IMPACT SCORING & FILTERING ---
+            const scoredSats = moonData.map(s => ({
                     raw: s,
                     impact: ((s[2] + 1) * (s[4] + 1) + (0.05 * s[1])) * 10
                 })).sort((a, b) => b.impact - a.impact).slice(0, Math.min(maxMoons, 12));
@@ -857,7 +915,6 @@ export class GalaxyEngine {
                     pushAttrs(moonGroup, i, cId); // Inherit Star GID and DNA
                 });
             }
-        } // <-- This is the closing bracket for the main `for (let i = 0; i < count; i++)` loop
 
         Object.keys(groupData).forEach(key => {
             const g = groupData[key];

@@ -391,7 +391,7 @@ class SignalProcessor:
                 dominant_author = ghost_meta.get("ownership", "Unknown Architect")
 
             # ------------------------------------------------------------------
-            # 6. BUILD THE 67-POINT ML VECTOR & FINGERPRINT
+            # 6. BUILD THE 54-POINT ML VECTOR & FINGERPRINT
             # ------------------------------------------------------------------
             cfr = telemetry.get("control_flow_ratio", 0.0) if 'telemetry' in locals() else 0.0
             logic_loc = max(int(round(meta.get("coding_loc", 0) * cfr)), 1)
@@ -415,6 +415,13 @@ class SignalProcessor:
 
             raw_vector = []
             for key in self.SIGNAL_SCHEMA:
+                # ---> THE BRAIN TRANSPLANT FIX <---
+                # The ML Model was strictly trained on the 47 core architectural dimensions. 
+                # We must filter out the formatting/tabs metrics AND the 10 passive security observers
+                # so the array correctly condenses to the 54 points the K-Means brain expects.
+                if key in {"civil_war", "indent_tabs", "indent_spaces"} or key.startswith("sec_"):
+                    continue
+                    
                 raw_hit = equations.get(key, 0)
                 raw_density = (raw_hit / safe_denom) * 100.0
                 raw_vector.append(math.log1p(raw_density))

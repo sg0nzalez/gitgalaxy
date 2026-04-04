@@ -110,25 +110,25 @@ const Colors = {
                 "#FF3B30", "#FF9500", "#FFCC00", "#FFEE58", "#A4E720", 
                 "#28CD41", "#00C7BE", "#59C8FA", "#007AFF", "#5856D6", 
                 "#AF52DE", "#FF2D55", "#F9A8D4", "#E5E5EA", "#A2845E", 
-                "#64748B" // <--- The new 16th color (Slate Gray)
+                "#64748B" // 15: Preprocessor Macros
             ],
             labels: [
-                "0: Testing & Verification",
-                "1: Heavy Pointers",
-                "2: Documented Procedural",
-                "3: Extreme Memory",
-                "4: Stateful C/C++",
-                "5: Annotated OOP",
-                "6: Complex C/Go",
-                "7: High-Density Macros",
-                "8: Dependency Keystones",
-                "9: Formatting Outliers",
-                "10: Static Config & Data",
-                "11: Documented Native",
-                "12: Defensive Logic",
-                "13: Injected Services",
-                "14: Native Scoping",
-                "15: Core Architecture"
+                "0: Annotated Service Layer",
+                "1: Universal Dependencies",
+                "2: Inert Config & Data",
+                "3: High-Density Dependency Injection",
+                "4: Software Verification & Testing",
+                "5: Build, Infra & I/O Automation",
+                "6: High-Dependency C Headers",
+                "7: Raw Pointer & Memory",
+                "8: Test-Driven Annotated Services",
+                "9: Functional OOP & Async Logic",
+                "10: Object-Oriented Structures",
+                "11: Algorithmic & Defensive Logic",
+                "12: Documented Core Interfaces",
+                "13: Documented Native Headers",
+                "14: UI Frameworks & View Layers",
+                "15: Preprocessor Macros"
             ]
         }
     },

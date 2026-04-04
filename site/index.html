@@ -85,7 +85,7 @@
 <body>
     
     <div id="loading-screen" style="position:fixed;inset:0;background:#010103;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.8s;">
-        <div style="color:#00f3ff;font-family:monospace;letter-spacing:5px;margin-bottom:20px;text-transform:uppercase;">Loading Warp</div>
+        <div style="color:#00f3ff;font-family:monospace;letter-spacing:5px;margin-bottom:20px;text-transform:uppercase;">emerging from singularity</div>
         <div style="width:250px;height:2px;background:#111;border-radius:2px;"><div id="load-progress" style="height:100%;background:#00f3ff;width:0%;transition:width 0.3s;"></div></div>
     </div>
 
@@ -372,7 +372,17 @@
                     let activeIndices = [];
                     const raw = window.currentRawGalaxyData;
                     if (raw && raw.galaxy && raw.galaxy.a_ids) {
-                        const clusters = raw.galaxy.a_ids;
+                        // Extract the primary archetype (first element) and map it to its absolute Cluster ID
+                        const archetypesList = raw.meta?.schemas?.lookups?.archetypes || [];
+                        const clusters = raw.galaxy.a_ids.map(arr => {
+                            const cId = Array.isArray(arr) ? arr[0] : arr;
+                            const archStr = archetypesList[cId] || "";
+                            
+                            const match = archStr.match(/Cluster (\d+)/);
+                            if (match) return parseInt(match[1], 10);
+                            if (typeof cId === 'number' && cId >= 0 && cId <= 15) return cId; // Legacy fallback
+                            return 15; // default slate gray
+                        });
                         // Use a Set to instantly find the unique values, then sort them
                         activeIndices = Array.from(new Set(clusters)).sort((a, b) => a - b);
                     } else {

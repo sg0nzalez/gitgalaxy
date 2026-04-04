@@ -186,7 +186,7 @@ export const createPhase6Shaders = (engine) => {
                       select(aClusterId.equal(12), color(0xF9A8D4),
                       select(aClusterId.equal(13), color(0xE5E5EA),
                       select(aClusterId.equal(14), color(0xA2845E),
-                      color(0x64748B)))))))))))))))); // Fallback to 15 (Slate Gray)
+                      color(0x64748B)))))))))))))))); // <--- EXACTLY 15 PARENTHESES
 
     gradientColor = select(uMetricMode.equal(20), archColor, gradientColor);
 

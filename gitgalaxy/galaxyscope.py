@@ -222,64 +222,112 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["processing_time"] = time.time() - t_start
             return observation
 
-        # Phase 3: Linguistic Detector
-        t_detector = time.perf_counter()
-        detection_result = detector.inspect(
-            full_path_str, 
-            content_sample=content_buffer, 
-            has_intent=has_prior, 
-            intent_vector=intent_vector, 
-            ext_tally=_worker_state.get('ext_tally', {}),
-            census=_worker_state['census']
-        )
-        if is_file_profiling: phase_times["3_Language_Detector"] = time.perf_counter() - t_detector
-        
-        lang_id = detection_result["lang_id"]
-        is_supported = lang_id in lang_defs or lang_id in ("plaintext", "markdown")
-        
-        if lang_id in ("undeterminable", "unknown") or not is_supported:
-            observation["status"] = "singularity"
-            observation["reason"] = f"Unsupported Format (.{lang_id})" 
-            observation["identity_confidence"] = detection_result.get("intensity", 0.0)
-            observation["processing_time"] = time.time() - t_start
-            return observation
-        
-        # Phase 4: Prism Refraction
-        t_prism = time.perf_counter()
-        refraction = prism.refract(content_buffer, lang_id)
-        if is_file_profiling: phase_times["4_Prism_Refraction"] = time.perf_counter() - t_prism
-        
-        if lang_id not in splicer_cache:
-            from .detector import LogicSplicer
-            splicer_cache[lang_id] = LogicSplicer(lang_id, lang_defs, parent_logger=logger)
-        
-        splicer = splicer_cache[lang_id]
-        
-        # --- INJECTED DEBUG TRACE ---
-        logger.debug(f"[WORKER-TRACE] >>> ENTERING SPLICER: {rel_path} (Lang: {lang_id})")
-        
-        # Phase 5: Logic Splicer
-        t_splicer = time.perf_counter()
-        
-        # =========================================================================
-        # THE HARDWARE GUILLOTINE (ReDoS Protection)
+# =========================================================================
+        # THE HARDWARE GUILLOTINE (GLOBAL ReDoS Protection)
         # =========================================================================
         import signal # Explicit local import just in case global import was missed
         signal.signal(signal.SIGALRM, redos_guillotine)
-        signal.alarm(15) # 15-second fuse
+        signal.alarm(15) # 15-second fuse for the ENTIRE analysis pipeline
         
         try:
+            # Phase 3: Linguistic Detector
+            t_detector = time.perf_counter()
+            detection_result = detector.inspect(
+                full_path_str, 
+                content_sample=content_buffer, 
+                has_intent=has_prior, 
+                intent_vector=intent_vector, 
+                ext_tally=_worker_state.get('ext_tally', {}),
+                census=_worker_state['census']
+            )
+            if is_file_profiling: phase_times["3_Language_Detector"] = time.perf_counter() - t_detector
+            
+            lang_id = detection_result["lang_id"]
+            
+            # ---> NEW: INERT MATTER IDENTIFICATION <---
+            is_inert = lang_id in ("plaintext", "markdown", "json", "yaml", "csv")
+            is_supported = lang_id in lang_defs or is_inert
+            
+            if lang_id in ("undeterminable", "unknown") or not is_supported:
+                observation["status"] = "singularity"
+                observation["reason"] = f"Unsupported Format (.{lang_id})" 
+                observation["identity_confidence"] = detection_result.get("intensity", 0.0)
+                observation["processing_time"] = time.time() - t_start
+                return observation
+            
+            # Phase 4: Prism Refraction
+            t_prism = time.perf_counter()
+            refraction = prism.refract(content_buffer, lang_id)
+            if is_file_profiling: phase_times["4_Prism_Refraction"] = time.perf_counter() - t_prism
+            
+            if lang_id not in splicer_cache:
+                from .detector import LogicSplicer
+                splicer_cache[lang_id] = LogicSplicer(lang_id, lang_defs, parent_logger=logger)
+            
+            splicer = splicer_cache[lang_id]
+            
+            # --- INJECTED DEBUG TRACE ---
+            logger.debug(f"[WORKER-TRACE] >>> ENTERING SPLICER: {rel_path} (Lang: {lang_id})")
+            
+            # Phase 5: Logic Splicer
+            t_splicer = time.perf_counter()
             logic_data = splicer.splice(
                 code_stream=refraction["code_stream"], 
                 comment_stream=refraction["comment_stream"],
                 confidence=detection_result.get("intensity", 1.0),
                 profile_regex=is_profiling
             )
+            if is_file_profiling: phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
+            
+            logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
+
+            # --- Phase 5.5: Security Lens (Passive Observers) ---
+            t_security = time.perf_counter()
+            if "equations" not in logic_data:
+                logic_data["equations"] = {}
+                
+            if not is_inert:
+                security_hits = security.scan_content(content_buffer, filter_res.get("total_loc", 0))
+                for sec_key, hit_count in security_hits.items():
+                    logic_data["equations"][f"sec_{sec_key}"] = hit_count
+            if is_file_profiling: phase_times["5.5_Security_Lens"] = time.perf_counter() - t_security
+            # ----------------------------------------------------
+            
+            # Phase 6: Raw Imports
+            t_imports = time.perf_counter()
+            raw_imports = set()
+            if not is_inert:
+                import_regex = lang_defs.get(lang_id, {}).get("rules", {}).get("_dependency_capture")
+                if import_regex:
+                    try:
+                        for match in import_regex.finditer(content_buffer):
+                            # Grab the first non-empty capture group (the actual dependency name)
+                            extracted_path = next((g for g in match.groups() if g), None)
+                            if extracted_path:
+                                raw_imports.add(extracted_path)
+                    except Exception:
+                        pass
+            if is_file_profiling: phase_times["6_Import_Regex"] = time.perf_counter() - t_imports
+
+            # Phase 7: Tokenization & Census
+            t_token = time.perf_counter()
+            popularity_hits = set()
+            if not is_inert:
+                popularity_hits = set(tokenizer.findall(refraction["code_stream"])) & census
+            t_end = time.perf_counter()
+            if is_file_profiling: phase_times["7_Token_Intersection"] = t_end - t_token
+            
+            # Append the new blind-spot telemetry to the regex output
+            if is_profiling and not is_inert:
+                logic_data["regex_telemetry"] = logic_data.get("regex_telemetry", {})
+                logic_data["regex_telemetry"][f"{lang_id}::Worker_Imports"] = t_token - t_imports
+                logic_data["regex_telemetry"][f"{lang_id}::Worker_Popularity_Tokens"] = t_end - t_token
+
         except TimeoutError:
-            # The bomb went off! Rescue the worker and dump the file into Dark Matter.
+            # The bomb went off anywhere in Phase 3 through 7!
             logger.warning(f"⏳ TIMEOUT GUILLOTINE: '{rel_path}' exceeded 15s. Banishing to Singularity.")
             observation["status"] = "singularity"
-            observation["reason"] = "Unparsable (Structural Saturation / Regex Timeout)"
+            observation["reason"] = "Unparsable (Structural Saturation / Global Regex Timeout)"
             observation["size_bytes"] = filter_res.get("size_bytes", 0)
             observation["identity_confidence"] = detection_result.get("intensity", 0.0)
             observation["processing_time"] = time.time() - t_start
@@ -288,52 +336,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             # IMPORTANT: Defuse the bomb immediately upon success!
             signal.alarm(0) 
         # =========================================================================
-
-        if is_file_profiling: phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
         
-        logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
-
-        # --- Phase 5.5: Security Lens (Passive Observers) ---
-        t_security = time.perf_counter()
-        security_hits = security.scan_content(content_buffer, filter_res.get("total_loc", 0))
-        
-        # Ensure the equations dictionary exists, then inject the prefixed security hits
-        if "equations" not in logic_data:
-            logic_data["equations"] = {}
-            
-        for sec_key, hit_count in security_hits.items():
-            logic_data["equations"][f"sec_{sec_key}"] = hit_count
-            
-        if is_file_profiling: phase_times["5.5_Security_Lens"] = time.perf_counter() - t_security
-        # ----------------------------------------------------
-        
-        # Phase 6: Raw Imports
-        t_imports = time.perf_counter()
-        import_regex = lang_defs.get(lang_id, {}).get("rules", {}).get("_dependency_capture")
-        raw_imports = set()
-        if import_regex:
-            try:
-                for match in import_regex.finditer(content_buffer):
-                    # Grab the first non-empty capture group (the actual dependency name)
-                    extracted_path = next((g for g in match.groups() if g), None)
-                    if extracted_path:
-                        raw_imports.add(extracted_path)
-            except Exception:
-                pass
-        if is_file_profiling: phase_times["6_Import_Regex"] = time.perf_counter() - t_imports
-
-        # Phase 7: Tokenization & Census
-        t_token = time.perf_counter()
-        popularity_hits = set(tokenizer.findall(refraction["code_stream"])) & census
-        t_end = time.perf_counter()
-        if is_file_profiling: phase_times["7_Token_Intersection"] = t_end - t_token
-        
-        # Append the new blind-spot telemetry to the regex output
-        if is_profiling:
-            logic_data["regex_telemetry"] = logic_data.get("regex_telemetry", {})
-            logic_data["regex_telemetry"][f"{lang_id}::Worker_Imports"] = t_token - t_imports
-            logic_data["regex_telemetry"][f"{lang_id}::Worker_Popularity_Tokens"] = t_end - t_token
-
         data_payload = {
             "path": rel_path,
             "stem": Path(rel_path).stem.lower(), 

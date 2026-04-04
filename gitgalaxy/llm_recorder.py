@@ -253,22 +253,22 @@ class LLMRecorder:
         # --- 4.5 ECOSYSTEM FINGERPRINT (MACHINE LEARNING ARCHETYPES) ---
         lines.append("## 4.5 ECOSYSTEM FINGERPRINT (THE 16 ARCHETYPES)")
         lines.append("> **AI CONTEXT:** Every file is mapped via Robust Euclidean Distance to one of 16 Machine Learning Archetypes based on pure structural DNA. This reveals the true architectural patterns of the repository, independent of language.")
-        lines.append("> * **Cluster 0: Low-Level Systems & Go Routines** (Tight scoping, error handling, system interactions).")
-        lines.append("> * **Cluster 1: Annotated Service Layer** (Heavy use of decorators/annotations, API exposure, Java/C# backend).")
-        lines.append("> * **Cluster 2: Documented Core Definitions** (Highly documented interfaces, entities, structural boundaries).")
-        lines.append("> * **Cluster 3: Heavy Pointer Implementations** (Raw memory manipulation, C-style procedural architecture).")
-        lines.append("> * **Cluster 4: Static Configuration & Data** (Inert matter, YAML/JSON, declarative data, no control flow).")
-        lines.append("> * **Cluster 5: Generic Type Abstractions** (Heavy parameter passing, generic types, abstract OOP models).")
-        lines.append("> * **Cluster 6: Dependency Injected Services** (Massive decorator density, Spring Boot/Angular style injection).")
-        lines.append("> * **Cluster 7: Algorithmic & Defensive Scripts** (Math-heavy, defensive programming, fatal aborts, Python/MATLAB).")
-        lines.append("> * **Cluster 8: High-Dependency C Headers** (Core `.h` files with high inbound popularity and preprocessor macros).")
-        lines.append("> * **Cluster 9: Object-Oriented Structures** (Standard OOP, generic types, class encapsulation).")
-        lines.append("> * **Cluster 10: Software Verification & Testing** (Unit test assertions, mock setups, intentional safety bypasses).")
-        lines.append("> * **Cluster 11: Documented Native Headers** (C++ headers, heavy generics, extensive documentation).")
-        lines.append("> * **Cluster 12: Complex Control Flow & Manual Memory** (The 'meat grinder'—massive state flux, branching, and casting).")
-        lines.append("> * **Cluster 13: Build, Infra & I/O Automation** (Shell scripts, Makefiles, type-safety bypasses, external network/disk I/O).")
-        lines.append("> * **Cluster 14: Preprocessor Macros & Metaprogramming** (C/C++ macros, reflection, compiler directives).")
-        lines.append("> * **Cluster 15: Universal Dependencies & Architectural Keystones** (The 'God Nodes'—massive inbound popularity, critical system bindings).")
+        lines.append("> * **Cluster 0: Annotated Service Layer** (Heavy use of decorators/annotations, class entities, API exposure).")
+        lines.append("> * **Cluster 1: Universal Dependencies (The God Nodes)** (Massive inbound popularity, core architectural anchors).")
+        lines.append("> * **Cluster 2: Inert Configuration & Data (The Dark Matter)** (JSON/YAML/Makefiles, declarative data, zero control flow).")
+        lines.append("> * **Cluster 3: High-Density Dependency Injection** (Heavy decorators, generic abstractions, encapsulated services).")
+        lines.append("> * **Cluster 4: Software Verification & Testing** (Unit test assertions, closures, defensive bounds).")
+        lines.append("> * **Cluster 5: Build, Infra & I/O Automation** (Shell/JS scripts, type-safety bypasses, external network/disk I/O).")
+        lines.append("> * **Cluster 6: High-Dependency C Headers** (Core `.h` files with high inbound popularity, pointer math, and macros).")
+        lines.append("> * **Cluster 7: Raw Pointer & Memory Manipulation** (The 'meat grinder'—extreme pointer arithmetic, complex control flow).")
+        lines.append("> * **Cluster 8: Test-Driven Annotated Services** (Decorators paired heavily with unit test assertions).")
+        lines.append("> * **Cluster 9: Functional OOP & Async Logic** (Closures, asynchronous execution, generic type abstractions).")
+        lines.append("> * **Cluster 10: Object-Oriented Structures** (Standard OOP, class entity declarations, generic types).")
+        lines.append("> * **Cluster 11: Algorithmic & Defensive Logic** (Highly constrained logic, massive control flow and defensive programming complexity).")
+        lines.append("> * **Cluster 12: Documented Core Interfaces** (Highly documented boundaries, encapsulated scopes, Go/Java/Python interfaces).")
+        lines.append("> * **Cluster 13: Documented Native Headers** (C/C++ headers with extensive documentation and pointer definitions).")
+        lines.append("> * **Cluster 14: UI Frameworks & View Layers** (Frontend visual DOM, React/Flutter components, heavy decorator usage).")
+        lines.append("> * **Cluster 15: Preprocessor Macros & Metaprogramming** (C/C++ macros, authorship metadata, compiler directives).")
         lines.append("")
         
         fingerprint = summary.get("ecosystem_fingerprint", {})
@@ -321,6 +321,10 @@ class LLMRecorder:
         exposure_labels = schemas.get("EXPOSURE_LABELS", {})
         
         for i, risk_slug in enumerate(self.RISK_SCHEMA):
+            # THE FIX: Explicitly banish Civil War from the LLM context
+            if risk_slug == "civil_war":
+                continue
+                
             vals = [s.get("risk_vector", [])[i] for s in stars if len(s.get("risk_vector", [])) > i]
             risk_label = exposure_labels.get(risk_slug, risk_slug.replace('_', ' ').title())
             
