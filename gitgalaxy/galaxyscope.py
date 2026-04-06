@@ -255,31 +255,49 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                 observation["processing_time"] = time.time() - t_start
                 return observation
             
-            # Phase 4: Prism Refraction
-            t_prism = time.perf_counter()
-            refraction = prism.refract(content_buffer, lang_id)
-            if is_file_profiling: phase_times["4_Prism_Refraction"] = time.perf_counter() - t_prism
+            # ---> NEW: MINIFICATION / VENDOR DETECTION <---
+            is_minified = False
+            total_loc = filter_res.get("total_loc", 1)
+            size_bytes = filter_res.get("size_bytes", 0)
             
-            if lang_id not in splicer_cache:
-                from .detector import LogicSplicer
-                splicer_cache[lang_id] = LogicSplicer(lang_id, lang_defs, parent_logger=logger)
-            
-            splicer = splicer_cache[lang_id]
-            
-            # --- INJECTED DEBUG TRACE ---
-            logger.debug(f"[WORKER-TRACE] >>> ENTERING SPLICER: {rel_path} (Lang: {lang_id})")
-            
-            # Phase 5: Logic Splicer
-            t_splicer = time.perf_counter()
-            logic_data = splicer.splice(
-                code_stream=refraction["code_stream"], 
-                comment_stream=refraction["comment_stream"],
-                confidence=detection_result.get("intensity", 1.0),
-                profile_regex=is_profiling
-            )
-            if is_file_profiling: phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
-            
-            logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
+            if total_loc > 0:
+                avg_line_length = size_bytes / total_loc
+                if avg_line_length > 800 or (size_bytes > 50000 and total_loc < 15):
+                    is_minified = True
+                    
+            if re.search(r'\.min\.[a-z]+$|/vendor/|node_modules/', full_path_str, re.I):
+                is_minified = True
+
+            if is_minified:
+                logger.debug(f"[WORKER-TRACE] MINIFIED/VENDOR DETECTED: {rel_path}. Bypassing structural Splicer.")
+                logic_data = {"equations": {}, "coding_loc": total_loc, "doc_loc": 0}
+                refraction = {"coding_loc": total_loc, "doc_loc": 0, "code_stream": content_buffer, "comment_stream": ""}
+            else:
+                # Phase 4: Prism Refraction
+                t_prism = time.perf_counter()
+                refraction = prism.refract(content_buffer, lang_id)
+                if is_file_profiling: phase_times["4_Prism_Refraction"] = time.perf_counter() - t_prism
+                
+                if lang_id not in splicer_cache:
+                    from .detector import LogicSplicer
+                    splicer_cache[lang_id] = LogicSplicer(lang_id, lang_defs, parent_logger=logger)
+                
+                splicer = splicer_cache[lang_id]
+                
+                # --- INJECTED DEBUG TRACE ---
+                logger.debug(f"[WORKER-TRACE] >>> ENTERING SPLICER: {rel_path} (Lang: {lang_id})")
+                
+                # Phase 5: Logic Splicer
+                t_splicer = time.perf_counter()
+                logic_data = splicer.splice(
+                    code_stream=refraction["code_stream"], 
+                    comment_stream=refraction["comment_stream"],
+                    confidence=detection_result.get("intensity", 1.0),
+                    profile_regex=is_profiling
+                )
+                if is_file_profiling: phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
+                
+                logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
 
             # --- Phase 5.5: Security Lens (Passive Observers) ---
             t_security = time.perf_counter()
@@ -287,9 +305,15 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                 logic_data["equations"] = {}
                 
             if not is_inert:
-                security_hits = security.scan_content(content_buffer, filter_res.get("total_loc", 0))
-                for sec_key, hit_count in security_hits.items():
+                # Handle the new nested dictionary
+                sec_results = security.scan_content(content_buffer, filter_res.get("total_loc", 0))
+                
+                for sec_key, hit_count in sec_results["counts"].items():
                     logic_data["equations"][f"sec_{sec_key}"] = hit_count
+                    
+                # Pass the snippets into the payload
+                logic_data["threat_snippets"] = sec_results["snippets"]
+                
             if is_file_profiling: phase_times["5.5_Security_Lens"] = time.perf_counter() - t_security
             # ----------------------------------------------------
             
@@ -341,6 +365,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             "path": rel_path,
             "stem": Path(rel_path).stem.lower(), 
             "lang_id": lang_id, 
+            "is_minified": is_minified,
             "lock_tier": detection_result.get("lock_tier", 4),
             "intensity": detection_result.get("intensity", 0.0),
             "source_proof": detection_result.get("source_proof", "Discovery"),
@@ -1073,6 +1098,7 @@ class Orchestrator:
             telemetry_payload["identity_lock_tier"] = meta.get("lock_tier", 4)
             telemetry_payload["identity_confidence"] = meta.get("intensity", 0.0)
             telemetry_payload["identity_source_proof"] = meta.get("source_proof", "Discovery")
+            telemetry_payload["threat_snippets"] = meta.get("threat_snippets", {})
 
             self.stars.append({
                 **meta,

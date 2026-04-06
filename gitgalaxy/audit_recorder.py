@@ -128,6 +128,52 @@ class AuditRecorder:
 
         # Track archetypes per folder for the Constellation Fingerprint
         folder_archetype_counts = {}
+        
+        # Track archetypes per folder for the Constellation Fingerprint
+        folder_archetype_counts = {}
+
+        # ==========================================================
+        # --- N-TH DEGREE GRAPH RESOLUTION (Total Food Chain) ---
+        # ==========================================================
+        resolution_map = {}
+        for s in stars:
+            p = s.get("path", "")
+            name = s.get("name", Path(p).name)
+            stem = Path(p).stem
+            if p: resolution_map[p] = p
+            if name: resolution_map[name] = p
+            if stem: resolution_map[stem] = p
+
+        outbound_graph = {s.get("path", ""): [] for s in stars}
+        inbound_graph = {s.get("path", ""): [] for s in stars}
+
+        for s in stars:
+            curr = s.get("path", "")
+            for imp in s.get("raw_imports", []):
+                if imp in resolution_map:
+                    target_path = resolution_map[imp]
+                    if target_path != curr:
+                        if target_path not in outbound_graph[curr]:
+                            outbound_graph[curr].append(target_path)
+                        if curr not in inbound_graph[target_path]:
+                            inbound_graph[target_path].append(curr)
+
+        def get_nth_degree_count(start_node, graph):
+            """Traverses the graph to the absolute top/bottom, avoiding circular loops."""
+            if start_node not in graph: return 0
+            visited = set()
+            queue = [start_node]
+            while queue:
+                node = queue.pop(0)
+                for neighbor in graph.get(node, []):
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        queue.append(neighbor)
+            return len(visited)
+            
+        transitive_fragility = {s.get("path", ""): get_nth_degree_count(s.get("path", ""), outbound_graph) for s in stars}
+        transitive_blast = {s.get("path", ""): get_nth_degree_count(s.get("path", ""), inbound_graph) for s in stars}
+        # ==========================================================
 
         # 2. Row Reconstruction (Visible Stars) mapped into Constellations
         for star in stars:
@@ -185,6 +231,13 @@ class AuditRecorder:
                 folder_archetype_counts[c_name] = {}
             folder_archetype_counts[c_name][arch] = folder_archetype_counts[c_name].get(arch, 0) + 1
 
+            # ---> NEW: FORMAT MITIGATIONS <---
+            mitigation_data = telemetry.get("mitigation_telemetry", {})
+            formatted_mitigations = {
+                key.replace('_', ' ').title(): f"{val} instances"
+                for key, val in mitigation_data.items() if val > 0
+            }
+
             # Assemble the star profile
             star_profile = {
                 "1. Identity": identity_block,
@@ -194,8 +247,14 @@ class AuditRecorder:
                     "Z": star.get("pos_z", 0.0)
                 },
                 "3. Galactic Profile": {
-                    "Machine Learning Archetype": arch,
-                    "Archetype Fingerprint (Euclidean Distances)": telemetry.get("archetype_fingerprint", {}),
+                    "Global Archetype (Macro-Species)": arch,
+                    "Global Drift (Z-Score)": telemetry.get("global_drift", 0.0),
+                    "Global Fingerprint": telemetry.get("archetype_fingerprint", {}),
+                    
+                    "Local Archetype (Micro-Species)": telemetry.get("local_archetype", "N/A"),
+                    "Local Drift (Z-Score)": telemetry.get("local_drift", 0.0),
+                    "Local Fingerprint": telemetry.get("local_fingerprint", {}),
+                    
                     "Total LOC": star.get("total_loc", 0),
                     "coding LOC": star.get("coding_loc", 0),
                     "Documentation LOC": star.get("doc_loc", 0),
@@ -221,10 +280,19 @@ class AuditRecorder:
                     }
                     for sat in star.get("satellites", []) if isinstance(sat, dict)
                 ],
-                "6. Structural DNA (Raw Hits)": {
+                "6. Contextual Mitigations & Amplifications": formatted_mitigations if formatted_mitigations else "None Detected",
+                "7. Structural DNA (Net Mitigated Signals)": {
                     label: v for label, v in zip(hit_labels, star.get("hit_vector") or [0] * len(hit_labels))
                 },
-                "7. Extracted Dependencies": sorted(list(star.get("raw_imports", [])))
+                # ---> THE 4 DEPENDENCY METRICS <---
+                "8. Dependency Network": {
+                    "Direct Upstream (Fragility)": len(star.get("raw_imports", [])),
+                    "Direct Downstream (Blast Radius)": telemetry.get("popularity", 0),
+                    "Total Upstream (Absolute Fragility)": transitive_fragility.get(path, 0),
+                    "Total Downstream (Absolute Blast Radius)": transitive_blast.get(path, 0)
+                },
+                
+                "9. Extracted Dependencies": sorted(list(star.get("raw_imports", [])))
             }
             
             # Map the star into its parent constellation

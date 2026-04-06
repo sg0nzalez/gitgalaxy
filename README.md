@@ -76,7 +76,7 @@ Drag and drop your newly generated _galaxy.json file to instantly render your ar
 
 ## 🧬 The blAST Paradigm: Sequencing the DNA of Software
 
-Traditional computer science treats software like a rigid blueprint, using slow, language-specific Abstract Syntax Trees (ASTs) to analyze code. GitGalaxy treats code as a living, mutating organism using **blAST (Broad Lexical Abstract Syntax Tracker)**.
+Traditional computer science treats software like a rigid blueprint, using slow, language-specific Abstract Syntax Trees (ASTs) to analyze code. GitGalaxy treats code as a sequence to be scanned and then analyzed for patterns and occurrences using the **blAST (Broad Lexical Abstract Syntax Tracker)** engine.
 
 By applying the principles of biological sequence alignment to software, blAST hunts for the universal structural markers of logic across ~40 languages and ~250 file extensions. We translate this genetic code into "phenotypes"—measurable risk exposures.
 

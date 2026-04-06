@@ -61,12 +61,15 @@ class SignalProcessor:
         self.config = aperture_config or {}
     
         # ======================================================================
-        # 🧠 FETCH THE ML INFERENCE BRAIN
+        # 🧠 FETCH THE ML INFERENCE BRAINS (Global & Local)
         # ======================================================================
         ml_brain = getattr(config, "ML_INFERENCE_BRAIN", {})
         self.SCALER_MEDIANS = ml_brain.get("SCALER_MEDIANS", [0.0] * 67)
         self.SCALER_IQRS = ml_brain.get("SCALER_IQRS", [1.0] * 67)
         self.ARCHETYPES_K16 = ml_brain.get("ARCHETYPES_K16", {})
+        
+        # ---> NEW: Fetch Language-Specific Micro-Species Brains <---
+        self.LANGUAGE_INFERENCE_BRAINS = getattr(config, "LANGUAGE_INFERENCE_BRAINS", {})
 
         # Fetch Physics Constants
         physics = getattr(config, "PHYSICS_CONSTANTS", {})
@@ -101,21 +104,27 @@ class SignalProcessor:
             "web_in_systems": {"flux": 3.0}                       # JS embedded in C firmware = Bizarre architecture
         })
         
+        # ---> NEW: Fetch the Archetype Matrix
+        self.ARCHETYPE_VIOLATION_MATRIX = security_profiles.get("ARCHETYPE_VIOLATION_MATRIX", {})
+        
         self.logger.info(f"Signal Processor Online | Context-Aware Risk Schema & ML Archetypes loaded.")
         
-    def _classify_archetype(self, scaled_vector: List[float]) -> Tuple[str, Dict[str, float]]:
+    def _classify_archetype(self, scaled_vector: List[float], archetypes_dict: Dict[str, List[float]]) -> Tuple[str, float, Dict[str, float]]:
         """
-        Uses Euclidean Distance in 67D space to find the distance to ALL 15 Archetypes.
-        Returns the closest match (String) AND the full 15-point fingerprint.
+        Dynamically calculates the Euclidean Distance for any provided K-Means dictionary.
+        Returns: Best Match Name, Minimum Distance (Drift), Full Fingerprint.
         """
         fingerprint = {}
         best_match = "Unknown Archetype"
         min_dist = float('inf')
         
-        for arch_name, centroid_vector in self.ARCHETYPES_K16.items():
+        if not archetypes_dict:
+            return best_match, 0.0, fingerprint
+            
+        for arch_name, centroid_vector in archetypes_dict.items():
             dist_sq = 0.0
             
-            for i in range(len(scaled_vector)):
+            for i in range(min(len(scaled_vector), len(centroid_vector))):
                 dist_sq += (scaled_vector[i] - centroid_vector[i]) ** 2
                 
             distance = math.sqrt(dist_sq)
@@ -125,7 +134,7 @@ class SignalProcessor:
                 min_dist = distance
                 best_match = arch_name
                 
-        return best_match, fingerprint
+        return best_match, round(min_dist, 3), fingerprint
     
     def _get_context_multipliers(self, file_lang: str, folder_lang: str) -> Dict[str, float]:
         """
@@ -200,6 +209,18 @@ class SignalProcessor:
             filename = os.path.basename(rel_path).lower()
             ext = f".{filename.split('.')[-1]}" if '.' in filename else ""
             ghost_meta = meta.get("metadata", {})
+
+            # ==================================================================
+            # THE EXTENSION DECEPTION SENSOR
+            # Punishes files claiming to be inert data but evaluated as executable code
+            # ==================================================================
+            if ext:
+                inert_disguises = {".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".xml", ".log", ".png", ".jpg", ".jpeg", ".gif", ".mp4"}
+                executable_langs = {"shell", "python", "javascript", "typescript", "ruby", "perl", "php", "c", "cpp", "rust", "go", "java", "powershell"}
+                
+                if ext in inert_disguises and lang_id.lower() in executable_langs:
+                    self.logger.warning(f"🚨 DECEPTION DETECTED: {rel_path} claims to be {ext} but executed as {lang_id}!")
+                    equations["sec_extension_mismatch"] = 1
             
             # ==================================================================
             # THE EXPOSED SECRET BYPASS PROTOCOL
@@ -247,6 +268,40 @@ class SignalProcessor:
                 }
 
             # ==================================================================
+            # THE MINIFIED / VENDOR TRIPWIRE PROTOCOL
+            # ==================================================================
+            is_minified = meta.get("is_minified", False)
+            if is_minified:
+                # 1. Zero out all standard architectural risks
+                blanket_risk_vector = [0.0] * len(self.RISK_SCHEMA)
+                
+                # 2. Check for ANY malicious intent (eval, network fetching, etc.)
+                intent_mass = equations.get("sec_danger", 0) + equations.get("sec_io", 0) + equations.get("sec_safety_neg", 0)
+                
+                if intent_mass > 0:
+                    self.logger.critical(f"🚨 MINIFIED TRIPWIRE TRIGGERED: {rel_path} contains obscured execution/IO!")
+                    if "obscured_payload" in self.RISK_SCHEMA:
+                        blanket_risk_vector[self.RISK_SCHEMA.index("obscured_payload")] = 100.0
+                    if "logic_bomb" in self.RISK_SCHEMA:
+                        blanket_risk_vector[self.RISK_SCHEMA.index("logic_bomb")] = 100.0
+                    if "injection_surface" in self.RISK_SCHEMA:
+                        blanket_risk_vector[self.RISK_SCHEMA.index("injection_surface")] = 100.0
+
+                return {
+                    "risk_vector": blanket_risk_vector,
+                    "hit_vector": [equations.get(k, 0) for k in self.SIGNAL_SCHEMA], 
+                    "file_impact": 1.0, # Minified files don't carry architectural weight
+                    "telemetry": {
+                        "archetype": "Cluster 15: Preprocessor Macros & Metaprogramming",
+                        "control_flow_ratio": 0.0,
+                        "ownership_entropy": 0.0,
+                        "author_distribution": 0.0,
+                        "ownership": ghost_meta.get("ownership", "Unknown Architect"),
+                        "domain_context": {"alert": "MINIFIED VENDOR BYPASS", **ghost_meta}
+                    }
+                }
+
+            # ==================================================================
             # THE DOCUMENTATION BYPASS PROTOCOL
             # Treat pure literature as static structural assets, skipping logic math
             # ==================================================================
@@ -273,10 +328,10 @@ class SignalProcessor:
                     "hit_vector": [0] * len(self.SIGNAL_SCHEMA), 
                     "file_impact": round(max(total_loc / 50.0, 1.0), 2),
                     "telemetry": {
-                        "archetype": "Cluster 16: Documentation & Literature", # <--- THE 17TH ARCHETYPE
+                        "archetype": "Cluster 16: Documentation & Literature",
                         "control_flow_ratio": 0.0,
-                        "ownership_entropy": self._calc_ownership_entropy(authors_map),
-                        "author_distribution": self._calculate_silo_risk(authors_map),
+                        "ownership_entropy": 0.0,     # <-- FIX: Documentation has no logic entropy
+                        "author_distribution": 0.0,   # <-- FIX: Plaintext changelogs don't have a Bus Factor
                         "ownership": dominant_author,
                         "domain_context": ghost_meta
                     }
@@ -304,6 +359,80 @@ class SignalProcessor:
             # ------------------------------------------------------------------
             temporal_data = meta.get("temporal_telemetry", {})
             stability_score, raw_churn_freq = self._calc_raw_temporal_signals(temporal_data)
+
+            # ------------------------------------------------------------------
+            # 1.5 BUILD THE ML VECTOR & CLASSIFY ARCHETYPE
+            # ------------------------------------------------------------------
+            cfr = meta.get("control_flow_ratio", 0.0) 
+            logic_loc = max(int(round(meta.get("coding_loc", 0) * cfr)), 1)
+            safe_denom = max(logic_loc, meta.get("coding_loc", 1))
+            
+            satellites = meta.get("satellites", [])
+            max_func_comp = 0
+            avg_func_args = 0.0
+            if satellites:
+                max_func_comp = max([s.get("branch", 0) for s in satellites])
+                avg_func_args = sum([s.get("args", 0) for s in satellites]) / len(satellites)
+            
+            raw_imports_count = len(meta.get("raw_imports", []))
+            popularity = meta.get("popularity", 0) 
+
+            log_logic_loc = math.log1p(logic_loc)
+            log_imports_out = math.log1p(raw_imports_count)
+            log_popularity_in = math.log1p(popularity)
+            log_max_func_comp = math.log1p(max_func_comp)
+            log_avg_func_args = math.log1p(avg_func_args)
+            log_churn = math.log1p(raw_churn_freq)
+
+            raw_vector = []
+            for key in self.SIGNAL_SCHEMA:
+                # ---> THE DIMENSIONAL FIX: Ignore hardware_bridge and cryptography <---
+                if key in {"civil_war", "indent_tabs", "indent_spaces", "hardware_bridge", "cryptography"} or key.startswith("sec_"):
+                    continue
+                raw_hit = equations.get(key, 0)
+                raw_density = (raw_hit / safe_denom) * 100.0
+                raw_vector.append(math.log1p(raw_density))
+                
+            raw_vector.extend([
+                cfr, log_logic_loc, log_imports_out, log_popularity_in,
+                log_max_func_comp, log_avg_func_args, log_churn
+            ])
+
+            # ------------------------------------------------------------------
+            # 1.6 BIAXIAL ANOMALY DETECTION (Global vs Local)
+            # ------------------------------------------------------------------
+            # A) GLOBAL MACRO-SPECIES
+            scaled_vector_global = []
+            for i, val in enumerate(raw_vector):
+                median = self.SCALER_MEDIANS[i]
+                safe_iqr = self.SCALER_IQRS[i] if self.SCALER_IQRS[i] > 0 else 1.0 
+                scaled_vector_global.append((val - median) / safe_iqr)
+
+            global_archetype, global_drift, arch_fingerprint = self._classify_archetype(scaled_vector_global, self.ARCHETYPES_K16)
+
+            # B) LOCAL MICRO-SPECIES
+            local_archetype = None
+            local_drift = 0.0
+            local_fingerprint = {}
+
+            lang_brain = self.LANGUAGE_INFERENCE_BRAINS.get(lang_id.lower())
+            if lang_brain:
+                lang_medians = lang_brain.get("SCALER_MEDIANS", [])
+                lang_iqrs = lang_brain.get("SCALER_IQRS", [])
+
+                # Find the dynamic K-key (e.g., ARCHETYPES_K11)
+                arch_key = next((k for k in lang_brain.keys() if k.startswith('ARCHETYPES_K')), None)
+                lang_archetypes = lang_brain.get(arch_key, {}) if arch_key else {}
+
+                if lang_medians and lang_iqrs and lang_archetypes:
+                    scaled_vector_local = []
+                    for i, val in enumerate(raw_vector):
+                        median = lang_medians[i] if i < len(lang_medians) else self.SCALER_MEDIANS[i]
+                        iqr = lang_iqrs[i] if i < len(lang_iqrs) else self.SCALER_IQRS[i]
+                        safe_iqr = iqr if iqr > 0 else 1.0
+                        scaled_vector_local.append((val - median) / safe_iqr)
+
+                    local_archetype, local_drift, local_fingerprint = self._classify_archetype(scaled_vector_local, lang_archetypes)
 
             # ------------------------------------------------------------------
             # 2. CORE RISK EXPOSURE CALCULATIONS
@@ -338,10 +467,12 @@ class SignalProcessor:
                 "churn":          0.0, 
                 "documentation":  doc_score,
                 "civil_war":      self._calc_civil_war(equations),
-                "obscured_payload":  self._calc_obscured_payload(loc, equations, mp_map.get("obscured", 1.0)),
-                "logic_bomb":        self._calc_logic_bomb(loc, equations, mp_map.get("logic_bomb", 1.0) * eco_mp.get("logic_bomb", 1.0)),
-                "injection_surface": self._calc_injection_surface(loc, equations, mp_map.get("injection", 1.0) * eco_mp.get("injection", 1.0)),
-                "memory_corruption": self._calc_memory_corruption(loc, equations, mp_map.get("memory", 1.0) * eco_mp.get("memory", 1.0), lang_id), 
+                
+                # ---> BIAXIAL WEAPONIZATION <---
+                "obscured_payload":  self._calc_obscured_payload(loc, equations, mp_map.get("obscured", 1.0), global_archetype, global_drift, local_drift),
+                "logic_bomb":        self._calc_logic_bomb(loc, equations, mp_map.get("logic_bomb", 1.0) * eco_mp.get("logic_bomb", 1.0), global_archetype, global_drift, local_drift),
+                "injection_surface": self._calc_injection_surface(loc, equations, mp_map.get("injection", 1.0) * eco_mp.get("injection", 1.0), global_archetype),
+                "memory_corruption": self._calc_memory_corruption(loc, equations, mp_map.get("memory", 1.0) * eco_mp.get("memory", 1.0), lang_id, global_archetype), 
                 "secrets_risk":      self._calc_secrets_risk(loc, equations, mp_map.get("secrets", 1.0))
             }
             
@@ -389,67 +520,22 @@ class SignalProcessor:
                 dominant_author = max(authors_map, key=authors_map.get)
             else:
                 dominant_author = ghost_meta.get("ownership", "Unknown Architect")
-
-            # ------------------------------------------------------------------
-            # 6. BUILD THE 54-POINT ML VECTOR & FINGERPRINT
-            # ------------------------------------------------------------------
-            cfr = telemetry.get("control_flow_ratio", 0.0) if 'telemetry' in locals() else 0.0
-            logic_loc = max(int(round(meta.get("coding_loc", 0) * cfr)), 1)
-            safe_denom = max(logic_loc, meta.get("coding_loc", 1))
-            
-            max_func_comp = 0
-            avg_func_args = 0.0
-            if satellites:
-                max_func_comp = max([s.get("branch", 0) for s in satellites])
-                avg_func_args = sum([s.get("args", 0) for s in satellites]) / len(satellites)
-            
-            raw_imports_count = len(meta.get("raw_imports", []))
-            popularity = telemetry.get("popularity", 0) if 'telemetry' in locals() else 0
-
-            log_logic_loc = math.log1p(logic_loc)
-            log_imports_out = math.log1p(raw_imports_count)
-            log_popularity_in = math.log1p(popularity)
-            log_max_func_comp = math.log1p(max_func_comp)
-            log_avg_func_args = math.log1p(avg_func_args)
-            log_churn = math.log1p(raw_churn_freq)
-
-            raw_vector = []
-            for key in self.SIGNAL_SCHEMA:
-                # ---> THE BRAIN TRANSPLANT FIX <---
-                # The ML Model was strictly trained on the 47 core architectural dimensions. 
-                # We must filter out the formatting/tabs metrics AND the 10 passive security observers
-                # so the array correctly condenses to the 54 points the K-Means brain expects.
-                if key in {"civil_war", "indent_tabs", "indent_spaces"} or key.startswith("sec_"):
-                    continue
-                    
-                raw_hit = equations.get(key, 0)
-                raw_density = (raw_hit / safe_denom) * 100.0
-                raw_vector.append(math.log1p(raw_density))
                 
-            raw_vector.extend([
-                cfr, log_logic_loc, log_imports_out, log_popularity_in,
-                log_max_func_comp, log_avg_func_args, log_churn
-            ])
-
-            scaled_vector = []
-            for i, val in enumerate(raw_vector):
-                median = self.SCALER_MEDIANS[i]
-                iqr = self.SCALER_IQRS[i]
-                safe_iqr = iqr if iqr > 0 else 1.0 
-                robust_z_score = (val - median) / safe_iqr
-                scaled_vector.append(robust_z_score)
-
-            archetype, arch_fingerprint = self._classify_archetype(scaled_vector)
 
             telemetry_payload = {
-                "archetype": archetype,
+                "archetype": global_archetype,
+                "global_drift": global_drift,
                 "archetype_fingerprint": arch_fingerprint,
+                "local_archetype": local_archetype,
+                "local_drift": local_drift,
+                "local_fingerprint": local_fingerprint,
                 "densities": {"cog_raw": round(cog_raw, 3)},
                 "raw_churn_freq": raw_churn_freq,
                 "ownership_entropy": ownership_score,
                 "author_distribution": silo_exposure,  
                 "ownership": dominant_author,          
-                "domain_context": ghost_meta 
+                "domain_context": ghost_meta,
+                "mitigation_telemetry": meta.get("mitigation_telemetry", {})
             }
             
             if mp_map:
@@ -499,10 +585,13 @@ class SignalProcessor:
         for s in stars:
             lang = s.get("lang_id", "unknown")
             loc = s.get("coding_loc", 0)
+            impact = s.get("file_impact", 0.0) # <-- ADD THIS
             total_loc += loc
-            if lang not in lang_comp: lang_comp[lang] = {"files": 0, "loc": 0}
+            if lang not in lang_comp: 
+                lang_comp[lang] = {"files": 0, "loc": 0, "impact": 0.0}
             lang_comp[lang]["files"] += 1
             lang_comp[lang]["loc"] += loc
+            lang_comp[lang]["impact"] += impact # <-- ADD THIS
 
         churn_idx = self.RISK_SCHEMA.index("churn")
         high_volatility = len([s for s in stars if "risk_vector" in s and len(s["risk_vector"]) > churn_idx and s["risk_vector"][churn_idx] > 80.0])
@@ -776,39 +865,42 @@ class SignalProcessor:
             
         return min(raw_risk * (2.0 - fc), 100.0)
 
-    def _calc_verification(self, loc: int, file_path: str, is_protected: bool, eq: Dict[str, int], irc: int, fc: float, mp: float, umbrella_bonus: float = 0.0) -> float:
-        import os
-        filename = os.path.basename(file_path).lower()
-        ext = filename.split('.')[-1] if '.' in filename else ""
+    def _calc_verification(self, loc: int, rel_path: str, is_protected: bool, eq: Dict[str, int], irc: int, fc: float, mp: float, umbrella_bonus: float = 0.0) -> float:
+        """
+        YIN: Test assertions (test).
+        YANG: Bypassed/Mocked tests (test_skip).
+        Returns 100.0 for HIGH risk (no tests), 0.0 for LOW risk (well tested).
+        """
+        tuning = self.risk_tuning.get("verification", {})
+        loc_padding = tuning.get("loc_padding", 150)
         
-        exempt_exts = self.asset_masks.get("UNTESTABLE_EXTENSIONS", set())
-        exempt_names = self.asset_masks.get("UNTESTABLE_NAMES", set())
-             
-        if ext in exempt_exts or filename in exempt_names or filename.startswith('readme') or 'makefile' in filename or 'cmake' in filename:
-            return 0.0
-
-        t = self.risk_tuning.get("verification", {})
-        safe_loc = max(loc, 1)
+        test_hits = float(eq.get("test", 0))
+        test_skips = float(eq.get("test_skip", 0))
         
-        sibling_bonus = t.get("sibling_bonus", 30.0) if is_protected else 0.0
-        internal_density = (eq.get("test", 0) * t.get("internal_test_mult", 5.0) / safe_loc) * 100.0
-        total_density = internal_density + sibling_bonus 
+        # THERMODYNAMIC BALANCE: Penalize "Safety Theater".
+        # 1 bypassed test neutralizes 2 real assertions.
+        true_verification = max(0.0, test_hits - (test_skips * 2.0))
         
-        threshold = (t.get("threshold_base", 15.0) + (irc * t.get("irc_mult", 3.0))) * mp
+        density = true_verification / max(loc + loc_padding, 1)
         
-        try:
-            raw_exposure = 100.0 / (1.0 + math.exp(t.get("sigmoid_slope", 0.25) * (total_density - threshold)))
-        except OverflowError:
-            raw_exposure = 0.0 if total_density > threshold else 100.0
+        threshold = tuning.get("threshold_base", 15.0)
+        slope = tuning.get("sigmoid_slope", 0.25)
+        
+        # Calculate coverage (100% = fully tested)
+        coverage = self._sigmoid(density, threshold, slope) * 100.0
+        
+        # Re-apply the architectural bonuses
+        coverage = min(coverage + umbrella_bonus, 100.0)
+        
+        # Mass Penalty: Massive files require exponentially more tests to prove safety.
+        mass_penalty = 0.0
+        if loc > 300:
+            mass_penalty = min(((loc - 300) / 100) * 5.0, 40.0)
             
-        final_exposure = raw_exposure * (2.0 - fc)
-
-        # Uses the globally defined threshold rather than hardcoded 300
-        if safe_loc > self.MASSIVE_FILE_THRESHOLD:
-            mass_penalty = min((safe_loc - self.MASSIVE_FILE_THRESHOLD) / t.get("mass_penalty_div", 20.0), t.get("mass_penalty_max", 40.0)) 
-            final_exposure += mass_penalty
-
-        return min(max(final_exposure, t.get("risk_floor", 15.0)), 100.0)
+        final_coverage = max(0.0, coverage - mass_penalty)
+        
+        # INVERT FOR RISK: 100% Coverage = 0% Risk Exposure.
+        return 100.0 - final_coverage
     
     def _calc_graveyard(self, total_loc: float, eq: Dict[str, int], mp: float) -> float:
         hits = eq.get("graveyard", 0)
@@ -827,61 +919,94 @@ class SignalProcessor:
             
         return min(score, 100.0)
 
-    def _calc_api_exposure(self, eq: Dict[str, int], mp: float) -> float:
-        api_hits = eq.get("api", 0)
+    def _calc_api_exposure(self, eq: dict, total_loc: int) -> float:
+        """
+        YIN: Publicly exposed surfaces (api).
+        YANG: Internal/Private boundaries (encapsulation).
+        """
+        api_hits = float(eq.get("api", 0))
+        encapsulation = float(eq.get("encapsulation", 0))
+        
         if api_hits == 0:
             return 0.0
             
-        t = self.risk_tuning.get("api_exposure", {})
-        entities = max(eq.get("func_start", 0) + eq.get("class_start", 0), 1)
-        ratio = min(api_hits / float(entities), 1.0)
-        volume_weight = min(math.log10(api_hits + 1) / t.get("log_divisor", 1.5), 1.0)
-        raw_score = ((ratio * t.get("ratio_weight", 0.4)) + (volume_weight * t.get("volume_weight", 0.6))) * 100.0
+        # THERMODYNAMIC BALANCE (Ratio): Public / (Public + Private)
+        # 20 public methods and 80 private methods = 20% exposure ratio (Excellent).
+        # 20 public methods and 0 private methods = 100% exposure ratio (Dangerous Junk Drawer).
+        exposure_ratio = api_hits / max(api_hits + encapsulation, 1.0)
         
-        return min(raw_score * mp, 100.0)
+        # LOGARITHMIC MASS CORRECTION: Prevent tiny 10-line files from maxing out the score 
+        # just because they exported one variable.
+        volume_weight = math.log1p(api_hits) / math.log1p(max(total_loc, 10))
+        
+        return min(exposure_ratio * volume_weight * 100.0, 100.0)
 
     def _calc_concurrency(self, loc: int, eq: Dict[str, int], irc: int, mp: float) -> float:
-        hits = eq.get("concurrency", 0)
-        if hits == 0:
-            return 0.0
-            
-        t = self.risk_tuning.get("concurrency", {})
-        weighted_hits = hits + (irc * t.get("irc_mult", 0.1))
-        density = (weighted_hits / max(loc, 1)) * 100.0
-        threshold = t.get("threshold_base", 4.0)
+        """
+        YIN: Threads/Async execution.
+        YANG: Mutex/Locks/Semaphores (sync_locks).
+        """
+        tuning = self.risk_tuning.get("concurrency", {})
+        loc_padding = tuning.get("loc_padding", 150)
         
-        try:
-            score = 100.0 / (1.0 + math.exp(-t.get("sigmoid_slope", 0.4) * (density - threshold)))
-        except OverflowError:
-            score = 100.0 if density > threshold else 0.0
-            
-        return min(score * mp, 100.0)
+        raw_concurrency = float(eq.get("concurrency", 0))
+        sync_locks = float(eq.get("sync_locks", 0))
+        
+        # THERMODYNAMIC BALANCE: 1 lock mitigates 1.5 thread spawns.
+        net_concurrency = max(0.0, raw_concurrency - (sync_locks * 1.5))
+        
+        density = net_concurrency / max(loc + loc_padding, 1)
+        
+        threshold = tuning.get("threshold_base", 4.0) # Matches your config!
+        slope = tuning.get("sigmoid_slope", 0.4)
+        
+        return self._sigmoid(density, threshold, slope) * 100.0 * mp
 
     def _calc_state_flux(self, loc: int, eq: Dict[str, int], irc: int, mp: float) -> float:
-        hits = eq.get("flux", 0)
-        if hits == 0: return 0.0
-                
-        t = self.risk_tuning.get("state_flux", {})
-        density = ((hits + (irc * t.get("irc_mult", 0.15))) / max(loc, 1)) * 100.0
-        threshold = t.get("threshold_base", 15.0)
+        """
+        YIN: State mutation (flux).
+        YANG: Immutability enforcements (freeze_hits).
+        """
+        tuning = self.risk_tuning.get("state_flux", {})
         
-        try:
-            score = 100.0 / (1.0 + math.exp(-t.get("sigmoid_slope", 0.20) * (density - threshold)))
-        except OverflowError:
-            score = 100.0 if density > threshold else 0.0
-            
-        return min(score * mp, 100.0)
-
+        # THE FIX: Dropped padding to 0 so mutations immediately impact density
+        loc_padding = tuning.get("loc_padding", 0) 
+        
+        raw_flux = float(eq.get("flux", 0))
+        freeze_hits = float(eq.get("freeze_hits", 0))
+        
+        # THERMODYNAMIC BALANCE: Subtract immutability from raw mutation.
+        net_volatility = max(0.0, raw_flux - (freeze_hits * 0.5))
+        
+        density = net_volatility / max(loc + loc_padding, 1)
+        
+        # THE FIX: Dropped threshold from 45.0 back to the original 15.0
+        threshold = tuning.get("threshold_base", 15.0)
+        slope = tuning.get("sigmoid_slope", 0.2)
+        
+        return self._sigmoid(density, threshold, slope) * 100.0 * mp
+    
     def _calc_spec_alignment(self, eq: Dict[str, int], mp: float) -> float:
         entities = max(eq.get("func_start", 0) + eq.get("class_start", 0), 1)
         ratio = min(eq.get("spec_exposure", 0) / entities, 1.0)
         return min((1.0 - ratio) * 100.0 * mp, 100.0)
+
+    def _sigmoid(self, density: float, threshold: float, slope: float) -> float:
+        """Safely calculates the sigmoid curve, clamping extreme densities."""
+        try:
+            return 1.0 / (1.0 + math.exp(-slope * (density - threshold)))
+        except OverflowError:
+            return 1.0 if density > threshold else 0.0
     
-    def _calc_obscured_payload(self, loc: int, eq: Dict[str, int], mp: float) -> float:
+    def _calc_obscured_payload(self, loc: int, eq: Dict[str, int], mp: float, archetype: str, global_drift: float, local_drift: float) -> float:
         """
         Calculates Obscured Payload Exposure (Malicious Intent Density).
         Combines passive Security Lens observers with hardcoded secret detection.
         """
+        # Fetch the archetype multiplier
+        arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
+        arch_multiplier = arch_matrix.get("obscured_payload_multiplier", 1.0)
+        
         glassworm = (eq.get("sec_heat_triggers", 0) * 5.0) + (eq.get("sec_bitwise_hits", 0) * 2.0)
         trojan = eq.get("sec_safety_neg", 0) * 3.0
         exfiltration = eq.get("sec_io", 0) * 4.0
@@ -889,19 +1014,63 @@ class SignalProcessor:
         poisoning = eq.get("sec_flux", 0) * 3.0
         shadow_logic = eq.get("sec_graveyard", 0) * 2.0
         secrets = eq.get("sec_private_info", 0) * 1.5
-        steganography = eq.get("sec_shadow_imports", 0) * 10.0
-        unicode_smuggling = eq.get("sec_homoglyphs", 0) * 10.0
+        
+        # Extension mismatch is proof of active evasion. Assign it a massive 20.0x mass.
+        steganography = (eq.get("sec_shadow_imports", 0) * 10.0) + (eq.get("sec_extension_mismatch", 0) * 20.0)
+        
+        # DOWNGRADE: Greek letters in math/science libs are normal. Drop from 10.0 to 1.0.
+        unicode_smuggling = eq.get("sec_homoglyphs", 0) * 1.0
 
-        total_threat_mass = glassworm + trojan + exfiltration + executioner + poisoning + shadow_logic + secrets + steganography + unicode_smuggling
+        # 1. Group the threat vectors into Behavior vs Intent
+        obfuscation_mass = glassworm + shadow_logic + steganography + unicode_smuggling
+        intent_mass = trojan + exfiltration + executioner + poisoning + secrets
+        
+        # ---> THE AGENTIC / SCIENCE SHIELD <---
+        # Forgive scientific/math libraries for having high entropy and weird unicode.
+        science_dampener = 1.0 + (eq.get("scientific", 0) * 2.0)
+        obfuscation_mass = obfuscation_mass / science_dampener
 
+        # ---> APPLY THE ARCHETYPE CONTEXT <---
+        total_threat_mass = (obfuscation_mass + intent_mass) * arch_multiplier
+        
         if total_threat_mass == 0:
             return 0.0
 
-        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
-        density = (total_threat_mass / max(loc + 50, 1)) * 100.0
+        if not getattr(self, 'is_paranoid', False):
+            if obfuscation_mass > 0 and intent_mass == 0: total_threat_mass *= 0.05  
+            elif intent_mass > 0 and obfuscation_mass == 0: total_threat_mass *= 0.10  
 
-        threshold = 2.0
-        slope = 1.5
+        # ---> THE BIAXIAL TROJAN SPIKE <---
+        if local_drift > 0 and global_drift > 0:
+            drift_delta = local_drift / global_drift
+            # If the file blends in globally but violates local language physics
+            if drift_delta > 1.5:
+                total_threat_mass *= drift_delta 
+
+        # ---> NEW: THE PROFESSIONALISM QUOTIENT & CRYPTO SHIELD <---
+        # Malware authors don't write 500 lines of documentation or meticulous try/catch blocks.
+        docs_and_safety = (eq.get("doc", 0) * 0.5) + eq.get("safety", 0)
+        prof_dampener = 1.0 + (docs_and_safety * 0.05) 
+        
+        # Cryptography libraries naturally have high entropy/obfuscation.
+        crypto_dampener = 1.0 + (eq.get("cryptography", 0) * 5.0)
+
+        # Apply the dampeners
+        total_threat_mass = (total_threat_mass / prof_dampener) / crypto_dampener
+
+        # 3. Fetch the decoupled tuning parameters from the standards configuration
+        t = self.risk_tuning.get("obscured_payload", {})
+        
+        # 4. Use the dynamically fetched LOC padding (+150 by default)
+        density = (total_threat_mass / max(loc + t.get("loc_padding", 150), 1)) * 100.0
+
+        # 5. Use the dynamically fetched thresholds based on the active mode
+        if getattr(self, 'is_paranoid', False):
+            threshold = t.get("paranoid_threshold", 2.0)
+            slope = t.get("paranoid_slope", 1.5)
+        else:
+            threshold = t.get("std_threshold", 15.0)
+            slope = t.get("std_slope", 1.0)
 
         try:
             score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
@@ -910,28 +1079,55 @@ class SignalProcessor:
 
         return min(score * mp, 100.0)
     
-    def _calc_logic_bomb(self, loc: int, eq: Dict[str, int], mp: float) -> float:
+    def _calc_logic_bomb(self, loc: int, eq: Dict[str, int], mp: float, archetype: str, global_drift: float, local_drift: float) -> float:        
         """
         Calculates Logic Bomb / Sabotage Exposure.
         Looks for delayed or condition-heavy execution leading to destructive commands.
         """
+        # Fetch the archetype multiplier
+        arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
+        arch_multiplier = arch_matrix.get("logic_bomb_multiplier", 1.0)
+
         trigger = eq.get("branch", 0) + (eq.get("halt_hits", 0) * 3.0)
-        payload = (eq.get("bailout_hits", 0) * 2.0) + (eq.get("cleanup", 0) * 1.5) + (eq.get("danger", 0) * 4.0)
+        payload = (eq.get("bailout_hits", 0) * 2.0) + (eq.get("cleanup", 0) * 1.5) + (eq.get("sec_danger", 0) * 4.0)
 
-        sabotage_mass = trigger * payload
+        # ---> THE AGENTIC SHIELD <---
+        # AI/Robotics natively use dynamic execution. Dampen the payload if ML math is present.
+        agent_dampener = 1.0 + (eq.get("scientific", 0) * 2.0)
+        hardware_dampener = 1.0 + (eq.get("hardware_bridge", 0) * 3.0)
+        payload = payload / agent_dampener
+        payload = payload / hardware_dampener
+        
+        # ---> APPLY THE ARCHETYPE CONTEXT <---
+        sabotage_mass = (trigger * payload) * arch_multiplier
 
-        if sabotage_mass == 0:
-            return 0.0
+        # ---> THE TAINT SPIKE <---
+        # If the LHS Slicer confirmed data crossed from I/O to Danger, risk is absolute.
+        taint_confirmed = eq.get("sec_tainted_injection", 0)
+        if taint_confirmed > 0: sabotage_mass += (taint_confirmed * 500.0) 
+
+        # ---> THE BIAXIAL TROJAN SPIKE <---
+        if local_drift > 0 and global_drift > 0:
+            drift_delta = local_drift / global_drift
+            if drift_delta > 1.5:
+                sabotage_mass *= drift_delta 
+
+        if sabotage_mass == 0: return 0.0
 
         explicit_threats = eq.get("sec_graveyard", 0) + eq.get("sec_heat_triggers", 0)
-        if explicit_threats == 0 and getattr(self, 'is_paranoid', False) == False:
-            sabotage_mass *= 0.05 
+        if explicit_threats == 0 and taint_confirmed == 0 and getattr(self, 'is_paranoid', False) == False:
+            sabotage_mass *= 0.05
 
-        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
-        density = (sabotage_mass / max(loc + 50, 1)) * 100.0
+        # Fetch tuning parameters
+        t = self.risk_tuning.get("logic_bomb", {})
+        density = (sabotage_mass / max(loc + t.get("loc_padding", 150), 1)) * 100.0
 
-        threshold = 10.0 if getattr(self, 'is_paranoid', False) else 35.0
-        slope = 0.5 if getattr(self, 'is_paranoid', False) else 0.3
+        if getattr(self, 'is_paranoid', False):
+            threshold = t.get("paranoid_threshold", 10.0)
+            slope = t.get("paranoid_slope", 0.5)
+        else:
+            threshold = t.get("std_threshold", 75.0)
+            slope = t.get("std_slope", 0.2)
 
         try:
             score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
@@ -939,29 +1135,53 @@ class SignalProcessor:
             score = 100.0 if density > threshold else 0.0
 
         return min(score * mp, 100.0)
-
-    def _calc_injection_surface(self, loc: int, eq: Dict[str, int], mp: float) -> float:
+    
+    def _calc_injection_surface(self, loc: int, eq: Dict[str, int], mp: float, archetype: str) -> float:
         """
         Calculates Injection Surface Exposure (XSS, SQLi, RCE, SSTI).
         Looks for external network input flowing near dynamic execution without safety nets.
         """
-        input_vectors = eq.get("io", 0) + (eq.get("ssr_boundaries", 0) * 2.0)
-        execution_vectors = (eq.get("danger", 0) * 4.0) + (eq.get("safety_neg", 0) * 2.0)
+        # Fetch the archetype multiplier
+        arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
+        arch_multiplier = arch_matrix.get("injection_surface_multiplier", 1.0)
 
-        injection_mass = input_vectors * execution_vectors
+        input_vectors = eq.get("sec_io", 0) + (eq.get("ssr_boundaries", 0) * 2.0)
+        execution_vectors = (eq.get("sec_danger", 0) * 4.0) + (eq.get("sec_safety_neg", 0) * 2.0)
+        
+        # ---> THE AGENTIC SHIELD <---
+        # AI agents feed external inputs into execution blocks natively.
+        agent_dampener = 1.0 + (eq.get("scientific", 0) * 2.0)
+        execution_vectors = execution_vectors / agent_dampener
+        
+        # Hardware bridges natively take external input (usb/serial) and execute it.
+        hardware_dampener = 1.0 + (eq.get("hardware_bridge", 0) * 3.0)
+        execution_vectors = execution_vectors / hardware_dampener
+
+        # ---> APPLY THE ARCHETYPE CONTEXT <---
+        injection_mass = (input_vectors * execution_vectors) * arch_multiplier
+
+        # ---> THE TAINT SPIKE <---
+        taint_confirmed = eq.get("sec_tainted_injection", 0)
+        if taint_confirmed > 0:
+            injection_mass += (taint_confirmed * 500.0) # Massive gravity spike
 
         if injection_mass == 0:
             return 0.0
             
         explicit_threats = eq.get("sec_danger", 0) + eq.get("sec_io", 0)
-        if explicit_threats == 0 and getattr(self, 'is_paranoid', False) == False:
-            injection_mass *= 0.10 
+        if explicit_threats == 0 and taint_confirmed == 0 and getattr(self, 'is_paranoid', False) == False:
+            injection_mass *= 0.10
 
-        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
-        density = (injection_mass / max(loc + 50, 1)) * 100.0
+        # Fetch tuning parameters
+        t = self.risk_tuning.get("injection_surface", {})
+        density = (injection_mass / max(loc + t.get("loc_padding", 150), 1)) * 100.0
 
-        threshold = 3.0 if getattr(self, 'is_paranoid', False) else 15.0
-        slope = 1.2 if getattr(self, 'is_paranoid', False) else 0.6
+        if getattr(self, 'is_paranoid', False):
+            threshold = t.get("paranoid_threshold", 3.0)
+            slope = t.get("paranoid_slope", 1.2)
+        else:
+            threshold = t.get("std_threshold", 40.0)
+            slope = t.get("std_slope", 0.4)
 
         try:
             score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
@@ -969,12 +1189,16 @@ class SignalProcessor:
             score = 100.0 if density > threshold else 0.0
 
         return min(score * mp, 100.0)
-
-    def _calc_memory_corruption(self, loc: int, eq: Dict[str, int], mp: float, lang_id: str = "") -> float:
+    
+    def _calc_memory_corruption(self, loc: int, eq: Dict[str, int], mp: float, lang_id: str = "", archetype: str = "") -> float:
         """
         Calculates Memory Corruption Exposure (Buffer Overflows, UAF).
         Strictly Opt-In: Only applies to languages with manual memory/pointers.
         """
+        # Fetch the archetype multiplier
+        arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
+        arch_multiplier = arch_matrix.get("memory_corruption_multiplier", 1.0)
+        
         # ---> THE ARCHITECTURAL FIX: Opt-In Vulnerability Whitelist <---
         native_memory_langs = {"c", "cpp", "objective-c", "rust", "zig", "assembly", "agc_assembly", "nim"}
         
@@ -991,18 +1215,26 @@ class SignalProcessor:
             return 0.0
 
         mitigation_mass = eq.get("cleanup", 0) + (eq.get("safety", 0) * 1.5)
-
-        net_risk = max(raw_memory_mass - mitigation_mass, 0.0)
         
+        net_risk = max(raw_memory_mass - mitigation_mass, 0.0) * arch_multiplier
+                
         explicit_threats = eq.get("sec_danger", 0) + eq.get("sec_safety_neg", 0) + eq.get("sec_heat_triggers", 0)
         if explicit_threats == 0 and getattr(self, 'is_paranoid', False) == False:
             net_risk *= 0.05
 
-        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
-        density = (net_risk / max(loc + 50, 1)) * 100.0
+        # 1. Fetch the decoupled tuning parameters
+        t = self.risk_tuning.get("memory_corruption", {})
 
-        threshold = 4.0 if getattr(self, 'is_paranoid', False) else 25.0
-        slope = 0.8 if getattr(self, 'is_paranoid', False) else 0.4
+        # 2. Use the dynamically fetched LOC padding
+        density = (net_risk / max(loc + t.get("loc_padding", 150), 1)) * 100.0
+
+        # 3. Use the dynamically fetched thresholds based on the active mode
+        if getattr(self, 'is_paranoid', False):
+            threshold = t.get("paranoid_threshold", 4.0)
+            slope = t.get("paranoid_slope", 0.8)
+        else:
+            threshold = t.get("std_threshold", 25.0)
+            slope = t.get("std_slope", 0.4)
 
         try:
             score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
@@ -1028,11 +1260,19 @@ class SignalProcessor:
 
         leak_mass = base_leak * careless_amplifiers
 
-        # ---> THE FIX: Laplace Smoothing (+50 LOC base padding) <---
-        density = (leak_mass / max(loc + 50, 1)) * 100.0
+        # 1. Fetch the decoupled tuning parameters
+        t = self.risk_tuning.get("secrets_risk", {})
 
-        threshold = 0.5 if getattr(self, 'is_paranoid', False) else 3.0
-        slope = 2.0 if getattr(self, 'is_paranoid', False) else 1.0
+        # 2. Use the dynamically fetched LOC padding (defaults to 50 because secrets are highly sensitive regardless of file size)
+        density = (leak_mass / max(loc + t.get("loc_padding", 50), 1)) * 100.0
+
+        # 3. Use the dynamically fetched thresholds based on the active mode
+        if getattr(self, 'is_paranoid', False):
+            threshold = t.get("paranoid_threshold", 0.5)
+            slope = t.get("paranoid_slope", 2.0)
+        else:
+            threshold = t.get("std_threshold", 3.0)
+            slope = t.get("std_slope", 1.0)
 
         try:
             score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
@@ -1176,6 +1416,7 @@ class SignalProcessor:
         if lang_id in structured: return "tier2"
         return "tier3"
 
-    def _get_dominant_lang(self, composition: Dict[str, Dict[str, int]]) -> str:
+    def _get_dominant_lang(self, composition: Dict[str, Dict[str, Any]]) -> str:
         if not composition: return "mixed"
-        return max(composition.items(), key=lambda x: x[1]['loc'])[0]
+        # Sort by active structural impact instead of raw lines of code
+        return max(composition.items(), key=lambda x: x[1].get('impact', 0.0))[0]

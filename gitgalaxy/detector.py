@@ -332,7 +332,7 @@ class LogicSplicer:
             segments = self._partition_segments(code_stream, self.primary_lang_id)
             
             t_eq = time.time()
-            equations = self.coding_analysis(segments, regex_telemetry if profile_regex else None)
+            equations, mitigation_telemetry = self.coding_analysis(segments, regex_telemetry if profile_regex else None)
            
             equations = self.comment_analysis(comment_stream, self.primary_lang_id, equations)
             
@@ -353,8 +353,8 @@ class LogicSplicer:
                 "logic_density": logic_density,
                 "sum_fxn_impact": sum_fxn_impact,
                 "total_control_flow_ratio": total_control_flow_ratio,
-                # THE FIX: Removed 'raw_imports' so it doesn't overwrite the worker's Phase 6 capture
-                "metadata": ghost_meta
+                "metadata": ghost_meta,
+                "mitigation_telemetry": mitigation_telemetry # <--- ADD THIS
             }
             if profile_regex:
                 result_payload["regex_telemetry"] = regex_telemetry
@@ -542,15 +542,50 @@ class LogicSplicer:
                     return pos
                     
         return limit
+    
+    def _correlate_signals(self, targets: List[int], dampeners: List[int], max_distance: int = 500) -> Tuple[int, int]:
+        """
+        Sweeps two sorted lists of indices to find how many targets are within 
+        'max_distance' of a dampener. Runs in O(N) linear time.
+        """
+        if not targets: return 0, 0
+        if not dampeners: return len(targets), 0
 
-    def coding_analysis(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Dict[str, int]: 
-        # 1. THE FIX: Initialize the dictionary using the strict, ordered schema.
-        # This guarantees the dictionary is exactly 51 elements long, in the exact same order every time.
+        unmitigated_count = 0
+        mitigated_count = 0
+        
+        damp_idx = 0
+        damp_len = len(dampeners)
+
+        for t_pos in targets:
+            # Move the dampener pointer forward until it is somewhat near the target
+            while damp_idx < damp_len and dampeners[damp_idx] < (t_pos - max_distance):
+                damp_idx += 1
+
+            # Check if the closest dampener is within the blast radius
+            if damp_idx < damp_len and abs(dampeners[damp_idx] - t_pos) <= max_distance:
+                mitigated_count += 1
+            else:
+                unmitigated_count += 1
+
+        return unmitigated_count, mitigated_count
+
+    def coding_analysis(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Tuple[Dict[str, int], Dict[str, int]]: 
         counts: Dict[str, int] = {key: 0 for key in self.UNIVERSAL_METRICS_SCHEMA}
+        mitigations: Dict[str, int] = {"mitigated_danger": 0, "mitigated_memory_allocs": 0, "amplified_rce": 0, "amplified_race_conditions": 0, "amplified_leaks": 0}
         
         for seg_lang, seg_code, _ in segments:
-            rules = self.languages.get(seg_lang, {}).get('rules', {})
+            # 1. Grab the language-specific rules
+            rules = self.languages.get(seg_lang, {}).get('rules', {}).copy()
+            
+            # 2. Seamlessly merge in the Universal Rules!
+            if hasattr(config, 'UNIVERSAL_RULES'):
+                rules.update(config.UNIVERSAL_RULES)
+                
             seg_len = len(seg_code)
+            
+            # ---> NEW: Spatial Map for this segment <---
+            spatial_map = {}
             
             for rule_name, pattern in rules.items():
                 if rule_name.startswith('_'):
@@ -558,7 +593,6 @@ class LogicSplicer:
                     
                 mapped_key = self.CORE_MAPPING.get(rule_name, rule_name)
                 
-                # 2. Prevent Hallucinations: If a rule isn't in our schema, ignore it so it doesn't break the array.
                 if mapped_key not in counts:
                     self.logger.warning(f"[DIAGNOSTIC] Unregistered rule '{mapped_key}' found in '{seg_lang}'. Ignoring to preserve schema.")
                     continue
@@ -566,47 +600,109 @@ class LogicSplicer:
                 if not pattern:
                     continue
                     
-                # Fast-fail for empty or useless patterns to save compute
                 raw_pat = getattr(pattern, 'pattern', str(pattern))
                 clean_pat = raw_pat.replace("(?i)", "").replace("(?m)", "").replace("(?s)", "").strip()
                 if clean_pat in ("", "()", "(?:)", "^", "$"):
                     continue
 
                 try:
-                    # --- INJECTED DEBUG TRACE ---
-                    self.logger.debug(f"[REGEX-TRACE] Evaluating rule: '{rule_name}' for language '{seg_lang}'...")
                     t_rule_start = time.perf_counter()
 
-                    if hasattr(pattern, 'findall'): 
-                        c = len(pattern.findall(seg_code))
-                    else: 
-                        c = len(re.findall(str(pattern), seg_code))
+                    # ---> THE UPGRADE: Spatial Mapping instead of raw counting <---
+                    if hasattr(pattern, 'finditer'):
+                        hit_indices = [m.start() for m in pattern.finditer(seg_code)]
+                    else:
+                        hit_indices = [m.start() for m in re.finditer(str(pattern), seg_code)]
+                        
+                    c = len(hit_indices)
                     
-                    # Log if a rule is dangerously slow, but didn't permanently hang
                     t_elapsed = time.perf_counter() - t_rule_start
                     
                     if regex_telemetry is not None:
                         key = f"{seg_lang}::{rule_name}"
-                        # Accumulate time in case the same rule is evaluated across multiple segments
                         regex_telemetry[key] = regex_telemetry.get(key, 0.0) + t_elapsed
                     if t_elapsed > 0.5:
                         self.logger.debug(f"[REGEX-TRACE] ^-- SLOW RULE: '{rule_name}' took {t_elapsed:.4f}s")
 
-                    # Sanity check against zero-width match blowouts
                     if c > seg_len and seg_len > 0: 
                         c = 0
+                        hit_indices = []
                         
                     counts[mapped_key] += c
+                    spatial_map.setdefault(mapped_key, []).extend(hit_indices)
                     
                 except Exception as e:
                     self.logger.error(f"[DIAGNOSTIC] Regex failure in rule '{rule_name}' for language '{seg_lang}': {e}")
 
-            # Capture indentation signatures (only counting lines with actual content after the indent)
+            # ---> NEW: SPATIAL CORRELATION (Runs once per segment) <---
+            
+            # 1. Taint Tracking (RCE Weaponization)
+            if "sec_danger" in spatial_map and ("sec_io" in spatial_map or "io" in spatial_map):
+                io_hits = sorted(spatial_map.get("sec_io", []) + spatial_map.get("io", []))
+                _, corroborated_rce = self._correlate_signals(
+                    targets=spatial_map["sec_danger"], 
+                    dampeners=io_hits, 
+                    max_distance=250 
+                )
+                counts["sec_tainted_injection"] += corroborated_rce
+                mitigations["amplified_rce"] += corroborated_rce
+
+            # 2. The Silencer Region (True Safety)
+            if "danger" in spatial_map and "safety" in spatial_map:
+                unmitigated_danger, mitigated_danger = self._correlate_signals(
+                    targets=spatial_map["danger"], 
+                    dampeners=spatial_map["safety"], 
+                    max_distance=500 
+                )
+                counts["danger"] -= mitigated_danger
+                mitigations["mitigated_danger"] += mitigated_danger
+
+            # 3. The Race Condition Radar
+            if "concurrency" in spatial_map and "flux" in spatial_map:
+                unmitigated_flux, _ = self._correlate_signals(
+                    targets=spatial_map["flux"], 
+                    dampeners=spatial_map.get("sync_locks", []), 
+                    max_distance=300
+                )
+                if unmitigated_flux > 0:
+                    _, race_conditions = self._correlate_signals(
+                        targets=spatial_map["concurrency"],
+                        dampeners=spatial_map["flux"], 
+                        max_distance=150
+                    )
+                    counts["concurrency"] += (race_conditions * 5)
+                    mitigations["amplified_race_conditions"] += race_conditions
+
+            # 4. The Active Hemorrhage
+            if "sec_private_info" in spatial_map and ("telemetry" in spatial_map or "print_hits" in spatial_map):
+                sinks = sorted(spatial_map.get("telemetry", []) + spatial_map.get("print_hits", []))
+                _, active_leaks = self._correlate_signals(
+                    targets=spatial_map["sec_private_info"],
+                    dampeners=sinks,
+                    max_distance=150
+                )
+                counts["sec_private_info"] += (active_leaks * 50)
+                mitigations["amplified_leaks"] += active_leaks
+
+            # 5. The Memory Leak / UAF Tracker
+            if "memory_alloc" in spatial_map:
+                unmitigated_allocs, _ = self._correlate_signals(
+                    targets=spatial_map["memory_alloc"],
+                    dampeners=spatial_map.get("cleanup", []),
+                    max_distance=800
+                )
+                original_allocs = len(spatial_map["memory_alloc"])
+                mitigated = original_allocs - unmitigated_allocs
+                
+                counts["memory_alloc"] = unmitigated_allocs 
+                mitigations["mitigated_memory_allocs"] += mitigated
+
+            # Capture indentation signatures
             counts['indent_tabs'] += len(re.findall(r'^\t+(?=\S)', seg_code, flags=re.MULTILINE))
             counts['indent_spaces'] += len(re.findall(r'^[ ]{2,}(?=\S)', seg_code, flags=re.MULTILINE))
 
-        return counts
-
+        return counts, mitigations
+    
     def comment_analysis(self, comment_stream: str, lang_id: str, counts: Dict[str, int]) -> Dict[str, int]:
         """
         Analyzes the comment stream for developer intent, technical debt, and traceability.

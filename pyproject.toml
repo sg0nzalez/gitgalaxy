@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitgalaxy"
-version = "1.1.5"
+version = "1.1.6"
 authors = [
   { name="Joe Esquibel" },
 ]
@@ -12,8 +12,6 @@ description = "A high-speed static analysis engine that sequences source code li
 readme = "README.md"
 requires-python = ">=3.8"
 
-# THE FIX: Point directly to the file instead of using the deprecated dictionary table.
-# This clears the first massive Setuptools warning.
 license-files = ["LICENSE"] 
 
 keywords = [
@@ -27,8 +25,6 @@ keywords = [
     "architecture"
 ]
 
-# THE FIX: Removed the deprecated "License :: Other/Proprietary License" classifier.
-# This clears the second massive Setuptools warning.
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -49,9 +45,17 @@ dependencies = []
 "Tracker" = "https://github.com/squid-protocol/gitgalaxy/issues"
 
 [project.scripts]
-# THE RENAME: Updated the CLI command from 'galaxyscope' to 'blast' 
-# to align with your new engine branding.
 blast = "gitgalaxy.galaxyscope:main" 
 
+# --- THE FIX: Explicitly allow only the package, block the heavy folders ---
 [tool.setuptools.packages.find]
-include = ["gitgalaxy*"]
+include = ["gitgalaxy", "gitgalaxy.*"]
+exclude = [
+    "archive*", 
+    "airgap_observatory*", 
+    "docs*", 
+    "docs_build*", 
+    "site*", 
+    "updated_results*", 
+    "utilities*"
+]

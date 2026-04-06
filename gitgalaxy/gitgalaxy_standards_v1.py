@@ -283,6 +283,30 @@ PRISM_CONFIG = {
     }
 }
 
+# ==============================================================================
+# THE UNIVERSAL DOMAIN SENSORS (Applied to ALL languages)
+# ==============================================================================
+UNIVERSAL_RULES = {
+    "auth_middleware": re.compile(
+        r'\b(jwt|oauth|passport|saml|sso|verify_?token|check_?auth|check_?permissions?|rbac|bearer)\b', re.I
+    ),
+    "ipc_rpc_bridges": re.compile(
+        r'\b(grpc|redis|kafka|amqp|rabbitmq|zmq|thrift|pubsub|celery|sidekiq|sqs|sns|eventbridge)\b', re.I
+    ),
+    "feature_flags": re.compile(
+        r'\b(launchdarkly|unleash|is_?enabled|feature_?flag|experiment|ab_?test|flag_?active|optimizely)\b', re.I
+    ),
+    "serialization_parsing": re.compile(
+        r'\b(json|yaml|xml|protobuf|bson|msgpack|csv)\b', re.I
+    ),
+    "regex_execution": re.compile(
+        r'\b(re\.compile|re\.search|new\s+RegExp|preg_match|Pattern\.compile|Regex\.Match)\b', re.I
+    ),
+    "time_date_logic": re.compile(
+        r'\b(datetime|timedelta|moment\(|date-fns|java\.time|ZonedDateTime|TimeSpan|Date\.now)\b', re.I
+    )
+}
+
 LANGUAGE_DEFINITIONS = {
     "python": {
         "_meta": {
@@ -445,10 +469,9 @@ LANGUAGE_DEFINITIONS = {
             "comprehensions": re.compile(
                 r"\[[^\]]*\bfor\b[^\]]*\]|\{[^}]*\bfor\b[^}]*\}|\([^)]*\bfor\b[^)]*\)"
             ),
-            # 22. scientific (The Compute Core)
-            "scientific": re.compile(
-                r"\b(math|numpy|pandas|polars|scipy|tensorflow|torch|jax|matplotlib|sklearn|keras|cv2|transformers)\b"
-            ),
+            "scientific": r'\b(?:import|from)\b.*?(?:tensorflow|torch|keras|numpy|pandas|scipy|sklearn|matplotlib|opencv|cv2|langchain|openai|anthropic|llama_index|chromadb|pinecone)\b',
+            "hardware_bridge": r'\b(?:import|from)\b.*?(?:serial|usb|bluetooth|websockets|socketio|pyserial|pyusb)\b',
+            "cryptography": r'\b(?:import|from)\b.*?(?:cryptography|hashlib|hmac|ssl|tls|jwt|argon2|bcrypt)\b',
             # 23. heat_triggers (The Thermal Radiation)
             # Metaprogramming and class-level binding.
             "heat_triggers": re.compile(
@@ -533,6 +556,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Python Specifics) ---
+            "serialization_parsing": re.compile(r'\b(pickle\.loads?|pickle\.Unpickler|marshal\.loads?|ast\.literal_eval)\b'),
+            "regex_execution": re.compile(r'\b(re\.compile|re\.search|re\.match|re\.sub|re\.findall|re\.split)\b'),
+            "time_date_logic": re.compile(r'\b(datetime\.datetime|timedelta|time\.sleep|time\.time|calendar)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(multiprocessing|subprocess|xmlrpc|socketserver)\b'),
         },
     },
     "javascript": {
@@ -611,6 +639,7 @@ LANGUAGE_DEFINITIONS = {
             # Uses positive lookaheads (?=) to stop the match exactly at the identifier name.
             # Captures standard functions, namespace assignments (foo.bar = function),
             # object literal methods (foo: function), and ES6 methods.
+
             "func_start": re.compile(
                 r"(?:"
                 # 1. Standard: `function foo(`
@@ -696,10 +725,11 @@ LANGUAGE_DEFINITIONS = {
             "comprehensions": re.compile(
                 r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
             ),
-            # 22. scientific (The Compute Core)
-            "scientific": re.compile(
-                r"\b(Math\.|tf\.|THREE\.|d3\.|gl-matrix|random)\b"
-            ),
+            # Expanded to include LLM orchestration tools for the Agentic Shield
+            "scientific": r'\b(?:import|require|from)\b.*?(?:tensorflow|torch|keras|numpy|pandas|scipy|sklearn|matplotlib|opencv|cv2|langchain|openai|anthropic|llama_index|chromadb|pinecone)\b',
+            "hardware_bridge": r'\b(?:import|require|from)\b.*?(?:serialport|usb|bluetooth|socket\.io|websocket|printer|webgl)\b',
+            "cryptography": r'\b(?:import|require|from)\b.*?(?:crypto|bcrypt|x509|tls|ssl|jsonwebtoken|argon2)\b',
+            
             # 23. heat_triggers (The Thermal Radiation)
             "heat_triggers": re.compile(
                 r"\b(arguments\.|prototype|__proto__|Object\.assign|Reflect|Proxy|Object\.defineProperty|\.bind\(|\.call\(|\.apply\()\b"
@@ -792,6 +822,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (JS/TS Specifics) ---
+            "serialization_parsing": re.compile(r'\b(JSON\.parse|JSON\.stringify)\b'),
+            "regex_execution": re.compile(r'\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\('),
+            "time_date_logic": re.compile(r'\b(Date\.now|new\s+Date|setTimeout|setInterval|clearTimeout|clearInterval|performance\.now)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(postMessage|Worker|MessageChannel|child_process|worker_threads|cluster)\b'),
         },
     },
     "typescript": {
@@ -1042,6 +1077,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (JS/TS Specifics) ---
+            "serialization_parsing": re.compile(r'\b(JSON\.parse|JSON\.stringify)\b'),
+            "regex_execution": re.compile(r'\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\('),
+            "time_date_logic": re.compile(r'\b(Date\.now|new\s+Date|setTimeout|setInterval|clearTimeout|clearInterval|performance\.now)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(postMessage|Worker|MessageChannel|child_process|worker_threads|cluster)\b'),
         },
     },
     "java": {
@@ -1272,6 +1312,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"@(?:Ignore|Disabled)|test\.skip\(|mock\(|spy\(|verifyZeroInteractions"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Java Specifics) ---
+            "serialization_parsing": re.compile(r'\b(ObjectMapper|readValue|readTree|fromJson|ObjectInputStream|DocumentBuilder|SAXParser)\b'),
+            "regex_execution": re.compile(r'\b(Pattern\.compile|Matcher\.find|\.matches\()\b'),
+            "time_date_logic": re.compile(r'\b(LocalDate(?:Time)?|ZonedDateTime|Instant|Duration|System\.currentTimeMillis|Calendar\.getInstance)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(ProcessBuilder|KafkaTemplate|RabbitTemplate|JmsTemplate|java\.rmi)\b'),
         },
     },
     "csharp": {
@@ -1563,6 +1608,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\[(?:Ignore|Skipped)\]|test\.skip\(|mock\(|stub\(|Substitute\.For"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (C# Specifics) ---
+            "serialization_parsing": re.compile(r'\b(JsonSerializer\.Deserialize|JsonConvert\.DeserializeObject|XmlSerializer|BinaryFormatter)\b'),
+            "regex_execution": re.compile(r'\b(Regex\.Match(?:es)?|Regex\.Replace|Regex\.IsMatch|new\s+Regex)\b'),
+            "time_date_logic": re.compile(r'\b(DateTime\.Now|DateTime\.UtcNow|DateTimeOffset|TimeSpan|Stopwatch\.StartNew)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(Process\.Start|NamedPipeServerStream|ChannelFactory|GrpcChannel)\b'),
         },
     },
     "go": {
@@ -1802,6 +1852,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"<-chan\b|\.On\(|\.Subscribe\("),
             # 49. test_skip (Safety Theater)
             "test_skip": re.compile(r"\bt\.Skip(?:f|Now)?\(|mock\.|gomock\."),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Go Specifics) ---
+            "serialization_parsing": re.compile(r'\b(json\.Unmarshal|json\.Marshal|xml\.Unmarshal|xml\.Marshal|gob\.NewEncoder)\b'),
+            "regex_execution": re.compile(r'\b(regexp\.Compile|regexp\.MustCompile|\.MatchString)\b'),
+            "time_date_logic": re.compile(r'\b(time\.Now\(\)|time\.Parse|time\.Duration|time\.Sleep|time\.Since)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(net/rpc|grpc\.Dial|grpc\.NewServer|exec\.Command|syscall)\b'),
         },
     },
     "rust": {
@@ -2024,6 +2079,12 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"\.subscribe\(|\.on\(|addEventListener"),
             # 49. test_skip (Safety Theater)
             "test_skip": re.compile(r"#\[ignore\]|test\.skip\(|mock\(|fake\("),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Rust Specifics) ---
+            "serialization_parsing": re.compile(r'\b(serde_json::from_str|serde_json::to_string|serde_json::from_slice|bincode::deserialize|toml::from_str)\b'),
+            "regex_execution": re.compile(r'\b(Regex::new)\b'),
+            "time_date_logic": re.compile(r'\b(std::time::Duration|std::time::Instant|std::time::SystemTime|chrono::Utc::now|chrono::Local::now)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(std::process::Command|tokio::process|tonic::transport::Server|mpsc::channel)\b'),
+            
         },
     },
     "cpp": {
@@ -2344,6 +2405,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(GTEST_SKIP|test\.skip|it\.skip|mock\(|fake\()\b"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (C++ Specifics) ---
+            "serialization_parsing": re.compile(r'\b(nlohmann::json|rapidjson|boost::archive|ParseFromString|SerializeToString)\b'),
+            "regex_execution": re.compile(r'\b(std::regex|std::regex_match|std::regex_search|std::regex_replace)\b'),
+            "time_date_logic": re.compile(r'\b(std::chrono::(?:system_clock|steady_clock|duration)|std::time_t|std::localtime)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(boost::interprocess|mmap|shm_open|pipe|fork|grpc::ServerBuilder)\b'),
         },
     },
     "c": {
@@ -2616,6 +2682,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 49. test_skip (Safety Theater)
             "test_skip": re.compile(r"\b(IGNORE_TEST|test\.skip|mock\(|fake\()\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (C Specifics) ---
+            "serialization_parsing": re.compile(r'\b(cJSON_Parse|json_loads|xmlReadMemory|xmlParseFile|jansson)\b'),
+            "regex_execution": re.compile(r'\b(regcomp|regexec|regfree)\b'),
+            "time_date_logic": re.compile(r'\b(time_t|clock_gettime|gettimeofday|localtime_r?|strftime)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(fork|pipe|shmget|shmat|mmap|socket|bind|listen|accept)\b'),
         },
     },
     "php": {
@@ -2867,6 +2938,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(markTestSkipped|test\.skip|it\.skip|mock\(|fake\()\b"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (PHP Specifics) ---
+            "serialization_parsing": re.compile(r'\b(unserialize|serialize|json_decode|json_encode|simplexml_load_(?:string|file)|DOMDocument)\b'),
+            "regex_execution": re.compile(r'\b(preg_match(?:_all)?|preg_replace(?:_callback)?|preg_split|preg_filter)\b'),
+            "time_date_logic": re.compile(r'\b(strtotime|DateTime(?:Immutable)?|date_create|time\s*\(|date\s*\()\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(shell_exec|exec|system|passthru|proc_open|curl_exec|fsockopen)\b'),
         },
     },
     "powershell": {
@@ -3115,6 +3191,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"\b(Register-ObjectEvent|on_|Connect-)\b", re.I),
             # test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(pending|skip|Ignore)\b", re.I),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (PowerShell Specifics) ---
+            "serialization_parsing": re.compile(r'(?i)\b(ConvertFrom-Json|ConvertTo-Json|Import-Clixml|ConvertFrom-Csv|Import-Csv)\b'),
+            "regex_execution": re.compile(r'(?i)\b(-match|-replace|-split|Select-String|\[regex\]::(?:Match|Replace|Matches))\b'),
+            "time_date_logic": re.compile(r'(?i)\b(Get-Date|New-TimeSpan|Start-Sleep|Measure-Command)\b'),
+            "ipc_rpc_bridges": re.compile(r'(?i)\b(Invoke-Command|Invoke-RestMethod|Invoke-WebRequest|Start-Process|Start-Job|Enter-PSSession)\b'),
         },
     },
     "shell": {
@@ -3341,6 +3422,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"\b(read|inotifywait|nc\s+-l|while\s+read)\b"),
             # 49. test_skip (Safety Theater)
             "test_skip": re.compile(r"\b(test\.skip|bats_skip|#\s*SKIP|mock|stub)\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Shell Specifics) ---
+            "serialization_parsing": re.compile(r'\b(jq|yq|awk|sed|xmlstarlet)\b'),
+            "regex_execution": re.compile(r'\b(grep|egrep|sed|awk)\b|=~'),
+            "time_date_logic": re.compile(r'\b(date\s+|sleep\s+|uptime|times)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(curl|wget|nc|netcat|ssh|scp|xargs|socat)\b'),
         },
     },
     "ruby": {
@@ -3598,6 +3684,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"\.subscribe\(|\.on\(|addEventListener"),
             # 49. test_skip (Safety Theater)
             "test_skip": re.compile(r"\b(skip|xit|xdescribe|mock|stub|double)\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Ruby Specifics) ---
+            "serialization_parsing": re.compile(r'\b(JSON\.parse|YAML\.load|Marshal\.load|Nokogiri::(?:XML|HTML))\b'),
+            "regex_execution": re.compile(r'\b(Regexp\.new)\b|\.(match|scan|gsub|sub)\b|=~'),
+            "time_date_logic": re.compile(r'\b(Time\.now|Date\.today|DateTime\.now|sleep)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(Open3|system\s*\(|IO\.popen|Net::HTTP|TCPSocket|%x\{)\b'),
         },
     },
     "swift": {
@@ -3827,6 +3918,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 49. test_skip (Safety Theater)
             "test_skip": re.compile(r"\b(XCTSkip|mock\(|stub\(|fake\(|double\()\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Swift Specifics) ---
+            "serialization_parsing": re.compile(r'\b(JSONDecoder|JSONEncoder|PropertyListSerialization|NSKeyedUnarchiver|XMLParser)\b'),
+            "regex_execution": re.compile(r'\b(NSRegularExpression|Regex|try\s+Regex|\.range\(of:.*\.regularExpression)\b'),
+            "time_date_logic": re.compile(r'\b(Date\(\)|Calendar\.current|DateFormatter|DispatchTime\.now|Timer\.scheduledTimer)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(URLSession|NSXPCConnection|Process\(\)|NotificationCenter|DispatchQueue)\b'),
         },
     },
     "kotlin": {
@@ -4057,6 +4153,12 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"@(?:Ignore|Disabled)|test\.skip\(|mockk|spyK|fake\("
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Kotlin Specifics) ---
+            "serialization_parsing": re.compile(r'\b(Json\.decodeFromString|Json\.encodeToString|Gson\(\)|Moshi|ObjectMapper)\b'),
+            "regex_execution": re.compile(r'\b(Regex\(\)|\.toRegex\(\)|\.matches\(|\.find\()\b'),
+            "time_date_logic": re.compile(r'\b(Clock\.System\.now|Instant\.now|System\.currentTimeMillis|Duration\.minutes|LocalDate)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(Intent\(|BroadcastReceiver|HttpClient\(|ProcessBuilder|bindService)\b'),
+            
         },
     },
     "sqlite": {
@@ -4310,6 +4412,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\.testcase\s+skip|\bPRAGMA\s+ignore_check_constraints\b", re.I
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (SQLite / SQL Specifics) ---
+            "serialization_parsing": re.compile(r'(?i)\b(json_extract|json_tree|json_each|json_object|json_array|json_type)\b'),
+            "regex_execution": re.compile(r'(?i)\b(REGEXP|GLOB|LIKE|MATCH)\b'),
+            "time_date_logic": re.compile(r'(?i)\b(strftime|datetime|julianday|unixepoch|current_timestamp|current_date|current_time)\b'),
+            "ipc_rpc_bridges": re.compile(r'(?i)\b(ATTACH\s+DATABASE|DETACH\s+DATABASE|PRAGMA)\b'),
         },
     },
     "html": {
@@ -5170,6 +5277,11 @@ LANGUAGE_DEFINITIONS = {
             # 49. test_skip (Safety Theater)
             # Framework code that explicitly bypasses verification.
             "test_skip": None,
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Fortran Specifics) ---
+            "serialization_parsing": re.compile(r'(?i)\b(NAMELIST|READ\s*\(|WRITE\s*\(|FORMAT|OPEN\s*\()\b'),
+            "regex_execution": re.compile(r'(?i)\b(SCAN|INDEX|VERIFY|ADJUSTL|ADJUSTR)\b'), # Relies on intrinsic string processing
+            "time_date_logic": re.compile(r'(?i)\b(DATE_AND_TIME|SYSTEM_CLOCK|CPU_TIME)\b'),
+            "ipc_rpc_bridges": re.compile(r'(?i)\b(MPI_Init|MPI_Send|MPI_Recv|MPI_Bcast|EXECUTE_COMMAND_LINE|OMP_)\b'),
         },
     },
     "assembly": {
@@ -5422,6 +5534,11 @@ LANGUAGE_DEFINITIONS = {
             # 49. test_skip (Safety Theater)
             # Framework code that explicitly bypasses verification. [cite: 788]
             "test_skip": None,
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Lua Specifics) ---
+            "serialization_parsing": re.compile(r'\b(string\.dump|loadstring|load|cjson\.decode|cjson\.encode)\b'),
+            "regex_execution": re.compile(r'\b(string\.match|string\.gmatch|string\.find|string\.gsub)\b'),
+            "time_date_logic": re.compile(r'\b(os\.time|os\.clock|os\.date|os\.difftime)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(os\.execute|io\.popen|coroutine\.create|coroutine\.resume|coroutine\.yield)\b'),
         },
     },
     "agc_assembly": {
@@ -5844,6 +5961,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(xdescribe|xit|skip)\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Lua Specifics) ---
+            "serialization_parsing": re.compile(r'\b(string\.dump|loadstring|load|cjson\.decode|cjson\.encode)\b'),
+            "regex_execution": re.compile(r'\b(string\.match|string\.gmatch|string\.find|string\.gsub)\b'),
+            "time_date_logic": re.compile(r'\b(os\.time|os\.clock|os\.date|os\.difftime)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(os\.execute|io\.popen|coroutine\.create|coroutine\.resume|coroutine\.yield)\b'),
         },
     },
     "perl": {
@@ -6073,6 +6195,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"\b(on\s*\(|subscribe\s*\(|add_listener)\b"),
             # 49. test_skip: Safety Theater. Code that bypasses test verification.
             "test_skip": re.compile(r"\b(skip|todo_skip)\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Perl Specifics) ---
+            "serialization_parsing": re.compile(r'\b(Storable::(?:thaw|fd_retrieve)|JSON::(?:decode_json|from_json)|YAML::(?:Load|LoadFile))\b'),
+            "regex_execution": re.compile(r'(=~|!~|\b(?:qr|m|s|tr|y)\b\s*[/\W])'), # Catches Perl's native binding operators and regex quotes
+            "time_date_logic": re.compile(r'\b(localtime|gmtime|Time::HiRes|sleep|time)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(system\s*\(|exec\s*\(|fork|IPC::Open[23]|qx\b|`.*`)\b'), # Backticks and qx// are shell executions
         },
     },
     "haskell": {
@@ -6275,6 +6402,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"\b(subscribe|onEvent|addEventListener|watch)\b"),
             # test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(ignore|pending|skip|xit|xdescribe)\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Haskell Specifics) ---
+            "serialization_parsing": re.compile(r'\b(Data\.Aeson|decode|decodeStrict|fromJSON|Data\.Binary|Data\.Serialize)\b'),
+            "regex_execution": re.compile(r'\b(Text\.Regex|makeRegex|matchRegex|=~)\b'),
+            "time_date_logic": re.compile(r'\b(getCurrentTime|diffUTCTime|addUTCTime|System\.Time|threadDelay)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(System\.Process|createProcess|callProcess|callCommand|forkIO|Control\.Concurrent)\b'),
         },
     },
     "embedded_python": {
@@ -6508,6 +6640,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Embedded Python Specifics) ---
+            "serialization_parsing": re.compile(r'\b(ujson\.loads?|ujson\.dumps?|ustruct\.pack|ustruct\.unpack)\b'),
+            "regex_execution": re.compile(r'\b(ure\.compile|ure\.search|ure\.match|ure\.sub)\b'),
+            "time_date_logic": re.compile(r'\b(utime\.sleep_ms|utime\.ticks_ms|utime\.ticks_diff|machine\.RTC)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(machine\.Pin|machine\.I2C|machine\.UART|network\.WLAN|usocket\.socket|busio\.I2C)\b'),
         },
     },
     "cobol": {
@@ -6766,6 +6903,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"\b(?:MQGET|EXEC\s+CICS\s+RECEIVE)\b", re.I),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(IGNORE)\b", re.I),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (COBOL Specifics) ---
+            "serialization_parsing": re.compile(r'(?i)\b(UNSTRING|STRING|JSON\s+PARSE|JSON\s+GENERATE|XML\s+PARSE|XML\s+GENERATE)\b'),
+            "regex_execution": re.compile(r'(?i)\b(INSPECT|TALLYING|REPLACING)\b'), # COBOL's hardware-level string manipulation engine
+            "time_date_logic": re.compile(r'(?i)\b(ACCEPT\s+.*\s+FROM\s+(?:DATE|TIME|DAY)|CURRENT-DATE|WHEN-COMPILED)\b'),
+            "ipc_rpc_bridges": re.compile(r'(?i)\b(CALL\s+|EXEC\s+CICS\s+(?:LINK|XCTL|START|RETURN)|EXEC\s+SQL)\b'),
         },
     },
     "zig": {
@@ -6944,6 +7086,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": None,
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(std\.testing\.expect|assume|expectError)\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Zig Specifics) ---
+            "serialization_parsing": re.compile(r'\b(std\.json\.parseFrom(?:Slice|TokenSource)|std\.json\.stringify)\b'),
+            "regex_execution": re.compile(r'\b(std\.mem\.(?:indexOf|tokenize(?:Any)?|split(?:Sequence|Any)?|replace))\b'), # Zig has no native regex!
+            "time_date_logic": re.compile(r'\b(std\.time\.(?:nanoTimestamp|milliTimestamp|Timer|sleep))\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(std\.process\.Child|std\.net\.tcpConnectToHost|std\.Thread\.spawn|std\.posix|std\.os\.execve)\b'),
         },
     },
     "apex": {
@@ -7410,6 +7557,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(@Ignore|test\.skip|t\.Skip|xit|mock)\b", re.I),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Dart Specifics) ---
+            "serialization_parsing": re.compile(r'\b(jsonDecode|jsonEncode|json\.decode|json\.encode|Utf8Decoder|Utf8Encoder)\b'),
+            "regex_execution": re.compile(r'\b(RegExp\s*\()|\.(hasMatch|allMatches|stringMatch)\b'),
+            "time_date_logic": re.compile(r'\b(DateTime\.now|Duration\s*\(|Timer\.run|Timer\.periodic|Stopwatch)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(Isolate\.spawn|ReceivePort|SendPort|Process\.run|Process\.start|HttpClient)\b'),
         },
     },
     "scala": {
@@ -7629,6 +7781,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(ignore|pending|skip|xit|xdescribe)\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Scala Specifics) ---
+            "serialization_parsing": re.compile(r'\b(io\.circe|decode\[|asJson|Json\.parse|Json\.toJson|upickle\.default)\b'),
+            "regex_execution": re.compile(r'"[^"]+"\.r\b|\bRegex\s*\(|\.(findAllIn|findFirstIn|replaceAllIn)\b'),
+            "time_date_logic": re.compile(r'\b(Duration\s*\(|FiniteDuration|System\.currentTimeMillis|LocalDate\.now)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(ActorSystem|ActorRef|sys\.process\._|Process\s*\(|Future\.apply)\b'),
         },
     },
     "dockerfile": {
@@ -7883,6 +8040,11 @@ LANGUAGE_DEFINITIONS = {
                 r"\|\|[ \t]*true\b|\b(?:--passWithNoTests|skipTests|Dmaven\.test\.skip=true|--no-audit)\b",
                 re.I,
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Dockerfile Specifics) ---
+            "serialization_parsing": re.compile(r'(?i)^(?:ADD|COPY)\s+.*\.(?:tar\.gz|zip|tgz|tar)\b'), # ADD auto-extracts archives
+            "regex_execution": re.compile(r'(?i)^RUN\s+.*(?:grep|sed|awk)\b'), # Catches shell-delegated regex
+            "time_date_logic": re.compile(r'(?i)^(?:HEALTHCHECK.*(?:--interval|--timeout)|RUN\s+.*sleep)\b'),
+            "ipc_rpc_bridges": re.compile(r'(?i)^(?:EXPOSE|VOLUME|ENTRYPOINT|CMD|STOPSIGNAL)\b'),
         },
     },
     "matlab": {
@@ -8094,6 +8256,11 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(?:assume|assumeFail|assumeTrue|assumeFalse)\b"
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (MATLAB Specifics) ---
+            "serialization_parsing": re.compile(r'\b(jsondecode|jsonencode|xmlread|xmlwrite|load|save|readtable)\b'),
+            "regex_execution": re.compile(r'\b(regexp|regexpi|regexprep)\b'),
+            "time_date_logic": re.compile(r'\b(tic|toc|datetime|clock|now|pause|cputime)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(system|dos|unix|tcpclient|tcpserver|parpool|parfor)\b|^\s*!'), # '!' is MATLAB's native shell escape
         },
     },
     "livecode": {
@@ -8319,6 +8486,11 @@ LANGUAGE_DEFINITIONS = {
             "listeners": re.compile(r"^[ \t]*on\s+[a-zA-Z0-9_-]+", re.I | re.M),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(skip\s+test)\b", re.I),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (LiveCode Specifics) ---
+            "serialization_parsing": re.compile(r'(?i)\b(jsonImport|jsonExport|arrayEncode|arrayDecode|revXMLCreateTree)\b'),
+            "regex_execution": re.compile(r'(?i)\b(matchText|matchChunk|replaceText|filter\s+.*\s+with\s+regex)\b'),
+            "time_date_logic": re.compile(r'(?i)\b(the\s+(?:seconds|ticks|time|date|internet date)|wait\s+(?:for|until))\b'),
+            "ipc_rpc_bridges": re.compile(r'(?i)\b(open\s+socket|read\s+from\s+socket|post\s+.*to|get\s+url|shell\s*\(|open\s+process)\b'),
         },
     },
     "solidity": {
@@ -8508,6 +8680,11 @@ LANGUAGE_DEFINITIONS = {
             
             # 49. test_skip: Safety Theater.
             "test_skip": None,
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Solidity Specifics) ---
+            "serialization_parsing": re.compile(r'\b(abi\.encode|abi\.encodePacked|abi\.decode)\b'),
+            "regex_execution": re.compile(r'\b(keccak256\s*\(\s*abi\.encodePacked)\b'), # Hashes are used instead of regex for complex string matching
+            "time_date_logic": re.compile(r'\b(block\.timestamp|now|\d+\s+(?:days|weeks|years|hours|minutes))\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(delegatecall|staticcall|\.call\{value:|emit\s+[A-Z]|selfdestruct)\b'),
         },
     },
     "objective-c": {
@@ -8712,6 +8889,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(XCTSkip|xit|xdescribe)\b"),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Objective-C Specifics) ---
+            "serialization_parsing": re.compile(r'\b(NSJSONSerialization|NSKeyedUnarchiver|NSKeyedArchiver|NSXMLParser|NSPropertyListSerialization)\b'),
+            "regex_execution": re.compile(r'\b(NSRegularExpression|NSRegularExpressionSearch)\b'),
+            "time_date_logic": re.compile(r'\b(NSDate|NSDateFormatter|NSTimer|CFAbsoluteTimeGetCurrent|NSDateComponents)\b'),
+            "ipc_rpc_bridges": re.compile(r'\b(NSXPCConnection|NSTask|NSPipe|NSURLConnection|NSURLSession|NSMachPort)\b'),
         },
     },
     "makefile": {
@@ -8903,6 +9085,11 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:SKIP(?:_TESTS?)?|XFAIL)[ \t]*=[ \t]*[1TtYy]|\bpytest[ \t]+-k[ \t]+not\b|--skip",
                 re.I,
             ),
+            # --- PHASE 3: HYBRID DOMAIN SENSORS (Makefile Specifics) ---
+            "serialization_parsing": re.compile(r'(?m)^\s*(?:@|-)?(?:tar|unzip|gunzip|jq|sed|awk)\b'),
+            "regex_execution": re.compile(r'(?m)\$\((?:filter|filter-out|patsubst)\b|^\s*(?:@|-)?(?:grep|egrep|sed)\b'),
+            "time_date_logic": re.compile(r'(?m)\$\(shell\s+date\b|^\s*(?:@|-)?(?:sleep|date)\b'),
+            "ipc_rpc_bridges": re.compile(r'(?m)\$\(shell\b|^\s*(?:@|-)?(?:curl|wget|ssh|scp|docker|kubectl)\b'),
         },
     },
     "abap": {
@@ -10997,6 +11184,34 @@ RISK_EQUATION_TUNING = {
     },
     "state_flux": {
         "irc_mult": 0.15, "threshold_base": 15.0, "sigmoid_slope": 0.20
+    }, 
+    # ---> DECOUPLED SECURITY EQUATION TUNING <---
+    "obscured_payload": {
+        "loc_padding": 500, # Raised from 150. Dilutes the density of massive framework files.
+        "std_threshold": 35.0, "std_slope": 0.6, 
+        "paranoid_threshold": 2.0, "paranoid_slope": 1.5
+    },
+    "logic_bomb": {
+        "loc_padding": 500, # Raised from 150.
+        "std_threshold": 90.0, "std_slope": 0.2,
+        "paranoid_threshold": 10.0, "paranoid_slope": 0.5
+    },
+    "injection_surface": {
+        "loc_padding": 500, # Raised from 150.
+        "std_threshold": 60.0, "std_slope": 0.4,
+        "paranoid_threshold": 3.0, "paranoid_slope": 1.2
+    },
+    "memory_corruption": {
+        "loc_padding": 150,
+        # Raised threshold from 25.0 -> 40.0 to forgive standard C/Rust pointer math
+        "std_threshold": 40.0, "std_slope": 0.4,
+        "paranoid_threshold": 4.0, "paranoid_slope": 0.8
+    },
+    "secrets_risk": {
+        "loc_padding": 50,
+        # Left extremely sensitive. Hardcoded secrets are never "noise."
+        "std_threshold": 3.0, "std_slope": 1.0,
+        "paranoid_threshold": 0.5, "paranoid_slope": 2.0
     }
 }
 
@@ -11041,35 +11256,220 @@ LANGUAGE_SECURITY_PROFILES = {
         "systems_in_web": {"memory": 5.0, "logic_bomb": 3.0}, # C code hiding in a JS app = Trojan
         "infra_in_web":   {"logic_bomb": 4.0},                # Shell script hiding in a JS app = Backdoor
         "web_in_systems": {"flux": 3.0}                       # JS embedded in C firmware = Bizarre architecture
-    }
+    },
+    # Aggressive penalties applied when the file is an ALIEN in its neighborhood
+    "ALIEN_WEIGHTS": {
+        "systems_in_web": {"memory": 5.0, "logic_bomb": 3.0}, 
+        "infra_in_web":   {"logic_bomb": 4.0},                
+        "web_in_systems": {"flux": 3.0}                       
+    },
+
+    # ---> THE ARCHETYPE VIOLATION MATRIX (k=16 Edition) <---
+    # Multiplies threat mass based on how anomalous the behavior is for the file's physical DNA.
+    "ARCHETYPE_VIOLATION_MATRIX": {
+        
+        # =====================================================================
+        # 1. THE INERT ZONES (Data & Configs)
+        # =====================================================================
+        "Cluster 2": { # Inert Configuration & Data (The Dark Matter)
+            "logic_bomb_multiplier": 25.0,        
+            "injection_surface_multiplier": 20.0,
+            "memory_corruption_multiplier": 20.0,
+            "obscured_payload_multiplier": 10.0,
+            "secrets_risk_multiplier": 2.0        
+        },
+        
+        # =====================================================================
+        # 2. THE UI & FRONTEND ZONES 
+        # =====================================================================
+        "Cluster 4": { # UI Frameworks & View Layers
+            "logic_bomb_multiplier": 15.0,        
+            "memory_corruption_multiplier": 15.0, 
+            "injection_surface_multiplier": 1.0   
+        },
+        "Cluster 14": { # Async Logic & Concurrency Orchestration
+            "logic_bomb_multiplier": 8.0,
+            "memory_corruption_multiplier": 5.0,
+            "injection_surface_multiplier": 0.8   
+        },
+
+        # =====================================================================
+        # 3. THE NATIVE CORE & SYSTEMS ZONES
+        # =====================================================================
+        "Cluster 0": { # Modern Systems & Typed Interfaces
+            "memory_corruption_multiplier": 0.2,  
+            "logic_bomb_multiplier": 1.0,
+            "injection_surface_multiplier": 1.5
+        },
+        "Cluster 3": { # Raw Pointer & Memory Manipulation
+            "memory_corruption_multiplier": 0.05, 
+            "logic_bomb_multiplier": 1.0,
+            "injection_surface_multiplier": 2.5
+        },
+        "Cluster 5": { # High-Dependency C Headers
+            "memory_corruption_multiplier": 0.05, 
+            "logic_bomb_multiplier": 1.5,
+            "injection_surface_multiplier": 3.0   
+        },
+        "Cluster 12": { # Documented Native Headers
+            "memory_corruption_multiplier": 0.05, 
+            "logic_bomb_multiplier": 1.5,
+            "injection_surface_multiplier": 3.0   
+        },
+        "Cluster 13": { # Core Algorithmic Native Logic
+            "memory_corruption_multiplier": 0.05, 
+            "logic_bomb_multiplier": 1.0,
+            "injection_surface_multiplier": 2.5
+        },
+
+        # =====================================================================
+        # 4. THE VERIFICATION & TESTING ZONES
+        # =====================================================================
+        "Cluster 6": { # Software Verification & Testing
+            "logic_bomb_multiplier": 0.1,
+            "injection_surface_multiplier": 0.1,
+            "obscured_payload_multiplier": 0.2,
+            "memory_corruption_multiplier": 0.5
+        },
+        "Cluster 11": { # Test-Driven Annotated Services
+            "logic_bomb_multiplier": 0.1,
+            "injection_surface_multiplier": 0.1,
+            "obscured_payload_multiplier": 0.2
+        },
+
+        # =====================================================================
+        # 5. SCRIPTING, INFRASTRUCTURE & AUTOMATION
+        # =====================================================================
+        "Cluster 15": { # Build, Infra & I/O Automation
+            "logic_bomb_multiplier": 0.5,         
+            "injection_surface_multiplier": 5.0,  
+            "memory_corruption_multiplier": 8.0   
+        },
+
+        # =====================================================================
+        # 6. STANDARD BACKEND & BUSINESS LOGIC
+        # =====================================================================
+        "Cluster 1": { # Algorithmic & Defensive Logic
+            "memory_corruption_multiplier": 1.5,
+            "injection_surface_multiplier": 1.0
+        },
+        "Cluster 7": { # Annotated Service Layer
+            "memory_corruption_multiplier": 2.0,
+            "injection_surface_multiplier": 1.0
+        },
+        "Cluster 8": { # Universal Dependencies (The God Nodes)
+            "logic_bomb_multiplier": 1.5,
+            "injection_surface_multiplier": 1.5
+        },
+        "Cluster 9": { # Documented Core Interfaces
+            "memory_corruption_multiplier": 2.0,
+            "injection_surface_multiplier": 1.5   
+        },
+        "Cluster 10": { # High-Impact Core Libraries
+            "logic_bomb_multiplier": 1.5,
+            "injection_surface_multiplier": 1.5
+        }
+    },
+    # ---> NEW: THE BASELINE SPATIAL DISPERSIONS (Z-Score baselines) <---
+    "ARCHETYPE_DISPERSIONS": {
+        "Cluster 0: Modern Systems & Typed Interfaces": 5.42,
+        "Cluster 1: Algorithmic & Defensive Logic": 4.70,
+        "Cluster 2: Inert Configuration & Data (The Dark Matter)": 2.61,
+        "Cluster 3: Raw Pointer & Memory Manipulation": 4.19,
+        "Cluster 4: UI Frameworks & View Layers": 5.14,
+        "Cluster 5: High-Dependency C Headers": 4.39,
+        "Cluster 6: Software Verification & Testing": 7.30,
+        "Cluster 7: Annotated Service Layer": 5.88,
+        "Cluster 8: Universal Dependencies (The God Nodes)": 3.84,
+        "Cluster 9: Documented Core Interfaces": 4.68,
+        "Cluster 10: High-Impact Core Libraries": 6.01,
+        "Cluster 11: Test-Driven Annotated Services": 5.21,
+        "Cluster 12: Documented Native Headers": 6.80,
+        "Cluster 13: Core Algorithmic Native Logic": 4.25,
+        "Cluster 14: Async Logic & Concurrency Orchestration": 6.46,
+        "Cluster 15: Build, Infra & I/O Automation": 4.66
+    },
+    
+    # ------------------------------------------------------------------
+    # 6. RECORDING SCHEMAS (Database mapping)
 }
 
 # ------------------------------------------------------------------------------
-# 4.7 ML INFERENCE BRAIN (67-Dimensional Matrix Coordinates)
+# 4.7 ML INFERENCE BRAINS (Language-Specific Micro-Species)
+# ------------------------------------------------------------------------------
+LANGUAGE_INFERENCE_BRAINS = {
+    "python": {
+        'SCALER_MEDIANS': [3.387, 4.251, 2.529, 2.494, 0.0, 0.0, 0.0, 0.0, 0.0, 2.494, 0.0, 0.0, 1.642, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.727, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.738, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.156, 2.197, 1.386, 0.0, 0.0, 0.0, 0.693, 1.099, 0.0],
+        'SCALER_IQRS': [3.932, 2.296, 3.536, 3.536, 1.88, 2.711, 1.659, 1.0, 1.0, 3.536, 1.981, 1.0, 3.696, 0.991, 1.0, 1.0, 1.0, 1.751, 2.652, 1.0, 1.0, 1.0, 3.559, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.825, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.536, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.233, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.364, 3.664, 1.504, 1.099, 0.693, 1.0, 1.792, 1.179, 1.0],
+        'ARCHETYPES_K11': {
+            'Python Sub-Cluster 0': [0.092, 0.601, 0.343, 0.335, 0.939, 0.654, 1.217, 0.002, 0.361, 0.319, 1.255, 0.039, 0.664, 0.068, 0.012, 0.36, 0.011, 0.937, 1.299, 0.673, 0.014, 0.984, 0.453, 0.001, 0.055, 0.009, 0.0, 0.011, 0.05, 0.021, 0.0, 0.003, 0.0, 0.023, 0.025, 0.986, 0.902, 0.063, 0.017, 0.161, 0.099, 0.093, 0.548, 0.655, 0.013, 0.04, 0.025, 0.0, 0.008, 0.118, 0.002, 4.282, 0.002, -0.0, 0.0, 0.0, 0.0, 1.435, 0.0, 0.021, 0.074, 0.615, 2.021, 2.14, 0.021, 0.218, -0.157, 0.183],
+            'Python Sub-Cluster 1': [0.122, 0.898, 0.427, 0.434, 0.279, 1.738, 0.786, 0.002, 0.49, 0.435, 0.384, 0.022, 0.822, 5.449, 0.017, 0.146, 0.019, 1.247, 1.458, 0.542, 0.008, 0.216, 0.494, 0.0, 0.03, 0.021, 0.0, 0.0, 0.112, 0.032, 0.0, 0.0, 0.0, 0.004, 0.013, 0.624, 0.181, 0.109, 0.027, 0.15, 0.011, 0.042, -0.033, 0.249, 0.756, 0.085, 0.011, 0.0, 0.03, 20.438, -0.0, 5.095, 0.008, 0.026, 0.009, 0.0, 0.0, 0.519, 0.0, -0.187, 0.102, 0.664, 0.698, 1.34, -0.0, -0.039, -0.364, 0.161],
+            'Python Sub-Cluster 2': [-0.119, -0.385, -0.189, -0.189, 0.247, 0.493, 0.484, 0.06, 0.803, -0.232, 0.314, 0.11, -0.098, 0.042, 0.009, 0.111, 0.217, 0.139, 0.196, 0.386, 0.294, 0.126, -0.263, 0.021, 0.05, 0.036, 0.001, 0.001, 0.049, 0.008, 0.0, 0.002, 0.0, 0.012, 3.524, 0.837, 0.827, 0.065, 0.237, 0.015, 0.014, 0.095, -0.088, 0.017, 0.0, 0.007, 0.024, 0.0, 0.003, 0.029, -0.0, 0.12, 0.0, 0.0, 0.002, 0.0, 0.0, 0.003, 0.0, 0.649, -0.021, -0.401, 0.083, 0.595, 0.019, 0.007, -0.316, 0.057],
+            'Python Sub-Cluster 3': [-0.77, -1.032, -0.555, -0.55, 0.177, 0.025, 0.134, 0.01, 0.037, -0.496, 0.045, 0.024, -0.289, 0.026, 0.002, 0.02, 0.007, 0.074, 0.069, 0.043, 0.103, 0.117, -0.43, 0.007, 0.018, 0.01, 0.0, 0.005, 0.006, 0.005, 0.0, 0.002, 0.0, 0.005, 0.008, 0.035, 0.029, 0.001, 0.052, 0.019, 0.007, 0.003, -0.303, 0.006, 0.001, 0.002, 0.002, 0.0, 0.003, 0.015, -0.0, 0.097, 0.0, -0.0, 0.0, 0.0, 0.0, 0.009, 0.0, 0.011, -0.217, -0.651, 0.182, 0.086, 0.009, -0.069, -0.388, 0.038],
+            'Python Sub-Cluster 4': [0.069, 0.609, 0.399, 0.401, 0.943, 1.617, 0.645, 0.019, 0.823, 0.429, 0.636, 0.079, 0.087, 4.986, 0.046, 0.26, 0.117, 1.266, 0.686, 0.662, 0.34, 0.371, 0.287, 0.005, 0.101, 0.116, 0.001, 0.024, 0.066, 0.021, 0.0, 0.008, 0.0, 0.028, 0.172, 1.541, 0.286, 0.029, 0.216, 0.093, 0.034, 0.051, 0.161, 0.09, 0.973, 0.018, 0.025, 0.0, 0.04, 19.405, -0.0, 0.095, 0.02, 0.023, 0.111, 0.0, 0.0, 0.003, 0.0, -0.042, 0.149, 0.409, 0.103, 1.129, 0.005, 0.273, -0.024, 0.284],
+            'Python Sub-Cluster 5': [0.145, 1.355, 0.729, 0.737, 0.596, 2.339, 0.973, 0.009, 0.713, 0.749, 0.588, 0.056, 0.793, 6.85, 0.033, 0.143, 0.017, 1.62, 1.651, 0.369, 0.085, 0.205, 0.71, 0.002, 0.043, 0.063, 0.0, 0.033, 0.08, 0.013, 0.0, 0.006, 0.0, 0.016, 0.07, 1.221, 0.127, 0.067, 0.073, 0.154, 0.023, 0.04, 0.086, 0.314, 1.134, 0.101, 0.028, 0.0, 0.059, 27.386, 0.0, 4.099, 0.009, 0.052, 0.053, 0.0, 0.0, 0.381, 0.0, -0.326, -0.113, 0.591, 0.631, 1.278, -0.0, -0.062, -0.27, 0.171],
+            'Python Sub-Cluster 6': [-0.282, 0.13, 0.034, 0.037, 0.453, 1.031, 0.481, 0.027, 0.57, 0.048, 0.421, 0.084, 0.144, 3.021, 0.015, 0.156, 0.188, 0.702, 0.525, 0.413, 0.302, 0.301, 0.054, 0.006, 0.094, 0.072, 0.001, 0.009, 0.041, 0.013, 0.0, 0.006, 0.0, 0.023, 0.18, 0.882, 0.318, 0.032, 0.303, 0.06, 0.029, 0.05, 0.013, 0.109, 0.322, 0.022, 0.017, 0.0, 0.021, 12.544, -0.0, 1.05, 0.003, 0.007, 0.094, 0.0, 0.0, 0.116, 0.0, 0.007, -0.034, 0.361, 0.534, 0.999, 0.013, 0.076, -0.2, 0.203],
+            'Python Sub-Cluster 7': [-0.038, -0.043, 0.032, 0.032, 0.533, 0.755, 0.788, 0.065, 0.791, 0.002, 0.824, 0.201, 0.201, 1.392, 0.027, 0.245, 0.167, 0.576, 0.512, 0.72, 0.233, 0.636, -0.066, 0.019, 0.208, 0.163, 0.002, 0.009, 0.071, 0.01, 0.0, 0.018, 0.0, 0.102, 0.28, 1.206, 0.92, 0.035, 0.304, 0.078, 0.071, 0.134, 0.238, 0.198, 0.06, 0.022, 0.028, 0.0, 0.01, 6.569, 0.0, 0.63, 0.002, 0.003, 0.105, 0.0, 0.0, 0.159, 0.0, 0.504, 0.419, 0.524, 0.99, 1.776, 0.108, 0.653, -0.058, 0.316],
+            'Python Sub-Cluster 8': [0.093, 0.204, 0.168, 0.164, 0.845, 0.461, 0.759, 0.036, 0.598, 0.144, 0.779, 0.15, 0.22, 0.053, 0.037, 0.27, 0.092, 0.632, 0.53, 0.741, 0.31, 0.594, 0.113, 0.031, 0.175, 0.089, 0.002, 0.019, 0.062, 0.022, 0.0, 0.013, 0.0, 0.117, 0.096, 1.161, 0.951, 0.013, 0.2, 0.048, 0.078, 0.084, 0.396, 0.086, 0.001, 0.009, 0.035, 0.0, 0.006, 0.166, 0.0, 0.097, 0.001, 0.0, 0.004, 0.0, 0.0, 0.006, 0.0, 0.464, 0.245, 0.29, 0.824, 1.473, 0.097, 0.543, -0.018, 0.241],
+            'Python Sub-Cluster 9': [-0.139, 0.179, 0.26, 0.26, 0.921, 0.184, 0.351, 0.033, 0.471, 0.308, 0.529, 0.104, 0.177, 3.678, 0.058, 0.296, 0.062, 0.901, 0.245, 0.427, 0.286, 0.456, 0.12, 0.006, 0.071, 0.07, 0.001, 0.027, 0.047, 0.006, 0.0, 0.001, 0.0, 0.006, 0.07, 0.821, 0.2, 0.008, 0.103, 0.035, 0.013, 0.057, 0.079, 0.056, 0.244, 0.008, 0.011, 0.0, 0.009, 0.101, -0.0, 0.398, 0.004, 0.0, 0.001, 0.0, 0.0, 0.006, 0.0, 0.094, 0.072, 0.202, 0.168, 0.676, 0.004, 0.186, -0.052, 0.137],
+            'Python Sub-Cluster 10': [-0.567, -0.29, -0.337, -0.329, 0.606, 0.16, 0.344, 0.003, 0.116, -0.214, 0.378, 0.03, 0.377, 0.04, 0.006, 0.039, 0.009, 0.336, 0.465, 0.206, 0.05, 0.365, -0.028, 0.002, 0.043, 0.011, 0.0, 0.004, 0.017, 0.008, 0.0, 0.0, 0.0, 0.022, 0.011, 0.303, 0.181, 0.004, 0.031, 0.052, 0.314, 0.007, 0.003, 0.144, 0.008, 0.034, 0.012, 0.0, 0.009, 0.062, -0.0, 0.221, 0.004, 0.0, -0.0, 0.0, 0.0, 0.036, 0.0, -0.23, -0.389, -0.094, 6.299, 1.048, 0.119, -0.204, -0.574, 0.122],
+        }
+    },
+    "javascript": {
+        'SCALER_MEDIANS': [3.452, 3.969, 2.872, 1.949, 0.0, 0.0, 0.0, 0.0, 0.0, 0.863, 1.417, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.417, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 1.099, 0.693, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        'SCALER_IQRS': [3.932, 1.47, 3.868, 3.342, 1.0, 1.0, 2.264, 1.0, 0.581, 3.536, 3.816, 1.0, 1.0, 1.0, 2.603, 2.097, 1.0, 1.543, 1.0, 1.0, 1.0, 1.0, 3.932, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.445, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 2.303, 1.386, 0.693, 1.0, 1.0, 0.693, 1.099, 1.0],
+        'ARCHETYPES_K8': {
+            'Javascript Sub-Cluster 0': [-0.481, 0.296, 0.014, 0.21, 3.07, 0.277, 0.196, 0.014, 0.008, 0.197, 0.221, 0.04, 0.377, 0.093, 0.145, 0.475, 0.036, 0.611, -0.0, 0.07, -0.0, 0.373, -0.064, 0.001, 0.022, 0.002, 0.002, 0.006, 0.045, 0.038, 0.0, 0.0, 0.0, 0.0, 0.08, 0.038, 0.028, 0.001, 0.066, 0.002, 0.287, 0.06, 0.157, 0.051, 0.001, 0.001, 0.0, 0.0, 0.0, 0.046, 0.56, 0.058, 0.0, -0.0, 0.0, 0.016, 0.0, 0.003, 0.0, -0.338, -0.182, -0.226, 0.198, 0.012, 0.002, 0.184, 0.634, 0.052],
+            'Javascript Sub-Cluster 1': [0.044, 0.526, -0.604, -0.455, 0.024, 0.131, 0.062, 0.011, 6.901, 0.738, -0.33, 0.012, 0.112, 0.117, 1.243, 0.12, 0.061, 0.102, 0.0, 0.061, 0.0, 0.013, 0.708, 0.001, 0.013, 0.002, 0.0, 0.006, 0.052, 0.102, 0.0, 0.0, 0.0, 0.0, 0.084, 0.007, 0.037, 0.007, 0.039, 0.004, 0.193, 0.018, 0.017, 0.051, 0.012, 0.001, 0.002, 0.0, 0.002, 0.032, 0.113, 0.156, 0.0, 0.0, 0.01, 0.003, 0.0, 0.011, 0.0, -0.003, 0.054, 0.274, 0.969, 0.063, 0.003, 0.124, 0.108, 0.113],
+            'Javascript Sub-Cluster 2': [-0.03, 0.401, 0.331, 0.468, 0.706, 1.688, 0.662, 0.082, 1.005, 0.094, 0.434, 0.084, 0.801, 0.774, 0.345, 1.128, 0.53, 0.819, 0.0, 0.608, 0.003, 0.556, 0.21, 0.005, 0.128, 0.025, 0.0, 0.033, 0.397, 0.684, 0.0, 0.0, 0.0, 0.003, 0.39, 0.107, 0.463, 0.268, 0.121, 0.027, 1.078, 0.431, 0.165, 0.407, 0.134, 0.004, 0.007, 0.0, 0.006, 0.27, 1.024, 4.449, 0.0, 0.004, 0.089, 0.195, 0.0, 2.252, 0.0, 0.08, 0.709, 0.367, 0.55, 0.114, 0.007, 2.023, 0.872, 0.169],
+            'Javascript Sub-Cluster 3': [-0.381, -0.053, -0.037, 0.135, 0.431, 0.622, 0.291, 0.034, 0.203, 0.36, -0.142, 0.034, 1.172, 0.368, 0.314, 0.554, 0.183, 0.561, -0.0, 0.245, 0.0, 0.232, 0.168, 0.002, 0.05, 0.007, 0.0, 0.023, 0.083, 0.069, 0.0, 0.0, 0.0, 0.001, 0.177, 0.041, 0.069, 0.022, 0.059, 0.078, 0.719, 0.07, 0.052, 0.108, 0.026, 0.005, 0.005, 0.0, 0.001, 0.077, 0.207, 0.28, 0.0, -0.0, 0.013, 0.019, 0.0, 0.026, 0.0, -0.115, 0.111, 0.126, 5.589, 0.034, 0.034, 0.674, 0.669, 0.12],
+            'Javascript Sub-Cluster 4': [0.067, -0.165, 0.206, 0.269, 0.375, 2.62, 1.011, 0.03, 0.36, 0.096, 0.286, 0.089, 1.218, 0.351, 0.21, 0.824, 0.367, 0.516, 0.0, 0.453, 0.0, 0.715, 0.047, 0.007, 0.095, 0.02, 0.001, 0.003, 0.205, 0.088, 0.0, 0.0, 0.0, 0.002, 0.118, 0.108, 0.31, 0.041, 0.194, 0.018, 0.836, 0.27, 0.117, 0.246, 0.013, 0.002, 0.004, 0.0, 0.002, 0.258, 0.777, 0.265, 0.0, 0.0, 0.044, 0.103, 0.0, 0.057, 0.0, 0.489, 1.069, 0.255, 0.806, 0.085, 0.016, 2.69, 0.934, 0.185],
+            'Javascript Sub-Cluster 5': [-0.485, -0.807, -0.099, -0.105, 0.064, 0.597, 0.178, 0.037, 0.027, -0.184, 0.102, 0.007, 0.036, 0.065, 0.021, 0.534, 0.081, 0.05, -0.0, 0.06, -0.0, 0.116, -0.277, -0.0, 0.007, 0.011, -0.0, 0.002, 0.025, 0.019, 0.0, 0.0, 0.0, 0.001, 3.409, 0.007, 0.169, 0.019, 0.051, 0.001, 0.222, 0.05, 0.016, 0.053, 0.003, -0.0, 0.002, 0.0, -0.0, 0.041, 0.1, 0.143, 0.0, -0.0, 0.013, 0.007, 0.0, 0.004, 0.0, -0.052, -0.17, -0.441, 0.159, 0.013, 0.002, 0.214, 0.424, 0.019],
+            'Javascript Sub-Cluster 6': [-0.548, -0.661, -0.206, -0.077, 0.024, 0.1, 0.141, 0.027, 0.046, 0.065, -0.017, 0.021, 0.304, 0.191, 0.118, 0.368, 0.073, 0.315, 0.0, 0.04, 0.0, 0.236, -0.103, 0.001, 0.018, 0.003, 0.001, 0.012, 0.048, 0.03, 0.0, 0.0, 0.0, 0.0, 0.005, 0.023, 0.034, 0.006, 0.085, 0.002, 0.344, 0.027, 0.031, 0.057, 0.009, 0.001, 0.002, 0.0, 0.001, 0.084, 0.158, 0.097, 0.0, 0.0, 0.001, 0.002, 0.0, 0.003, 0.0, -0.164, -0.141, -0.255, 0.208, 0.038, 0.003, 0.135, 0.416, 0.069],
+            'Javascript Sub-Cluster 7': [0.172, 0.122, -0.727, -0.57, 0.009, 0.016, 1.228, 0.002, 5.108, 0.729, 0.707, 0.0, 0.01, 0.002, 1.048, 0.015, 0.007, 1.81, 0.0, 0.003, 0.0, 2.794, 0.618, 0.0, 0.002, 0.0, 0.0, 0.0, 0.006, 0.003, 0.0, 0.0, 0.0, -0.0, 0.003, 0.001, 0.003, 0.0, 0.007, 0.0, 0.015, 0.003, 0.005, 0.005, 0.001, 0.0, 0.0, 0.0, 0.0, 0.002, 0.013, 0.005, 0.0, 0.0, -0.0, 0.001, 0.0, 0.001, 0.0, 0.492, 0.401, 0.502, 0.995, 0.003, 0.0, 0.015, 0.011, 0.003],
+        }
+    },
+    "typescript": {
+        'SCALER_MEDIANS': [3.477, 4.283, 3.045, 2.727, 0.0, 0.0, 0.0, 0.0, 0.0, 1.981, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.547, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.603, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.167, 1.609, 1.099, 0.693, 0.0, 0.0, 0.0, 1.012, 0.0],
+        'SCALER_IQRS': [3.932, 1.367, 3.932, 3.536, 1.0, 2.52, 1.0, 1.0, 1.0, 3.258, 2.511, 1.0, 0.941, 1.0, 2.494, 2.547, 1.0, 1.88, 2.872, 1.0, 1.0, 1.0, 3.651, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.536, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.372, 3.219, 1.792, 1.099, 1.0, 1.0, 1.609, 1.204, 0.32],
+        'ARCHETYPES_K7': {
+            'Typescript Sub-Cluster 0': [-0.023, 0.275, 0.138, 0.157, 0.645, 0.85, 0.609, 0.026, 0.847, 0.036, 0.838, 0.077, 0.802, 0.068, 0.587, 0.698, 0.322, 0.629, 0.602, 0.628, 0.11, 0.12, 0.089, 0.006, 0.128, 0.011, 0.007, 0.013, 0.285, 0.547, 0.0, 0.0, 0.0, 0.082, 0.285, 0.419, 0.574, 0.201, 0.379, 0.016, 0.133, 0.484, 0.78, 0.309, 0.026, 0.0, 0.0, 0.0, 0.002, 0.166, 1.369, 4.154, 0.001, 0.003, 0.051, 0.289, 0.0, 1.556, 0.0, 0.309, 0.337, 0.28, 0.261, 0.139, 0.01, 0.903, 0.071, 0.699],
+            'Typescript Sub-Cluster 1': [-0.393, 0.132, -0.39, -0.419, 0.288, 0.212, 0.159, 0.019, 0.219, 0.389, 0.13, 0.022, 0.334, 0.032, 0.265, 0.224, 0.11, 0.484, 0.262, 0.122, 0.032, 0.039, 0.112, 0.006, 0.048, 0.003, 0.0, 0.002, 0.042, 0.076, 0.0, 0.0, 0.0, 0.009, 0.099, 0.225, 0.045, 0.01, 0.121, 0.015, -0.343, 0.037, 0.083, 0.044, 0.007, 0.0, -0.0, 0.0, 0.002, 0.032, 0.154, 0.132, 0.001, 0.0, 0.004, 0.006, 0.0, 0.003, 0.0, -0.005, -0.19, -0.023, 2.548, 0.039, 0.036, 0.195, -0.513, 0.452],
+            'Typescript Sub-Cluster 2': [0.037, -0.224, -0.003, -0.012, 0.387, 0.854, 0.727, 0.04, 0.741, -0.105, 0.847, 0.111, 1.37, 0.191, 0.625, 0.63, 0.307, 0.49, 0.62, 0.805, 0.148, 0.163, -0.03, 0.009, 0.195, 0.021, 0.003, 0.006, 0.31, 0.285, 0.0, 0.0, 0.0, 0.069, 0.106, 0.606, 0.434, 0.082, 0.364, 0.029, 0.119, 0.464, 0.883, 0.344, 0.06, 0.0, -0.0, 0.0, 0.005, 0.217, 1.134, 1.77, 0.001, 0.003, 0.046, 0.258, 0.0, 0.653, 0.0, 0.717, 0.921, 0.732, 0.662, 0.215, 0.018, 1.581, 0.117, 5.365],
+            'Typescript Sub-Cluster 3': [0.06, 0.251, 0.109, 0.064, 0.25, 0.681, 0.442, 0.054, 0.448, 0.106, 0.41, 0.058, 0.205, 0.032, 1.002, 0.749, 0.195, 0.809, 0.858, 0.667, 0.104, 0.082, 0.165, 0.004, 0.079, 0.017, 0.001, 0.003, 0.149, 0.126, 0.0, 0.0, 0.0, 0.013, 0.109, 0.459, 0.132, 0.025, 0.261, 0.01, 0.152, 0.167, 0.235, 0.167, 0.013, 0.0, 0.0, 0.0, 0.005, 0.093, 0.476, 0.208, 0.001, 0.0, 0.029, 0.046, 0.0, 0.007, 0.0, 0.42, 0.396, 0.308, 0.098, 0.134, 0.004, 0.804, -0.065, 0.761],
+            'Typescript Sub-Cluster 4': [-0.17, 0.035, -0.077, -0.07, 0.59, 0.488, 0.664, 0.016, 0.293, 0.245, 0.496, 0.288, 4.126, 0.027, 0.464, 0.333, 0.112, 0.418, 0.597, 0.281, 0.098, 0.126, -0.038, 0.041, 0.12, 0.013, 0.001, 0.002, 0.101, 0.091, 0.0, 0.0, 0.0, 0.006, 0.056, 0.452, 0.14, 0.018, 0.286, 0.012, -0.123, 0.161, 0.406, 0.114, 0.007, 0.0, 0.0, 0.0, 0.002, 0.188, 0.546, 0.232, 0.0, 0.0, 0.012, 0.055, 0.0, 0.008, 0.0, 0.177, 0.069, -0.023, 0.483, 0.063, 0.009, 0.502, -0.183, 0.686],
+            'Typescript Sub-Cluster 5': [-0.675, -0.637, -0.392, -0.382, 0.594, 0.127, 0.32, 0.013, 0.101, -0.199, 0.391, 0.359, 0.073, 0.123, 0.093, 0.15, 0.035, 0.186, 0.218, 0.028, 0.02, 0.031, -0.411, 0.001, 0.066, 0.004, -0.0, 0.0, 0.023, 0.042, 0.0, 0.0, 0.0, 0.002, 0.134, 0.076, 0.029, 0.003, 0.082, 0.002, -0.499, 0.027, 0.086, 0.023, 0.007, 0.0, 0.0, 0.0, 0.002, 0.055, 0.204, 0.093, 0.0, -0.0, 0.003, 0.004, 0.0, 0.001, 0.0, -0.184, -0.374, -0.396, -0.45, 0.032, 0.002, 0.035, -0.517, 0.127],
+            'Typescript Sub-Cluster 6': [-0.144, 0.563, 0.472, 0.575, 0.166, 0.747, 0.97, 0.072, 1.157, -0.466, 0.56, 0.041, 0.473, 4.511, 0.348, 1.622, 0.39, 0.799, 0.359, 0.612, 0.078, 0.108, 0.134, 0.004, 0.23, 0.024, 0.003, 0.002, 0.669, 0.387, 0.0, 0.0, 0.0, 0.025, 0.111, 0.51, 0.278, 0.125, 0.315, 0.024, 0.318, 0.437, 0.304, 0.599, 0.614, 0.0, -0.0, 0.0, 0.013, 0.836, 1.257, 2.768, 0.002, 0.027, 0.041, 0.265, 0.0, 0.699, 0.0, -0.08, 0.273, 0.25, -0.519, 0.202, 0.0, 0.852, 0.016, 0.958],
+        }
+    }
+}
+
+
+# ------------------------------------------------------------------------------
+# 4.8 ML INFERENCE BRAIN (67-Dimensional Matrix Coordinates)
 # ------------------------------------------------------------------------------
 ML_INFERENCE_BRAIN = {
-    'SCALER_MEDIANS': [1.677, 3.03, 2.077, 1.739, 0.0, 0.0, 0.0, 0.0, 0.0, 0.313, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.277, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.143, 1.609, 1.099, 0.0, 0.0, 0.73, 0.0],
-    'SCALER_IQRS': [2.872, 3.629, 3.09, 2.642, 1.361, 1.112, 1.0, 1.0, 1.0, 2.439, 2.611, 1.0, 1.002, 1.0, 1.0, 1.0, 1.0, 1.0, 0.478, 1.0, 1.0, 1.0, 1.0, 2.458, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.976, 1.0, 1.271, 1.0, 1.0, 0.476, 3.584, 1.792, 0.693, 1.609, 1.253, 1.0],
+    'SCALER_MEDIANS': [2.954, 3.611, 2.398, 2.111, 0.0, 0.0, 0.0, 0.0, 0.0, 1.417, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.751, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.13, 1.386, 1.099, 0.0, 0.0, 0.0, 0.0, 0.693, 0.0],
+    'SCALER_IQRS': [3.787, 2.834, 3.589, 3.258, 1.981, 1.511, 1.0, 1.0, 1.0, 3.387, 3.387, 1.0, 1.061, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.203, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.814, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.358, 1.0, 1.726, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.45, 3.526, 1.792, 0.693, 1.0, 1.0, 1.609, 1.192, 1.0],
     'ARCHETYPES_K16': {
-        'Cluster 0: Annotated Service Layer': [-0.334, -0.025, 0.068, 0.046, 1.146, 0.194, 0.264, 0.01, 0.162, 0.647, 0.23, 0.053, 1.026, 0.089, 0.095, 0.113, 0.19, 0.108, 6.384, 0.547, 0.04, 0.033, 0.236, 0.299, 0.106, 0.049, 0.004, 0.0, 0.03, 0.024, 0.082, 0.1, 0.131, 0.04, -0.0, 0.011, 0.068, 0.084, 0.131, 0.003, 0.068, 0.045, 0.446, 0.033, 0.778, 0.043, 0.005, -0.073, -0.265, -0.056, 0.548, 0.126, 0.001, 0.078],
-        'Cluster 1: Universal Dependencies (The God Nodes)': [-0.054, -0.067, -0.08, -0.095, 0.473, 0.572, 0.399, 0.022, 0.18, 0.555, 0.312, 0.093, 0.927, 0.1, 0.179, 0.28, 0.398, 0.19, 0.706, 0.591, 0.155, 0.065, 0.209, 0.17, 0.215, 0.071, 0.017, 0.0, 0.011, 0.036, 0.049, 0.308, 0.201, 0.13, 0.001, 0.02, 0.072, 0.289, 0.172, 0.012, 0.15, 0.034, 0.55, 0.053, 0.458, 0.058, 0.007, 0.17, 0.1, 0.099, 5.51, 0.514, -0.051, 0.201],
-        'Cluster 2: Inert Configuration & Data (The Dark Matter)': [-0.41, -0.49, -0.523, -0.474, 0.02, 0.037, 0.027, 0.015, 0.205, 0.052, 0.209, 0.093, 0.035, 0.006, 0.032, 0.137, 0.01, 0.055, 0.019, 0.009, 0.016, 0.035, 0.054, -0.292, 0.071, 0.017, 0.006, 0.0, 0.007, 0.007, 0.017, 0.016, 0.04, 0.034, 0.0, 0.005, 0.109, 0.033, 0.024, 0.003, 0.054, 0.002, 0.108, 0.019, 0.065, 0.016, 0.001, -0.09, -0.31, -0.497, 0.23, 0.037, -0.485, 0.065],
-        'Cluster 3: High-Density Dependency Injection': [0.251, 0.061, 0.357, 0.279, 0.723, 1.008, 0.951, 0.016, 0.237, 0.671, 0.4, 0.1, 1.283, 0.09, 0.297, 0.081, 0.784, 0.172, 3.778, 1.542, 0.394, 0.121, 0.194, 0.406, 0.067, 0.107, 0.012, 0.001, 0.013, 0.027, 0.065, 0.067, 0.206, 0.078, 0.0, 0.074, 0.039, 0.376, 0.426, 0.011, 0.272, 0.069, 0.698, 0.118, 1.511, 0.089, 0.004, 0.386, 0.43, 0.601, 1.011, 1.065, 0.462, 0.223],
-        'Cluster 4: Software Verification & Testing': [0.081, -0.074, 0.29, 0.334, 0.447, 0.693, 0.609, 0.049, 0.376, 0.234, 0.37, 0.075, 0.226, 2.779, 0.387, 0.102, 1.048, 0.135, 0.402, 0.496, 0.187, 0.096, 0.086, 0.101, 0.029, 0.073, 0.012, 0.001, 0.011, 0.057, 0.066, 0.016, 0.068, 0.16, 0.0, 0.025, 0.075, 0.362, 0.231, 0.015, 0.104, 0.018, 0.471, 0.071, 0.401, 0.077, 0.103, 0.347, 0.296, 0.132, 0.081, 0.801, 0.285, 0.148],
-        'Cluster 5: Build, Infra & I/O Automation': [0.301, -0.017, -0.267, -0.235, 0.098, 1.001, 3.118, 0.227, 1.462, 0.073, 0.598, 0.09, 0.338, 0.073, 0.21, 0.045, 0.124, 0.207, 0.023, 0.129, 0.05, 0.245, 1.19, -0.097, 0.577, 0.032, 0.038, 0.0, 0.002, 0.022, 0.047, 0.007, 0.013, 0.058, -0.0, 0.008, 0.978, 0.105, 0.592, 0.122, 0.041, 0.108, 0.139, 0.55, 0.373, 0.072, 0.001, 0.602, 0.171, -0.338, 0.116, 0.764, -0.316, 0.045],
-        'Cluster 6: High-Dependency C Headers': [-0.265, 0.016, -0.066, -0.352, 0.987, 0.792, 0.114, 0.015, 0.045, 0.71, 0.6, 0.095, 0.184, 0.025, 0.017, 0.003, 0.017, 0.393, 0.015, 0.15, 0.001, 0.022, 0.851, 0.102, 1.223, 0.062, 0.045, 0.0, -0.0, 0.014, 0.012, 2.467, 3.038, 0.046, 0.004, 0.003, 0.022, 0.62, 0.016, 0.003, 0.371, 0.049, 0.913, 0.023, 0.154, 0.043, -0.0, -0.041, -0.063, 0.047, 3.015, 0.179, -0.372, 0.083],
-        'Cluster 7: Raw Pointer & Memory Manipulation': [0.318, -0.142, -0.145, -0.053, 0.307, 0.528, 0.197, 0.048, 0.145, 0.444, 1.175, 0.078, 0.32, 0.1, 0.023, 0.006, 0.105, 0.68, 0.024, 0.086, 0.006, 0.055, 0.304, 0.102, 0.614, 0.08, 0.063, 0.001, 0.001, 0.023, 0.005, 0.655, 3.05, 0.234, 0.003, 0.013, 0.145, 0.878, 0.127, 0.012, 0.419, 0.055, 0.647, 0.142, 0.502, 0.057, 0.002, 0.795, 0.767, 0.493, 0.127, 1.437, 0.089, 0.14],
-        'Cluster 8: Test-Driven Annotated Services': [-0.042, 0.031, 0.342, 0.336, 0.706, 0.589, 0.623, 0.021, 0.342, 0.419, 0.344, 0.032, 0.401, 2.542, 0.432, 0.058, 0.807, 0.083, 4.127, 0.815, 0.205, 0.087, 0.124, 0.371, 0.126, 0.057, 0.013, 0.0, 0.009, 0.03, 0.058, 0.044, 0.058, 0.041, -0.0, 0.018, 0.075, 0.267, 0.145, 0.02, 0.151, 0.036, 0.411, 0.072, 0.733, 0.086, 0.187, 0.145, 0.229, 0.49, 0.043, 0.668, 0.346, 0.199],
-        'Cluster 9: Functional OOP & Async Logic': [-0.062, 0.021, 0.337, 0.245, 0.496, 0.58, 0.322, 0.041, 0.173, 0.349, 0.365, 0.377, 0.202, 0.124, 0.649, 0.389, 2.563, 0.327, 0.132, 0.611, 0.235, 0.055, 0.171, -0.053, 0.008, 0.037, 0.008, 0.001, 0.013, 0.067, 0.085, 0.026, 0.024, 0.216, 0.0, 0.008, 0.296, 0.113, 0.161, 0.04, 0.123, 0.01, 0.576, 0.068, 0.264, 0.092, 0.01, 0.178, -0.028, -0.224, 0.332, 0.358, 0.103, 0.097],
-        'Cluster 10: Object-Oriented Structures': [-0.393, -0.294, -0.041, 0.108, 1.859, 0.146, 0.232, 0.014, 0.063, 0.354, 0.207, 0.06, 0.05, 0.102, 0.079, 0.177, 0.054, 0.211, 0.018, 1.104, 0.025, 0.018, 0.159, -0.175, 0.021, 0.077, 0.005, 0.0, 0.005, 0.009, 0.098, 0.029, 0.017, 0.068, 0.0, 0.002, 0.057, 0.098, 0.178, 0.005, 0.069, 0.009, 0.469, 0.011, 0.443, 0.01, 0.001, -0.059, -0.31, -0.41, 0.269, 0.09, -0.087, 0.043],
-        'Cluster 11: Algorithmic & Defensive Logic': [0.472, -0.154, 0.05, 0.074, 0.353, 1.41, 0.491, 0.078, 0.37, 0.28, 0.675, 0.16, 0.672, 0.107, 0.306, 0.185, 0.53, 0.361, 0.262, 0.616, 0.352, 0.194, 0.234, -0.03, 0.04, 0.096, 0.026, 0.002, 0.012, 0.059, 0.085, 0.057, 0.192, 0.313, 0.001, 0.039, 0.22, 0.395, 0.682, 0.024, 0.292, 0.045, 0.622, 0.163, 0.963, 0.071, 0.012, 0.958, 0.703, 0.198, 0.535, 1.471, 0.41, 0.262],
-        'Cluster 12: Documented Core Interfaces': [-0.004, 0.073, -0.002, 0.072, 0.808, 0.483, 0.305, 0.019, 0.164, 0.691, 0.46, 0.166, 3.524, 0.091, 0.127, 0.074, 0.227, 0.14, 0.123, 0.545, 0.097, 0.111, 0.097, 0.099, 0.16, 0.165, 0.028, 0.005, 0.009, 0.022, 0.014, 0.054, 0.358, 0.126, 0.001, 0.01, 0.079, 0.206, 0.155, 0.008, 0.217, 0.042, 0.328, 0.055, 1.383, 0.033, 0.004, 0.183, -0.01, -0.048, 0.544, 0.421, 0.103, 0.146],
-        'Cluster 13: Documented Native Headers': [-0.172, 0.032, 0.104, -0.068, 0.958, 0.919, 0.166, 0.022, 0.016, 0.105, 1.05, 0.193, 3.762, 0.02, 0.015, 0.007, 0.034, 0.671, 0.035, 0.266, 0.002, 0.026, 0.78, 0.195, 1.016, 0.1, 0.042, 0.01, 0.0, 0.021, 0.001, 1.585, 2.689, 0.13, 0.001, 0.0, 0.031, 1.215, 0.034, 0.002, 0.515, 0.041, 1.164, 0.04, 0.076, 0.046, -0.0, 0.05, 0.052, 0.209, 2.166, 0.407, -0.177, 0.084],
-        'Cluster 14: UI Frameworks & View Layers': [0.208, 0.034, -0.056, -0.079, 0.201, 0.694, 0.732, 0.041, 0.717, 0.467, 0.547, 0.045, 0.245, 0.017, 0.398, 1.68, 0.974, 0.229, 3.874, 0.817, 0.243, 0.047, 0.594, 0.405, 0.004, 0.033, 0.006, 0.0, 0.021, 0.074, 0.08, 0.029, 0.015, 0.173, 0.0, 0.008, 0.07, 0.124, 0.104, 0.02, 0.095, 0.016, 0.69, 0.105, 0.133, 0.116, 0.005, 0.382, 0.21, 0.247, 0.866, 0.471, -0.07, 0.175],
-        'Cluster 15: Preprocessor Macros & Metaprogramming': [-0.281, -0.31, -0.337, -0.494, 0.472, 0.254, 0.023, 0.01, 0.027, 0.279, 0.389, 0.064, 0.27, 0.009, 0.008, 0.002, 0.009, 0.287, 0.015, 0.073, 0.001, 0.072, 0.996, 0.145, 1.54, 0.064, 0.03, 0.0, 0.0, 0.007, 0.001, 3.338, 0.226, 0.014, 0.012, 0.002, 0.015, 0.511, 0.01, 0.001, 0.308, 0.023, 0.38, 0.009, 0.043, 0.013, 0.0, 0.124, -0.144, -0.129, 1.58, 0.064, -0.487, 0.044],
+        'Cluster 0: Modern Systems & Typed Interfaces': [0.069, 0.3, 0.329, 0.379, 0.965, 1.702, 0.584, 0.01, 0.159, 0.271, 0.606, 0.392, 2.16, 0.375, 0.005, 0.478, 0.111, 2.188, 3.4, 0.599, 0.16, 0.174, 0.104, 0.009, 0.223, 0.116, 0.004, 0.015, 0.037, 0.006, 0.041, 3.919, 0.0, 0.029, 0.007, 0.339, 0.083, 0.007, 1.066, 0.172, 0.426, 0.151, 1.382, 0.007, 0.005, 0.0, 0.0, 0.0, 0.002, 0.446, 0.358, 0.56, 0.0, 0.001, 0.015, 0.033, 0.0, 0.171, 0.0, 0.283, 0.427, 0.143, 0.136, 0.05, 0.012, 0.813, 0.487, 0.278],
+        'Cluster 1: I/O, UI & Scripting Automation': [0.11, -0.233, 0.122, 0.109, 0.418, 0.98, 0.815, 0.056, 0.295, -0.047, 0.533, 0.2, 0.323, 0.137, 0.118, 0.984, 0.356, 0.529, 0.561, 0.346, 0.147, 0.386, -0.109, 0.073, 0.084, 0.029, 0.001, 0.012, 0.063, 0.092, 0.081, 0.082, 0.002, 0.024, 0.35, 0.341, 0.684, 0.017, 0.25, 0.024, 0.535, 0.134, 0.512, 0.083, 0.009, 0.001, 0.002, 0.0, 0.003, 0.258, 0.305, 0.11, 0.0, 0.0, 0.034, 0.036, 0.0, 0.012, 0.0, 1.008, 0.54, -0.092, 0.33, 0.189, 0.025, 1.019, 0.298, 0.132],
+        'Cluster 2: Declarative Definitions & Data Structures': [-0.693, -0.697, -0.412, -0.371, 0.284, 0.047, 0.113, 0.012, 0.062, -0.212, 0.179, 0.114, 0.038, 0.041, 0.055, 0.107, 0.074, 0.305, 0.187, 0.014, 0.024, 0.09, -0.33, 0.075, 0.026, 0.008, 0.0, 0.01, 0.008, 0.029, 0.023, 0.082, 0.0, 0.003, 0.1, 0.075, 0.019, 0.004, 0.054, 0.005, 0.173, 0.015, 0.129, 0.016, 0.001, 0.0, 0.0, 0.0, 0.003, 0.045, 0.043, 0.043, 0.065, 0.0, 0.0, 0.001, 0.0, 0.002, 0.0, -0.147, -0.312, -0.465, 0.14, 0.075, 0.023, 0.012, -0.368, 0.054],
+        'Cluster 3: Raw Pointer & Memory Manipulation': [0.048, 0.011, -0.021, 0.061, 0.702, 0.435, 0.286, 0.032, 0.292, 0.41, 1.059, 0.101, 0.483, 0.073, 0.006, 0.098, 0.988, 0.063, 0.054, 0.013, 0.073, 0.602, 0.057, 0.811, 0.094, 0.083, 0.004, 0.005, 0.024, 0.111, 1.063, 4.942, 0.011, 0.013, 0.081, 0.564, 0.166, 0.01, 0.934, 0.054, 0.602, 0.113, 1.015, 0.065, 0.004, 0.0, 0.0, 0.0, 0.0, 0.268, 0.199, 0.051, 0.0, 0.0, 0.009, 0.07, 0.0, 0.019, 0.0, 0.629, 0.735, 0.397, 0.199, 0.59, 0.07, 1.333, 0.245, 0.092],
+        'Cluster 4: Object-Oriented Services & Testing': [0.099, 0.405, 0.355, 0.295, 0.2, 1.055, 0.494, 0.054, 0.273, 0.297, 0.271, 0.056, 0.769, 0.086, 3.752, 2.165, 0.257, 1.835, 3.063, 0.572, 0.062, 0.077, 0.502, 0.008, 0.082, 0.019, 0.001, 0.018, 0.154, 0.11, 0.002, 0.005, 0.0, 0.006, 0.073, 0.531, 0.083, 0.037, 0.367, 0.02, 1.302, 0.202, 0.247, 0.191, 0.018, -0.0, 0.0, 0.0, 0.005, 0.11, 0.323, 0.465, 0.001, 0.0, 0.025, 0.04, 0.0, 0.021, 0.0, 0.241, 0.295, 0.319, 1.162, 0.152, 0.022, 0.567, 0.091, 0.291],
+        'Cluster 5: High-Dependency C Headers': [-0.556, -0.46, -0.337, -0.498, 0.521, 0.186, 0.03, 0.01, 0.037, 0.067, 0.303, 0.068, 0.306, 0.009, 0.002, 0.006, 0.269, 0.041, 0.059, 0.002, 0.065, 0.87, -0.044, 1.572, 0.051, 0.038, 0.0, 0.0, 0.007, 0.011, 3.481, 0.934, 0.015, 0.002, 0.015, 0.37, 0.012, 0.002, 0.472, 0.019, 0.355, 0.009, 0.067, 0.016, 0.0, 0.0, 0.0, 0.0, 0.0, 0.156, 0.015, 0.006, 0.0, 0.0, 0.001, 0.003, 0.0, 0.001, 0.0, 0.06, -0.146, -0.174, 1.88, 0.826, 0.796, 0.056, -0.489, 0.032],
+        'Cluster 6: Async Logic & Concurrency Orchestration': [0.176, 0.899, 0.635, 0.734, 0.83, 2.699, 1.497, 0.016, 0.752, 0.777, 0.43, 0.129, 2.978, 5.221, 0.069, 0.838, 0.115, 2.804, 3.219, 0.624, 0.127, 0.326, 0.795, 0.11, 0.112, 0.068, 0.001, 0.025, 0.137, 0.035, 0.078, 0.137, -0.0, 0.024, 0.164, 1.002, 0.293, 0.083, 0.296, 0.135, 0.242, 0.134, 1.298, 0.267, 0.839, 0.043, 0.022, 0.0, 0.035, 4.379, 0.085, 2.661, 0.009, 0.028, 0.067, 0.018, 0.0, 0.379, 0.0, -0.073, 0.319, 0.659, 0.548, 0.688, 0.006, 0.591, 0.224, 0.219],
+        'Cluster 7: Documented Core Interfaces': [0.19, 0.522, 0.604, 0.549, 1.097, 0.988, 1.969, 0.01, 0.441, 0.609, 0.472, 0.123, 2.232, 0.19, 0.065, 1.1, 0.119, 2.643, 3.222, 0.61, 0.134, 0.431, 0.613, 0.152, 0.194, 0.032, 0.001, 0.016, 0.038, 0.038, 0.047, 0.012, 0.0, 0.136, 0.051, 0.759, 0.69, 0.014, 0.417, 0.106, 0.788, 0.159, 1.778, 0.221, 0.01, 0.006, 0.014, 0.0, 0.004, 0.501, 0.058, 0.452, 0.001, 0.001, 0.01, 0.006, 0.0, 0.08, 0.0, 0.229, 0.369, 0.573, 1.482, 0.404, 0.061, 0.859, 0.437, 0.185],
+        'Cluster 8: Universal Dependencies (The God Nodes)': [-0.554, -0.312, -0.303, -0.209, 0.338, 0.301, 0.194, 0.016, 0.156, 0.154, 0.199, 0.38, 0.383, 0.06, 0.182, 0.231, 0.159, 0.452, 0.244, 0.069, 0.039, 0.104, 0.056, 0.133, 0.038, 0.009, 0.0, 0.019, 0.031, 0.042, 0.125, 0.137, 0.001, 0.008, 0.095, 0.113, 0.067, 0.006, 0.069, 0.012, 0.323, 0.133, 0.2, 0.057, 0.006, 0.002, 0.003, 0.0, 0.002, 0.056, 0.092, 0.118, 0.0, 0.0, 0.003, 0.006, 0.0, 0.01, 0.0, -0.022, -0.192, -0.142, 4.167, 0.142, 0.174, 0.146, -0.288, 0.095],
+        'Cluster 9: Functional OOP & Async Logic': [-0.223, 0.099, 0.014, 0.036, 0.64, 0.484, 0.416, 0.022, 0.221, 0.284, 0.367, 0.196, 3.733, 0.12, 0.063, 0.272, 0.157, 0.66, 0.49, 0.165, 0.171, 0.179, 0.115, 0.214, 0.182, 0.05, 0.005, 0.011, 0.038, 0.022, 0.109, 0.197, 0.0, 0.018, 0.108, 0.389, 0.237, 0.006, 0.227, 0.038, 0.361, 0.065, 0.943, 0.046, 0.004, 0.001, 0.004, 0.0, 0.004, 0.374, 0.159, 0.113, 0.001, 0.0, 0.011, 0.015, 0.0, 0.007, 0.0, 0.21, 0.035, -0.053, 0.611, 0.237, 0.043, 0.406, 0.063, 0.122],
+        'Cluster 10: Object-Oriented Structures': [-0.167, -0.06, -0.038, -0.096, 0.32, 0.779, 0.907, 0.01, 0.193, 0.167, 0.385, 0.149, 1.645, 0.127, 0.313, 0.839, 0.129, 0.675, 0.902, 0.263, 0.046, 0.851, 0.202, 0.214, 0.076, 0.023, 0.001, 0.005, 0.038, 0.044, 0.726, 0.318, 0.006, 0.023, 0.041, 0.314, 0.279, 0.016, 0.167, 0.065, 0.409, 0.064, 0.543, 0.115, 0.011, 0.008, 0.005, 0.0, 0.003, 0.175, 0.119, 0.418, 0.001, 0.0, 0.009, 0.015, 0.0, 0.136, 0.0, 0.285, 0.129, 0.096, 9.148, 0.459, 0.224, 0.4, -0.158, 0.162],
+        'Cluster 11: Algorithmic & Defensive Logic': [-0.126, 0.152, 0.424, 0.428, 0.611, 0.707, 0.933, 0.039, 0.554, 0.061, 0.375, 0.117, 0.508, 3.656, 0.107, 1.575, 0.165, 1.555, 0.843, 0.333, 0.14, 0.179, 0.266, 0.125, 0.106, 0.026, 0.001, 0.015, 0.083, 0.071, 0.032, 0.069, -0.0, 0.034, 0.1, 0.48, 0.211, 0.017, 0.205, 0.031, 0.506, 0.108, 0.646, 0.126, 0.215, 0.001, 0.005, 0.0, 0.011, 0.77, 0.212, 0.319, 0.003, 0.004, 0.024, 0.019, 0.0, 0.023, 0.0, 0.216, 0.254, 0.219, 0.093, 0.134, 0.006, 0.656, 0.323, 0.142],
+        'Cluster 12: Documented Core Interfaces': [-0.051, 0.518, 0.349, 0.024, 1.512, 0.917, 0.306, 0.034, 0.147, 0.535, 0.867, 0.341, 1.568, 0.05, 0.004, 0.068, 0.87, 0.042, 0.407, 0.003, 0.062, 1.87, 0.307, 1.919, 0.2, 0.151, 0.002, 0.0, 0.035, 0.124, 3.985, 5.843, 0.023, 0.007, 0.048, 1.196, 0.055, 0.011, 1.056, 0.098, 1.261, 0.077, 0.54, 0.118, 0.0, 0.0, 0.0, 0.0, 0.0, 0.452, 0.14, 0.046, 0.0, 0.0, 0.011, 0.034, 0.0, 0.014, 0.0, -0.001, 0.186, 0.13, 3.393, 1.13, 1.267, 0.285, -0.22, 0.075],
+        'Cluster 13: Documented Native Headers': [0.022, -0.215, -0.145, -0.037, 0.335, 0.444, 0.303, 0.074, 0.262, 0.101, 1.054, 0.114, 0.547, 0.157, 0.007, 0.144, 0.893, 0.019, 0.091, 0.007, 0.065, 0.391, 0.074, 0.96, 0.112, 0.108, 0.001, 0.002, 0.03, 0.012, 0.844, 4.207, 0.008, 0.023, 0.249, 1.085, 0.178, 0.026, 0.49, 0.068, 0.605, 0.244, 0.468, 0.088, 0.003, 0.0, 0.0, 0.0, 0.001, 0.247, 0.384, 0.053, 0.0, 0.0, 0.015, 0.173, 0.0, 0.023, 0.0, 0.874, 0.811, 0.491, 0.219, 3.355, 0.113, 1.442, 0.072, 0.131],
+        'Cluster 14: UI Frameworks & View Layers': [0.104, 0.363, 0.459, 0.437, 0.443, 1.354, 1.056, 0.049, 0.755, 0.128, 0.704, 0.221, 0.996, 0.736, 0.692, 2.293, 0.575, 1.267, 1.363, 0.662, 0.099, 0.239, 0.324, 0.017, 0.157, 0.019, 0.003, 0.032, 0.302, 0.396, 0.029, 0.127, 0.0, 0.088, 0.286, 0.372, 0.546, 0.195, 0.356, 0.128, 1.054, 0.466, 0.691, 0.413, 0.115, 0.002, 0.003, 0.0, 0.005, 0.485, 0.928, 4.227, 0.001, 0.006, 0.062, 0.215, 0.0, 1.732, 0.0, 0.32, 0.434, 0.338, 0.813, 0.261, 0.049, 0.987, 0.339, 0.316],
+        'Cluster 15: Preprocessor Macros & Metaprogramming': [0.181, 0.248, -0.462, -0.438, 0.075, 0.277, 1.805, 0.123, 3.583, 0.283, 0.57, 0.068, 0.23, 0.05, 1.884, 0.068, 0.184, 0.982, 0.037, 0.053, 0.166, 1.415, 0.365, 0.292, 0.019, 0.025, 0.0, 0.029, 0.027, 0.045, 0.015, 0.01, 0.002, 0.011, 0.606, 0.047, 0.404, 0.081, 0.055, 0.081, 0.088, 0.436, 0.192, 0.105, 0.002, 0.0, 0.002, 0.0, 0.013, 0.141, 0.045, 0.15, 0.001, 0.0, 0.044, 0.003, 0.0, 0.045, 0.0, 0.541, 0.16, -0.082, 0.639, 0.072, 0.009, 0.396, -0.453, 0.06],
     }
 }
-
 # ------------------------------------------------------------------------------
 # 5. SCHEMA & EXPORT REGISTRY (Consumed by recorders & SQLite)
 # ------------------------------------------------------------------------------
@@ -11092,11 +11492,17 @@ RECORDING_SCHEMAS = {
         "memory_alloc", "inline_asm", "telemetry", "print_hits", "cast_hits", 
         "bailout_hits", "halt_hits", "bitwise_hits", "sync_locks", "freeze_hits", 
         "cleanup", "encapsulation", "listeners", "test_skip",
-        "indent_tabs", "indent_spaces",
+        "indent_tabs", "indent_spaces", "hardware_bridge", "cryptography",
+        
+        # --- NEW: DOMAIN INTENT SENSORS ---
+        "auth_middleware", "ipc_rpc_bridges", "feature_flags", "serialization_parsing", 
+        "regex_execution", "time_date_logic",
+
         # --- NEW: PASSIVE SECURITY LENS OBSERVERS ---
         "sec_heat_triggers", "sec_safety_neg", "sec_io", "sec_danger", 
         "sec_flux", "sec_graveyard", "sec_bitwise_hits", "sec_shadow_imports",
-        "sec_homoglyphs", "sec_private_info"
+        "sec_homoglyphs", "sec_private_info", "sec_extension_mismatch", "sec_entropy",
+        "sec_tainted_injection"
     ],
     "SAT_SCHEMA": [
         "name", "loc", "branch", "angle_x10", "args", "type_id", "control_flow_x1000", "mag_x10", "start_line", "end_line"

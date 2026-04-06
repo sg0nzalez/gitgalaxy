@@ -253,22 +253,22 @@ class LLMRecorder:
         # --- 4.5 ECOSYSTEM FINGERPRINT (MACHINE LEARNING ARCHETYPES) ---
         lines.append("## 4.5 ECOSYSTEM FINGERPRINT (THE 16 ARCHETYPES)")
         lines.append("> **AI CONTEXT:** Every file is mapped via Robust Euclidean Distance to one of 16 Machine Learning Archetypes based on pure structural DNA. This reveals the true architectural patterns of the repository, independent of language.")
-        lines.append("> * **Cluster 0: Annotated Service Layer** (Heavy use of decorators/annotations, class entities, API exposure).")
-        lines.append("> * **Cluster 1: Universal Dependencies (The God Nodes)** (Massive inbound popularity, core architectural anchors).")
-        lines.append("> * **Cluster 2: Inert Configuration & Data (The Dark Matter)** (JSON/YAML/Makefiles, declarative data, zero control flow).")
-        lines.append("> * **Cluster 3: High-Density Dependency Injection** (Heavy decorators, generic abstractions, encapsulated services).")
-        lines.append("> * **Cluster 4: Software Verification & Testing** (Unit test assertions, closures, defensive bounds).")
-        lines.append("> * **Cluster 5: Build, Infra & I/O Automation** (Shell/JS scripts, type-safety bypasses, external network/disk I/O).")
-        lines.append("> * **Cluster 6: High-Dependency C Headers** (Core `.h` files with high inbound popularity, pointer math, and macros).")
-        lines.append("> * **Cluster 7: Raw Pointer & Memory Manipulation** (The 'meat grinder'—extreme pointer arithmetic, complex control flow).")
-        lines.append("> * **Cluster 8: Test-Driven Annotated Services** (Decorators paired heavily with unit test assertions).")
-        lines.append("> * **Cluster 9: Functional OOP & Async Logic** (Closures, asynchronous execution, generic type abstractions).")
-        lines.append("> * **Cluster 10: Object-Oriented Structures** (Standard OOP, class entity declarations, generic types).")
-        lines.append("> * **Cluster 11: Algorithmic & Defensive Logic** (Highly constrained logic, massive control flow and defensive programming complexity).")
-        lines.append("> * **Cluster 12: Documented Core Interfaces** (Highly documented boundaries, encapsulated scopes, Go/Java/Python interfaces).")
-        lines.append("> * **Cluster 13: Documented Native Headers** (C/C++ headers with extensive documentation and pointer definitions).")
-        lines.append("> * **Cluster 14: UI Frameworks & View Layers** (Frontend visual DOM, React/Flutter components, heavy decorator usage).")
-        lines.append("> * **Cluster 15: Preprocessor Macros & Metaprogramming** (C/C++ macros, authorship metadata, compiler directives).")
+        lines.append("> * **Cluster 0: Modern Systems & Typed Interfaces** (Rust/Go logic heavily anchored by pointer arithmetic and generic type abstractions).")
+        lines.append("> * **Cluster 1: Algorithmic & Defensive Logic** (JS/Kotlin/TS files with extremely high control flow, defensive constructs, and closures).")
+        lines.append("> * **Cluster 2: Inert Configuration & Data (The Dark Matter)** (Massive JSON/JS/TS declarative blobs with virtually zero execution branches).")
+        lines.append("> * **Cluster 3: Raw Pointer & Memory Manipulation** (Core C/C++ meat-grinder logic dominated by pointer math and macros).")
+        lines.append("> * **Cluster 4: UI Frameworks & View Layers** (TS/JS UI components packed with generic types, closures, and decorators).")
+        lines.append("> * **Cluster 5: High-Dependency C Headers** (C/C++ macros and entity declarations that act as critical downstream dependencies).")
+        lines.append("> * **Cluster 6: Software Verification & Testing** (Python/C#/Java test suites overloaded with assertions and raw danger triggers like mocks/subprocesses).")
+        lines.append("> * **Cluster 7: Annotated Service Layer** (Java/Python backend services heavily decorated and encapsulated in private scopes).")
+        lines.append("> * **Cluster 8: Universal Dependencies (The God Nodes)** (TS/Make/JS files with insane downstream impact, acting as structural load-bearers).")
+        lines.append("> * **Cluster 9: Documented Core Interfaces** (Python/Java core logic heavily anchored by structured documentation blocks).")
+        lines.append("> * **Cluster 10: High-Impact Core Libraries** (JS/Python/TS files with massive downstream blast radius and high documentation).")
+        lines.append("> * **Cluster 11: Test-Driven Annotated Services** (Java/Python/TS classes with high test assertions and decorators).")
+        lines.append("> * **Cluster 12: Documented Native Headers** (C/C++ headers carrying extreme downstream gravity and documentation).")
+        lines.append("> * **Cluster 13: Core Algorithmic Native Logic** (C/C++ implementations with high upstream pulling power and pointer math).")
+        lines.append("> * **Cluster 14: Async Logic & Concurrency Orchestration** (TS/JS/Dart logic navigating intense concurrency, race conditions, and closures).")
+        lines.append("> * **Cluster 15: Build, Infra & I/O Automation** (JS/Shell scripts dedicated to I/O, networking boundaries, and bypassing type safety).")
         lines.append("")
         
         fingerprint = summary.get("ecosystem_fingerprint", {})
@@ -512,6 +512,45 @@ class LLMRecorder:
         # ==============================================================================
         lines.append("## 12. VISIBLE MATTER HITLIST (Top 25 Heaviest Files)")
         lines.append("> *Note: 'Mass' represents the file's total Structural Magnitude and gravitational pull within the system. It is independent of its Risk Profile. High mass implies high structural importance and centralization.*\n")
+        
+        # --- N-TH DEGREE GRAPH RESOLUTION ---
+        res_map = {}
+        for s in stars:
+            p_val = s.get("path", "")
+            name_val = s.get("name", Path(p_val).name)
+            stem_val = Path(p_val).stem
+            if p_val: res_map[p_val] = p_val
+            if name_val: res_map[name_val] = p_val
+            if stem_val: res_map[stem_val] = p_val
+
+        out_graph = {s.get("path", ""): [] for s in stars}
+        in_graph = {s.get("path", ""): [] for s in stars}
+
+        for s in stars:
+            curr = s.get("path", "")
+            for imp in s.get("raw_imports", []):
+                if imp in res_map:
+                    tgt = res_map[imp]
+                    if tgt != curr:
+                        if tgt not in out_graph[curr]: out_graph[curr].append(tgt)
+                        if curr not in in_graph[tgt]: in_graph[tgt].append(curr)
+
+        def get_nth_count(start, graph):
+            if start not in graph: return 0
+            vis = set()
+            q = [start]
+            while q:
+                n = q.pop(0)
+                for neighbor in graph.get(n, []):
+                    if neighbor not in vis:
+                        vis.add(neighbor)
+                        q.append(neighbor)
+            return len(vis)
+        
+        transitive_fragility = {s.get("path", ""): get_nth_count(s.get("path", ""), out_graph) for s in stars}
+        transitive_blast = {s.get("path", ""): get_nth_count(s.get("path", ""), in_graph) for s in stars}
+        # ------------------------------------
+
         sorted_stars = sorted(stars, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
         
         # DNA Bucketing Sets
@@ -540,13 +579,18 @@ class LLMRecorder:
                 lines.append(f"> **Stated Purpose:** *{purpose}*")
                 
             arch = tel.get('archetype', 'Unknown Archetype')
-            fingerprint = tel.get('archetype_fingerprint', {})
-            dist = fingerprint.get(arch, 'N/A')
-            lines.append(f"- **Archetype:** `{arch}` (Distance: {dist} IQR)")
+            g_drift = tel.get('global_drift', 'N/A')
+            l_arch = tel.get('local_archetype')
+            l_drift = tel.get('local_drift', 'N/A')
             
+            lines.append(f"- **Global Archetype:** `{arch}` (Drift: {g_drift} IQR)")
+            if l_arch and l_arch != "N/A":
+                lines.append(f"- **Local Micro-Species:** `{l_arch}` (Drift: {l_drift} IQR)")
+                
+            fingerprint = tel.get('archetype_fingerprint', {})
             if fingerprint:
-                fp_strs = [f"{k.split(':')[0]}: {v}" for k, v in sorted(fingerprint.items(), key=lambda x: x[1])]
-                lines.append(f"- **Full Fingerprint:** {', '.join(fp_strs)}")
+                fp_strs = [f"{k.split(':')[0]}: {v}" for k, v in sorted(fingerprint.items(), key=lambda x: x[1])[:3]]
+                lines.append(f"- **Top Global Matches:** {', '.join(fp_strs)}")
                 
             lines.append(f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%")
             lines.append(f"- **Risk Profile:** Cognitive Load ({cog}%), Tech Debt ({debt}%)")
@@ -571,7 +615,17 @@ class LLMRecorder:
                 for sat in sats:
                     lines.append(f"  * `{sat.get('name')}` (Impact: {sat.get('impact')} | LOC: {sat.get('loc')} | Branches: {sat.get('branch', 0)})")
             
-            lines.append("**Structural DNA (Raw Regex Hits):**")
+            # --- NEW MITIGATION TELEMETRY BLOCK ---
+            mitigations = tel.get("mitigation_telemetry", {})
+            active_mitigations = {k: v for k, v in mitigations.items() if v > 0}
+            if active_mitigations:
+                lines.append("**Contextual Mitigations & Amplifications:**")
+                for m_key, m_val in active_mitigations.items():
+                    clean_key = m_key.replace('_', ' ').title()
+                    lines.append(f"* *{clean_key}:* {m_val} instances")
+
+            # --- UPDATED STRING LABEL ---
+            lines.append("**Structural DNA (Net Mitigated Signals):**")
             lines.append(f"* *Structure:* {', '.join(struct_hits) if struct_hits else 'None'}")
             lines.append(f"* *Risk/State:* {', '.join(risk_hits) if risk_hits else 'None'}")
             lines.append(f"* *Architecture:* {', '.join(arch_hits) if arch_hits else 'None'}")
@@ -580,44 +634,64 @@ class LLMRecorder:
             # Dependency Graph Mapping (Named Edges)
             outbound = s.get("raw_imports", [])
             inbound_count = tel.get("popularity", 0)
+            total_upstream = transitive_fragility.get(p, 0)
+            total_downstream = transitive_blast.get(p, 0)
             
             out_names = ", ".join([Path(x).name for x in outbound[:8]]) + ("..." if len(outbound) > 8 else "")
             
             lines.append(f"* *Dependencies:*")
-            lines.append(f"  * `Imports ({len(outbound)}):` {out_names if out_names else 'None'}")
-            lines.append(f"  * `Imported By ({inbound_count}):` {'(Excluded from Brief to save tokens)' if inbound_count > 0 else 'None (Orphan / Entrypoint)'}")
+            lines.append(f"  * `Imports (Direct: {len(outbound)} | Total Upstream: {total_upstream}):` {out_names if out_names else 'None'}")
+            lines.append(f"  * `Imported By (Direct: {inbound_count} | Total Downstream: {total_downstream}):` {'(Excluded from Brief to save tokens)' if inbound_count > 0 else 'None (Orphan / Entrypoint)'}")
             lines.append("")
         
         # ==============================================================================
-        # --- 13. ARCHITECTURAL DRIFT (Chimeric / Boundary Files) ---
+        # --- 13. BIAXIAL ANOMALY & ARCHITECTURAL DRIFT ---
         # ==============================================================================
-        lines.append("## 13. ARCHITECTURAL DRIFT (Chimeric / Boundary Files)")
-        lines.append("> **AI CONTEXT:** These files are 'drifting' between multiple architectural patterns. Their Euclidean distance to their primary archetype is almost identical (within 0.9 IQR) to a secondary archetype. This usually indicates a violation of the Single Responsibility Principle, where a file is trying to do two vastly different jobs simultaneously.\n")
+        lines.append("## 13. BIAXIAL ANOMALY & ARCHITECTURAL DRIFT")
+        lines.append("> **AI CONTEXT:** Pay close attention to 'Trojan' files. These files blend in globally (Low Global Drift), but violently violate the specific physics of their native programming language (High Local Drift). 'Chimeric' files sit perfectly between two global archetypes (Delta <= 0.9 IQR), indicating a violation of the Single Responsibility Principle.\n")
         
         drifting_files = []
+        trojan_files = []
+        
         for s in stars:
             tel = s.get("telemetry", {})
-            fingerprint = tel.get("archetype_fingerprint", {})
             
-            # We need at least 2 distances to calculate a delta
+            # 1. Biaxial Trojan Check
+            g_drift = tel.get("global_drift", 0.0)
+            l_drift = tel.get("local_drift", 0.0)
+            
+            if g_drift > 0 and l_drift > 0:
+                biaxial_ratio = l_drift / g_drift
+                if biaxial_ratio > 1.5:
+                    trojan_files.append({
+                        "star": s, "ratio": biaxial_ratio, "g_drift": g_drift, "l_drift": l_drift,
+                        "g_arch": tel.get("archetype"), "l_arch": tel.get("local_archetype")
+                    })
+            
+            # 2. Chimeric Global Drift Check
+            fingerprint = tel.get("archetype_fingerprint", {})
             if len(fingerprint) >= 2:
-                # Sort archetypes by distance ascending (lowest distance = best match)
                 sorted_archs = sorted(fingerprint.items(), key=lambda x: x[1])
-                
                 primary_arch, primary_dist = sorted_archs[0]
                 secondary_arch, secondary_dist = sorted_archs[1]
-                
-                # Calculate the tension between the top two identities
                 delta = secondary_dist - primary_dist
                 
-                # If the gap is less than or equal to 0.9 IQR, it's a chimeric file
                 if delta <= 0.9:
                     drifting_files.append({
-                        "star": s,
-                        "delta": delta,
+                        "star": s, "delta": delta,
                         "primary": (primary_arch, primary_dist),
                         "secondary": (secondary_arch, secondary_dist)
                     })
+        
+        if trojan_files:
+            lines.append("### 🚨 Biaxial Anomalies (Potential Trojans / Severe Language Violations)")
+            trojan_files.sort(key=lambda x: x["ratio"], reverse=True)
+            for t in trojan_files[:5]:
+                s = t["star"]
+                lines.append(f"- `{s.get('path')}` ({s.get('lang_id', 'UNK').upper()}) | **Biaxial Ratio: {round(t['ratio'], 2)}x**")
+                lines.append(f"  * **Global Mask:** `{t['g_arch']}` (Drift: {t['g_drift']} IQR)")
+                lines.append(f"  * **Local Reality:** `{t['l_arch']}` (Drift: {t['l_drift']} IQR)")
+            lines.append("")
                     
         if drifting_files:
             from collections import defaultdict
@@ -711,6 +785,9 @@ class LLMRecorder:
                     ownership TEXT,
                     popularity INTEGER,
                     archetype TEXT,
+                    global_drift REAL,
+                    local_archetype TEXT,
+                    local_drift REAL,
                     {risk_cols}
                 )
             ''')
@@ -800,15 +877,17 @@ class LLMRecorder:
                         path, filename, constellation, language, lock_tier, 
                         total_loc, coding_loc, doc_loc, file_impact, 
                         control_flow_ratio, author_distribution, ownership_entropy,
-                        raw_churn_freq, cog_raw, ownership, popularity, archetype,
+                        raw_churn_freq, cog_raw, ownership, popularity, 
+                        archetype, global_drift, local_archetype, local_drift,
                         {", ".join(self.RISK_SCHEMA)}
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
                 ''', (
                     p, Path(p).name, c_name, star.get("lang_id"), star.get("lock_tier"), 
                     star.get("total_loc"), star.get("coding_loc"), star.get("doc_loc", 0), star.get("file_impact"),
                     tel.get("control_flow_ratio"), tel.get("author_distribution"), tel.get("ownership_entropy"),
-                    tel.get("raw_churn_freq"), tel.get("densities", {}).get("cog_raw"), tel.get("ownership"), pop_count, tel.get("archetype", "Unknown"),
+                    tel.get("raw_churn_freq"), tel.get("densities", {}).get("cog_raw"), tel.get("ownership"), pop_count, 
+                    tel.get("archetype", "Unknown"), tel.get("global_drift", 0.0), tel.get("local_archetype", "N/A"), tel.get("local_drift", 0.0),
                     *rv
                 ))
                 

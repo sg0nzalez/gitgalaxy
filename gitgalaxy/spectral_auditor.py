@@ -318,6 +318,7 @@ class SpectralAuditor:
                 name = s.get("name", "unknown")
                 path = s.get("path", "unknown")
                 is_blended = self._is_highly_blended(s)
+                is_minified = s.get("is_minified", False)
                 
                 # Extract Bayesian telemetry from Phase 1 OR fallback to root meta keys
                 telemetry = s.get("telemetry", {})
@@ -326,7 +327,7 @@ class SpectralAuditor:
                 confidence = telemetry.get("identity_confidence", s.get("intensity", 0.0))
                 
                 # THE 50/0 LAW: Hard Floor check for data dumps disguised as code
-                if loc > 50 and rho == 0:
+                if loc > 50 and rho == 0 and not is_minified:
                     is_outlier = True
                     relegation_reason = f"50/0 Law (LOC: {loc}, Signals: 0)"
                     
@@ -334,7 +335,7 @@ class SpectralAuditor:
                 # Normal human code rarely sustains > 1.5 logic hits per physical line. 
                 # If a file sustains > 3.0 across 30+ lines, it is mathematically guaranteed 
                 # to be minified, obfuscated, or packed with embedded binaries.
-                elif loc > 30 and rho > 3.0:
+                elif loc > 30 and rho > 3.0 and not is_minified:
                     is_outlier = True
                     relegation_reason = f"Supernova Guard (Impossible Density: {rho:.2f} hits/line)"
                     

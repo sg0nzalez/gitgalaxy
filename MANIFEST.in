@@ -1,0 +1,8 @@
+prune archive
+prune airgap_observatory
+prune docs
+prune docs_build
+prune site
+prune updated_results
+prune updated_results_expanded_story
+prune utilities
