@@ -6,6 +6,7 @@ import logging
 import math
 import numpy as np
 from pathlib import Path
+from collections import Counter
 
 try:
     import pandas as pd
@@ -136,6 +137,8 @@ class SecurityAuditor:
 
     def _construct_feature_matrix(self, stars):
         """Reconstructs the Pandas DataFrame exactly as build_master_db.py did."""
+        
+# --- 1. BUILD THE ROW DICTIONARY ---
         rows = []
         for s in stars:
             tel = s.get("telemetry", {})
@@ -204,6 +207,12 @@ class SecurityAuditor:
             for col_name, val in contextual:
                 raw_density = (val / safe_denom) * 100.0
                 row[f"log_density_{col_name}"] = np.log1p(raw_density)
+
+            # Inject the live repo-level context already calculated by the Signal Processor
+            row["assigned_macro_species"] = tel.get("repo_macro_species", 0)
+            row["primary_z_score"] = tel.get("repo_z_score", 0.0)
+            for i in range(11):
+                row[f"dist_to_{i}"] = tel.get(f"dist_to_{i}", 0.0)
 
             rows.append(row)
 

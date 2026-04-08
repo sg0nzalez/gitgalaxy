@@ -10707,6 +10707,17 @@ PHYSICS_CONSTANTS = {
     "MASSIVE_FILE_THRESHOLD": 300, # Lines of code where tests lose efficacy
 }
 
+# ------------------------------------------------------------------------------
+# 4.1 STATIC ARCHETYPES (Dark Matter Labels)
+# Single Source of Truth for files that bypass active ML logic processing.
+# ------------------------------------------------------------------------------
+STATIC_ARCHETYPES = {
+    "literature": "Static: Literature & Documentation",
+    "data": "Static: Declarative Data & Configurations",
+    "minified": "Static: Minified & Vendor Opaque Mass",
+    "unknown": "Static: Unmapped Dark Matter"
+}
+
 # ==============================================================================
 # MACHINE LEARNING CONTROL KNOBS
 # ==============================================================================
@@ -11453,9 +11464,63 @@ ML_INFERENCE_BRAIN = {
 # 4.9 REPOSITORY MACRO-SPECIES BRAIN (K-Means Centroids & Z-Scores)
 # Used by the Security Auditor to detect repository-level camouflage on the fly.
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 4.9 REPOSITORY MACRO-SPECIES BRAIN (K-Means Centroids & Z-Scores)
+# Used by the Security Auditor to detect repository-level camouflage on the fly.
+# ------------------------------------------------------------------------------
 REPO_MACRO_BRAIN = {
-    # PASTE YOUR EXACT DICTIONARY OUTPUT HERE. 
-    # It should contain "k_clusters", "features", "centroids", and "z_score_params".
+    "k_clusters": 11,
+    "cluster_names": [
+        "Cluster 0: Mixed-Stack Web & Native Applications",
+        "Cluster 1: Data-Driven Configs & Resource Manifests",
+        "Cluster 2: Native C/C++ Libraries & Media Codecs",
+        "Cluster 3: Object-Oriented Applications & CLI Tools",
+        "Cluster 4: OS Kernels & Low-Level Runtimes",
+        "Cluster 5: Frontend UI Dashboards & Design Systems",
+        "Cluster 6: API Servers, Scripting & Protocol Wrappers",
+        "Cluster 7: Dedicated Test Suites & Verification Frameworks",
+        "Cluster 8: Documented Core Libraries & Web Plugins",
+        "Cluster 9: Native Parsers & Systems Interfaces",
+        "Cluster 10: DevOps, CI/CD & Build Automation"
+    ],
+    "features": [
+        "Cluster 0: Modern Systems & Typed Interfaces",
+        "Cluster 1: I/O, UI & Scripting Automation",
+        "Cluster 2: Declarative Definitions & Data Structures",
+        "Cluster 3: Raw Pointer & Memory Manipulation",
+        "Cluster 4: Object-Oriented Services & Testing",
+        "Cluster 5: High-Dependency C Headers",
+        "Cluster 6: Async Logic & Concurrency Orchestration",
+        "Cluster 7: Documented Core Interfaces",
+        "Cluster 8: Universal Dependencies (The God Nodes)",
+        "Cluster 9: Functional OOP & Async Logic"
+    ],
+    "centroids": {
+        "Cluster 0": [0.06122, 0.21350, 0.46573, 0.02103, 0.09001, 0.03331, 0.03181, 0.04032, 0.01349, 0.02957],
+        "Cluster 1": [0.01036, 0.02175, 0.93305, 0.00381, 0.01246, 0.00207, 0.00238, 0.00432, 0.00128, 0.00852],
+        "Cluster 2": [0.47656, 0.00443, 0.07831, 0.42701, 0.00343, 0.00320, 0.00073, 0.00199, 0.00054, 0.00380],
+        "Cluster 3": [0.00315, 0.10842, 0.10666, 0.00138, 0.61245, 0.00919, 0.03581, 0.08235, 0.02367, 0.01690],
+        "Cluster 4": [0.06406, 0.00153, 0.07003, 0.84750, 0.00046, 0.01562, 0.00004, 0.00036, 0.00012, 0.00030],
+        "Cluster 5": [0.00022, 0.01488, 0.09141, 0.00000, 0.05628, 0.01681, 0.77169, 0.02749, 0.00186, 0.01937],
+        "Cluster 6": [0.01588, 0.75902, 0.08921, 0.00080, 0.04577, 0.03752, 0.00364, 0.02699, 0.01031, 0.01086],
+        "Cluster 7": [0.00348, 0.06136, 0.07509, 0.00010, 0.03745, 0.00550, 0.00025, 0.01619, 0.78741, 0.01316],
+        "Cluster 8": [0.00654, 0.11979, 0.12918, 0.00047, 0.09218, 0.08883, 0.03246, 0.49588, 0.01944, 0.01523],
+        "Cluster 9": [0.79103, 0.02402, 0.07278, 0.09511, 0.00368, 0.00303, 0.00019, 0.00377, 0.00100, 0.00540],
+        "Cluster 10": [0.02275, 0.06705, 0.16508, 0.00217, 0.02277, 0.00153, 0.00396, 0.03294, 0.00900, 0.67274]
+    },
+    "z_score_params": {
+        "Cluster 0": {"mean": 0.31414, "std": 0.09816},
+        "Cluster 1": {"mean": 0.10190, "std": 0.07223},
+        "Cluster 2": {"mean": 0.14604, "std": 0.08159},
+        "Cluster 3": {"mean": 0.29423, "std": 0.08894},
+        "Cluster 4": {"mean": 0.15940, "std": 0.09244},
+        "Cluster 5": {"mean": 0.23232, "std": 0.10655},
+        "Cluster 6": {"mean": 0.21321, "std": 0.09056},
+        "Cluster 7": {"mean": 0.22170, "std": 0.10794},
+        "Cluster 8": {"mean": 0.29771, "std": 0.09502},
+        "Cluster 9": {"mean": 0.17183, "std": 0.09192},
+        "Cluster 10": {"mean": 0.28172, "std": 0.09831}
+    }
 }
 
 

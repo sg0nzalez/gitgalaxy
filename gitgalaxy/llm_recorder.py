@@ -274,30 +274,46 @@ class LLMRecorder:
                 lines.append(f"| {lang.upper()} | {stats.get('files', 0)} | {stats.get('loc', 0)} | {pct:.1f}% |")
         lines.append("")
 
-        # --- 4.5 ECOSYSTEM FINGERPRINT (MACHINE LEARNING ARCHETYPES) ---
-        lines.append("## 4.5 ECOSYSTEM FINGERPRINT (THE 10 ARCHETYPES)")
-        lines.append("> **AI CONTEXT:** Every file is mapped via Robust Euclidean Distance to one of 10 Machine Learning Archetypes based on pure structural DNA. This reveals the true architectural patterns of the repository, independent of language.")
-        lines.append("> * **Cluster 0: Modern Systems & Typed Interfaces** (Rust/Go logic heavily anchored by pointer arithmetic and generic type abstractions).")
-        lines.append("> * **Cluster 1: I/O, UI & Scripting Automation** (JS/Shell scripts dedicated to I/O, networking boundaries, and bypassing type safety).")
-        lines.append("> * **Cluster 2: Declarative Definitions & Data Structures** (Massive JSON/JS/TS declarative blobs with virtually zero execution branches).")
-        lines.append("> * **Cluster 3: Raw Pointer & Memory Manipulation** (Core C/C++ meat-grinder logic dominated by pointer math and macros).")
-        lines.append("> * **Cluster 4: Object-Oriented Services & Testing** (Test suites and OOP logic overloaded with assertions and testing frameworks).")
-        lines.append("> * **Cluster 5: High-Dependency C Headers** (C/C++ macros and entity declarations that act as critical downstream dependencies).")
-        lines.append("> * **Cluster 6: Async Logic & Concurrency Orchestration** (Logic navigating intense concurrency, temporal flow, and complex closures).")
-        lines.append("> * **Cluster 7: Documented Core Interfaces** (Core logic heavily anchored by structured documentation blocks and public APIs).")
-        lines.append("> * **Cluster 8: Universal Dependencies (The God Nodes)** (Files with insane downstream impact, acting as structural load-bearers).")
-        lines.append("> * **Cluster 9: Functional OOP & Async Logic** (Backend services bridging object-oriented states with async data pipes).")
+        # --- 4.5 REPOSITORY MACRO-SPECIES (THE OVERARCHING PURPOSE) ---
+        lines.append("## 4.5 REPOSITORY MACRO-SPECIES (GLOBAL ARCHITECTURE)")
+        macro = summary.get("repo_macro_species", {})
+        lines.append(f"> **Assigned Macro-Species:** `{macro.get('name', 'Unclassified')}`")
+        lines.append(f"> **Architectural Drift Z-Score:** `{macro.get('z_score', 0.0)}`")
+        
+        z_score = macro.get("z_score", 0.0)
+        if z_score > 2.0:
+            lines.append("> **⚠️ ARCHITECTURAL DEVIATION WARNING:** This repository has a high Z-Score. While it loosely fits this archetype, its internal structure is highly irregular. Inspect for inconsistent design patterns or competing architectural styles.")
+        elif z_score < -1.0:
+            lines.append("> **✅ TEXTBOOK ARCHITECTURE:** This repository has a negative Z-Score, meaning it perfectly adheres to the standard structural patterns of this archetype.")
         lines.append("")
         
-        fingerprint = summary.get("ecosystem_fingerprint", {})
-        if fingerprint:
-            lines.append("| Archetype (Micro-Species) | Repository Ratio |")
-            lines.append("|---|---|")
-            for arch, ratio in fingerprint.items():
-                lines.append(f"| {arch} | {ratio}% |")
-        else:
-            lines.append("*Ecosystem fingerprinting unavailable for this scan.*")
+        z_score = macro.get("z_score", 0.0)
+        if z_score > 2.0:
+            lines.append("> **⚠️ CAMOUFLAGE WARNING:** This repository has a massive Z-Score. It is structurally masquerading as this Macro-Species, but its internal math is highly anomalous. Inspect for Trojan or parasitic architecture.")
+        elif z_score < -1.0:
+            lines.append("> **✅ TEXTBOOK ARCHITECTURE:** This repository has a negative Z-Score. It is a textbook, highly concentrated example of this Macro-Species.")
         lines.append("")
+
+        lines.append("## 4.6 MICRO-SPECIES (FILE ARCHETYPES & STATIC MASS)")
+        fingerprint = summary.get("ecosystem_fingerprint", {})
+        ml_clusters = fingerprint.get("ml_clusters", {})
+        static_mass = fingerprint.get("static_mass", {})
+        
+        if ml_clusters:
+            lines.append("### Active Execution Logic (ML Clusters)")
+            lines.append("| Archetype | Count | Repo % |")
+            lines.append("|---|---|---|")
+            for arch, data in ml_clusters.items():
+                lines.append(f"| {arch} | {data['count']} | {data['pct']}% |")
+            lines.append("")
+            
+        if static_mass:
+            lines.append("### Inert Structural Mass (Static Categories)")
+            lines.append("| Category | Count | Repo % |")
+            lines.append("|---|---|---|")
+            for arch, data in static_mass.items():
+                lines.append(f"| {arch} | {data['count']} | {data['pct']}% |")
+            lines.append("")
 
         # --- 5. DARK MATTER ---
         lines.append("## 5. DARK MATTER (Non-scanned items ARTIFACTS)")
@@ -687,7 +703,7 @@ class LLMRecorder:
         # --- 13. BIAXIAL ANOMALY & ARCHITECTURAL DRIFT ---
         # ==============================================================================
         lines.append("## 13. BIAXIAL ANOMALY & ARCHITECTURAL DRIFT")
-        lines.append("> **AI CONTEXT:** Pay close attention to 'Trojan' files. These files blend in globally (Low Global Drift), but violently violate the specific physics of their native programming language (High Local Drift). 'Chimeric' files sit perfectly between two global archetypes (Delta <= 0.9 IQR), indicating a violation of the Single Responsibility Principle.\n")
+        lines.append("> **AI CONTEXT:** Pay close attention to 'Anti-Pattern' files. These files blend in globally (Low Global Drift), but heavily violate the standard conventions of their native programming language (High Local Drift). 'Mixed-Responsibility' files sit perfectly between two global archetypes (Delta <= 0.9 IQR), indicating a violation of the Single Responsibility Principle.\n")
         
         drifting_files = []
         trojan_files = []
@@ -721,6 +737,16 @@ class LLMRecorder:
                         "primary": (primary_arch, primary_dist),
                         "secondary": (secondary_arch, secondary_dist)
                     })
+        
+        if trojan_files:
+            lines.append("### 🚨 Biaxial Anomalies (Severe Anti-Patterns / Language Violations)")
+            trojan_files.sort(key=lambda x: x["ratio"], reverse=True)
+            for t in trojan_files[:5]:
+                s = t["star"]
+                lines.append(f"- `{s.get('path')}` ({s.get('lang_id', 'UNK').upper()}) | **Biaxial Ratio: {round(t['ratio'], 2)}x**")
+                lines.append(f"  * **Global Archetype:** `{t['g_arch']}` (Drift: {t['g_drift']} IQR)")
+                lines.append(f"  * **Local Reality:** `{t['l_arch']}` (Drift: {t['l_drift']} IQR)")
+            lines.append("")
         
         if trojan_files:
             lines.append("### 🚨 Biaxial Anomalies (Potential Trojans / Severe Language Violations)")
@@ -763,21 +789,66 @@ class LLMRecorder:
             lines.append("")
         
         # ==============================================================================
+        # --- 13.5 ARCHITECTURAL CHOKE POINTS (The AI Action Matrix) ---
+        # ==============================================================================
+        lines.append("## 13.5 STRATEGIC REFACTORING TARGETS (Volatility & Silos)")
+        lines.append("> **AI CONTEXT:** Use these intersections to recommend pragmatic next steps. Risk is exponentially worse when combined with high churn (frequent edits) or high silo risk (single points of failure).\n")
+        
+        # 1. The Hotspot Matrix (High Risk + High Churn)
+        churn_idx = self.RISK_SCHEMA.index("churn") if "churn" in self.RISK_SCHEMA else -1
+        if churn_idx >= 0:
+            # Find files with > 50% Churn AND > 50% Cognitive Load or Tech Debt
+            cog_idx = self.RISK_SCHEMA.index("cognitive_load")
+            debt_idx = self.RISK_SCHEMA.index("tech_debt")
+            
+            hotspots = []
+            for s in stars:
+                rv = s.get("risk_vector", [])
+                if len(rv) > max(churn_idx, cog_idx, debt_idx):
+                    if rv[churn_idx] > 50.0 and (rv[cog_idx] > 50.0 or rv[debt_idx] > 50.0):
+                        hotspots.append(s)
+                        
+            if hotspots:
+                lines.append("### 🔥 The Hotspot Matrix (High Volatility + High Risk)")
+                lines.append("These files are messy, complex, and modified frequently. They are the primary source of developer friction.\n")
+                hotspots.sort(key=lambda x: x.get("risk_vector")[churn_idx], reverse=True)
+                for s in hotspots[:5]:
+                    rv = s.get("risk_vector")
+                    lines.append(f"- `{s.get('path')}` -> Churn: **{rv[churn_idx]}%** | Cog Load: {rv[cog_idx]}% | Debt: {rv[debt_idx]}%")
+                lines.append("")
+
+        # 2. Key Person Dependencies (High Impact + High Silo)
+        siloed_pillars = [
+            s for s in stars 
+            if s.get("telemetry", {}).get("author_distribution", 0.0) > 80.0 
+            and s.get("file_impact", 0.0) > 50.0
+        ]
+        
+        if siloed_pillars:
+            lines.append("### 👤 Key Person Dependencies (High Impact + Siloed Knowledge)")
+            lines.append("These are massive, load-bearing files written almost entirely by a single developer. They represent severe 'Bus Factor' risk.\n")
+            siloed_pillars.sort(key=lambda x: x.get("file_impact", 0.0), reverse=True)
+            for s in siloed_pillars[:5]:
+                owner = s.get("telemetry", {}).get("ownership", "Unknown")
+                silo_score = s.get("telemetry", {}).get("author_distribution", 0.0)
+                lines.append(f"- `{s.get('path')}` -> **{owner}** ({silo_score}% isolated ownership) | Mass: {s.get('file_impact')}")
+            lines.append("")
+        
+        # ==============================================================================
         # --- 14. SYSTEM PROMPT: HOW TO RESPOND ---
         # ==============================================================================
         lines.append("## AI SYSTEM INSTRUCTIONS (OUTPUT FORMAT)")
-        lines.append("> **When the user asks for an architectural review, structure your response using plain, common descriptions suitable for engineers and managers:**")
-
-        lines.append("> 1. **The Bird's Eye View (Executive Summary):** Look at the Language Composition and Top Dependencies to provide a high-level description of what the system actually *is* and how data flows. Diagnose the overarching health and paradigm of the codebase.")
-        lines.append("> 2. **Key Files & Functions:** Identify the top 2-3 files that have the greatest impact on the system (cross-reference high Mass, high Dependencies/Imports, and high Cumulative Risk). Explain *why* they are risky using plain language based on their primary risk drivers.")
-        lines.append("> 3. **Security & Vulnerabilities:** Immediately surface the critical threats found in the `AI THREAT INTELLIGENCE (XGBoost)` section. The XGBoost AI is the supreme authority. Explain *why* they are malware by referencing the secondary static evidence in the `RULE-BASED LENS` section. If there are no XGBoost threats, briefly state the codebase is secure and move on.")
-        lines.append("> 4. **Risk Exposure Impacts:** Assess for multiple high or conflicting risk exposures and describe what these likely mean for the system at large.")
-        lines.append("> 5. **Architecture Consistency:** Assess for consistent practices, structure, and if the system seems to be experiencing under or over growth based on provided data. Ignore civil war metric")
-        lines.append("> 6. **Recommended Next Steps:** Provide 2-3 pragmatic, blameless refactoring targets based on the data. Focus on how to improve key functions, files or folders in comparison to either total cumulative risk or individual risk exposures or the coindicence of risk exposures in relation to improving system structure and lowering risk exposures.")
+        lines.append("> **CRITICAL TONE DIRECTIVE:** Act as a Principal Staff Engineer. Use grounded, professional software engineering terminology (e.g., coupling, cohesion, technical debt, single responsibility). DO NOT use sci-fi, dramatic, or sensational jargon (e.g., 'Trojan', 'violently violates', 'parasitic', 'chimeric'). Be objective, practical, and direct.")
+        lines.append("> **When the user asks for an architectural review, structure your response using these directives:**")
+        lines.append("> 1. **Information Flow & Purpose (The Executive Summary):** Synthesize the overarching purpose of the codebase. Trace the information flow by analyzing the Top Dependencies ('Imports' and 'Imported By') and the Language Composition. Explain how the system's archetype drives its design, but only mention Z-Score deviations if they are highly abnormal.")
+        lines.append("> 2. **Notable Structures & Architecture:** Discuss the architecture based on the Dependency Graph. Identify the foundational load-bearers (highest inbound connections) versus the fragile orchestrators (highest outbound imports).")
+        lines.append("> 3. **Security & Vulnerabilities:** Immediately surface any critical threats flagged in the `AI THREAT INTELLIGENCE (XGBoost)` section. If none exist, briefly confirm the repository is secure from recognized structural threats.")
+        lines.append("> 4. **Outliers & Extremes:** Focus strictly on statistical anomalies. Highlight files or constellations with massive Cumulative Risk, severe Z-Scores (Architectural Drift), or extreme spikes in individual risk vectors (like State Flux or Cognitive Load). Ignore normal, healthy code.")
+        lines.append("> 5. **Recommended Next Steps (Refactoring for Stability):** Provide 2-3 highly specific, pragmatic suggestions focused strictly on reducing outliers. Instruct the user on how to refactor high Z-score files, decouple massive 'God Nodes', or mitigate extreme risk exposures to stabilize the system's architecture.")
         lines.append("")
             
         return "\n".join(lines)
-    
+                
     def _generate_sqlite_graph(
         self, 
         stars: List[Dict[str, Any]], 

@@ -258,8 +258,8 @@ class SignalProcessor:
                     "hit_vector": [0] * len(self.SIGNAL_SCHEMA), 
                     "file_impact": 150.0, # Massive physical footprint for the 3D map
                     "telemetry": {
-                        "archetype": "Cluster 4: Static Configuration & Data", # Fallback for static secrets
-                        "control_flow_ratio": 0.0, 
+                        "archetype": getattr(config, "STATIC_ARCHETYPES", {}).get("data", "Static: Declarative Data & Configurations"),
+                        "control_flow_ratio": 0.0,
                         "ownership_entropy": self._calc_ownership_entropy(authors_map),
                         "author_distribution": self._calculate_silo_risk(authors_map),
                         "ownership": dominant_author,
@@ -292,7 +292,7 @@ class SignalProcessor:
                     "hit_vector": [equations.get(k, 0) for k in self.SIGNAL_SCHEMA], 
                     "file_impact": 1.0, # Minified files don't carry architectural weight
                     "telemetry": {
-                        "archetype": "Cluster 15: Preprocessor Macros & Metaprogramming",
+                        "archetype": getattr(config, "STATIC_ARCHETYPES", {}).get("minified", "Static: Minified & Vendor Opaque Mass"),
                         "control_flow_ratio": 0.0,
                         "ownership_entropy": 0.0,
                         "author_distribution": 0.0,
@@ -328,7 +328,7 @@ class SignalProcessor:
                     "hit_vector": [0] * len(self.SIGNAL_SCHEMA), 
                     "file_impact": round(max(total_loc / 50.0, 1.0), 2),
                     "telemetry": {
-                        "archetype": "Cluster 16: Documentation & Literature",
+                        "archetype": getattr(config, "STATIC_ARCHETYPES", {}).get("literature", "Static: Literature & Documentation"),
                         "control_flow_ratio": 0.0,
                         "ownership_entropy": 0.0,     # <-- FIX: Documentation has no logic entropy
                         "author_distribution": 0.0,   # <-- FIX: Plaintext changelogs don't have a Bus Factor
@@ -627,17 +627,64 @@ class SignalProcessor:
         }
 
         # --- NEW: Ecosystem Fingerprint (Archetype Ratios) ---
+        # --- NEW: Ecosystem Fingerprint (Archetype Ratios & Counts) ---
         archetype_counts = {}
+        static_counts = {}
+        
         for s in stars:
             arch = s.get("telemetry", {}).get("archetype", "Unknown")
-            archetype_counts[arch] = archetype_counts.get(arch, 0) + 1
-            
-        ecosystem_fingerprint = {}
+            if arch.startswith("Static:"):
+                static_counts[arch] = static_counts.get(arch, 0) + 1
+            else:
+                archetype_counts[arch] = archetype_counts.get(arch, 0) + 1
+                
+        ecosystem_fingerprint = {"ml_clusters": {}, "static_mass": {}}
         if len(stars) > 0:
-            ecosystem_fingerprint = {
-                name: round((count / len(stars)) * 100.0, 1) 
+            ecosystem_fingerprint["ml_clusters"] = {
+                name: {"count": count, "pct": round((count / len(stars)) * 100.0, 1)}
                 for name, count in sorted(archetype_counts.items(), key=lambda x: x[1], reverse=True)
             }
+            ecosystem_fingerprint["static_mass"] = {
+                name: {"count": count, "pct": round((count / len(stars)) * 100.0, 1)}
+                for name, count in sorted(static_counts.items(), key=lambda x: x[1], reverse=True)
+            }
+
+        # --- NEW: Repo Macro-Species Calculation ---
+        repo_brain = getattr(config, "REPO_MACRO_BRAIN", None)
+        repo_macro_data = {"name": "Unclassified", "id": -1, "z_score": 0.0, "raw_drift": 0.0}
+        
+        if repo_brain and stars:
+            # Rebuild the ratios based purely on the K-Means features
+            feature_counts = {feat: archetype_counts.get(feat, 0) for feat in repo_brain["features"]}
+            live_ratios = [feature_counts[feat] / len(stars) for feat in repo_brain["features"]]
+            
+            distances = []
+            for i in range(repo_brain["k_clusters"]):
+                centroid = repo_brain["centroids"][f"Cluster {i}"]
+                dist = math.sqrt(sum((a - b) ** 2 for a, b in zip(live_ratios, centroid)))
+                distances.append(dist)
+                
+            assigned_idx = distances.index(min(distances))
+            raw_drift = distances[assigned_idx]
+            
+            z_params = repo_brain["z_score_params"][f"Cluster {assigned_idx}"]
+            z_score = (raw_drift - z_params["mean"]) / z_params["std"]
+            
+            cluster_names = repo_brain.get("cluster_names", [f"Cluster {i}" for i in range(repo_brain["k_clusters"])])
+            
+            repo_macro_data = {
+                "name": cluster_names[assigned_idx],
+                "id": assigned_idx,
+                "z_score": round(z_score, 3),
+                "raw_drift": round(raw_drift, 3)
+            }
+            
+            # Inject into stars so security_auditor and gpu_recorder have it in RAM
+            for s in stars:
+                s["telemetry"]["repo_macro_species"] = assigned_idx
+                s["telemetry"]["repo_z_score"] = repo_macro_data["z_score"]
+                for i, d in enumerate(distances):
+                    s["telemetry"][f"dist_to_{i}"] = d
 
         return {
             "summary": {
@@ -647,6 +694,10 @@ class SignalProcessor:
                 "dominant_language": self._get_dominant_lang(lang_comp),
                 "volatility_index": volatility_idx,
                 "Percent_Visible": round((1 - darkness_ratio) * 100, 1)
+            },
+            "repo_macro_species": repo_macro_data,  # <--- NEW
+            "singularity": {
+                "ambig_file_count": len(singularity),
             },
             "singularity": {
                 "ambig_file_count": len(singularity),
