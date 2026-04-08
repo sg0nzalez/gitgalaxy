@@ -955,6 +955,9 @@ class SignalProcessor:
         # THERMODYNAMIC BALANCE: 1 lock mitigates 1.5 thread spawns.
         net_concurrency = max(0.0, raw_concurrency - (sync_locks * 1.5))
         
+        if net_concurrency == 0:
+            return 0.0
+            
         density = net_concurrency / max(loc + loc_padding, 1)
         
         threshold = tuning.get("threshold_base", 4.0) # Matches your config!
@@ -978,6 +981,9 @@ class SignalProcessor:
         # THERMODYNAMIC BALANCE: Subtract immutability from raw mutation.
         net_volatility = max(0.0, raw_flux - (freeze_hits * 0.5))
         
+        if net_volatility == 0:
+            return 0.0
+            
         density = net_volatility / max(loc + loc_padding, 1)
         
         # THE FIX: Dropped threshold from 45.0 back to the original 15.0

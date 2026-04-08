@@ -132,49 +132,6 @@ class AuditRecorder:
         # Track archetypes per folder for the Constellation Fingerprint
         folder_archetype_counts = {}
 
-        # ==========================================================
-        # --- N-TH DEGREE GRAPH RESOLUTION (Total Food Chain) ---
-        # ==========================================================
-        resolution_map = {}
-        for s in stars:
-            p = s.get("path", "")
-            name = s.get("name", Path(p).name)
-            stem = Path(p).stem
-            if p: resolution_map[p] = p
-            if name: resolution_map[name] = p
-            if stem: resolution_map[stem] = p
-
-        outbound_graph = {s.get("path", ""): [] for s in stars}
-        inbound_graph = {s.get("path", ""): [] for s in stars}
-
-        for s in stars:
-            curr = s.get("path", "")
-            for imp in s.get("raw_imports", []):
-                if imp in resolution_map:
-                    target_path = resolution_map[imp]
-                    if target_path != curr:
-                        if target_path not in outbound_graph[curr]:
-                            outbound_graph[curr].append(target_path)
-                        if curr not in inbound_graph[target_path]:
-                            inbound_graph[target_path].append(curr)
-
-        def get_nth_degree_count(start_node, graph):
-            """Traverses the graph to the absolute top/bottom, avoiding circular loops."""
-            if start_node not in graph: return 0
-            visited = set()
-            queue = [start_node]
-            while queue:
-                node = queue.pop(0)
-                for neighbor in graph.get(node, []):
-                    if neighbor not in visited:
-                        visited.add(neighbor)
-                        queue.append(neighbor)
-            return len(visited)
-            
-        transitive_fragility = {s.get("path", ""): get_nth_degree_count(s.get("path", ""), outbound_graph) for s in stars}
-        transitive_blast = {s.get("path", ""): get_nth_degree_count(s.get("path", ""), inbound_graph) for s in stars}
-        # ==========================================================
-
         # 2. Row Reconstruction (Visible Stars) mapped into Constellations
         for star in stars:
             path = star.get("path", "Unknown")
@@ -201,7 +158,8 @@ class AuditRecorder:
             
             domain_data = telemetry.get("domain_context", {})
             for custom_key, custom_val in domain_data.items():
-                if custom_key != "ownership":
+                # Hide it from the generic loop so we can format it explicitly below
+                if custom_key not in ["ownership", "AI Threat Score"]: 
                     display_key = custom_key.replace('_', ' ').title()
                     if display_key == "Purpose":
                         display_key = "Museum Entry"
@@ -209,6 +167,10 @@ class AuditRecorder:
 
             identity_block["Lock Tier"] = star.get("lock_tier", telemetry.get("identity_lock_tier", 4))
             identity_block["Identity Proof"] = telemetry.get("identity_source_proof", star.get("source_proof", "Discovery"))
+            
+            # ---> NEW: EXPLICITLY INJECT AI SCORE <---
+            if "AI Threat Score" in domain_data:
+                identity_block["AI Threat Confidence"] = domain_data["AI Threat Score"]
             
             # --- THE FACTION INTERCEPTOR ---
             exposures_dict = {}
@@ -284,12 +246,12 @@ class AuditRecorder:
                 "7. Structural DNA (Net Mitigated Signals)": {
                     label: v for label, v in zip(hit_labels, star.get("hit_vector") or [0] * len(hit_labels))
                 },
-                # ---> THE 4 DEPENDENCY METRICS <---
+                # ---> THE 4 DEPENDENCY METRICS (Read cleanly from RAM) <---
                 "8. Dependency Network": {
-                    "Direct Upstream (Fragility)": len(star.get("raw_imports", [])),
-                    "Direct Downstream (Blast Radius)": telemetry.get("popularity", 0),
-                    "Total Upstream (Absolute Fragility)": transitive_fragility.get(path, 0),
-                    "Total Downstream (Absolute Blast Radius)": transitive_blast.get(path, 0)
+                    "Direct Upstream (Fragility)": star.get("dependency_network", {}).get("direct_upstream", len(star.get("raw_imports", []))),
+                    "Direct Downstream (Blast Radius)": star.get("dependency_network", {}).get("direct_downstream", telemetry.get("popularity", 0)),
+                    "Total Upstream (Absolute Fragility)": star.get("dependency_network", {}).get("total_upstream", 0),
+                    "Total Downstream (Absolute Blast Radius)": star.get("dependency_network", {}).get("total_downstream", 0)
                 },
                 
                 "9. Extracted Dependencies": sorted(list(star.get("raw_imports", [])))
@@ -381,6 +343,8 @@ class AuditRecorder:
         }
 
         quarantined_files = []
+        ml_threat_files = [] # ---> NEW: Container for XGBoost hits
+        
         vuln_exposures = {
             data["label"]: {
                 "Alert Threshold": f">= {data['threshold']}%", 
@@ -401,9 +365,21 @@ class AuditRecorder:
         # Sweep the stars for security anomalies
         for star in stars:
             path = star.get("path", "Unknown")
+            domain_ctx = star.get("telemetry", {}).get("domain_context", {})
+
+            # ---> NEW: HARVEST ML SCORES <---
+            is_ml_threat = star.get("is_ml_threat", False)
+            ai_score_str = domain_ctx.get("AI Threat Score", "0.0%")
+            ai_score_float = float(ai_score_str.replace('%', '')) if isinstance(ai_score_str, str) else 0.0
+
+            if is_ml_threat or ai_score_float >= 50.0:
+                ml_threat_files.append({
+                    "Path": path,
+                    "AI_Confidence": ai_score_float,
+                    "Formatted_Score": ai_score_str
+                })
             
             # THE FIX: Read the exact bypass alert injected by the SignalProcessor Shunt
-            domain_ctx = star.get("telemetry", {}).get("domain_context", {})
             
             if domain_ctx.get("alert") == "CRITICAL LEAK BYPASS":
                 quarantined_files.append({
@@ -438,24 +414,40 @@ class AuditRecorder:
         has_malware = vuln_exposures["Hidden Malware Risk Exposure"]["Artifacts Flagged"] > 0
         has_secrets = vuln_exposures["Secrets Risk Exposure"]["Artifacts Flagged"] > 0
 
-        # 3. Tiered Status Routing
-        if quarantined_files or has_malware or has_secrets or malicious_hits_total > 0:
-            audit_status = "CRITICAL_THREATS_DETECTED"
+        # ---> NEW: SORT AND FORMAT THE AI HITLIST <---
+        ml_threat_files.sort(key=lambda x: x["AI_Confidence"], reverse=True)
+        top_ml_threats = [
+            {
+                "Path": threat["Path"], 
+                "Confidence": threat["Formatted_Score"], 
+                "Model": "XGBoost Structural DNA"
+            }
+            for threat in ml_threat_files
+        ]
+
+        # 3. Tiered Status Routing (AI IS NOW THE SUPREME AUTHORITY)
+        if ml_threat_files:
+            audit_status = "AI_CONFIRMED_MALWARE_DETECTED"
+        elif quarantined_files or has_malware or has_secrets or malicious_hits_total > 0:
+            audit_status = "CRITICAL_THREATS_DETECTED (Rule-Based)"
         elif any(v["Artifacts Flagged"] > 0 for v in vuln_exposures.values()):
-            # DOOM lands here. High architectural risk, but no active malicious intent.
             audit_status = "ELEVATED_SURFACE_RISK" 
         else:
-            audit_status = "SECURE"
+            audit_status = "SECURE_NO_MALWARE_DETECTED"
 
         security_audit = {
             "Audit Status": audit_status,
+            "AI Threat Intelligence (XGBoost)": {
+                "Infected Files Detected": len(ml_threat_files),
+                "Critical Targets": top_ml_threats
+            },
             "Scope": {
                 "Artifacts Evaluated": len(stars),
                 "Threat Signatures Monitored": len(sec_hit_mapping),
                 "Vulnerability Vectors Calculated": len(sec_risk_mapping)
             },
             "Exposed Secrets & Credentials (Quarantined Files)": quarantined_files,
-            "Vulnerability Exposures (Threshold Breaches)": vuln_exposures,
+            "Vulnerability Exposures (Rule-Based Threshold Breaches)": vuln_exposures,
             "Raw Threat Signature Hits (Total Repository Occurrences)": raw_threat_hits
         }
 

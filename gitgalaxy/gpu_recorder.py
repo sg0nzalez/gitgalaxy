@@ -67,6 +67,7 @@ class GPURecorder:
             "pos_x": [], "pos_y": [], "pos_z": [],
             "risks_flat": [], "hits_flat": [], 
             "tel_aid": [], "tel_pid": [], "tel_purp": [], "tel_lt": [], "tel_pop": [], "tel_cfr": [],
+            "ai_threats": [], # <--- NEW: Dedicated column for XGBoost Scores
             "satellite_data_flat": [], "satellite_offsets": [0],
             "imports": [], # <--- NEW: The dependency string lookup column
             "c_ids": [],   # <--- NEW: The Constellation Mapping Column
@@ -167,6 +168,16 @@ class GPURecorder:
             columns["tel_lt"].append(tel.get("identity_lock_tier", 4))
             columns["tel_pop"].append(tel.get("popularity", 0))
             columns["tel_cfr"].append(int(round(tel.get("control_flow_ratio", 0.0) * 1000)))
+
+            # ---> NEW: EXTRACT AND QUANTIZE AI SCORE <---
+            ai_score_str = domain_ctx.get("AI Threat Score", "0.0%")
+            try:
+                ai_score_val = float(ai_score_str.replace('%', ''))
+            except ValueError:
+                ai_score_val = 0.0
+            
+            # Pack as an integer (e.g., 99.8% becomes 99800) to save JSON bytes
+            columns["ai_threats"].append(int(round(ai_score_val * 1000)))
 
             # Satellite Minification (CSR Format)
             sat_list = []

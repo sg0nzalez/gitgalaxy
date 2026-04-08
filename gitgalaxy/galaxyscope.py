@@ -37,6 +37,7 @@ from .gpu_recorder import GPURecorder
 from .audit_recorder import AuditRecorder
 from .llm_recorder import LLMRecorder
 from .security_lens import SecurityLens
+from .security_auditor import SecurityAuditor
 # Load Universal Laws from config
 from . import gitgalaxy_standards_v1 as scanning_config
 
@@ -443,6 +444,7 @@ class Orchestrator:
             active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
 
         self.security_analyzer = SecurityLens(policy=active_policy)
+        self.model_auditor = SecurityAuditor(model_path="gitgalaxy_malware_xgb.json", parent_logger=logger)
         # --------------------------------------------------
         
         # State Arrays
@@ -519,6 +521,12 @@ class Orchestrator:
             report = self.processor.generate_forensic_report(visible_galaxy)
             logger.info(f"⏱️ MACRO-CLOCK [Phase 6 - Synthesis]: {time.time() - t_phase:.2f}s")
             
+            # PHASE 7.8: Advanced ML Threat Hunting & Graph Resolution
+            t_phase = time.time()
+            if visible_galaxy:
+                visible_galaxy = self.model_auditor.audit_galaxy(visible_galaxy)
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 7.8 - ML Auditor]: {time.time() - t_phase:.2f}s")
+
             # --- PHASE 7.5: SHARED METADATA LOCKING ---
             # Calculate physical mass before the GPU Recorder destroys the visible_galaxy list
             total_loc = sum(s.get("total_loc", 0) for s in (visible_galaxy or []))

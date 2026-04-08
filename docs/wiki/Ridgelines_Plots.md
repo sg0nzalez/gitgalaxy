@@ -1,48 +1,12 @@
 # Claim 4 (Comparing Languages)
 
-If I have an engine that can scan and compare codebases across time and language, independent of compilation, I don't know about you but I want to take it for a spin! What patterns will emerge as we compare repos of python, COBOL and typescript? This is my current validation/proof of principle data set. I've analyzed 104 code bases and score them according to the blAST engine's risk exposure metrics and present it publically for validation and criticism. Openness and public input is the only way forward with a system like this. The following ridge line plots visualize the distribution of risk exposures and other metrics across languages. Please note, this data set needs to grow and likely has non-representative numbers of repos per language (3-10). Once I get a better automated pipeline going, I hope to automate the scanning of repos to get more representative distributions. The population distributions also clearly highlight that some of my risk exposure metrics are not dialed in well, like concurrency, these should produce ranges not be binary on/off measures. I have currently set the security measures to be very sensitive so normal coding practices are being listed as security warnings, but the sensitivity of these detections can be tuned down for a less annoying workflow and then turned back to --paranoid for your final sanity check before pushing it live.
+If I have an engine that can scan and compare codebases across time and language, independent of compilation, I don't know about you, but I want to take it for a spin! What patterns will emerge as we compare repositories of Python, COBOL, and TypeScript at a massive scale? 
+
+This is my current validation and proof-of-principle dataset. I have scaled the pipeline up to analyze over **14,000 repositories** encompassing **2.57 million files** across 50+ languages. The engine scores them according to GitGalaxy's physical risk exposure metrics and structural DNA, and I am presenting it publicly for validation and criticism. Openness and public input are the only ways forward with a system like this. 
+
+The following ridge line plots visualize the distribution of these risk exposures and other metrics across the language ecosystem. I currently have the security measures set to be highly sensitive, meaning normal (but risky) coding practices are being listed as security warnings. The sensitivity of these detections can be tuned down for a less annoying daily workflow, and then cranked back to `--paranoid` for your final sanity check before pushing a release live.
 
 *Click on any image to view it at full resolution.*
-
-## Core Security & Vulnerability Risks
-
-<table style="width:100%; text-align:center;">
-  <tr>
-    <td>
-      <a href="../assets/analyses_ridgeplots/risk_hardcoded_payload_artifacts_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_hardcoded_payload_artifacts_ridgeplot.png" width="300" loading="lazy" alt="Hardcoded Payload Artifacts"/><br/>
-        <b>Hardcoded Payload Artifacts</b>
-      </a>
-    </td>
-    <td>
-      <a href="../assets/analyses_ridgeplots/risk_obfuscation_and_evasion_surface_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_obfuscation_and_evasion_surface_ridgeplot.png" width="300" loading="lazy" alt="Obfuscation & Evasion Surface"/><br/>
-        <b>Obfuscation & Evasion Surface</b>
-      </a>
-    </td>
-    <td>
-      <a href="../assets/analyses_ridgeplots/risk_exploit_generation_surface_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_exploit_generation_surface_ridgeplot.png" width="300" loading="lazy" alt="Exploit Generation Surface"/><br/>
-        <b>Exploit Generation Surface</b>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="../assets/analyses_ridgeplots/risk_weaponizable_injection_vectors_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_weaponizable_injection_vectors_ridgeplot.png" width="300" loading="lazy" alt="Weaponizable Injection Vectors"/><br/>
-        <b>Weaponizable Injection Vectors</b>
-      </a>
-    </td>
-    <td>
-      <a href="../assets/analyses_ridgeplots/risk_raw_memory_manipulation_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_raw_memory_manipulation_ridgeplot.png" width="300" loading="lazy" alt="Raw Memory Manipulation"/><br/>
-        <b>Raw Memory Manipulation</b>
-      </a>
-    </td>
-    <td></td>
-  </tr>
-</table>
 
 ## Architectural Risk Exposures
 
@@ -124,41 +88,6 @@ If I have an engine that can scan and compare codebases across time and language
   </tr>
 </table>
 
-## Volatility & Authorship
-
-<table style="width:100%; text-align:center;">
-  <tr>
-    <td>
-      <a href="../assets/analyses_ridgeplots/risk_volatility_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_volatility_exposure_ridgeplot.png" width="300" loading="lazy" alt="Volatility Exposure"/><br/>
-        <b>Volatility Exposure (Churn)</b>
-      </a>
-    </td>
-    <td>
-      <a href="../assets/analyses_ridgeplots/risk_instability_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_instability_exposure_ridgeplot.png" width="300" loading="lazy" alt="Instability Exposure"/><br/>
-        <b>Instability Exposure (Age)</b>
-      </a>
-    </td>
-    <td>
-      <a href="../assets/analyses_ridgeplots/silo_risk_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/silo_risk_ridgeplot.png" width="300" loading="lazy" alt="Silo Risk"/><br/>
-        <b>Silo Risk (Bus Factor)</b>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="../assets/analyses_ridgeplots/ownership_entropy_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/ownership_entropy_ridgeplot.png" width="300" loading="lazy" alt="Ownership Entropy"/><br/>
-        <b>Ownership Entropy</b>
-      </a>
-    </td>
-    <td></td>
-    <td></td>
-  </tr>
-</table>
-
 ## Structural Physics & DNA
 
 <table style="width:100%; text-align:center;">
@@ -210,6 +139,81 @@ If I have an engine that can scan and compare codebases across time and language
       </a>
     </td>
     <td></td>
+    <td></td>
+  </tr>
+</table>
+
+## Volatility & Authorship
+
+<table style="width:100%; text-align:center;">
+  <tr>
+    <td>
+      <a href="../assets/analyses_ridgeplots/risk_volatility_exposure_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/risk_volatility_exposure_ridgeplot.png" width="300" loading="lazy" alt="Volatility Exposure"/><br/>
+        <b>Volatility Exposure (Churn)</b>
+      </a>
+    </td>
+    <td>
+      <a href="../assets/analyses_ridgeplots/risk_instability_exposure_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/risk_instability_exposure_ridgeplot.png" width="300" loading="lazy" alt="Instability Exposure"/><br/>
+        <b>Instability Exposure (Age)</b>
+      </a>
+    </td>
+    <td>
+      <a href="../assets/analyses_ridgeplots/silo_risk_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/silo_risk_ridgeplot.png" width="300" loading="lazy" alt="Silo Risk"/><br/>
+        <b>Silo Risk (Bus Factor)</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="../assets/analyses_ridgeplots/ownership_entropy_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/ownership_entropy_ridgeplot.png" width="300" loading="lazy" alt="Ownership Entropy"/><br/>
+        <b>Ownership Entropy</b>
+      </a>
+    </td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
+## Core Security & Vulnerability Risks
+
+<table style="width:100%; text-align:center;">
+  <tr>
+    <td>
+      <a href="../assets/analyses_ridgeplots/risk_hardcoded_payload_artifacts_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/risk_hardcoded_payload_artifacts_ridgeplot.png" width="300" loading="lazy" alt="Hardcoded Payload Artifacts"/><br/>
+        <b>Hardcoded Payload Artifacts</b>
+      </a>
+    </td>
+    <td>
+      <a href="../assets/analyses_ridgeplots/risk_obfuscation_and_evasion_surface_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/risk_obfuscation_and_evasion_surface_ridgeplot.png" width="300" loading="lazy" alt="Obfuscation & Evasion Surface"/><br/>
+        <b>Obfuscation & Evasion Surface</b>
+      </a>
+    </td>
+    <td>
+      <a href="../assets/analyses_ridgeplots/risk_exploit_generation_surface_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/risk_exploit_generation_surface_ridgeplot.png" width="300" loading="lazy" alt="Exploit Generation Surface"/><br/>
+        <b>Exploit Generation Surface</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="../assets/analyses_ridgeplots/risk_weaponizable_injection_vectors_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/risk_weaponizable_injection_vectors_ridgeplot.png" width="300" loading="lazy" alt="Weaponizable Injection Vectors"/><br/>
+        <b>Weaponizable Injection Vectors</b>
+      </a>
+    </td>
+    <td>
+      <a href="../assets/analyses_ridgeplots/risk_raw_memory_manipulation_ridgeplot.png">
+        <img src="../assets/analyses_ridgeplots/risk_raw_memory_manipulation_ridgeplot.png" width="300" loading="lazy" alt="Raw Memory Manipulation"/><br/>
+        <b>Raw Memory Manipulation</b>
+      </a>
+    </td>
     <td></td>
   </tr>
 </table>

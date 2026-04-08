@@ -178,6 +178,30 @@ class LLMRecorder:
         lines.append(f"| **Git Remote** | `{git_audit.get('remote_url', 'N/A')}` |")
         lines.append("")
         
+        # ---> NEW: HARVEST AI THREAT SCORES & CREATE BILLBOARD <---
+        ml_threats = []
+        for s in stars:
+            ctx = s.get("telemetry", {}).get("domain_context", {})
+            score_str = ctx.get("AI Threat Score", "0.0%")
+            try:
+                score_val = float(score_str.replace('%', ''))
+            except ValueError:
+                score_val = 0.0
+                
+            if s.get("is_ml_threat", False) or score_val >= 50.0:
+                ml_threats.append((s, score_val, score_str))
+                
+        ml_threats.sort(key=lambda x: x[1], reverse=True)
+
+        lines.append("## 0.5 AI THREAT AUDIT STATUS")
+        if ml_threats:
+            lines.append("> **🚨 AI_CONFIRMED_MALWARE_DETECTED**")
+            lines.append(f"> XGBoost Structural DNA model identified {len(ml_threats)} malicious artifacts.")
+        else:
+            lines.append("> **✅ SECURE_NO_MALWARE_DETECTED**")
+            lines.append("> XGBoost Structural DNA model found no malicious artifacts.")
+        lines.append("")
+
         # --- 1. CRITICAL SYSTEM INSTRUCTIONS & LEXICON ---
         lines.append("## 1. SYSTEM ROLE & PHILOSOPHY")
         lines.append("> Code is art. Logic is art. Systems engineering is art.")
@@ -251,24 +275,18 @@ class LLMRecorder:
         lines.append("")
 
         # --- 4.5 ECOSYSTEM FINGERPRINT (MACHINE LEARNING ARCHETYPES) ---
-        lines.append("## 4.5 ECOSYSTEM FINGERPRINT (THE 16 ARCHETYPES)")
-        lines.append("> **AI CONTEXT:** Every file is mapped via Robust Euclidean Distance to one of 16 Machine Learning Archetypes based on pure structural DNA. This reveals the true architectural patterns of the repository, independent of language.")
+        lines.append("## 4.5 ECOSYSTEM FINGERPRINT (THE 10 ARCHETYPES)")
+        lines.append("> **AI CONTEXT:** Every file is mapped via Robust Euclidean Distance to one of 10 Machine Learning Archetypes based on pure structural DNA. This reveals the true architectural patterns of the repository, independent of language.")
         lines.append("> * **Cluster 0: Modern Systems & Typed Interfaces** (Rust/Go logic heavily anchored by pointer arithmetic and generic type abstractions).")
-        lines.append("> * **Cluster 1: Algorithmic & Defensive Logic** (JS/Kotlin/TS files with extremely high control flow, defensive constructs, and closures).")
-        lines.append("> * **Cluster 2: Inert Configuration & Data (The Dark Matter)** (Massive JSON/JS/TS declarative blobs with virtually zero execution branches).")
+        lines.append("> * **Cluster 1: I/O, UI & Scripting Automation** (JS/Shell scripts dedicated to I/O, networking boundaries, and bypassing type safety).")
+        lines.append("> * **Cluster 2: Declarative Definitions & Data Structures** (Massive JSON/JS/TS declarative blobs with virtually zero execution branches).")
         lines.append("> * **Cluster 3: Raw Pointer & Memory Manipulation** (Core C/C++ meat-grinder logic dominated by pointer math and macros).")
-        lines.append("> * **Cluster 4: UI Frameworks & View Layers** (TS/JS UI components packed with generic types, closures, and decorators).")
+        lines.append("> * **Cluster 4: Object-Oriented Services & Testing** (Test suites and OOP logic overloaded with assertions and testing frameworks).")
         lines.append("> * **Cluster 5: High-Dependency C Headers** (C/C++ macros and entity declarations that act as critical downstream dependencies).")
-        lines.append("> * **Cluster 6: Software Verification & Testing** (Python/C#/Java test suites overloaded with assertions and raw danger triggers like mocks/subprocesses).")
-        lines.append("> * **Cluster 7: Annotated Service Layer** (Java/Python backend services heavily decorated and encapsulated in private scopes).")
-        lines.append("> * **Cluster 8: Universal Dependencies (The God Nodes)** (TS/Make/JS files with insane downstream impact, acting as structural load-bearers).")
-        lines.append("> * **Cluster 9: Documented Core Interfaces** (Python/Java core logic heavily anchored by structured documentation blocks).")
-        lines.append("> * **Cluster 10: High-Impact Core Libraries** (JS/Python/TS files with massive downstream blast radius and high documentation).")
-        lines.append("> * **Cluster 11: Test-Driven Annotated Services** (Java/Python/TS classes with high test assertions and decorators).")
-        lines.append("> * **Cluster 12: Documented Native Headers** (C/C++ headers carrying extreme downstream gravity and documentation).")
-        lines.append("> * **Cluster 13: Core Algorithmic Native Logic** (C/C++ implementations with high upstream pulling power and pointer math).")
-        lines.append("> * **Cluster 14: Async Logic & Concurrency Orchestration** (TS/JS/Dart logic navigating intense concurrency, race conditions, and closures).")
-        lines.append("> * **Cluster 15: Build, Infra & I/O Automation** (JS/Shell scripts dedicated to I/O, networking boundaries, and bypassing type safety).")
+        lines.append("> * **Cluster 6: Async Logic & Concurrency Orchestration** (Logic navigating intense concurrency, temporal flow, and complex closures).")
+        lines.append("> * **Cluster 7: Documented Core Interfaces** (Core logic heavily anchored by structured documentation blocks and public APIs).")
+        lines.append("> * **Cluster 8: Universal Dependencies (The God Nodes)** (Files with insane downstream impact, acting as structural load-bearers).")
+        lines.append("> * **Cluster 9: Functional OOP & Async Logic** (Backend services bridging object-oriented states with async data pipes).")
         lines.append("")
         
         fingerprint = summary.get("ecosystem_fingerprint", {})
@@ -431,10 +449,22 @@ class LLMRecorder:
                         lines.append(f"- `{s.get('path')}` -> **{s.get('risk_vector')[flux_idx]}%** Exposure")
         lines.append("")
 
-        # --- 10.5 CRITICAL VULNERABILITY EXPOSURES ---
-        lines.append("## 10.5 WEAPONIZABLE SURFACE EXPOSURES (SECURITY LENS)")
-        lines.append("> The following files have tripped specific threat signatures generated by the Security Lens. Any score > 0% indicates a mathematically significant detection of structural fragility, dangerous OS-level access, or active evasion patterns.\n")
+        # --- 10.5 AI THREAT INTELLIGENCE ---
+        lines.append("## 10.5 AI THREAT INTELLIGENCE (XGBoost)")
+        if ml_threats:
+            lines.append("> **CRITICAL THREATS DETECTED.** The following files possess the structural DNA of known malware.\n")
+            # Show top 10% of threats, or at least the top 10
+            cutoff = max(10, int(len(ml_threats) * 0.10))
+            for i, (s, val, string_val) in enumerate(ml_threats[:cutoff]):
+                lines.append(f"{i+1}. **`{s.get('path')}`** -> AI Confidence: **{string_val}**")
+        else:
+            lines.append("*No files met the threshold for malicious structural DNA.*")
+        lines.append("")
 
+        # --- 10.6 CRITICAL VULNERABILITY EXPOSURES (RULE-BASED) ---
+        lines.append("## 10.6 WEAPONIZABLE SURFACE EXPOSURES (RULE-BASED LENS)")
+        lines.append("> Secondary Evidence: The following files tripped specific static threat signatures. Use these to explain *why* the XGBoost model flagged the files above.\n")
+        
         vuln_keys = ["obscured_payload", "logic_bomb", "injection_surface", "memory_corruption", "secrets_risk"]
         vuln_found = False
         for v_key in vuln_keys:
@@ -574,7 +604,16 @@ class LLMRecorder:
             lock_tier = s.get("lock_tier", tel.get("identity_lock_tier", 4))
             purpose = tel.get("domain_context", {}).get("purpose", "")
             
-            lines.append(f"### `{p}` ({l} | Tier {lock_tier})")
+            # ---> NEW: INJECT AI SCORE INTO FILE HEADER <---
+            ai_score_str = tel.get("domain_context", {}).get("AI Threat Score", "0.0%")
+            try: 
+                ai_score_val = float(ai_score_str.replace('%', ''))
+            except ValueError: 
+                ai_score_val = 0.0
+            
+            threat_flag = f" | 🚨 AI THREAT: {ai_score_str}" if ai_score_val >= 50.0 else f" | AI Safe: {ai_score_str}"
+            
+            lines.append(f"### `{p}` ({l} | Tier {lock_tier}{threat_flag})")
             if purpose:
                 lines.append(f"> **Stated Purpose:** *{purpose}*")
                 
@@ -731,7 +770,7 @@ class LLMRecorder:
 
         lines.append("> 1. **The Bird's Eye View (Executive Summary):** Look at the Language Composition and Top Dependencies to provide a high-level description of what the system actually *is* and how data flows. Diagnose the overarching health and paradigm of the codebase.")
         lines.append("> 2. **Key Files & Functions:** Identify the top 2-3 files that have the greatest impact on the system (cross-reference high Mass, high Dependencies/Imports, and high Cumulative Risk). Explain *why* they are risky using plain language based on their primary risk drivers.")
-        lines.append("> 3. **Security & Vulnerabilities:** Immediately surface any critical threats found in the `CRITICAL VULNERABILITY EXPOSURES` section. Explain *why* they are risky based on their specific vector (e.g., memory corruption vs. hidden payloads). If there are none, briefly state so and move on.")
+        lines.append("> 3. **Security & Vulnerabilities:** Immediately surface the critical threats found in the `AI THREAT INTELLIGENCE (XGBoost)` section. The XGBoost AI is the supreme authority. Explain *why* they are malware by referencing the secondary static evidence in the `RULE-BASED LENS` section. If there are no XGBoost threats, briefly state the codebase is secure and move on.")
         lines.append("> 4. **Risk Exposure Impacts:** Assess for multiple high or conflicting risk exposures and describe what these likely mean for the system at large.")
         lines.append("> 5. **Architecture Consistency:** Assess for consistent practices, structure, and if the system seems to be experiencing under or over growth based on provided data. Ignore civil war metric")
         lines.append("> 6. **Recommended Next Steps:** Provide 2-3 pragmatic, blameless refactoring targets based on the data. Focus on how to improve key functions, files or folders in comparison to either total cumulative risk or individual risk exposures or the coindicence of risk exposures in relation to improving system structure and lowering risk exposures.")
