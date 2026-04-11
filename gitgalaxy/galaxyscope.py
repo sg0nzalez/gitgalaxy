@@ -444,7 +444,7 @@ class Orchestrator:
             active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
 
         self.security_analyzer = SecurityLens(policy=active_policy)
-        self.model_auditor = SecurityAuditor(model_path="gitgalaxy_malware_xgb.json", parent_logger=logger)
+        self.model_auditor = SecurityAuditor(model_path="gitgalaxy_malware_xgb_multiclass.json", parent_logger=logger)
         # --------------------------------------------------
         
         # State Arrays

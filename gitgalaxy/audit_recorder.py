@@ -208,15 +208,14 @@ class AuditRecorder:
                     "Y": star.get("pos_y", 0.0), 
                     "Z": star.get("pos_z", 0.0)
                 },
-                "3. Galactic Profile": {
-                    "Global Archetype (Macro-Species)": arch,
-                    "Global Drift (Z-Score)": telemetry.get("global_drift", 0.0),
-                    "Global Fingerprint": telemetry.get("archetype_fingerprint", {}),
+                "3. Architectural Profile": {
+                    "Repository Archetype": arch,
+                    "Repository Drift (Z-Score)": telemetry.get("global_drift", 0.0),
+                    "Repository Fingerprint": {k: round(v, 3) for k, v in telemetry.get("archetype_fingerprint", {}).items()} if isinstance(telemetry.get("archetype_fingerprint"), dict) else {},
                     
-                    "Local Archetype (Micro-Species)": telemetry.get("local_archetype", "N/A"),
-                    "Local Drift (Z-Score)": telemetry.get("local_drift", 0.0),
-                    "Local Fingerprint": telemetry.get("local_fingerprint", {}),
-                    
+                    "File Archetype": telemetry.get("local_archetype", "N/A"),
+                    "File Drift (Z-Score)": telemetry.get("local_drift", 0.0),
+                    "File Fingerprint": {k: round(v, 3) for k, v in telemetry.get("local_fingerprint", {}).items()} if isinstance(telemetry.get("local_fingerprint"), dict) else {},
                     "Total LOC": star.get("total_loc", 0),
                     "coding LOC": star.get("coding_loc", 0),
                     "Documentation LOC": star.get("doc_loc", 0),
@@ -236,7 +235,7 @@ class AuditRecorder:
                         "Lines of Code (LOC)": sat.get("loc", 0),
                         "Control Flow Branches": sat.get("branch", sat.get("branch_count", 0)),
                         "Input Parameters": sat.get("args", sat.get("args_count", 0)),
-                        "Control Flow Ratio": f"{round(sat.get('control_flow_ratio', sat.get('cf_ratio', 0.0)) * 100, 1)}%",
+                        "Control Flow Ratio": f"{round((sat.get('control_flow_ratio') or sat.get('cf_ratio') or 0.0) * 100, 1)}%",
                         "Start Line": sat.get("start_line", 0),
                         "End Line": sat.get("end_line", 0)
                     }
@@ -370,7 +369,11 @@ class AuditRecorder:
             # ---> NEW: HARVEST ML SCORES <---
             is_ml_threat = star.get("is_ml_threat", False)
             ai_score_str = domain_ctx.get("AI Threat Score", "0.0%")
-            ai_score_float = float(ai_score_str.replace('%', '')) if isinstance(ai_score_str, str) else 0.0
+            
+            try:
+                ai_score_float = float(str(ai_score_str).replace('%', ''))
+            except ValueError:
+                ai_score_float = 0.0
 
             if is_ml_threat or ai_score_float >= 50.0:
                 ml_threat_files.append({
@@ -457,11 +460,33 @@ class AuditRecorder:
         
         # --- THE FIX: Format the Global Ecosystem Fingerprint ---
         global_fingerprint = summary.get("ecosystem_fingerprint", {})
-        pretty_global_fingerprint = {
-            k: f"{v}%" for k, v in global_fingerprint.items()
-        } if global_fingerprint else "No archetypes detected."
+        pretty_global_fingerprint = {}
         
+        if "ml_clusters" in global_fingerprint or "static_mass" in global_fingerprint:
+            # New V6.3 Nested Structure
+            if "ml_clusters" in global_fingerprint:
+                pretty_global_fingerprint["Active Execution Logic (ML Clusters)"] = {
+                    k: f"{v['pct']}% ({v['count']} files)" for k, v in global_fingerprint["ml_clusters"].items()
+                }
+            if "static_mass" in global_fingerprint:
+                pretty_global_fingerprint["Inert Structural Mass (Static Categories)"] = {
+                    k: f"{v['pct']}% ({v['count']} files)" for k, v in global_fingerprint["static_mass"].items()
+                }
+        else:
+            # Legacy Fallback
+            pretty_global_fingerprint = {
+                k: f"{v}%" for k, v in global_fingerprint.items()
+            } if global_fingerprint else "No archetypes detected."
+            
         summary["Global Architectural Fingerprint"] = pretty_global_fingerprint
+        
+        # Explicitly format the Repo Macro-Species if present
+        macro = summary.get("repo_macro_species", {})
+        if macro:
+            summary["Repository Macro-Species (Architecture)"] = {
+                "Classification": macro.get("name", "Unclassified"),
+                "Architectural Drift (Z-Score)": macro.get("z_score", 0.0)
+            }
 
         mission_audit = {
             "Audit Protocol": "GitGalaxy v6.3.2-Audit",

@@ -63,10 +63,14 @@ class SignalProcessor:
         # ======================================================================
         # 🧠 FETCH THE ML INFERENCE BRAINS (Global & Local)
         # ======================================================================
+        # ---> NEW (DYNAMIC) <---
         ml_brain = getattr(config, "ML_INFERENCE_BRAIN", {})
-        self.SCALER_MEDIANS = ml_brain.get("SCALER_MEDIANS", [0.0] * 67)
-        self.SCALER_IQRS = ml_brain.get("SCALER_IQRS", [1.0] * 67)
-        self.ARCHETYPES_K16 = ml_brain.get("ARCHETYPES_K16", {})
+        self.SCALER_MEDIANS = ml_brain.get("SCALER_MEDIANS", [0.0] * 40) # Ensure 40 matches your array length
+        self.SCALER_IQRS = ml_brain.get("SCALER_IQRS", [1.0] * 40)
+        
+        # Dynamically grab whichever ARCHETYPES_K key exists (e.g. ARCHETYPES_K9)
+        arch_key = next((k for k in ml_brain.keys() if k.startswith('ARCHETYPES_K')), None)
+        self.GLOBAL_ARCHETYPES = ml_brain.get(arch_key, {}) if arch_key else {}
         
         # ---> NEW: Fetch Language-Specific Micro-Species Brains <---
         self.LANGUAGE_INFERENCE_BRAINS = getattr(config, "LANGUAGE_INFERENCE_BRAINS", {})
@@ -408,8 +412,8 @@ class SignalProcessor:
                 safe_iqr = self.SCALER_IQRS[i] if self.SCALER_IQRS[i] > 0 else 1.0 
                 scaled_vector_global.append((val - median) / safe_iqr)
 
-            global_archetype, global_drift, arch_fingerprint = self._classify_archetype(scaled_vector_global, self.ARCHETYPES_K16)
-
+            global_archetype, global_drift, arch_fingerprint = self._classify_archetype(scaled_vector_global, self.GLOBAL_ARCHETYPES)
+            
             # B) LOCAL MICRO-SPECIES
             local_archetype = None
             local_drift = 0.0

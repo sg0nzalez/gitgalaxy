@@ -45,6 +45,14 @@ class LLMRecorder:
         self.RISK_SCHEMA = schemas.get("RISK_SCHEMA", [])
         self.SIGNAL_SCHEMA = schemas.get("SIGNAL_SCHEMA", [])
 
+    def _parse_threat_score(self, star: Dict) -> tuple[float, str]:
+        """Safely extracts and converts the AI threat score string to a float."""
+        score_str = star.get("telemetry", {}).get("domain_context", {}).get("AI Threat Score", "0.0%")
+        try:
+            return float(score_str.replace('%', '')), score_str
+        except ValueError:
+            return 0.0, score_str
+
     def generate_artifacts(
         self, 
         stars: List[Dict[str, Any]], 
@@ -79,19 +87,22 @@ class LLMRecorder:
             if stem: resolution_map[stem] = path
 
         inbound_map = {s.get("path", ""): [] for s in stars}
+        outbound_map = {s.get("path", ""): [] for s in stars}
+        
         for s in stars:
             curr = s.get("path", "")
             for imp in s.get("raw_imports", []):
                 if imp in resolution_map:
                     target_path = resolution_map[imp]
-                    if target_path != curr and curr not in inbound_map[target_path]:
-                        inbound_map[target_path].append(curr)
+                    if target_path != curr:
+                        if curr not in inbound_map[target_path]: inbound_map[target_path].append(curr)
+                        if target_path not in outbound_map[curr]: outbound_map[curr].append(target_path)
 
         # 1. Build the Relational Knowledge Graph
         self._generate_sqlite_graph(stars, singularity, summary, session_meta, output_path_db, inbound_map)
         
         # 2. Build the Token-Optimized Markdown Brief
-        md_content = self._build_markdown(stars, singularity, summary, session_meta, forensic_report, inbound_map)
+        md_content = self._build_markdown(stars, singularity, summary, session_meta, forensic_report, inbound_map, outbound_map)
         
         try:
             with open(output_path_md, "w", encoding="utf-8") as f:
@@ -100,47 +111,6 @@ class LLMRecorder:
         except Exception as e:
             self.logger.error(f"Failed to seal LLM brief: {e}", exc_info=True)
     
-    def _build_dependency_analysis(self, stars: List[Dict]) -> str:
-        """Generates rankings for the most critical architectural dependencies."""
-        if not stars:
-            return ""
-
-        # 1. Top Structural Pillars (Imported By / Blast Radius)
-        pillars = sorted(
-            stars, 
-            key=lambda x: x.get("telemetry", {}).get("popularity", 0) if isinstance(x.get("telemetry"), dict) else 0, 
-            reverse=True
-        )[:5]
-
-        # 2. Top Orchestrators (Imports / Fragility Index)
-        orchestrators = sorted(
-            stars,
-            key=lambda x: len(x.get("raw_imports", [])) if isinstance(x.get("raw_imports"), list) else 0,
-            reverse=True
-        )[:5]
-
-        lines = ["### Architectural Dependencies\n"]
-        
-        lines.append("#### Top 5 Structural Pillars (Highest 'Imported By' / Blast Radius)")
-        lines.append("These files act as core load-bearing infrastructure. Changes here carry a high risk of cascading breaks.\n")
-        for rank, star in enumerate(pillars, 1):
-            name = star.get("name", "Unknown")
-            path = star.get("path", "Unknown")
-            count = star.get("telemetry", {}).get("popularity", 0) if isinstance(star.get("telemetry"), dict) else 0
-            lines.append(f"{rank}. **{name}** (`{path}`) — {count} inbound connections")
-        lines.append("\n")
-
-        lines.append("#### Top 5 Orchestrators (Highest 'Imports' / Fragility Index)")
-        lines.append("These files pull in the most external dependencies. They are highly coupled and fragile to API changes.\n")
-        for rank, star in enumerate(orchestrators, 1):
-            name = star.get("name", "Unknown")
-            path = star.get("path", "Unknown")
-            count = len(star.get("raw_imports", [])) if isinstance(star.get("raw_imports"), list) else 0
-            lines.append(f"{rank}. **{name}** (`{path}`) — {count} outbound dependencies")
-        lines.append("\n")
-
-        return "\n".join(lines)
-    
     def _build_markdown(
         self, 
         stars: List[Dict[str, Any]], 
@@ -148,7 +118,8 @@ class LLMRecorder:
         summary: Dict[str, Any], 
         session_meta: Dict[str, Any],
         forensic_report: Dict[str, Any],
-        inbound_map: Dict[str, List[str]]
+        inbound_map: Dict[str, List[str]],
+        outbound_map: Dict[str, List[str]]
     ) -> str:
         """Constructs a high-density, context-rich Markdown brief for LLM agents."""
         target = session_meta.get("target", "Project")
@@ -181,13 +152,7 @@ class LLMRecorder:
         # ---> NEW: HARVEST AI THREAT SCORES & CREATE BILLBOARD <---
         ml_threats = []
         for s in stars:
-            ctx = s.get("telemetry", {}).get("domain_context", {})
-            score_str = ctx.get("AI Threat Score", "0.0%")
-            try:
-                score_val = float(score_str.replace('%', ''))
-            except ValueError:
-                score_val = 0.0
-                
+            score_val, score_str = self._parse_threat_score(s)
             if s.get("is_ml_threat", False) or score_val >= 50.0:
                 ml_threats.append((s, score_val, score_str))
                 
@@ -277,21 +242,18 @@ class LLMRecorder:
         # --- 4.5 REPOSITORY MACRO-SPECIES (THE OVERARCHING PURPOSE) ---
         lines.append("## 4.5 REPOSITORY MACRO-SPECIES (GLOBAL ARCHITECTURE)")
         macro = summary.get("repo_macro_species", {})
-        lines.append(f"> **Assigned Macro-Species:** `{macro.get('name', 'Unclassified')}`")
-        lines.append(f"> **Architectural Drift Z-Score:** `{macro.get('z_score', 0.0)}`")
+        macro_name = macro.get('name', 'Unclassified')
+        z_score = macro.get('z_score', 0.0)
         
-        z_score = macro.get("z_score", 0.0)
-        if z_score > 2.0:
-            lines.append("> **⚠️ ARCHITECTURAL DEVIATION WARNING:** This repository has a high Z-Score. While it loosely fits this archetype, its internal structure is highly irregular. Inspect for inconsistent design patterns or competing architectural styles.")
-        elif z_score < -1.0:
-            lines.append("> **✅ TEXTBOOK ARCHITECTURE:** This repository has a negative Z-Score, meaning it perfectly adheres to the standard structural patterns of this archetype.")
-        lines.append("")
+        lines.append(f"> **Assigned Macro-Species:** `{macro_name}`")
+        lines.append(f"> **Architectural Drift Z-Score:** `{z_score}`")
         
-        z_score = macro.get("z_score", 0.0)
         if z_score > 2.0:
-            lines.append("> **⚠️ CAMOUFLAGE WARNING:** This repository has a massive Z-Score. It is structurally masquerading as this Macro-Species, but its internal math is highly anomalous. Inspect for Trojan or parasitic architecture.")
+            lines.append("> **⚠️ UNIQUE INTERPRETATION:** This repository has a high Z-Score. While it maps closest to this archetype, its internal structure is a highly unique or hybrid interpretation of the pattern.")
         elif z_score < -1.0:
-            lines.append("> **✅ TEXTBOOK ARCHITECTURE:** This repository has a negative Z-Score. It is a textbook, highly concentrated example of this Macro-Species.")
+            lines.append("> **✅ STANDARD INTERPRETATION:** This repository has a negative Z-Score, meaning it is a textbook, highly standard interpretation of this archetype's structural patterns.")
+        else:
+            lines.append("> **ℹ️ TYPICAL INTERPRETATION:** This repository falls within standard variance (Z-Score between -1.0 and 2.0), representing a typical implementation of this archetype.")
         lines.append("")
 
         lines.append("## 4.6 MICRO-SPECIES (FILE ARCHETYPES & STATIC MASS)")
@@ -560,27 +522,6 @@ class LLMRecorder:
         lines.append("> *Note: 'Mass' represents the file's total Structural Magnitude and gravitational pull within the system. It is independent of its Risk Profile. High mass implies high structural importance and centralization.*\n")
         
         # --- N-TH DEGREE GRAPH RESOLUTION ---
-        res_map = {}
-        for s in stars:
-            p_val = s.get("path", "")
-            name_val = s.get("name", Path(p_val).name)
-            stem_val = Path(p_val).stem
-            if p_val: res_map[p_val] = p_val
-            if name_val: res_map[name_val] = p_val
-            if stem_val: res_map[stem_val] = p_val
-
-        out_graph = {s.get("path", ""): [] for s in stars}
-        in_graph = {s.get("path", ""): [] for s in stars}
-
-        for s in stars:
-            curr = s.get("path", "")
-            for imp in s.get("raw_imports", []):
-                if imp in res_map:
-                    tgt = res_map[imp]
-                    if tgt != curr:
-                        if tgt not in out_graph[curr]: out_graph[curr].append(tgt)
-                        if curr not in in_graph[tgt]: in_graph[tgt].append(curr)
-
         def get_nth_count(start, graph):
             if start not in graph: return 0
             vis = set()
@@ -593,8 +534,8 @@ class LLMRecorder:
                         q.append(neighbor)
             return len(vis)
         
-        transitive_fragility = {s.get("path", ""): get_nth_count(s.get("path", ""), out_graph) for s in stars}
-        transitive_blast = {s.get("path", ""): get_nth_count(s.get("path", ""), in_graph) for s in stars}
+        transitive_fragility = {s.get("path", ""): get_nth_count(s.get("path", ""), outbound_map) for s in stars}
+        transitive_blast = {s.get("path", ""): get_nth_count(s.get("path", ""), inbound_map) for s in stars}
         # ------------------------------------
 
         sorted_stars = sorted(stars, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
@@ -621,12 +562,7 @@ class LLMRecorder:
             purpose = tel.get("domain_context", {}).get("purpose", "")
             
             # ---> NEW: INJECT AI SCORE INTO FILE HEADER <---
-            ai_score_str = tel.get("domain_context", {}).get("AI Threat Score", "0.0%")
-            try: 
-                ai_score_val = float(ai_score_str.replace('%', ''))
-            except ValueError: 
-                ai_score_val = 0.0
-            
+            ai_score_val, ai_score_str = self._parse_threat_score(s)
             threat_flag = f" | 🚨 AI THREAT: {ai_score_str}" if ai_score_val >= 50.0 else f" | AI Safe: {ai_score_str}"
             
             lines.append(f"### `{p}` ({l} | Tier {lock_tier}{threat_flag})")
@@ -747,16 +683,6 @@ class LLMRecorder:
                 lines.append(f"  * **Global Archetype:** `{t['g_arch']}` (Drift: {t['g_drift']} IQR)")
                 lines.append(f"  * **Local Reality:** `{t['l_arch']}` (Drift: {t['l_drift']} IQR)")
             lines.append("")
-        
-        if trojan_files:
-            lines.append("### 🚨 Biaxial Anomalies (Potential Trojans / Severe Language Violations)")
-            trojan_files.sort(key=lambda x: x["ratio"], reverse=True)
-            for t in trojan_files[:5]:
-                s = t["star"]
-                lines.append(f"- `{s.get('path')}` ({s.get('lang_id', 'UNK').upper()}) | **Biaxial Ratio: {round(t['ratio'], 2)}x**")
-                lines.append(f"  * **Global Mask:** `{t['g_arch']}` (Drift: {t['g_drift']} IQR)")
-                lines.append(f"  * **Local Reality:** `{t['l_arch']}` (Drift: {t['l_drift']} IQR)")
-            lines.append("")
                     
         if drifting_files:
             from collections import defaultdict
@@ -865,12 +791,16 @@ class LLMRecorder:
             
             cursor.execute('DROP TABLE IF EXISTS meta')
             cursor.execute('CREATE TABLE meta (key TEXT, value TEXT)')
+            
+            macro_info = summary.get("repo_macro_species", {})
             cursor.executemany('INSERT INTO meta VALUES (?, ?)', [
                 ("engine", session.get("engine")),
                 ("project", session.get("target")),
                 ("timestamp", session.get("timestamp")),
                 ("branch", session.get("git_audit", {}).get("branch")),
-                ("commit", session.get("git_audit", {}).get("commit_hash"))
+                ("commit", session.get("git_audit", {}).get("commit_hash")),
+                ("repo_macro_species", macro_info.get("name", "Unclassified")),
+                ("repo_z_score", str(macro_info.get("z_score", 0.0)))
             ])
 
             cursor.execute('DROP TABLE IF EXISTS stars')
@@ -898,6 +828,8 @@ class LLMRecorder:
                     global_drift REAL,
                     local_archetype TEXT,
                     local_drift REAL,
+                    repo_macro_species TEXT,
+                    repo_z_score REAL,
                     {risk_cols}
                 )
             ''')
@@ -981,6 +913,10 @@ class LLMRecorder:
                 rv = star.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
                 pop_count = len(inbound_map.get(p, []))
                 
+                # Extract repo-level metadata (can be injected via ML pass)
+                repo_macro = tel.get("repo_macro_species", "Unknown")
+                repo_z = tel.get("repo_z_score", 0.0)
+                
                 # --- INJECT ALL RAW DNA METRICS ---
                 cursor.execute(f'''
                     INSERT INTO stars (
@@ -989,15 +925,17 @@ class LLMRecorder:
                         control_flow_ratio, author_distribution, ownership_entropy,
                         raw_churn_freq, cog_raw, ownership, popularity, 
                         archetype, global_drift, local_archetype, local_drift,
+                        repo_macro_species, repo_z_score,
                         {", ".join(self.RISK_SCHEMA)}
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
                 ''', (
                     p, Path(p).name, c_name, star.get("lang_id"), star.get("lock_tier"), 
                     star.get("total_loc"), star.get("coding_loc"), star.get("doc_loc", 0), star.get("file_impact"),
                     tel.get("control_flow_ratio"), tel.get("author_distribution"), tel.get("ownership_entropy"),
                     tel.get("raw_churn_freq"), tel.get("densities", {}).get("cog_raw"), tel.get("ownership"), pop_count, 
                     tel.get("archetype", "Unknown"), tel.get("global_drift", 0.0), tel.get("local_archetype", "N/A"), tel.get("local_drift", 0.0),
+                    str(repo_macro), repo_z,
                     *rv
                 ))
                 
