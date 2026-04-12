@@ -13,6 +13,7 @@ import re
 import statistics
 from typing import Dict, Any, List, Optional, Tuple
 from . import analysis_lens as config
+from . import analysis_lens
 
 # ==============================================================================
 # GitGalaxy Phase 4: Signal Processor (The Physics Engine)
@@ -358,6 +359,23 @@ class SignalProcessor:
 
             hit_vector = [equations.get(key, 0) for key in self.SIGNAL_SCHEMA]
 
+            # ==================================================================
+            # 1. ACTIVE PHYSICS ENGINE (For normal executable code)
+            # ==================================================================
+            tier = self._get_tier(lang_id)
+            fc = self.TIER_VARS[tier]["fc"]
+            irc = self.TIER_VARS[tier]["irc"]
+            
+            # Environmental Context (Path-based overrides)
+            mp_map = self._get_locational_multipliers(rel_path)
+            
+            folder_lang = ghost_meta.get("folder_dominant_lang", lang_id)
+            eco_mp = self._get_context_multipliers(lang_id, folder_lang)
+
+            self.logger.debug(f"[{rel_path}] Physics Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc})")
+
+            hit_vector = [equations.get(key, 0) for key in self.SIGNAL_SCHEMA]
+
             # ------------------------------------------------------------------
             # 1. TEMPORAL PRE-PROCESSING (Raw Extraction)
             # ------------------------------------------------------------------
@@ -368,15 +386,98 @@ class SignalProcessor:
             # 1.5 BUILD THE ML VECTOR & CLASSIFY ARCHETYPE
             # ------------------------------------------------------------------
             cfr = meta.get("control_flow_ratio", 0.0) 
+            
+            # ---> NEW: THE ENCAPSULATION RATIO <---
+            # How much of the file's data is safely locked inside functions?
+            total_vars = equations.get("core_var_decl", 0)
+            global_vars = equations.get("globals", 0)
+            
+            if total_vars == 0 and global_vars == 0:
+                encapsulation_ratio = 1.0 # Safe by default if no state exists
+            else:
+                # 1.0 = Perfect (0 globals). 0.0 = Terrible (All globals).
+                encapsulation_ratio = max(0.0, 1.0 - (global_vars / max(total_vars + global_vars, 1)))
+
             logic_loc = max(int(round(meta.get("coding_loc", 0) * cfr)), 1)
             safe_denom = max(logic_loc, meta.get("coding_loc", 1))
             
+            # ---> START FUNCTION-LEVEL ML CLASSIFICATION <---
             satellites = meta.get("satellites", [])
             max_func_comp = 0
             avg_func_args = 0.0
+            func_gini = 0.0
+            
+            func_ml_brain = getattr(analysis_lens, "GENERAL_FUNCTION_INFERENCE_MODEL", {})
+            f_features = func_ml_brain.get("features", [])
+            f_medians = func_ml_brain.get("SCALER_MEDIANS", [])
+            f_iqrs = func_ml_brain.get("SCALER_IQRS", [])
+            f_arch_key = next((k for k in func_ml_brain.keys() if k.startswith('ARCHETYPES_K')), None)
+            f_centroids = func_ml_brain.get(f_arch_key, {}) if f_arch_key else {}
+            
+            # Bulletproof fallback names if the model dictionary forgets them
+            f_names = func_ml_brain.get("cluster_names", [
+                "Utility/Helper", "Data Router", "State Mutator", "God Function", 
+                "Math Engine", "I/O Bridge", "Constructor", "Callback/Event", 
+                "API Endpoint", "Validator", "Renderer", "Loop Processor"
+            ])
+
+            # ---> NEW: DIAGNOSTIC ML LOGGING <---
+            if satellites and not f_centroids:
+                self.logger.warning(f"⚠️ FUNCTION ML SILENT BYPASS: Brain loaded? {bool(func_ml_brain)} | Centroids: {len(f_centroids)} | Arch Key: {f_arch_key}")
+
             if satellites:
-                max_func_comp = max([s.get("branch", 0) for s in satellites])
+                complexities = [s.get("branch", 0) for s in satellites]
+                max_func_comp = max(complexities)
                 avg_func_args = sum([s.get("args", 0) for s in satellites]) / len(satellites)
+                
+                # 1. Z-Scores Mathematics
+                func_count = len(satellites)
+                mean_comp = statistics.mean(complexities) if func_count > 0 else 0.0
+                std_comp = statistics.pstdev(complexities) if func_count > 1 else 0.0
+
+                for s in satellites:
+                    # Apply Z-Score directly to RAM dictionary
+                    c = s.get("branch", 0)
+                    z_val = (c - mean_comp) / std_comp if std_comp > 0 else 0.0
+                    s["z_score"] = round(z_val, 3)
+
+                    # 2. Archetype Euclidean Classification
+                    s["archetype"] = 'Unclassified'
+                    if f_centroids: # <--- REMOVED f_features STRICT REQUIREMENT
+                        raw_vec = [
+                            float(s.get("branch", 0)),
+                            float(s.get("loc", 0)),
+                            float(s.get("args", 0)),
+                            float(s.get("keyword_density", 0.0)),
+                            float(s.get("control_flow_ratio", s.get("cf_ratio", 0.0)))
+                        ]
+
+                        scaled_vec = []
+                        for i, val in enumerate(raw_vec):
+                            med = f_medians[i] if i < len(f_medians) else 0.0
+                            iqr = f_iqrs[i] if i < len(f_iqrs) and f_iqrs[i] > 0 else 1.0
+                            scaled_vec.append((val - med) / iqr)
+
+                        min_dist = float('inf')
+                        for c_key, centroid in f_centroids.items():
+                            dist = math.sqrt(sum((a - b) ** 2 for a, b in zip(scaled_vec, centroid)))
+                            if dist < min_dist:
+                                min_dist = dist
+                                try:
+                                    # If the key is numbered like "Cluster 0", extract the 0
+                                    c_idx = int(str(c_key).split(" ")[-1])
+                                    s["archetype"] = f_names[c_idx] if c_idx < len(f_names) else c_key
+                                except ValueError:
+                                    # If the key is already the name (e.g., "Interfaces"), use it directly!
+                                    s["archetype"] = str(c_key)
+
+                # 3. Calculate Structural Inequality (Gini)
+                if len(complexities) > 1 and sum(complexities) > 0:
+                    sorted_comps = sorted(float(c) for c in complexities)
+                    n = len(sorted_comps)
+                    index = range(1, n + 1)
+                    func_gini = (sum((2 * i - n - 1) * c for i, c in zip(index, sorted_comps))) / (n * sum(sorted_comps))
+            # ---> END FUNCTION-LEVEL ML CLASSIFICATION <---
             
             raw_imports_count = len(meta.get("raw_imports", []))
             popularity = meta.get("popularity", 0) 

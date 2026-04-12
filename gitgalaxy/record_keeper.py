@@ -9,6 +9,7 @@ import statistics
 import math
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+from . import analysis_lens
 from .analysis_lens import RECORDING_SCHEMAS
 
 class RecordKeeper:
@@ -259,11 +260,10 @@ class RecordKeeper:
             
             file_id = cursor.lastrowid
 
-            # Insert the relational functions
+        # Insert the relational functions
             func_rows = []
-            safe_z_scores = z_scores if z_scores else [0.0] * len(sats)
             
-            for s, z_val in zip(sats, safe_z_scores):
+            for s in sats:
                 raw_hv = s.get("hit_vector", {})
                 func_hits = [int(raw_hv.get(h, 0)) for h in self.SIGNAL_SCHEMA]
                 
@@ -275,8 +275,8 @@ class RecordKeeper:
                     int(s.get("args", 0)), 
                     int(s.get("usage_status", 0)),
                     float(s.get("keyword_density", 0.0)),
-                    'Unclassified', 
-                    z_val
+                    s.get("archetype", "Unclassified"), # <--- Pulls directly from RAM now!
+                    float(s.get("z_score", 0.0))        # <--- Pulls directly from RAM now!
                 ] + func_hits
                 
                 func_rows.append(func_row_data)

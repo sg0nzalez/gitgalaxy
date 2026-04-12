@@ -98,9 +98,9 @@ class ApertureFilter:
         )
 
         # ---> THE SEMANTIC PATH SHIELD (Replaces Hardcoded Folders) <---
-        # Matches boundaries commonly associated with generated, build, and noise directories.
+        # Matches boundaries commonly associated with generated, build, vendor, and noise directories.
         self.infra_path_shield = re.compile(
-            r"(?i)[-_./\\]?(?:gen|generated|build|dist|out|vendor|mock|test|spec|docs|assets|scripts|__monolith__|__snapshots__|.github|.gitlab)[-_./\\]?\b"
+            r"(?i)[-_./\\]?(?:gen|generated|build|dist|out|vendor|mock|test|spec|docs|assets|scripts|__monolith__|__snapshots__|.github|.gitlab|node_modules|third[-_]?party|deps?|lib(?:rary|raries)?)[-_./\\]?\b"
         )
         
         # --- STATE CACHE & DYNAMIC STATE --- 

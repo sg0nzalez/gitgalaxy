@@ -42,9 +42,9 @@ APERTURE_CONFIG = {
         # 1. Version Control Ghosts
         '.git', '.svn', '.hg', 'CVS', '.bzr', '.gitignore', '.gitmodules',
 
-        # 2. Package Managers & Dependencies
+        # 2. Package Managers, Dependencies & Third-Party Vendors
         'node_modules', 'vendor', 'bower_components', 'jspm_packages', 
-        'Pods', 'Carthage',
+        'Pods', 'Carthage', 'third_party', '.npm',
 
         # 3. Virtual Environments
         'venv', '.venv', 'env', '.env', 'virtualenv', '.tox', '.nox',
