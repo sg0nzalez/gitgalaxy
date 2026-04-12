@@ -36,10 +36,12 @@ from .spectral_auditor import SpectralAuditor
 from .gpu_recorder import GPURecorder
 from .audit_recorder import AuditRecorder
 from .llm_recorder import LLMRecorder
+from .record_keeper import RecordKeeper
 from .security_lens import SecurityLens
 from .security_auditor import SecurityAuditor
-# Load Universal Laws from config
-from . import gitgalaxy_standards_v1 as scanning_config
+from .gitgalaxy_config import APERTURE_CONFIG, PRIORITY_WHITELIST, GUIDESTAR_CONFIG, EXACT_FILE_MATCH, STATIC_ARCHETYPES, ORCHESTRATOR_RULES, COMMENT_DEFINITIONS
+from .language_standards import LANGUAGE_DEFINITIONS, PROJECT_OVERRIDES
+from .analysis_lens import ThreatPolicy, PATH_MODIFIERS, PHYSICS_ASSET_MASKS
 
 logger = logging.getLogger("GalaxyScope")
 
@@ -98,9 +100,9 @@ def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int
 
     # --- NEW: Decide the Rules of Engagement before booting the engines ---
     if config.get("PARANOID_MODE", False):
-        active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
+        active_policy = ThreatPolicy.get_policy("paranoid")
     else:
-        active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
+        active_policy = ThreatPolicy.get_policy("baseline")
 
     _worker_state.update({
         'root': root,
@@ -193,6 +195,58 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
         if is_file_profiling: phase_times["1_Aperture_Filter"] = time.perf_counter() - t_aperture
         
         if not is_valid:
+            # ---> NEW: THE X-RAY BINARY SENSOR <---
+            # Intercept binary and blacklisted extensions for deep inspection
+            if "Binary Format" in reason or "Blacklisted Extension" in reason or "Embedded Data Payload" in reason:
+                try:
+                    with open(full_path_str, 'rb') as f:
+                        # Read the first 8KB to check headers and entropy
+                        head = f.read(8192)
+                        
+                    ext = Path(rel_path).suffix.lower()
+                    binary_threats = security.scan_binary(head, ext)
+                    
+                    if binary_threats:
+                        logger.critical(f"🚨 X-RAY TRIGGERED: Weaponized binary detected at '{rel_path}'!")
+                        
+                        # Supernova Promotion: Forge a synthetic star and force it into the visible galaxy
+                        from .signal_processor import SignalProcessor
+                        
+                        hit_vector = [0] * len(SignalProcessor.SIGNAL_SCHEMA)
+                        for t_key, t_val in binary_threats.items():
+                            if t_key in SignalProcessor.SIGNAL_SCHEMA:
+                                hit_vector[SignalProcessor.SIGNAL_SCHEMA.index(t_key)] = t_val
+                                
+                        observation["status"] = "success"
+                        observation["reason"] = None
+                        observation["data"] = {
+                            "path": rel_path,
+                            "stem": Path(rel_path).stem.lower(), 
+                            "lang_id": "binary_threat", 
+                            "is_minified": False,
+                            "lock_tier": 0,
+                            "intensity": 1.0,
+                            "source_proof": "X-Ray Binary Sensor",
+                            "size_bytes": size_bytes,
+                            "total_loc": 1,
+                            "coding_loc": 1,
+                            "doc_loc": 0,
+                            "raw_imports": [],          
+                            "popularity_hits": set(),
+                            "equations": binary_threats,
+                            "satellites": [],
+                            "logic_density": 100.0,
+                            "sum_fxn_impact": 5000.0, # Massive gravity!
+                            "total_control_flow_ratio": 0.0,
+                            "threat_snippets": { "binary_xray": [binary_threats.get("threat_snippet", "Unknown Threat")] },
+                            "metadata": { "alert": "WEAPONIZED BINARY DETECTED", "purpose": reason }
+                        }
+                        observation["processing_time"] = time.time() - t_start
+                        return observation
+                except Exception as e:
+                    logger.debug(f"X-Ray failed on '{rel_path}': {e}")
+            
+            # If no threats found, or it wasn't a binary, dump to Dark Matter as usual
             observation["status"] = "singularity"
             observation["reason"] = reason
             observation["size_bytes"] = size_bytes 
@@ -436,12 +490,13 @@ class Orchestrator:
         self.gpu_recorder = GPURecorder(version=self.version, parent_logger=logger)
         self.audit_recorder = AuditRecorder(parent_logger=logger)
         self.llm_recorder = LLMRecorder(parent_logger=logger)
+        self.db_recorder = RecordKeeper(parent_logger=logger) # <--- Add this line
         
         # --- NEW: THE SMART THREAT SWITCH (MAIN THREAD) ---
         if self.config.get("PARANOID_MODE", False):
-            active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
+            active_policy = ThreatPolicy.get_policy("paranoid")
         else:
-            active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
+            active_policy = ThreatPolicy.get_policy("baseline")
 
         self.security_analyzer = SecurityLens(policy=active_policy)
         self.model_auditor = SecurityAuditor(model_path="gitgalaxy_malware_xgb_multiclass.json", parent_logger=logger)
@@ -557,7 +612,7 @@ class Orchestrator:
             # ----------------------
             
             # --- CHECK EXCLUSIVE MODE FLAGS ---
-            exclusive_mode = self.config.get("LLM_ONLY") or self.config.get("GPU_ONLY") or self.config.get("AUDIT_ONLY")
+            exclusive_mode = self.config.get("LLM_ONLY") or self.config.get("GPU_ONLY") or self.config.get("AUDIT_ONLY") or self.config.get("DB_ONLY")
             audit_output = "Skipped"
 
             # ==========================================================
@@ -598,12 +653,31 @@ class Orchestrator:
                     )
                 except Exception as e:
                     logger.error(f"LLM_FAILURE: Could not generate AI artifacts. {e}", exc_info=True)
+                    
+            # ==========================================================
+            # PHASE 8.8: NATIVE SQLITE RECORDER
+            # ==========================================================
+            if not exclusive_mode or self.config.get("DB_ONLY"):
+                try:
+                    db_output = str(Path(output_file).with_name(f"{Path(output_file).stem}_master.db"))
+                    logger.info(f"SQLITE: Generating repository-specific database -> {db_output}")
+                    
+                    self.db_recorder.record_mission(
+                        stars=visible_galaxy,
+                        summary=summary,
+                        session_meta=session_meta,
+                        output_path=db_output
+                    )
+                except Exception as e:
+                    logger.error(f"SQLITE_FAILURE: Could not generate native database. {e}", exc_info=True)
 
             # ==========================================================
             # PHASE 9: GPU RECORDER (Destructive Columnar Pivot)
             # ==========================================================
+            gpu_output = str(Path(output_file).with_name(f"{Path(output_file).stem}_gpu.json"))
+            
             if not exclusive_mode or self.config.get("GPU_ONLY"):
-                logger.info(f"GPU: Generating minified payload -> {output_file}")
+                logger.info(f"GPU: Generating minified payload -> {gpu_output}")
                 # record_mission destructively clears RAM as it pivots
                 payload = self.gpu_recorder.record_mission(
                     stars=visible_galaxy,
@@ -614,11 +688,11 @@ class Orchestrator:
                 )
                 
                 payload["meta"]["session"] = session_meta
-                self.gpu_recorder.save_minified(payload, output_file)
+                self.gpu_recorder.save_minified(payload, gpu_output)
 
             logger.info(f"--- MISSION_SUCCESS: {stars_mapped_count} stars mapped in {duration}s ---")
             logger.info(f"--- ENGINE_TELEMETRY: Processed {total_loc:,} lines of code at {loc_per_sec:,} LOC/s ---")
-            logger.info(f"--- ARCHIVES_SEALED: {output_file} & {audit_output} ---")
+            logger.info(f"--- ARCHIVES_SEALED: {gpu_output} & {audit_output} ---")
             
             if self.config.get("FILE_SPEED"):
                 self._render_file_speed_chart()
@@ -885,33 +959,25 @@ class Orchestrator:
         suffix_map = {}
         stem_to_paths = {}
         
-        # Pre-compute all possible valid suffixes for every file to bypass O(N) searching
         for repo_file in repo_file_paths:
             s = Path(repo_file).stem.lower()
-            if s not in stem_to_paths:
-                stem_to_paths[s] = []
+            if s not in stem_to_paths: stem_to_paths[s] = []
             stem_to_paths[s].append(repo_file)
             
             norm_repo = repo_file.replace("\\", "/")
             repo_no_ext = norm_repo.rsplit('.', 1)[0] if '.' in Path(norm_repo).name else norm_repo
             
-            # 1. Build suffixes for the Exact Extension version (e.g. 'utils.h', 'core/utils.h')
             parts_ext = norm_repo.split('/')
             for i in range(len(parts_ext)):
                 suffix = "/".join(parts_ext[i:])
-                if suffix not in suffix_map:
-                    suffix_map[suffix] = []
+                if suffix not in suffix_map: suffix_map[suffix] = []
                 suffix_map[suffix].append(repo_file)
                 
-            # 2. Build suffixes for the Extension-less version (e.g. 'utils', 'core/utils')
             parts_no_ext = repo_no_ext.split('/')
             for i in range(len(parts_no_ext)):
                 suffix = "/".join(parts_no_ext[i:])
-                if suffix not in suffix_map:
-                    suffix_map[suffix] = []
-                # Avoid duplicating the target if it already matched the extension list
-                if repo_file not in suffix_map[suffix]:
-                    suffix_map[suffix].append(repo_file)
+                if suffix not in suffix_map: suffix_map[suffix] = []
+                if repo_file not in suffix_map[suffix]: suffix_map[suffix].append(repo_file)
             
         stop_stems = {
             "text", "type", "types", "param", "params", "index", "main", 
@@ -925,60 +991,146 @@ class Orchestrator:
         }
         
         # --- THE REGEX OPTIMIZATION ---
-        # Pre-compile the regex ONCE to save CPU cycles inside the massive inner loop
         import_cleaner = re.compile(r'^(?:#\s*include|%\s*include|import|export import|from|require|use|source)\s*', re.IGNORECASE)
+
+        external_imports_tally = {} # <--- NEW: Track external dependencies
 
         for rel_path, meta in self.cryolink.items():
             raw_imports = meta.get("raw_imports", set())
             for raw_import in raw_imports:
                 
-                # Apply the pre-compiled regex
                 clean_path = import_cleaner.sub('', raw_import.strip())
-                                
                 if 'from' in clean_path:
                     clean_path = clean_path.split('from')[-1]
                     
                 clean_path = clean_path.strip('<>"\'; ()').replace("\\", "/")
-                if not clean_path:
-                    continue
+                if not clean_path: continue
                 
-                # THE FIX: Don't turn file extensions into folders!
-                # If the string has a dot but no slash, we only replace '.' with '/' 
-                # if it is NOT a recognized file extension.
                 if "." in clean_path and "/" not in clean_path:
                     ext_guess = "." + clean_path.rsplit('.', 1)[-1].lower()
                     if ext_guess not in self.ext_tally:
                         clean_path = clean_path.replace(".", "/")
                 
-                # Strip leading relative markers so it aligns with our suffix map
                 clean_path = clean_path.lstrip("./")
-                if not clean_path:
-                    continue
+                if not clean_path: continue
+                
+                matched_internal = False # <--- NEW: Flag to verify if import is local
                 
                 # --- FAST PATH 1: O(1) Suffix & Exact Match ---
-                # This single lookup replaces the entire O(N) for-loop!
                 if clean_path in suffix_map:
+                    matched_internal = True
                     for target_path in suffix_map[clean_path]:
                         self.popularity_scores[target_path] += 1
-                    continue
-                    
-                # --- FAST PATH 2: O(1) Python Package Resolution (__init__.py) ---
-                init_path = clean_path + "/__init__"
-                if init_path in suffix_map:
-                    for target_path in suffix_map[init_path]:
-                        self.popularity_scores[target_path] += 1
-                    continue
-
-                # --- THE FALLBACK: Stem Matching ---
-                guess_stem = Path(clean_path).stem.lower()
-                if guess_stem in stem_to_paths and guess_stem not in stop_stems and len(guess_stem) >= 3:
-                    for target_path in stem_to_paths[guess_stem]:
-                        if clean_path in target_path or guess_stem == clean_path:
-                            self.popularity_scores[target_path] += 1 
-                        elif "/" not in clean_path:
+                        
+                # --- FAST PATH 2: O(1) Python Package Resolution ---
+                if not matched_internal:
+                    init_path = clean_path + "/__init__"
+                    if init_path in suffix_map:
+                        matched_internal = True
+                        for target_path in suffix_map[init_path]:
                             self.popularity_scores[target_path] += 1
 
-            # Evict memory before Pass 2
+                # --- THE FALLBACK: Stem Matching ---
+                if not matched_internal:
+                    guess_stem = Path(clean_path).stem.lower()
+                    if guess_stem in stem_to_paths and guess_stem not in stop_stems and len(guess_stem) >= 3:
+                        for target_path in stem_to_paths[guess_stem]:
+                            if clean_path in target_path or guess_stem == clean_path:
+                                self.popularity_scores[target_path] += 1 
+                                matched_internal = True
+                            elif "/" not in clean_path:
+                                self.popularity_scores[target_path] += 1
+                                matched_internal = True
+
+                # ---> NEW: LOG EXTERNAL IMPORTS <---
+                if not matched_internal:
+                    if clean_path not in external_imports_tally:
+                        external_imports_tally[clean_path] = []
+                    external_imports_tally[clean_path].append(rel_path)
+
+        # =========================================================================
+        # ---> NEW: THE AIR-GAPPED TYPOSQUATTING RADAR <---
+        # =========================================================================
+        logger.info("PASS_1.5: Running Air-Gapped Typosquatting & Dependency Confusion Radar...")
+        
+        anchors = []
+        orphans = []
+        
+        # 1. Separate Anchors (Used heavily) and Orphans (Used once)
+        for ext_imp, paths in external_imports_tally.items():
+            if len(paths) >= 3:
+                anchors.append(ext_imp)
+            elif len(paths) == 1:
+                orphans.append((ext_imp, paths[0]))
+                
+        # 2. Fast Levenshtein Distance (Inline to avoid external dependencies)
+        def _levenshtein(s1, s2):
+            if len(s1) < len(s2): return _levenshtein(s2, s1)
+            if len(s2) == 0: return len(s1)
+            prev = range(len(s2) + 1)
+            for i, c1 in enumerate(s1):
+                curr = [i + 1]
+                for j, c2 in enumerate(s2):
+                    curr.append(min(prev[j + 1] + 1, curr[j] + 1, prev[j] + (c1 != c2)))
+                prev = curr
+            return prev[-1]
+
+        from .gitgalaxy_config import APERTURE_CONFIG
+        whitelist = APERTURE_CONFIG.get("TYPOSQUAT_WHITELIST", set())
+
+        typosquat_hits = 0
+        for orphan_imp, rel_path in orphans:
+            # 1. The Project Override Shield
+            if orphan_imp in whitelist:
+                continue
+                
+            for anchor_imp in anchors:
+                # 2. The Short String Shield (Math collapses under 5 chars)
+                if len(orphan_imp) < 5 or len(anchor_imp) < 5:
+                    continue
+                    
+                # 3. The Casing Shield (Developer typos, not malware)
+                if orphan_imp.lower() == anchor_imp.lower():
+                    continue
+
+                # 4. The OOP Interface Shield (Prevents 'IEmailer' vs 'Emailer')
+                orphan_base = orphan_imp.split('/')[-1]
+                anchor_base = anchor_imp.split('/')[-1]
+                if orphan_base == f"I{anchor_base}" or anchor_base == f"I{orphan_base}":
+                    continue
+
+                # Ignore massive length differences to save CPU cycles
+                if abs(len(orphan_imp) - len(anchor_imp)) > 2:
+                    continue
+                    
+                dist = _levenshtein(orphan_imp, anchor_imp)
+                
+                # 5. Dynamic Distance Threshold (Tighter rules for medium strings)
+                max_dist = 1 if min(len(orphan_imp), len(anchor_imp)) < 10 else 2
+                
+                if 0 < dist <= max_dist:
+                    logger.critical(f"🚨 TYPOSQUATTING DETECTED: '{orphan_imp}' in {rel_path} closely matches anchor '{anchor_imp}'!")
+                    
+                    # Inject the threat directly into the file's equations before Phase 2
+                    if "equations" not in self.cryolink[rel_path]:
+                        self.cryolink[rel_path]["equations"] = {}
+                        
+                    # Reusing sec_homoglyphs (Unicode Smuggling & Typosquatting)
+                    self.cryolink[rel_path]["equations"]["sec_homoglyphs"] = self.cryolink[rel_path]["equations"].get("sec_homoglyphs", 0) + 1
+                    
+                    # Inject a domain context alert for the UI and Forensic Report
+                    if "metadata" not in self.cryolink[rel_path]:
+                        self.cryolink[rel_path]["metadata"] = {}
+                    self.cryolink[rel_path]["metadata"]["alert"] = f"TYPOSQUATTING THREAT: '{orphan_imp}' mimics '{anchor_imp}'"
+                    
+                    typosquat_hits += 1
+                    break # Move to next orphan
+                    
+        if typosquat_hits > 0:
+            logger.warning(f"Intercepted {typosquat_hits} typosquatting attempts via repository baseline analysis.")
+
+        # Evict memory before Pass 2
+        for rel_path, meta in self.cryolink.items():
             if "popularity_hits" in meta: del meta["popularity_hits"]
             
     def _second_pass_relational(self):
@@ -1362,6 +1514,7 @@ def main():
     parser.add_argument("--llm-only", action="store_true", help="Run ONLY the LLM recorder")
     parser.add_argument("--gpu-only", action="store_true", help="Run ONLY the GPU recorder")
     parser.add_argument("--audit-only", action="store_true", help="Run ONLY the Audit recorder")
+    parser.add_argument("--db-only", action="store_true", help="Run ONLY the native SQLite recorder")
     parser.add_argument("--splicing-speed", action="store_true", help="Profile regex and file processing speeds (capped at 5000 files)")
     parser.add_argument("--file-speed", action="store_true", help="Profile the macro lifecycle phases of file processing")
     
@@ -1389,9 +1542,9 @@ def main():
         # ---------------------------------------------------------
         # 2. The Domain Dialect Pre-Flight Patch
         # ---------------------------------------------------------
-        base_langs = getattr(scanning_config, "LANGUAGE_DEFINITIONS", {})
-        project_overrides = getattr(scanning_config, "PROJECT_OVERRIDES", {})
-        base_aperture = getattr(scanning_config, "APERTURE_CONFIG", {})
+        base_langs = LANGUAGE_DEFINITIONS
+        project_overrides = PROJECT_OVERRIDES
+        base_aperture = APERTURE_CONFIG
         
         merged_langs = copy.deepcopy(base_langs) 
         merged_aperture = copy.deepcopy(base_aperture)
@@ -1427,10 +1580,10 @@ def main():
 
         # --- THE SMART THREAT SWITCH ---
         if args.paranoid:
-            active_policy = scanning_config.ThreatPolicy.get_policy("paranoid")
+            active_policy = ThreatPolicy.get_policy("paranoid")
             logging.getLogger("GalaxyScope").info("🔒 ZERO-TRUST MODE: Security Lens thresholds set to maximum sensitivity.")
         else:
-            active_policy = scanning_config.ThreatPolicy.get_policy("baseline")
+            active_policy = ThreatPolicy.get_policy("baseline")
 
         # Boot the lens with the chosen policy
         security_lens = SecurityLens(policy=active_policy)
@@ -1441,16 +1594,17 @@ def main():
         # ---------------------------------------------------------
         full_config = {
             "LANGUAGE_DEFINITIONS": merged_langs,
-            "COMMENT_DEFINITIONS": getattr(scanning_config, "COMMENT_DEFINITIONS", {}),
+            "COMMENT_DEFINITIONS": COMMENT_DEFINITIONS,
             "APERTURE_CONFIG": merged_aperture,
-            "PATH_MODIFIERS": getattr(scanning_config, "PATH_MODIFIERS", {}),
-            "PRIORITY_WHITELIST": getattr(scanning_config, "PRIORITY_WHITELIST", []),
-            "DOCUMENTATION_LANGUAGES": getattr(scanning_config, "DOCUMENTATION_LANGUAGES", set()),
+            "PATH_MODIFIERS": PATH_MODIFIERS,
+            "PRIORITY_WHITELIST": PRIORITY_WHITELIST,
+            "DOCUMENTATION_LANGUAGES": PHYSICS_ASSET_MASKS.get("DOCUMENTATION_LANGUAGES", set()),
             "PARANOID_MODE": args.paranoid,
             # --- NEW: PASS EXCLUSIVE FLAGS TO ORCHESTRATOR ---
             "LLM_ONLY": args.llm_only,
             "GPU_ONLY": args.gpu_only,
             "AUDIT_ONLY": args.audit_only,
+            "DB_ONLY": args.db_only,
             "SPLICING_SPEED": args.splicing_speed,
             "FILE_SPEED": args.file_speed
         }

@@ -15,7 +15,7 @@ try:
 except ImportError:
     ML_AVAILABLE = False
 
-from . import gitgalaxy_standards_v1 as config
+from .analysis_lens import RECORDING_SCHEMAS, AI_THREAT_THRESHOLD
 
 class SecurityAuditor:
     """Calculates deep dependency graphs and executes XGBoost Threat Inference."""
@@ -34,11 +34,10 @@ class SecurityAuditor:
         self.logger = parent_logger.getChild("ml_auditor") if parent_logger else logging.getLogger("ml_auditor")
         
         # Load the Universal Schemas to map the raw vectors back to names
-        schemas = getattr(config, "RECORDING_SCHEMAS", {})
-        self.SIGNAL_SCHEMA = schemas.get("SIGNAL_SCHEMA", [])
+        self.SIGNAL_SCHEMA = RECORDING_SCHEMAS.get("SIGNAL_SCHEMA", [])
         
         # Fetch the dynamic threshold from standards (default to 90.0)
-        self.ai_threshold = getattr(config, "AI_THREAT_THRESHOLD", 90.0)
+        self.ai_threshold = AI_THREAT_THRESHOLD
         
         if not self.SIGNAL_SCHEMA:
             self.logger.critical("🚨 SIGNAL_SCHEMA is empty! ML feature extraction will fail. Check gitgalaxy_standards_v1.py.")
@@ -239,6 +238,13 @@ class SecurityAuditor:
                     "log_logic_loc": np.log1p(np.maximum(logic_loc, 0)),
                     "log_max_func_complexity": np.log1p(np.maximum(max_func_comp, 0)),
                     "log_avg_func_args": np.log1p(np.maximum(avg_func_args, 0)),
+                    "func_complexity_gini": float(tel.get("func_complexity_gini", 0.0)),
+                    
+                    # ---> NEW: INJECT DENSITY & SLOP FOR XGBOOST <---
+                    "func_internal_density": float(tel.get("func_internal_density", 0.0)),
+                    "design_slop_orphans": float(hit_dict.get("design_slop_orphans", 0)),
+                    "design_slop_duplicates": float(hit_dict.get("design_slop_duplicates", 0)),
+                    
                     "log_direct_upstream": np.log1p(np.maximum(dep.get("direct_upstream", 0), 0)),
                     "log_direct_downstream": np.log1p(np.maximum(dep.get("direct_downstream", 0), 0)),
                     "log_total_upstream": np.log1p(np.maximum(dep.get("total_upstream", 0), 0)),

@@ -1,418 +1,331 @@
 # ==============================================================================
 # GitGalaxy
 # Copyright (c) 2026 Joe Esquibel
-#
-# This source code is licensed under the PolyForm Noncommercial License 1.0.0.
-# You may not use this file except in compliance with the License.
-# A copy of the license can be found in the LICENSE file in the root directory
-# of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
 # ==============================================================================
+import sqlite3
 import json
 import logging
+import statistics
 import math
-import os
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-
-# ==============================================================================
-# GitGalaxy Phase 8: Record Keeper (The Astrograph)
-# Strategy v6.2.0 Protocol: Columnar Pivot, GPU-Native Formatting & SBOM
-# ==============================================================================
-
-class SchemaCorruptionError(Exception):
-    """Raised when parallel arrays in the columnar pivot lose alignment or type integrity."""
-    pass
+from .analysis_lens import RECORDING_SCHEMAS
 
 class RecordKeeper:
     """
-    The GitGalaxy Record Keeper (Astrograph).
+    The GitGalaxy Record Keeper (Native SQLite Recorder).
     
-    PURPOSE: Transforms row-based forensic data into a miniaturized columnar 
-    manifest. Optimized for GPU-native rendering, minimal memory footprint, 
-    and forensic transparency.
+    PURPOSE: Transforms the live RAM state directly into a highly relational 
+    SQLite database. Bypasses the need for intermediate JSON parsing and creates 
+    a time-series schema perfectly aligned for Master Database aggregation.
     """
 
-    def __init__(self, version: str, parent_logger: Optional[logging.Logger] = None):
-        """Initializes lookups, standardizes schemas, and synchronizes telemetry."""
-        self.version = version
+    def __init__(self, parent_logger: Optional[logging.Logger] = None):
+        self.logger = parent_logger.getChild("record_keeper") if parent_logger else logging.getLogger("record_keeper")
         
-        if parent_logger:
-            self.logger = parent_logger.getChild("recordkeeper")
-            self.logger.setLevel(parent_logger.level)
-        else:
-            self.logger = logging.getLogger("recordkeeper")
-            self.logger.setLevel(logging.INFO) 
+        schemas = RECORDING_SCHEMAS
+        self.RISK_SCHEMA = schemas.get("RISK_SCHEMA", [])
+        self.SIGNAL_SCHEMA = schemas.get("SIGNAL_SCHEMA", [])
 
-        self.logger.debug("Initializing Record Keeper (Astrograph) schemas...")
-
-        # --- FIXED SCHEMAS (Position-Sensitive) ---
-        self.RISK_SCHEMA = [
-            "cognitive_load", "safety_score", "tech_debt", "verification", 
-            "api_exposure", "concurrency", "state_flux", "graveyard", 
-            "spec_match", "stability", "churn", "documentation", "civil_war"
-        ]
-        
-        self.HIT_SCHEMA = [
-            "branch", "args", "linear", "func_start", "class_start", "import", "api", "decorators",
-            "safety", "safety_neg", "danger", "flux", "heat_triggers", "keyword_debt", "private_info",
-            "io", "concurrency", "ui_framework", "events", "ssr_boundaries", "dependency_injection",
-            "scientific", "generics", "comprehensions", "closures", "globals", "telemetry", "test",
-            "macros", "pointers", "memory_alloc", "inline_asm", "func_empty",
-            "graveyard", "doc", "ownership", "spec_exposure", "planned_debt", "fragile_debt", "civil_war",
-            "indent_tabs", "indent_spaces" # <--- Added these to maintain perfect alignment!
-        ]
-        
-        self.SAT_SCHEMA = ["name", "loc", "branch", "angle_x10", "args", "type_id", "ratio_x1000", "mag_x10"]
-        self.GALAXY_SCHEMA = ["names", "paths", "lang_ids", "locs", "m_locs", "mass", "entropy", "pos_x", "pos_y", "pos_z"]
-        
-        # String Interning Registries
-        self.lang_lookup: List[str] = []
-        self.author_lookup: List[str] = [] 
-        self.proof_lookup: List[str] = []
-        self.reason_lookup: List[str] = []
-        self.texture_lookup: List[str] = [
-            "standard", "crystalline", "plates", "digital", "metallic", "necrosis", 
-            "io", "check", "verification", "mutation", "event", "logic", "danger"
-        ]
-
-    def record_mission(
-        self, 
-        stars: List[Dict[str, Any]], 
-        singularity: List[Dict[str, Any]],
-        summary: Dict[str, Any],
-        forensic_report: Dict[str, Any],
-        repo_name: str,
-        lang_registry: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
-        """
-        Orchestrates the Columnar Pivot, destructively evicts RAM, and seals the manifest.
-        """
-        if lang_registry:
-            self.lang_lookup.extend([l for l in lang_registry if l not in self.lang_lookup])
-            
-        visible_count = len(stars)
-        dark_count = len(singularity)
-        total_artifacts = visible_count + dark_count
-        
-        self.logger.info(f"Astrograph: Initiating columnar pivot for '{repo_name}' ({total_artifacts} artifacts)...")
-
-        # ----------------------------------------------------------------------
-        # FORENSIC REPORT FORMATTING & TIE RESOLUTION
-        # Re-calculate top/bottom 3 using the full stars array to detect massive
-        # ties (e.g., 10 files at 100%). Formats floats into string percentages.
-        # ----------------------------------------------------------------------
-        def format_tier(lst, reverse_sort):
-            if not lst: return []
-            
-            # Group files by value (rounded to 2 decimals to prevent float drift)
-            groups = {}
-            for x in lst:
-                val = round(self._safe_float(x["value"]), 2)
-                if val not in groups:
-                    groups[val] = []
-                groups[val].append(x)
-            
-            results = []
-            sorted_vals = sorted(groups.keys(), reverse=reverse_sort)
-            
-            for val in sorted_vals:
-                group = groups[val]
-                
-                # If a tie exceeds our remaining display slots, group them into one entry
-                slots_left = 3 - len(results)
-                if len(group) > slots_left and len(group) > 1:
-                    results.append({
-                        "name": f"[{len(group)} artifacts tied]",
-                        "path": "Multiple Sectors",
-                        "value": f"{val}%"
-                    })
-                    break # Chart is effectively full
-                else:
-                    for item in group:
-                        results.append({
-                            "name": item["name"],
-                            "path": item["path"],
-                            "value": f"{val}%"
-                        })
-                        if len(results) >= 3:
-                            break
-                if len(results) >= 3:
-                    break
-            return results
-
-        if forensic_report and "exposures" in forensic_report:
-            for idx, risk_key in enumerate(self.RISK_SCHEMA):
-                if risk_key not in forensic_report["exposures"]:
-                    continue
-                
-                # 1. Extract all valid values for this specific risk from the entire galaxy
-                extracted = []
-                for s in stars:
-                    rv = s.get("risk_vector")
-                    if rv and len(rv) > idx:
-                        extracted.append({
-                            "name": s.get("name", "unknown"),
-                            "path": s.get("path", "unknown"),
-                            "value": rv[idx]
-                        })
-                
-                if not extracted: 
-                    continue
-
-                # 2. Override the forensic report natively before saving
-                forensic_report["exposures"][risk_key] = {
-                    "highest": format_tier(extracted, reverse_sort=True),
-                    "lowest": format_tier(extracted, reverse_sort=False)
-                }
-
-        # 1. Initialize GPU Parallel Arrays
-        columns: Dict[str, List[Any]] = {
-            "names": [], "paths": [], "lang_ids": [],
-            "locs": [], "m_locs": [], "mass": [], "entropy": [],
-            "pos_x": [], "pos_y": [], "pos_z": [],
-            "risks": [], "hits": [], "satellites": [], "telemetry": []
-        }
-        
-        singularity_columns: Dict[str, List[Any]] = {
-            "paths": [], "reasons": [], "sizes": [], 
-            "failed_claims": [], "lock_tiers": [], "confidences": [], "proofs": []
+        # The 5-Pillar Taxonomy Map (Enforces schema consistency)
+        self.SHORT_KEY_MAP = {
+            "branch": "struct_branch", "linear": "struct_linear", "args": "struct_args", "func_start": "struct_func_start", "class_start": "struct_class_start", "closures": "struct_closures", "comprehensions": "struct_comprehensions", "macros": "struct_macros", "decorators": "struct_decorators", "generics": "struct_generics", "core_var_decl": "struct_var_decl", "indent_tabs": "struct_tabs", "indent_spaces": "struct_spaces", "design_camel_case": "struct_camel_case", "design_snake_case": "struct_snake_case", "design_pascal_case": "struct_pascal_case", "design_upper_case": "struct_upper_case", "design_short_vars": "struct_short_vars", "design_long_vars": "struct_long_vars", "flux": "state_flux", "danger": "state_danger", "graveyard": "state_graveyard", "safety_neg": "state_safety_neg", "design_slop_orphans": "state_slop_orphans", "design_slop_duplicates": "state_slop_duplicates", "planned_debt": "state_planned_debt", "fragile_debt": "state_fragile_debt", "bailout_hits": "state_bailout_hits", "halt_hits": "state_halt_hits", "heat_triggers": "state_heat_triggers", "pointers": "state_pointers", "memory_alloc": "state_memory_alloc", "cast_hits": "state_cast_hits", "print_hits": "state_print_hits", "io": "arch_io", "api": "arch_api", "concurrency": "arch_concurrency", "import": "arch_import", "ui_framework": "arch_ui_framework", "globals": "arch_globals", "ipc_rpc_bridges": "arch_ipc", "ssr_boundaries": "arch_ssr_boundaries", "events": "arch_events", "scientific": "arch_scientific", "dependency_injection": "arch_dependency_injection", "hardware_bridge": "arch_hardware", "cryptography": "arch_crypto", "serialization_parsing": "arch_serialization", "regex_execution": "arch_regex", "time_date_logic": "arch_time", "feature_flags": "arch_feature_flags", "inline_asm": "arch_inline_asm", "safety": "def_safety", "freeze_hits": "def_freeze_hits", "cleanup": "def_cleanup", "sync_locks": "def_sync_locks", "test": "def_test", "test_skip": "def_test_skip", "doc": "def_doc", "listeners": "def_listeners", "encapsulation": "def_encapsulation", "auth_middleware": "def_auth", "telemetry": "def_telemetry", "ownership": "def_ownership", "spec_exposure": "def_spec_exposure", "sec_private_info": "threat_private_info", "sec_tainted_injection": "threat_tainted_injection", "sec_heat_triggers": "threat_obfuscated", "sec_bitwise_hits": "threat_crypto_math", "sec_extension_mismatch": "threat_extension_mismatch", "sec_entropy": "threat_entropy", "sec_danger": "threat_eval_exec", "sec_safety_neg": "threat_bypasses", "sec_io": "threat_network_hooks", "sec_flux": "threat_env_mutation", "sec_shadow_imports": "threat_stego_imports", "sec_homoglyphs": "threat_homoglyphs"
         }
 
-        # 2. Destructive Vectorization (O(1) Memory Eviction Loop)
-        processed_stars = 0
-        self.logger.debug("Pivoting Visible Matter...")
-        while stars:
-            try:
-                self._process_star(stars.pop(), columns)
-                processed_stars += 1
-            except Exception as e:
-                self.logger.error(f"Astrograph Anomaly: Dropped corrupted star to preserve array alignment. {e}", exc_info=True)
+    def record_mission(self, stars: List[Dict], summary: Dict, session_meta: Dict, output_path: str):
+        """Builds the SQLite database directly from RAM."""
+        repo_name = session_meta.get("target", "Unknown")
+        git_audit = session_meta.get("git_audit", {})
+        commit_date = git_audit.get("latest_commit_date", "Unknown").split("T")[0]
+        commit_hash = git_audit.get("commit_hash", "Unknown")
+        
+        db_file = Path(output_path)
+        self.logger.info(f"Record Keeper: Forging native SQLite database -> {db_file.name}")
 
-        processed_dark = 0
-        self.logger.debug("Pivoting Dark Matter (Singularity)...")
-        while singularity:
-            try:
-                self._process_singularity(singularity.pop(), singularity_columns)
-                processed_dark += 1
-            except Exception as e:
-                self.logger.error(f"Astrograph Anomaly: Dropped corrupted dark matter. {e}", exc_info=True)
+        conn = sqlite3.connect(db_file)
         
-        self.logger.debug(f"Vectorization complete. Processed {processed_stars} Stars, {processed_dark} Dark Matter.")
+        # Enforce foreign keys so cascading deletes work perfectly
+        conn.execute("PRAGMA foreign_keys = ON;")
+        cursor = conn.cursor()
 
-        self._enforce_schema_integrity(columns, "galaxy")
-        self._enforce_schema_integrity(singularity_columns, "singularity")
+        # 1. DYNAMIC SCHEMA GENERATION
+        risk_cols = [f"risk_{r.replace('-', '_')} REAL" for r in self.RISK_SCHEMA]
+        hit_cols = [f"{self.SHORT_KEY_MAP.get(h, h)} INTEGER" for h in self.SIGNAL_SCHEMA]
 
-        # 3. Final Manifest Synthesis (Maintains Orchestrator compatibility)
-        return {
-            "meta": {
-                "session": {
-                    "engine": f"GitGalaxy Scope v{self.version}",
-                    "target": repo_name,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                },
-                "schemas": {
-                    "galaxy": self.GALAXY_SCHEMA,
-                    "galaxy_columns": list(columns.keys()), 
-                    "singularity_columns": list(singularity_columns.keys()),
-                    "risk_vector_x1000": list(self.RISK_SCHEMA),
-                    "hit_vector": list(self.HIT_SCHEMA),
-                    "satellites": list(self.SAT_SCHEMA),
-                    "scalars": {"exposure": 1000, "physics": 10},
-                    "lookups": {
-                        "languages": self.lang_lookup,
-                        "textures": self.texture_lookup,
-                        "authors": self.author_lookup,
-                        "proofs": self.proof_lookup,
-                        "reasons": self.reason_lookup
-                    }
-                }
-            },
-            "global_summary": summary,
-            "galaxy": columns,
-            "singularity": singularity_columns,
-            "forensic_report": forensic_report
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS repo_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                repo_name TEXT,
+                commit_date TEXT,
+                commit_hash TEXT,
+                total_files INTEGER,
+                total_loc INTEGER,
+                total_coding_loc INTEGER,
+                total_functions INTEGER,
+                total_classes INTEGER,
+                macro_species TEXT,
+                z_score REAL,
+                avg_encapsulation_ratio REAL,
+                avg_imports_per_file REAL,
+                {", ".join(hit_cols)},
+                file_composition TEXT,
+                UNIQUE(repo_name, commit_hash)
+            )
+        ''')
 
-        }
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS file_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                repo_name TEXT,
+                commit_date TEXT,
+                commit_hash TEXT,
+                file_name TEXT,
+                file_path TEXT,
+                language TEXT,
+                constellation TEXT,
+                total_loc INTEGER,
+                coding_loc INTEGER,
+                structural_mass REAL,
+                cog_raw REAL,
+                ownership_entropy REAL,
+                silo_risk REAL,
+                raw_churn_freq REAL,
+                popularity INTEGER,
+                import_count INTEGER,
+                control_flow_ratio REAL,
+                function_count INTEGER,
+                class_count INTEGER,
+                func_complexity_vector TEXT,
+                avg_func_loc REAL,
+                avg_func_complexity REAL,
+                max_func_complexity REAL,
+                avg_func_args REAL,
+                func_complexity_gini REAL,
+                func_internal_density REAL,
+                dependency_density REAL,
+                encapsulation_ratio REAL,
+                author TEXT,
+                ai_threat_class TEXT,
+                ai_threat_confidence REAL,
+                func_z_max REAL DEFAULT 0.0, 
+                func_z_mean REAL DEFAULT 0.0, 
+                func_z_median REAL DEFAULT 0.0, 
+                pct_z_above_5 REAL DEFAULT 0.0, 
+                pct_z_above_15 REAL DEFAULT 0.0, 
+                file_archetype TEXT, 
+                file_fingerprint TEXT,
+                {", ".join(risk_cols)},
+                {", ".join(hit_cols)}
+            )
+        ''')
 
-    def _process_star(self, star: Dict[str, Any], columns: Dict[str, List[Any]]):
-        path = self._sanitize_text(star.get("path", "unknown"))
-        name = self._sanitize_text(star.get("name", Path(path).name))
-        lang_idx = self._intern_string(str(star.get("lang_id", "unknown")), self.lang_lookup)
-        
-        loc = self._safe_int(star.get("total_loc", 0))
-        m_loc = self._safe_int(star.get("coding_loc", 0))
-        
-        risk_vector_x1000 = self._quantize_risk_vector(star.get("risk_vector", []))
-        mass_x10 = int(round(self._safe_float(star.get("file_impact", 0.0)) * 10))
-        
-        churn_val = star.get("risk_vector", [0]*len(self.RISK_SCHEMA))[self.RISK_SCHEMA.index("churn")] if "churn" in self.RISK_SCHEMA and len(star.get("risk_vector", [])) > self.RISK_SCHEMA.index("churn") else star.get("entropy", 0.0)
-        entropy_x1000 = int(round(max(0.0, min(100.0, self._safe_float(churn_val))) * 10))
-        
-        pos_x = int(round(self._safe_float(star.get("pos_x", 0.0)) * 10))
-        pos_y = int(round(self._safe_float(star.get("pos_y", 0.0)) * 10))
-        pos_z = int(round(self._safe_float(star.get("pos_z", 0.0)) * 10))
-        
-        raw_hits = star.get("hit_vector", [])
-        if not isinstance(raw_hits, list) or len(raw_hits) != len(self.HIT_SCHEMA):
-            raw_hits = [0] * len(self.HIT_SCHEMA)
-        hits = [self._safe_int(h) for h in raw_hits]
-        
-        sat_vectors = self._vectorize_satellites(star.get("satellites", []))
-        
-        raw_tel = star.get("telemetry", {})
-        telemetry = {}
-        
-        owner = raw_tel.get("ownership")
-        if owner:
-            telemetry["author_id"] = self._intern_string(owner, self.author_lookup)
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS function_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_id INTEGER,
+                func_name TEXT,
+                complexity INTEGER,
+                loc INTEGER,
+                args INTEGER,
+                usage_status INTEGER,
+                keyword_density REAL,
+                func_archetype TEXT DEFAULT 'Unclassified',
+                func_z_score REAL DEFAULT 0.0,
+                {", ".join(hit_cols)},
+                FOREIGN KEY(file_id) REFERENCES file_data(id) ON DELETE CASCADE
+            )
+        ''')
+
+        # ---> THE IDEMPOTENT WIPE <---
+        # If this exact commit was scanned before, wipe its files and functions
+        # before inserting the new scan data to prevent duplicate bloat.
+        cursor.execute("DELETE FROM file_data WHERE repo_name = ? AND commit_hash = ?", (repo_name, commit_hash))
+
+        # 2. INSERTION LOOP
+        agg_total_loc = 0
+        agg_coding_loc = 0
+        agg_func_count = 0
+        agg_import_count = 0
+        agg_encapsulation = 0.0
+        agg_hits = [0] * len(self.SIGNAL_SCHEMA)
+
+        for star in stars:
+            tel = star.get("telemetry", {})
+            sats = star.get("satellites", [])
             
-        proof = raw_tel.get("identity_source_proof", star.get("source_proof"))
-        if proof:
-            telemetry["proof_id"] = self._intern_string(proof, self.proof_lookup)
-            telemetry["lock_tier"] = self._safe_int(raw_tel.get("identity_lock_tier", star.get("lock_tier", 4)))
+            # Function Mathematics
+            func_count = len(sats)
+            complexities = [int(s.get("branch", 0)) for s in sats]
+            locs = [int(s.get("loc", 0)) for s in sats]
+            args_list = [int(s.get("args", 0)) for s in sats]
             
-        if "densities" in raw_tel: telemetry["densities"] = raw_tel["densities"]
-        if "raw_churn_freq" in raw_tel: telemetry["raw_churn_freq"] = raw_tel["raw_churn_freq"]
-        if "popularity" in raw_tel: telemetry["popularity"] = raw_tel["popularity"]
-        if "purpose" in raw_tel: telemetry["purpose"] = raw_tel["purpose"]
-        if "ownership_entropy" in raw_tel: telemetry["ownership_entropy"] = raw_tel["ownership_entropy"]
-
-        columns["names"].append(name)
-        columns["paths"].append(path)
-        columns["lang_ids"].append(lang_idx)
-        columns["locs"].append(loc)
-        columns["m_locs"].append(m_loc)
-        columns["risks"].append(risk_vector_x1000)
-        columns["hits"].append(hits)
-        columns["mass"].append(mass_x10)
-        columns["entropy"].append(entropy_x1000)
-        columns["satellites"].append(sat_vectors)
-        columns["pos_x"].append(pos_x)
-        columns["pos_y"].append(pos_y)
-        columns["pos_z"].append(pos_z)
-        columns["telemetry"].append(telemetry)
-
-    def _process_singularity(self, dark_star: Dict[str, Any], columns: Dict[str, List[Any]]):
-        path = self._sanitize_text(dark_star.get("path", "unknown"))
-        size_bytes = self._safe_int(dark_star.get("size_bytes", 0))
-        reason_idx = self._intern_string(dark_star.get("reason", "Unknown Anomaly"), self.reason_lookup)
-        
-        claim_idx = self._intern_string(str(dark_star.get("failed_claim", "unknown")), self.lang_lookup)
-        tier = self._safe_int(dark_star.get("identity_lock_tier", 4))
-        conf_x1000 = int(round(self._safe_float(dark_star.get("identity_confidence", 0.0)) * 1000))
-        proof_idx = self._intern_string(str(dark_star.get("identity_source_proof", "Discovery")), self.proof_lookup)
-        
-        columns["paths"].append(path)
-        columns["reasons"].append(reason_idx)
-        columns["sizes"].append(size_bytes)
-        columns["failed_claims"].append(claim_idx)
-        columns["lock_tiers"].append(tier)
-        columns["confidences"].append(conf_x1000)
-        columns["proofs"].append(proof_idx)
-
-    def _quantize_risk_vector(self, risks: Any) -> List[int]:
-        quantized = []
-        if isinstance(risks, list):
-            for val in risks:
-                scaled = int(round(max(0.0, min(100.0, self._safe_float(val))) * 10)) 
-                quantized.append(scaled)
-        elif isinstance(risks, dict):
-            for key in self.RISK_SCHEMA:
-                val = self._safe_float(risks.get(key, 0.0))
-                scaled = int(round(max(0.0, min(100.0, val)) * 10)) 
-                quantized.append(scaled)
-        
-        while len(quantized) < len(self.RISK_SCHEMA):
-            quantized.append(0)
+            avg_comp = float(sum(complexities) / func_count) if func_count > 0 else 0.0
+            max_comp = float(max(complexities)) if func_count > 0 else 0.0
+            avg_loc = float(sum(locs) / func_count) if func_count > 0 else 0.0
+            avg_args = float(sum(args_list) / func_count) if func_count > 0 else 0.0
+            func_comp_vector = json.dumps(complexities)
             
-        return quantized[:len(self.RISK_SCHEMA)]
-
-    def _vectorize_satellites(self, satellites: Any) -> List[List[Any]]:
-        vectorized = []
-        if not isinstance(satellites, list):
-            return vectorized
+            # ---> Z-SCORE CALCULATOR FOR "GOD FUNCTIONS" <---
+            func_z_max = 0.0
+            func_z_mean = 0.0
+            func_z_median = 0.0
+            pct_z_above_5 = 0.0
+            pct_z_above_15 = 0.0
+            z_scores = []
             
-        for sat in satellites:
-            if not isinstance(sat, dict): continue
-            vectorized.append([
-                self._sanitize_text(sat.get("name", "anon")),                         
-                self._safe_int(sat.get("loc", 0)),                                     
-                self._safe_int(sat.get("branch_count", sat.get("branch", 0))),         
-                int(round(self._safe_float(sat.get("angle", 0.0)) * 10)),              
-                self._safe_int(sat.get("args", 0)),                                    
-                self._intern_string(sat.get("type_id", "standard"), self.texture_lookup), 
-                int(round(self._safe_float(sat.get("ratio", 0.0)) * 1000)),           
-                int(round(self._safe_float(sat.get("mag", 0.0)) * 10))                
-            ])
-        return vectorized
-
-    def _safe_float(self, val: Any) -> float:
-        if val is None: return 0.0
-        try:
-            f_val = float(val)
-            if math.isnan(f_val) or math.isinf(f_val): return 0.0
-            return f_val
-        except (ValueError, TypeError):
-            return 0.0
-            
-    def _safe_int(self, val: Any) -> int:
-        if val is None: return 0
-        try:
-            return int(float(val))
-        except (ValueError, TypeError):
-            return 0
-
-    def _intern_string(self, value: Any, registry: List[str]) -> int:
-        val_str = self._sanitize_text(str(value))
-        if val_str not in registry:
-            registry.append(val_str)
-        return registry.index(val_str)
-
-    def _sanitize_text(self, text: Any) -> str:
-        if text is None: return ""
-        if not isinstance(text, str):
-            text = text
-        return "".join(char for char in text if char.isprintable())
-
-    def _enforce_schema_integrity(self, columns: Dict[str, List[Any]], target_name: str):
-        lengths = {k: len(v) for k, v in columns.items()}
-        unique_lengths = set(lengths.values())
-        
-        if len(unique_lengths) > 1:
-            self.logger.error(f"Schema Corruption ({target_name}): Array alignment lost! Lengths: {lengths}")
-            raise SchemaCorruptionError(f"CRITICAL: Column alignment mismatch in {target_name}: {lengths}")
+            if func_count > 0:
+                mean_comp = statistics.mean(complexities)
+                std_comp = statistics.pstdev(complexities) if func_count > 1 else 0.0
                 
-        self.logger.debug(f"{target_name.capitalize()} integrity verified. Matrix perfectly aligned at length {list(unique_lengths)[0] if unique_lengths else 0}.")
+                for c in complexities:
+                    z = (c - mean_comp) / std_comp if std_comp > 0 else 0.0
+                    z_scores.append(round(z, 3))
+                    
+                if z_scores:
+                    func_z_max = max(z_scores)
+                    func_z_mean = statistics.mean(z_scores)
+                    func_z_median = statistics.median(z_scores)
+                    pct_z_above_5 = (sum(1 for z in z_scores if z > 5.0) / func_count) * 100.0
+                    pct_z_above_15 = (sum(1 for z in z_scores if z > 15.0) / func_count) * 100.0
 
-    def save_minified(self, payload: Dict[str, Any], filename: str):
-        temp_file = f"{filename}.tmp"
-        try:
-            self.logger.debug(f"Astrograph: Serializing payload to temporary buffer '{temp_file}'...")
-            with open(temp_file, 'w', encoding='utf-8') as f:
-                json.dump(
-                    payload, f, 
-                    indent=None, 
-                    ensure_ascii=False, 
-                    separators=(',', ':')
-                )
+            # Micro-Densities for XGBoost
+            func_internal_density = (avg_comp / avg_loc) if avg_loc > 0 else 0.0
             
-            if not os.path.exists(temp_file) or os.path.getsize(temp_file) == 0:
-                raise IOError("Temporary manifest file is empty or missing post-serialization.")
+            logic_loc_denom = max(int(star.get("coding_loc", 1) * tel.get("control_flow_ratio", 0.0)), 1)
+            import_count = len(star.get("raw_imports", []))
+            dependency_density = import_count / float(logic_loc_denom)
+
+            # Extract Confidence Score and String Class
+            ai_threat_conf_str = tel.get("domain_context", {}).get("AI Threat Confidence", tel.get("domain_context", {}).get("AI Threat Score", "0.0%"))
+            ai_threat = float(str(ai_threat_conf_str).replace('%', '')) if ai_threat_conf_str else 0.0
+            ai_threat_class = tel.get("domain_context", {}).get("AI Threat Class", "Safe")
+            encapsulation_ratio = float(tel.get("encapsulation_ratio", 1.0))
+
+            rv = star.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
+            hv = star.get("hit_vector", [0] * len(self.SIGNAL_SCHEMA))
+
+            class_start_idx = self.SIGNAL_SCHEMA.index("class_start") if "class_start" in self.SIGNAL_SCHEMA else -1
+            class_count = hv[class_start_idx] if class_start_idx >= 0 else 0
+
+            # FUTURE-PROOF ML CLUSTER EXTRACTION
+            file_archetype = tel.get("archetype", "Unknown")
+            file_fingerprint_str = json.dumps(tel.get("archetype_fingerprint", {}))
+
+            # Update Repository Aggregations
+            agg_total_loc += star.get("total_loc", 0)
+            agg_coding_loc += star.get("coding_loc", 0)
+            agg_func_count += func_count
+            agg_import_count += import_count
+            agg_encapsulation += encapsulation_ratio
+            for i, val in enumerate(hv):
+                if i < len(agg_hits):
+                    agg_hits[i] += val
+
+            # Assemble the master file row
+            row_data = [
+                repo_name, commit_date, commit_hash, Path(star.get("path", "")).name, star.get("path", ""),
+                star.get("lang_id", "unknown"), star.get("constellation", "__monolith__"),
+                star.get("total_loc", 0), star.get("coding_loc", 0),
+                star.get("file_impact", 0.0), tel.get("densities", {}).get("cog_raw", 0.0),
+                tel.get("ownership_entropy", 0.0), tel.get("author_distribution", 0.0),
+                tel.get("raw_churn_freq", 0.0), tel.get("popularity", 0), import_count,
+                tel.get("control_flow_ratio", 0.0), func_count, class_count, func_comp_vector,
+                avg_loc, avg_comp, max_comp, avg_args, tel.get("func_complexity_gini", 0.0), 
+                func_internal_density, dependency_density, encapsulation_ratio,
+                tel.get("ownership", "Unknown"), ai_threat_class, ai_threat,
+                func_z_max, func_z_mean, func_z_median, pct_z_above_5, pct_z_above_15,
+                file_archetype, file_fingerprint_str
+            ]
             
-            os.replace(temp_file, filename)
+            row_data.extend(rv)
+            row_data.extend(hv)
+
+            placeholders = ",".join(["?"] * len(row_data))
             
-            kb_size = os.path.getsize(filename) / 1024.0
-            mb_size = kb_size / 1024.0
+            cursor.execute(f'''
+                INSERT INTO file_data (
+                    repo_name, commit_date, commit_hash, file_name, file_path, language, constellation, 
+                    total_loc, coding_loc, structural_mass, cog_raw, ownership_entropy, silo_risk, 
+                    raw_churn_freq, popularity, import_count, control_flow_ratio, function_count, class_count,
+                    func_complexity_vector, avg_func_loc, avg_func_complexity, max_func_complexity, 
+                    avg_func_args, func_complexity_gini, func_internal_density, dependency_density, encapsulation_ratio,
+                    author, ai_threat_class, ai_threat_confidence, 
+                    func_z_max, func_z_mean, func_z_median, pct_z_above_5, pct_z_above_15, 
+                    file_archetype, file_fingerprint,
+                    {", ".join([f"risk_{r.replace('-', '_')}" for r in self.RISK_SCHEMA])}, 
+                    {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])}
+                ) VALUES ({placeholders})
+            ''', row_data)
             
-            size_str = f"{mb_size:.2f} MB" if mb_size > 1.0 else f"{kb_size:.1f} KB"
-            self.logger.info(f"Astrograph: Manifest sealed successfully -> {filename} ({size_str})")
+            file_id = cursor.lastrowid
+
+            # Insert the relational functions
+            func_rows = []
+            safe_z_scores = z_scores if z_scores else [0.0] * len(sats)
             
-        except Exception as e:
-            if os.path.exists(temp_file):
-                try:
-                    os.remove(temp_file)
-                except OSError:
-                    pass
-            self.logger.error(f"Atomic Save Failure: Could not serialize manifest: {e}", exc_info=True)
-            raise
+            for s, z_val in zip(sats, safe_z_scores):
+                raw_hv = s.get("hit_vector", {})
+                func_hits = [int(raw_hv.get(h, 0)) for h in self.SIGNAL_SCHEMA]
+                
+                func_row_data = [
+                    file_id, 
+                    str(s.get("name", "unknown_function"))[:255], 
+                    int(s.get("branch", 0)), 
+                    int(s.get("loc", 0)), 
+                    int(s.get("args", 0)), 
+                    int(s.get("usage_status", 0)),
+                    float(s.get("keyword_density", 0.0)),
+                    'Unclassified', 
+                    z_val
+                ] + func_hits
+                
+                func_rows.append(func_row_data)
+
+            if func_rows:
+                func_placeholders = ",".join(["?"] * len(func_rows[0]))
+                cursor.executemany(f'''
+                    INSERT INTO function_data 
+                    (file_id, func_name, complexity, loc, args, usage_status, keyword_density, func_archetype, func_z_score, {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])}) 
+                    VALUES ({func_placeholders})
+                ''', func_rows)
+
+        # 3. REPO DATA INSERTION
+        class_start_idx = self.SIGNAL_SCHEMA.index("class_start") if "class_start" in self.SIGNAL_SCHEMA else -1
+        total_classes = agg_hits[class_start_idx] if class_start_idx >= 0 else 0
+        
+        macro_info = summary.get("repo_macro_species", {})
+        repo_composition_str = json.dumps(summary.get("composition", {}))
+        
+        total_files = len(stars)
+        avg_encapsulation = (agg_encapsulation / total_files) if total_files > 0 else 1.0
+        avg_imports = (agg_import_count / total_files) if total_files > 0 else 0.0
+        
+        repo_row_data = [
+            repo_name,
+            commit_date,
+            commit_hash,
+            total_files,
+            agg_total_loc,
+            agg_coding_loc,
+            agg_func_count,
+            total_classes,
+            macro_info.get("name", "Unclassified"),
+            float(macro_info.get("z_score", 0.0)),
+            round(avg_encapsulation, 3),
+            round(avg_imports, 3)
+        ] + agg_hits + [repo_composition_str]
+
+        repo_placeholders = ",".join(["?"] * len(repo_row_data))
+        cursor.execute(f'''
+            INSERT OR REPLACE INTO repo_data (
+                repo_name, commit_date, commit_hash, total_files, total_loc, total_coding_loc, 
+                total_functions, total_classes, macro_species, z_score,
+                avg_encapsulation_ratio, avg_imports_per_file,
+                {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])},
+                file_composition
+            ) VALUES ({repo_placeholders})
+        ''', repo_row_data)
+
+        conn.commit()
+        conn.close()
+        self.logger.info(f"Database sealed. Exported {len(stars)} files and functions to {db_file.name}")

@@ -12,7 +12,7 @@ import logging
 import re
 import statistics
 from typing import Dict, Any, List, Optional, Tuple
-from . import gitgalaxy_standards_v1 as config
+from . import analysis_lens as config
 
 # ==============================================================================
 # GitGalaxy Phase 4: Signal Processor (The Physics Engine)
@@ -64,16 +64,16 @@ class SignalProcessor:
         # 🧠 FETCH THE ML INFERENCE BRAINS (Global & Local)
         # ======================================================================
         # ---> NEW (DYNAMIC) <---
-        ml_brain = getattr(config, "ML_INFERENCE_BRAIN", {})
-        self.SCALER_MEDIANS = ml_brain.get("SCALER_MEDIANS", [0.0] * 40) # Ensure 40 matches your array length
-        self.SCALER_IQRS = ml_brain.get("SCALER_IQRS", [1.0] * 40)
+        ml_brain = getattr(config, "GENERAL_FILE_INFERENCE_MODEL", {})
+        self.SCALER_MEDIANS = ml_brain.get("SCALER_MEDIANS", [0.0] * 100) # Safe fallback size
+        self.SCALER_IQRS = ml_brain.get("SCALER_IQRS", [1.0] * 100)
         
         # Dynamically grab whichever ARCHETYPES_K key exists (e.g. ARCHETYPES_K9)
         arch_key = next((k for k in ml_brain.keys() if k.startswith('ARCHETYPES_K')), None)
         self.GLOBAL_ARCHETYPES = ml_brain.get(arch_key, {}) if arch_key else {}
         
         # ---> NEW: Fetch Language-Specific Micro-Species Brains <---
-        self.LANGUAGE_INFERENCE_BRAINS = getattr(config, "LANGUAGE_INFERENCE_BRAINS", {})
+        self.LANGUAGE_INFERENCE_BRAINS = getattr(config, "SPECIFIC_FILE_INFERENCE_MODEL", {})
 
         # Fetch Physics Constants
         physics = getattr(config, "PHYSICS_CONSTANTS", {})
@@ -408,8 +408,8 @@ class SignalProcessor:
             # A) GLOBAL MACRO-SPECIES
             scaled_vector_global = []
             for i, val in enumerate(raw_vector):
-                median = self.SCALER_MEDIANS[i]
-                safe_iqr = self.SCALER_IQRS[i] if self.SCALER_IQRS[i] > 0 else 1.0 
+                median = self.SCALER_MEDIANS[i] if i < len(self.SCALER_MEDIANS) else 0.0
+                safe_iqr = self.SCALER_IQRS[i] if i < len(self.SCALER_IQRS) and self.SCALER_IQRS[i] > 0 else 1.0 
                 scaled_vector_global.append((val - median) / safe_iqr)
 
             global_archetype, global_drift, arch_fingerprint = self._classify_archetype(scaled_vector_global, self.GLOBAL_ARCHETYPES)
@@ -654,7 +654,7 @@ class SignalProcessor:
             }
 
         # --- NEW: Repo Macro-Species Calculation ---
-        repo_brain = getattr(config, "REPO_MACRO_BRAIN", None)
+        repo_brain = getattr(config, "GENERAL_REPO_INFERENCE_MODEL", None)
         repo_macro_data = {"name": "Unclassified", "id": -1, "z_score": 0.0, "raw_drift": 0.0}
         
         if repo_brain and stars:

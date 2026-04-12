@@ -12,7 +12,8 @@ import logging
 import gc
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from . import gitgalaxy_standards_v1 as config
+from . import analysis_lens
+from . import gitgalaxy_config
 
 # ==============================================================================
 # GitGalaxy Phase 9: GPU Recorder (Formerly RecordKeeper)
@@ -34,7 +35,7 @@ class GPURecorder:
         self.logger = parent_logger.getChild("gpu_recorder") if parent_logger else logging.getLogger("gpu_recorder")
 
         # --- DYNAMIC SCHEMA FETCH ---
-        schemas = getattr(config, "RECORDING_SCHEMAS", {})
+        schemas = getattr(analysis_lens, "RECORDING_SCHEMAS", {})
 
         # --- INTERNING REGISTRIES ---
         self.lang_lookup: List[str] = []
@@ -53,7 +54,7 @@ class GPURecorder:
         self.HIT_SCHEMA = schemas.get("SIGNAL_SCHEMA", [])
         self.SAT_SCHEMA = schemas.get("SAT_SCHEMA", [])
 
-    def record_mission(self, stars: List[Dict], singularity: List[Dict], summary: Dict, forensic_report: Dict, repo_name: str) -> Dict:
+    def record_mission(self, stars: List[Dict], singularity: List[Dict], summary: Dict, forensic_report: Dict, repo_name: str, commit_hash: str = "untracked_local", branch_name: str = "unknown_branch") -> Dict:
         """
         Orchestrates the synthesis and implementation of Stage 3.3: Destructive RAM Eviction.
         Iteratively destroys the input lists to free memory while building the columnar manifest.
@@ -284,7 +285,7 @@ class GPURecorder:
 
         # --- DYNAMIC LORE INJECTION ---
         # Fetch the story registry, defaulting to an empty dict if it doesn't exist
-        project_stories = getattr(config, "PROJECT_STORIES", {})
+        project_stories = getattr(gitgalaxy_config, "PROJECT_STORIES", {})
         
         # Grab the specific story, OR generate the blank template
         # Explicitly defining the empty artifacts schema so the external merge script can target the keys

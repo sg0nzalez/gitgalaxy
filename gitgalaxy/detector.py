@@ -12,9 +12,10 @@ import math
 import hashlib
 import logging
 import time
+import bisect
 from typing import Dict, List, Any, TypedDict, Optional, Tuple
-from . import gitgalaxy_standards_v1 as config
-
+from .analysis_lens import RECORDING_SCHEMAS
+from .language_standards import UNIVERSAL_RULES, LANGUAGE_DEFINITIONS
 
 # ==============================================================================
 # GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Cartographer
@@ -30,6 +31,8 @@ class Satellite(TypedDict, total=False):
     type_id: str
     
     loc: int
+    coding_loc: int
+    keyword_density: float
     
     branch_count: int
     branch: int
@@ -49,6 +52,8 @@ class Satellite(TypedDict, total=False):
     
     start_line: int
     end_line: int
+    
+    hit_vector: Dict[str, int]
 
 
 class LogicData(TypedDict, total=False):
@@ -218,8 +223,8 @@ class LogicSplicer:
 
     # --- DYNAMIC SCHEMA FETCH ---
     # Directly mirrors the central registry to prevent schema drift
-    UNIVERSAL_METRICS_SCHEMA = config.RECORDING_SCHEMAS.get("SIGNAL_SCHEMA", [])
-    
+    UNIVERSAL_METRICS_SCHEMA = RECORDING_SCHEMAS.get("SIGNAL_SCHEMA", [])   
+     
     HANDSHAKE_REGISTRY = [
         {"trigger": re.compile(r'<script', re.I), "end": re.compile(r'</script>', re.I), "target": "javascript", "pair": None},
         {"trigger": re.compile(r'<style', re.I), "end": re.compile(r'</style>', re.I), "target": "css", "pair": None},
@@ -266,7 +271,7 @@ class LogicSplicer:
         
         if self.primary_lang_id not in self.languages or 'rules' not in self.languages.get(self.primary_lang_id, {}):
             try:
-                from .gitgalaxy_standards_v1 import LANGUAGE_DEFINITIONS
+                from .language_standards import LANGUAGE_DEFINITIONS
                 self.languages = LANGUAGE_DEFINITIONS
                 self.logger.warning(f"[AUTO-HEAL] Re-injected LANGUAGE_DEFINITIONS for '{self.primary_lang_id}'")
             except ImportError:
@@ -332,12 +337,13 @@ class LogicSplicer:
             segments = self._partition_segments(code_stream, self.primary_lang_id)
             
             t_eq = time.time()
-            equations, mitigation_telemetry = self.coding_analysis(segments, regex_telemetry if profile_regex else None)
+            equations, mitigation_telemetry, segment_spatial_maps = self.coding_analysis(segments, regex_telemetry if profile_regex else None)
            
             equations = self.comment_analysis(comment_stream, self.primary_lang_id, equations)
             
             t_slice = time.time()
-            satellites, sum_fxn_impact = self._function_slice(segments, regex_telemetry if profile_regex else None)
+            satellites, sum_fxn_impact = self._function_slice(segments, segment_spatial_maps, regex_telemetry if profile_regex else None)
+        
 
             branch_hits = equations.get("branch", 0)
             linear_hits = equations.get("linear", 0)
@@ -346,6 +352,33 @@ class LogicSplicer:
             # Use the newly standardized keys from the updated coding_analysis
             total_signals = sum(equations.values())
             logic_density = round(total_signals / line_count, 3) if line_count > 0 else 0.0
+
+            # --- NEW: INTRA-FILE ORPHAN & DUPLICATE DETECTOR ---
+            import collections
+            # Fast, C-backed word frequency counter for the entire file
+            token_counts = collections.Counter(re.findall(r'\b\w+\b', code_stream))
+            
+            orphan_count = 0
+            sat_names = [s.get("name", "") for s in satellites]
+            sat_name_counts = collections.Counter(sat_names)
+
+            for sat in satellites:
+                sat_name = sat.get("name", "")
+                usage_status = 0 # 0 = Normal
+                
+                # Check for Duplicates (Defined multiple times in the same file)
+                if sat_name and sat_name_counts[sat_name] > 1:
+                    usage_status = 2 # 2 = Duplicate
+                elif len(sat_name) > 3 and sat_name not in {"Unknown_Sat", "Anonymous_Block", "Main", "Declarative_Block"}:
+                    # If the function name only exists where it was defined, it's an orphan
+                    if token_counts[sat_name] <= 1:
+                        orphan_count += 1
+                        usage_status = 1 # 1 = Orphan / Unused
+                        
+                sat["usage_status"] = usage_status
+                        
+            if orphan_count > 0:
+                equations["design_slop_orphans"] = orphan_count
 
             result_payload = {
                 "equations": equations,
@@ -570,17 +603,17 @@ class LogicSplicer:
 
         return unmitigated_count, mitigated_count
 
-    def coding_analysis(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Tuple[Dict[str, int], Dict[str, int]]: 
+    def coding_analysis(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Tuple[Dict[str, int], Dict[str, int], List[Dict[str, List[int]]]]: 
         counts: Dict[str, int] = {key: 0 for key in self.UNIVERSAL_METRICS_SCHEMA}
         mitigations: Dict[str, int] = {"mitigated_danger": 0, "mitigated_memory_allocs": 0, "amplified_rce": 0, "amplified_race_conditions": 0, "amplified_leaks": 0}
+        segment_spatial_maps = []
         
         for seg_lang, seg_code, _ in segments:
             # 1. Grab the language-specific rules
             rules = self.languages.get(seg_lang, {}).get('rules', {}).copy()
             
             # 2. Seamlessly merge in the Universal Rules!
-            if hasattr(config, 'UNIVERSAL_RULES'):
-                rules.update(config.UNIVERSAL_RULES)
+            rules.update(UNIVERSAL_RULES)
                 
             seg_len = len(seg_code)
             
@@ -700,8 +733,9 @@ class LogicSplicer:
             # Capture indentation signatures
             counts['indent_tabs'] += len(re.findall(r'^\t+(?=\S)', seg_code, flags=re.MULTILINE))
             counts['indent_spaces'] += len(re.findall(r'^[ ]{2,}(?=\S)', seg_code, flags=re.MULTILINE))
+            segment_spatial_maps.append(spatial_map)
 
-        return counts, mitigations
+        return counts, mitigations, segment_spatial_maps
     
     def comment_analysis(self, comment_stream: str, lang_id: str, counts: Dict[str, int]) -> Dict[str, int]:
         """
@@ -848,12 +882,12 @@ class LogicSplicer:
     # THE MASTER DISPATCHER
     # ==============================================================================
 
-    def _function_slice(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Tuple[List[Satellite], float]:
+    def _function_slice(self, segments: List[Tuple[str, str, int]], segment_spatial_maps: List[Dict[str, List[int]]], regex_telemetry: dict = None) -> Tuple[List[Satellite], float]:
         """The Master Routing Dispatcher: Directs the optical signal into the correct integration mode."""
         all_satellites = []
         global_impact = 0.0
 
-        for lang_id, code, offset in segments:
+        for (lang_id, code, offset), spatial_map in zip(segments, segment_spatial_maps):
             lang_config = self.languages.get(lang_id, {})
             rules = lang_config.get('rules', {})
             family = lang_config.get('lexical_family', 'std_c')
@@ -865,10 +899,10 @@ class LogicSplicer:
             
             if optical_mode == "mode_d":
                 mode_name = "Mode_D_Keywords"
-                sats, impact = self._slice_by_keywords(code, lang_id, rules, offset)
+                sats, impact = self._slice_by_keywords(code, lang_id, rules, offset, spatial_map)
             elif optical_mode == "mode_e":
                 mode_name = "Mode_E_Terminator"
-                sats, impact = self._slice_by_terminator(code, lang_id, rules, offset)
+                sats, impact = self._slice_by_terminator(code, lang_id, rules, offset, spatial_map)
             else:
                 # Fallback to standard optical heuristics (Modes A, B, C)
                 func_start = rules.get('func_start')
@@ -877,14 +911,13 @@ class LogicSplicer:
                     
                 if lang_id in ('assembly', 'agc_assembly', 'cobol', 'fortran') or family in ('singular', 'positional'):
                     mode_name = "Mode_A_Labels"
-                    sats, impact = self._slice_by_labels(code, rules, offset)
+                    sats, impact = self._slice_by_labels(code, rules, offset, spatial_map)
                 elif family in ('pure_hash', 'hybrid_hash') or lang_id in ('python', 'yaml'):
                     mode_name = "Mode_C_Indentation"
-                    sats, impact = self._slice_by_indentation(code, rules, offset)
+                    sats, impact = self._slice_by_indentation(code, rules, offset, spatial_map)
                 else:
                     mode_name = "Mode_B_Braces"
-                    # FIX: Pass the lexical family down so we can swap {} for ()
-                    sats, impact = self._slice_by_braces(code, lang_id, rules, offset, family=family)
+                    sats, impact = self._slice_by_braces(code, lang_id, rules, offset, spatial_map, family=family)
 
             # Record the telemetry if profiling is active
             if regex_telemetry is not None and mode_name != "Unknown":
@@ -905,7 +938,7 @@ class LogicSplicer:
     # INTEGRATION MODES (Slicers)
     # ==============================================================================
 
-    def _slice_by_labels(self, code: str, rules: Dict[str, Any], offset: int) -> Tuple[List[Satellite], float]:
+    def _slice_by_labels(self, code: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[Satellite], float]:
         """[INTEGRATION MODE A] - Greedy Label-Based Scan (Assembly, COBOL)."""
         satellites = []
         sum_fxn_impact = 0.0
@@ -951,14 +984,15 @@ class LogicSplicer:
             loc = block.count('\n') + 1
             end_line = start_line + loc - 1
 
-            sat, mag = self._process_satellite_physics(name, block, loc, start_line, end_line, rules)
+            sat, mag = self._process_satellite_physics(name, block, loc, start_line, end_line, rules, start_idx, start_idx+end_offset, spatial_map)
             
             satellites.append(sat)
             sum_fxn_impact += mag
 
         return satellites, sum_fxn_impact
 
-    def _slice_by_braces(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, family: str = 'std_c') -> Tuple[List[Satellite], float]:
+    def _slice_by_braces(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]], family: str = 'std_c') -> Tuple[List[Satellite], float]:
+        
         """[INTEGRATION MODE B] - Global Recursive Scope Analysis (C-Family & Lisp)."""
         satellites = []
         sum_fxn_impact = 0.0
@@ -1093,7 +1127,7 @@ class LogicSplicer:
             loc = block.count('\n') + 1
             end_line = start_line + loc - 1
 
-            sat, mag = self._process_satellite_physics(name, block, loc, start_line, end_line, rules)
+            sat, mag = self._process_satellite_physics(name, block, loc, start_line, end_line, rules, start_idx, end_idx, spatial_map)
             
             satellites.append(sat)
             sum_fxn_impact += mag
@@ -1102,7 +1136,7 @@ class LogicSplicer:
 
         return satellites, sum_fxn_impact
 
-    def _slice_by_indentation(self, code: str, rules: Dict[str, Any], offset: int) -> Tuple[List[Satellite], float]:
+    def _slice_by_indentation(self, code: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[Satellite], float]:         
         """[INTEGRATION MODE C] - Density Stratification (Python, YAML)."""
         satellites = []
         sum_fxn_impact = 0.0
@@ -1194,14 +1228,14 @@ class LogicSplicer:
             loc = block.count('\n') + 1
             end_line = start_line + loc - 1
             
-            sat, mag = self._process_satellite_physics(name, block, loc, start_line, end_line, rules)
+            sat, mag = self._process_satellite_physics(name, block, loc, start_line, end_line, rules, start_idx, end_idx, spatial_map)
             
             satellites.append(sat)
             sum_fxn_impact += mag
 
         return satellites, sum_fxn_impact
 
-    def _slice_by_keywords(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int) -> Tuple[List[Satellite], float]:
+    def _slice_by_keywords(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[Satellite], float]:
         """[INTEGRATION MODE D] - Semantic Handshake Stack (Shell, Ruby, Lua)."""
         self.logger.debug(f"[DIAGNOSTIC] Mode D: Initiating _slice_by_keywords for {lang_id}")
         config = SemanticScopeRegistry.get_config(lang_id)
@@ -1237,6 +1271,8 @@ class LogicSplicer:
 
         current_line_offset = offset
         sat_start_line = offset + 1
+        current_char_offset = 0
+        sat_start_char = 0
 
         lang_key = SemanticScopeRegistry._ALIASES.get(lang_id.lower(), lang_id.lower())
 
@@ -1268,6 +1304,7 @@ class LogicSplicer:
                     current_satellite = [orig_line]
                     stack_depth += net_change
                     sat_start_line = current_line_offset + 1
+                    sat_start_char = current_char_offset
                 else:
                     global_dust.append(orig_line)
                     stack_depth = max(0, stack_depth + net_change) 
@@ -1285,7 +1322,8 @@ class LogicSplicer:
                     if block:
                         loc = max(len(current_satellite), 1)
                         sat_end_line = current_line_offset + 1
-                        sat, mag = self._process_satellite_physics(satellite_name, block, loc, sat_start_line, sat_end_line, rules)
+                        sat_end_char = current_char_offset + len(orig_line)
+                        sat, mag = self._process_satellite_physics(satellite_name, block, loc, sat_start_line, sat_end_line, rules, sat_start_char, sat_end_char, spatial_map)
                         satellites.append(sat)
                         sum_fxn_impact += mag
                         
@@ -1294,6 +1332,7 @@ class LogicSplicer:
                     stack_depth = 0
             
             current_line_offset += 1
+            current_char_offset += len(orig_line)
 
         self.logger.debug(f"[DIAGNOSTIC] Mode D: Finished traversing. Processing remnants...")
 
@@ -1301,7 +1340,7 @@ class LogicSplicer:
             block = '\n'.join(current_satellite).strip()
             if block:
                 loc = max(len(current_satellite), 1)
-                sat, mag = self._process_satellite_physics(satellite_name + "_[Truncated]", block, loc, sat_start_line, current_line_offset, rules)
+                sat, mag = self._process_satellite_physics(satellite_name + "_[Truncated]", block, loc, sat_start_line, current_line_offset, rules, sat_start_char, current_char_offset, spatial_map)
                 satellites.append(sat)
                 sum_fxn_impact += mag
 
@@ -1316,7 +1355,7 @@ class LogicSplicer:
         self.logger.debug(f"[DIAGNOSTIC] Mode D: Extracted {len(satellites)} satellites.")
         return satellites, sum_fxn_impact
     
-    def _slice_by_terminator(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int) -> Tuple[List[Satellite], float]:
+    def _slice_by_terminator(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[Satellite], float]:
         """[INTEGRATION MODE E] - Terminator Cleaving (SQL, Erlang, Prolog)."""
         config = SemanticScopeRegistry.get_config(lang_id)
         if not config:
@@ -1333,6 +1372,8 @@ class LogicSplicer:
         is_orbiting = False
         sat_start_line = offset + 1
         current_line_offset = offset
+        current_char_offset = 0
+        sat_start_char = 0
 
         # 1. Apply the shield to the ENTIRE string, preserving newline counts.
         # This prevents multi-line strings from collapsing the parallel line iteration.
@@ -1358,11 +1399,13 @@ class LogicSplicer:
 
             if not safe_line.strip() and not is_orbiting:
                 sat_start_line = current_line_offset + 1
+                current_char_offset += len(orig_line)
                 continue
 
             # Check for block ignition
             if not is_orbiting:
                 is_orbiting = True
+                sat_start_char = current_char_offset
                 match = igniter_pattern.search(safe_line)
                 if match:
                     lang_key = SemanticScopeRegistry._ALIASES.get(lang_id.lower(), lang_id.lower())
@@ -1378,7 +1421,8 @@ class LogicSplicer:
                 if block:
                     loc = max(len(current_satellite), 1)
                     sat_end_line = current_line_offset
-                    sat, mag = self._process_satellite_physics(satellite_name, block, loc, sat_start_line, sat_end_line, rules)
+                    sat_end_char = current_char_offset + len(orig_line)
+                    sat, mag = self._process_satellite_physics(satellite_name, block, loc, sat_start_line, sat_end_line, rules, sat_start_char, sat_end_char, spatial_map)
                     satellites.append(sat)
                     sum_fxn_impact += mag
                 
@@ -1388,12 +1432,14 @@ class LogicSplicer:
                 is_orbiting = False
                 sat_start_line = current_line_offset + 1
 
+            current_char_offset += len(orig_line)
+
         # Process Remnants (Unterminated blocks at the end of the file)
         if current_satellite and ''.join(current_satellite).strip():
             block = '\n'.join(current_satellite).strip()
             if block:
                 loc = max(len(current_satellite), 1)
-                sat, mag = self._process_satellite_physics(satellite_name + "_[Unterminated]", block, loc, sat_start_line, current_line_offset, rules)
+                sat, mag = self._process_satellite_physics(satellite_name + "_[Unterminated]", block, loc, sat_start_line, current_line_offset, rules, sat_start_char, current_char_offset, spatial_map)
                 satellites.append(sat)
                 sum_fxn_impact += mag
 
@@ -1404,27 +1450,43 @@ class LogicSplicer:
     # SHARED SATELLITE PHYSICS ENGINE
     # ==============================================================================
 
-    def _process_satellite_physics(self, name: str, block: str, loc: int, start_line: int, end_line: int, rules: Dict[str, Any]) -> Tuple[Satellite, float]:
-        branch_pattern = rules.get('branch')
-        linear_pattern = rules.get('linear')
+    def _process_satellite_physics(self, name: str, block: str, loc: int, start_line: int, end_line: int, rules: Dict[str, Any], start_idx: int = 0, end_idx: int = 0, spatial_map: Dict[str, List[int]] = None) -> Tuple[Satellite, float]:
         args_pattern = rules.get('args')
         
-        branch_hits = 0
-        if branch_pattern:
-            if hasattr(branch_pattern, 'findall'): branch_hits = len(branch_pattern.findall(block))
-            else: branch_hits = len(re.findall(str(branch_pattern), block))
+        # --- THE FIX: O(log N) Binary Search for Structural DNA ---
+        hit_vector = {}
+        if spatial_map is not None:
+            for key, indices in spatial_map.items():
+                left = bisect.bisect_left(indices, start_idx)
+                right = bisect.bisect_left(indices, end_idx)
+                count = right - left
+                if count > 0:
+                    hit_vector[key] = count
             
-        linear_hits = 0
-        if linear_pattern:
-            if hasattr(linear_pattern, 'findall'): linear_hits = len(linear_pattern.findall(block))
-            else: linear_hits = len(re.findall(str(linear_pattern), block))
+            branch_hits = hit_vector.get("branch", 0)
+            linear_hits = hit_vector.get("linear", 0)
+        else:
+            # Fallback for untested manual calls
+            branch_pattern = rules.get('branch')
+            linear_pattern = rules.get('linear')
+            branch_hits = len(branch_pattern.findall(block)) if hasattr(branch_pattern, 'findall') else len(re.findall(str(branch_pattern), block)) if branch_pattern else 0
+            linear_hits = len(linear_pattern.findall(block)) if hasattr(linear_pattern, 'findall') else len(re.findall(str(linear_pattern), block)) if linear_pattern else 0
 
         total_hits = branch_hits + linear_hits
         
-        # --- Updated Math Variables ---
-        control_flow_ratio = branch_hits / max(total_hits, 1)
-        control_flow_ratio = max(0.0, min(control_flow_ratio, 1.0))
-        angle = 22.5 + (1.0 - control_flow_ratio) * 67.5
+        # --- FAST CODING LOC HEURISTIC ---
+        # Quickly strip out blank lines and standard single-line comments to find the true logic mass
+        total_hits = branch_hits + linear_hits
+        
+        # --- FAST CODING LOC HEURISTIC (Syntax Fixed!) ---
+        # Quickly strip out blank lines and standard single-line comments to find the true logic mass
+        clean_lines = [l.strip() for l in block.splitlines()]
+        coding_loc = sum(1 for l in clean_lines if l and not l.startswith(('#', '//', '/*', '*')))
+
+        # --- NEW: FUNCTION-LEVEL KEYWORD DENSITY (The Micro-Auditor) ---
+        # Total structural signals divided by the physical lines of the function.
+        total_keyword_hits = sum(hit_vector.values()) if hit_vector else total_hits
+        keyword_density = total_keyword_hits / max(loc, 1)
 
         args_count = 0
         if args_pattern and hasattr(args_pattern, 'search'):
@@ -1456,8 +1518,14 @@ class LogicSplicer:
         # Calculate magnitude using the dampened arguments and logic-bounded length
         magnitude = float((branch_hits + 1) * arg_multiplier + (0.05 * effective_loc))
 
+        # ---> THE FIX: SPATIAL GEOMETRY MATH <---
+        # Calculate the Control Flow Ratio and the Fractal Fibonacci Angle (Theta)
+        total_cf_signals = branch_hits + linear_hits
+        control_flow_ratio = (branch_hits / total_cf_signals) if total_cf_signals > 0 else 0.0
+        angle = 22.5 + (1.0 - control_flow_ratio) * 67.5
+
         sat: Satellite = {
-            "name": name[:40], 
+            "name": name[:40],
             "texture": texture_str, 
             "type_id": texture_str,
             "loc": loc,
@@ -1473,7 +1541,10 @@ class LogicSplicer:
             "mag": round(magnitude, 1),
             "impact": round(magnitude, 1), 
             "start_line": start_line,
-            "end_line": end_line
+            "end_line": end_line,
+            "hit_vector": hit_vector,
+            "keyword_density": round(keyword_density, 3),
+            "coding_loc": coding_loc
         }
         return sat, magnitude
 

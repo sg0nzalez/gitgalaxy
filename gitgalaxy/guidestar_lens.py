@@ -13,7 +13,7 @@ import logging
 import fnmatch
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple, Union
-from . import gitgalaxy_standards_v1 as config
+from .gitgalaxy_config import GUIDESTAR_CONFIG
 
 # ==============================================================================
 # GitGalaxy Phase 0.5: Sector Intelligence (The GuideStar Lens)
@@ -32,7 +32,7 @@ class GuideStarLens:
     """
 
     # Fetch intelligence dictionaries directly from the Universal Laws
-    _gs_config = getattr(config, "GUIDESTAR_CONFIG", {})
+    _gs_config = GUIDESTAR_CONFIG
     
     MANIFEST_MAP = _gs_config.get("MANIFEST_MAP", {})
     INTENT_BIASED_SECTORS = set(_gs_config.get("INTENT_BIASED_SECTORS", []))
@@ -78,6 +78,9 @@ class GuideStarLens:
         
         # 2. The Authority Scout (.gitattributes)
         self._survey_gitattributes()
+
+        # 3. The Evasion Scout (.gitignore)
+        self._survey_gitignore()
         
         self.logger.info(f"GuideStar: Alignment complete. Cached {len(self.priors)} intent priors and {len(self.pattern_priors)} pattern rules.")
 
@@ -307,3 +310,44 @@ class GuideStarLens:
                             
         except Exception as e:
             self.logger.debug(f"GuideStar: Deep inspection failed for .gitattributes: {e}")
+            
+    # ==============================================================================
+    # EVASION TACTICS (The .gitignore Scout)
+    # ==============================================================================
+
+    def _survey_gitignore(self):
+        """
+        Scans .gitignore for hostile force-includes (e.g., !payload.so).
+        Attackers use this to bypass standard directory exclusions (like node_modules/) 
+        and force malicious compiled binaries into the repository.
+        """
+        gitignore_path = self.root / '.gitignore'
+        if not gitignore_path.exists():
+            return
+            
+        # The list of compiled/binary formats attackers typically try to smuggle
+        hostile_bins = {'.so', '.dll', '.exe', '.dylib', '.bin', '.xz', '.gz', '.zip'}
+        
+        try:
+            with open(gitignore_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    
+                    # We are only looking for Force-Includes
+                    if line.startswith('!'): 
+                        # Extract the extension, ignoring path structures
+                        ext = Path(line).suffix.lower()
+                        
+                        if ext in hostile_bins:
+                            # Strip the '!' and any leading slashes to get the clean path
+                            clean_path = line[1:].strip('/')
+                            
+                            self.logger.critical(f"🚨 EVASION DETECTED: .gitignore is force-including a binary -> '{line}'")
+                            
+                            # Apply an absolute Intent Lock (1.0). 
+                            # This forces Aperture.py to bypass its Dark Matter filters and 
+                            # sends the file directly into the X-Ray Binary Sensor!
+                            self._inject_prior(clean_path, 'unknown', 1.0, "Hostile Gitignore Force-Include")
+                            
+        except Exception as e:
+            self.logger.debug(f"GuideStar: Evasion inspection failed for .gitignore: {e}")

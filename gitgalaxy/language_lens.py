@@ -13,7 +13,8 @@ import time
 import logging
 from pathlib import Path
 from typing import Tuple, Optional, Dict, List, Any, TypedDict, Union
-from .gitgalaxy_standards_v1 import EXACT_FILE_MATCH, LANGUAGE_DEFINITIONS, LENS_CONFIG
+from .gitgalaxy_config import EXACT_FILE_MATCH
+from .language_standards import LANGUAGE_DEFINITIONS, LENS_CONFIG
 
 # ==============================================================================
 # GitGalaxy Phase 1: The Entity Census (The Linguistic Detector Chip)
