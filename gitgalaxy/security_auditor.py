@@ -174,6 +174,9 @@ class SecurityAuditor:
                         queue.append(neighbor)
             return len(visited)
 
+        # ---> NEW: Calculate the repository total for the ratios
+        total_repo_files = max(len(stars), 1)
+
         for s in stars:
             path = s.get("path", "")
             dir_up = len(s.get("raw_imports", []))
@@ -185,7 +188,9 @@ class SecurityAuditor:
                 "direct_upstream": dir_up,
                 "direct_downstream": dir_down,
                 "total_upstream": tot_up,
-                "total_downstream": tot_down
+                "total_downstream": tot_down,
+                "upstream_ratio": round(tot_up / total_repo_files, 4),    # <--- NEW: ML-ready feature
+                "downstream_ratio": round(tot_down / total_repo_files, 4) # <--- NEW: ML-ready feature
             }
         return stars
 

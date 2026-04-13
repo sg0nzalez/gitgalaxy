@@ -664,6 +664,7 @@ class Orchestrator:
                     
                     self.db_recorder.record_mission(
                         stars=visible_galaxy,
+                        singularity=total_singularity, # <--- NEW: Pass the Dark Matter
                         summary=summary,
                         session_meta=session_meta,
                         output_path=db_output
@@ -1075,20 +1076,37 @@ class Orchestrator:
                 prev = curr
             return prev[-1]
 
+        # ---> NEW: SymSpell O(1) Pre-Filter (Eliminates O(N^2) loops) <---
+        def _get_deletes(word):
+            deletes = {word}
+            for i in range(len(word)):
+                deletes.add(word[:i] + word[i+1:])
+            return deletes
+
+        anchor_index = {}
+        for anchor_imp in anchors:
+            if len(anchor_imp) < 5: continue
+            for variant in _get_deletes(anchor_imp):
+                if variant not in anchor_index:
+                    anchor_index[variant] = set()
+                anchor_index[variant].add(anchor_imp)
+
         from .gitgalaxy_config import APERTURE_CONFIG
         whitelist = APERTURE_CONFIG.get("TYPOSQUAT_WHITELIST", set())
 
         typosquat_hits = 0
         for orphan_imp, rel_path in orphans:
-            # 1. The Project Override Shield
-            if orphan_imp in whitelist:
+            # 1. The Project Override Shield & Length Shield
+            if orphan_imp in whitelist or len(orphan_imp) < 5:
                 continue
                 
-            for anchor_imp in anchors:
-                # 2. The Short String Shield (Math collapses under 5 chars)
-                if len(orphan_imp) < 5 or len(anchor_imp) < 5:
-                    continue
+            # 2. O(1) Candidate Lookup (Only test strings in the exact same neighborhood)
+            candidates = set()
+            for variant in _get_deletes(orphan_imp):
+                if variant in anchor_index:
+                    candidates.update(anchor_index[variant])
                     
+            for anchor_imp in candidates:
                 # 3. The Casing Shield (Developer typos, not malware)
                 if orphan_imp.lower() == anchor_imp.lower():
                     continue
@@ -1105,7 +1123,7 @@ class Orchestrator:
                     
                 dist = _levenshtein(orphan_imp, anchor_imp)
                 
-                # 5. Dynamic Distance Threshold (Tighter rules for medium strings)
+                # 5. Dynamic Distance Threshold
                 max_dist = 1 if min(len(orphan_imp), len(anchor_imp)) < 10 else 2
                 
                 if 0 < dist <= max_dist:
@@ -1115,10 +1133,8 @@ class Orchestrator:
                     if "equations" not in self.cryolink[rel_path]:
                         self.cryolink[rel_path]["equations"] = {}
                         
-                    # Reusing sec_homoglyphs (Unicode Smuggling & Typosquatting)
                     self.cryolink[rel_path]["equations"]["sec_homoglyphs"] = self.cryolink[rel_path]["equations"].get("sec_homoglyphs", 0) + 1
                     
-                    # Inject a domain context alert for the UI and Forensic Report
                     if "metadata" not in self.cryolink[rel_path]:
                         self.cryolink[rel_path]["metadata"] = {}
                     self.cryolink[rel_path]["metadata"]["alert"] = f"TYPOSQUATTING THREAT: '{orphan_imp}' mimics '{anchor_imp}'"
