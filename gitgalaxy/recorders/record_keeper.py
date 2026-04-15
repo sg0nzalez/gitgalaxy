@@ -9,8 +9,8 @@ import statistics
 import math
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from . import analysis_lens
-from .analysis_lens import RECORDING_SCHEMAS
+from gitgalaxy.standards import analysis_lens
+from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS
 
 class RecordKeeper:
     """
@@ -216,8 +216,8 @@ class RecordKeeper:
                     func_z_max = max(z_scores)
                     func_z_mean = statistics.mean(z_scores)
                     func_z_median = statistics.median(z_scores)
-                    pct_z_above_5 = (sum(1 for z in z_scores if z > 5.0) / func_count) * 100.0
-                    pct_z_above_15 = (sum(1 for z in z_scores if z > 15.0) / func_count) * 100.0
+                    pct_z_above_5 = (sum(1 for c in complexities if c >= 5) / func_count) * 100.0
+                    pct_z_above_15 = (sum(1 for c in complexities if c >= 15) / func_count) * 100.0
 
             func_internal_density = (avg_comp / avg_loc) if avg_loc > 0 else 0.0
             
@@ -260,7 +260,7 @@ class RecordKeeper:
                 agg_test_files += 1
 
             # --- SECURITY EXTRACTIONS ---
-            ai_score = float(star.get("ai_threat_score", 0.0))
+            ai_score = float(star.get("ai_threat_score", tel.get("domain_context", {}).get("AI Threat Score", 0.0)))
             is_malware = 1 if star.get("is_malware", False) else 0
             has_creds = 1 if star.get("has_credentials", False) else 0
             bin_anomaly = 1 if star.get("binary_anomaly", False) else 0
@@ -361,7 +361,7 @@ class RecordKeeper:
         avg_encapsulation = (agg_encapsulation / total_files) if total_files > 0 else 1.0
         avg_imports = (agg_import_count / total_files) if total_files > 0 else 0.0
         
-        typosquat_count = summary.get("typosquat_hits", 0)
+        typosquat_count = summary.get("typosquat_hits", summary.get("summary", {}).get("typosquat_hits", 0))
         
         repo_row_data = [
             repo_name,

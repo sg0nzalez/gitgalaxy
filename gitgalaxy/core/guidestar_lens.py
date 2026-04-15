@@ -13,7 +13,7 @@ import logging
 import fnmatch
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple, Union
-from .gitgalaxy_config import GUIDESTAR_CONFIG
+from gitgalaxy.standards.gitgalaxy_config import GUIDESTAR_CONFIG
 
 # ==============================================================================
 # GitGalaxy Phase 0.5: Sector Intelligence (The GuideStar Lens)

@@ -14,7 +14,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from . import analysis_lens as config
+from gitgalaxy.standards import analysis_lens as config
 
 # ==============================================================================
 # GitGalaxy Phase 8 & 9: Astrograph Auditor (The Forensic Record)

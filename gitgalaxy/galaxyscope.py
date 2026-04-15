@@ -25,23 +25,23 @@ from typing import Dict, List, Any, Optional, Union, Set
 from collections import defaultdict
 
 # Hardware Layer (Strategy v6.2 Protocol - Optical Pipeline)
-from .aperture import ApertureFilter, ApertureError, InaccessibleArtifactError
-from .guidestar_lens import GuideStarLens 
-from .language_lens import LanguageDetector, FocusingError
-from .prism import Prism, RefractionError
-from .detector import LogicSplicer, Cartographer
-from .chronometer import Chronometer
-from .signal_processor import SignalProcessor
-from .spectral_auditor import SpectralAuditor
-from .gpu_recorder import GPURecorder
-from .audit_recorder import AuditRecorder
-from .llm_recorder import LLMRecorder
-from .record_keeper import RecordKeeper
-from .security_lens import SecurityLens
-from .security_auditor import SecurityAuditor
-from .gitgalaxy_config import APERTURE_CONFIG, PRIORITY_WHITELIST, GUIDESTAR_CONFIG, EXACT_FILE_MATCH, STATIC_ARCHETYPES, ORCHESTRATOR_RULES, COMMENT_DEFINITIONS
-from .language_standards import LANGUAGE_DEFINITIONS, PROJECT_OVERRIDES
-from .analysis_lens import ThreatPolicy, PATH_MODIFIERS, PHYSICS_ASSET_MASKS
+from gitgalaxy.core.aperture import ApertureFilter, ApertureError, InaccessibleArtifactError
+from gitgalaxy.core.guidestar_lens import GuideStarLens 
+from gitgalaxy.standards.language_lens import LanguageDetector, FocusingError
+from gitgalaxy.core.prism import Prism, RefractionError
+from gitgalaxy.core.detector import LogicSplicer, Cartographer
+from gitgalaxy.physics.chronometer import Chronometer
+from gitgalaxy.physics.signal_processor import SignalProcessor
+from gitgalaxy.physics.spectral_auditor import SpectralAuditor
+from gitgalaxy.recorders.gpu_recorder import GPURecorder
+from gitgalaxy.recorders.audit_recorder import AuditRecorder
+from gitgalaxy.recorders.llm_recorder import LLMRecorder
+from gitgalaxy.recorders.record_keeper import RecordKeeper
+from gitgalaxy.security.security_lens import SecurityLens
+from gitgalaxy.security.security_auditor import SecurityAuditor
+from gitgalaxy.standards.gitgalaxy_config import APERTURE_CONFIG, PRIORITY_WHITELIST, GUIDESTAR_CONFIG, EXACT_FILE_MATCH, STATIC_ARCHETYPES, ORCHESTRATOR_RULES, COMMENT_DEFINITIONS
+from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS, PROJECT_OVERRIDES
+from gitgalaxy.standards.analysis_lens import ThreatPolicy, PATH_MODIFIERS, PHYSICS_ASSET_MASKS
 
 logger = logging.getLogger("GalaxyScope")
 
@@ -79,7 +79,7 @@ def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int
     
     # --- PERFORMANCE ANCHOR: SPLICER CACHE WARM-UP ---
     splicer_cache = {}
-    from .detector import LogicSplicer
+    from gitgalaxy.core.detector import LogicSplicer
     
     # 1. Force-warm the fallbacks immediately.
     # This silences the [AUTO-HEAL] warnings and compiles the regex engine for these IDs.
@@ -127,21 +127,6 @@ def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int
     })
     
     _worker_state['guidestar'].align_telescope()
-    
-def resolve_mission_control(target_name: str) -> Path:
-    """Routes reports to a .env path, or defaults to the current directory."""
-    env_path = os.environ.get("GITGALAXY_DATA_DIR")
-    
-    if env_path:
-        # If the environment variable is set, drop the files EXACTLY there
-        mission_dir = Path(env_path)
-    else:
-        # If no variable (like on a user's machine), make a safe subfolder so we don't make a mess
-        mission_dir = Path.cwd() / "galaxy_reports" / target_name
-        
-    mission_dir.mkdir(parents=True, exist_ok=True)
-    return mission_dir
-
 
 def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     """Processes a single file path using the worker's cached hardware modules."""
@@ -210,7 +195,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                         logger.critical(f"🚨 X-RAY TRIGGERED: Weaponized binary detected at '{rel_path}'!")
                         
                         # Supernova Promotion: Forge a synthetic star and force it into the visible galaxy
-                        from .signal_processor import SignalProcessor
+                        from gitgalaxy.physics.signal_processor import SignalProcessor
                         
                         hit_vector = [0] * len(SignalProcessor.SIGNAL_SCHEMA)
                         for t_key, t_val in binary_threats.items():
@@ -334,7 +319,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                 if is_file_profiling: phase_times["4_Prism_Refraction"] = time.perf_counter() - t_prism
                 
                 if lang_id not in splicer_cache:
-                    from .detector import LogicSplicer
+                    from gitgalaxy.core.detector import LogicSplicer
                     splicer_cache[lang_id] = LogicSplicer(lang_id, lang_defs, parent_logger=logger)
                 
                 splicer = splicer_cache[lang_id]
@@ -579,7 +564,9 @@ class Orchestrator:
             # PHASE 7.8: Advanced ML Threat Hunting & Graph Resolution
             t_phase = time.time()
             if visible_galaxy:
-                visible_galaxy = self.model_auditor.audit_galaxy(visible_galaxy)
+                # Pass the Shadow Patch flag to the Security Auditor
+                is_shadow_patch = self.config.get("SHADOW_PATCH_DETECTED", False)
+                visible_galaxy = self.model_auditor.audit_galaxy(visible_galaxy, is_shadow_patch=is_shadow_patch)
             logger.info(f"⏱️ MACRO-CLOCK [Phase 7.8 - ML Auditor]: {time.time() - t_phase:.2f}s")
 
             # --- PHASE 7.5: SHARED METADATA LOCKING ---
@@ -606,10 +593,12 @@ class Orchestrator:
             # Pass the array into the function, and merge the results directly
             summary["singularity"].update(self._summarize_anomalies(total_singularity))
 
-            # --- THE NEW ROUTER ---
-            mission_dir = resolve_mission_control(self.root.name)
-            output_file = str(mission_dir / Path(output_file).name)
-            # ----------------------
+            # --- PURE OUTPUT ROUTER ---
+            # Respect the exact path provided, just ensure the parent folder exists
+            out_path = Path(output_file).resolve()
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            output_file = str(out_path)
+            # --------------------------
             
             # --- CHECK EXCLUSIVE MODE FLAGS ---
             exclusive_mode = self.config.get("LLM_ONLY") or self.config.get("GPU_ONLY") or self.config.get("AUDIT_ONLY") or self.config.get("DB_ONLY")
@@ -621,7 +610,8 @@ class Orchestrator:
             if not exclusive_mode or self.config.get("AUDIT_ONLY"):
                 try:
                     out_path = Path(output_file)
-                    audit_output = str(out_path.with_name(f"{out_path.stem}_audit{out_path.suffix}"))
+                    safe_suffix = out_path.suffix if out_path.suffix else ".json"
+                    audit_output = str(out_path.with_name(f"{out_path.stem}_audit{safe_suffix}"))
                     logger.info(f"AUDIT: Generating comprehensive human-readable forensic log -> {audit_output}")
                     
                     self.audit_recorder.generate_report(
@@ -1091,7 +1081,7 @@ class Orchestrator:
                     anchor_index[variant] = set()
                 anchor_index[variant].add(anchor_imp)
 
-        from .gitgalaxy_config import APERTURE_CONFIG
+        from gitgalaxy.standards.gitgalaxy_config import APERTURE_CONFIG
         whitelist = APERTURE_CONFIG.get("TYPOSQUAT_WHITELIST", set())
 
         typosquat_hits = 0
@@ -1294,7 +1284,7 @@ class Orchestrator:
         # Remove them from Dark Matter so they aren't double-counted in the summary
         self.singularity_candidates = [cand for cand in self.singularity_candidates if "CRITICAL LEAK" not in cand.get("reason", "")]
         
-        from .signal_processor import SignalProcessor
+        from gitgalaxy.physics.signal_processor import SignalProcessor
         
         for leak in leaks:
             rel_path = leak["path"]
@@ -1507,6 +1497,81 @@ class Orchestrator:
             
         return audit
 
+    def execute_delta_mission(self, ram_cache: Dict[str, Any], added: List[str], modified: List[str], deleted: List[str], db_output_path: str):
+        """Surgically updates the codebase physics using a rehydrated RAM state."""
+        start_time = time.time()
+        logger.info(f"--- DELTA_IGNITION: {self.root.name} (v{self.version}) ---")
+
+        try:
+            # 1. Inject the surviving state
+            self.cryolink = ram_cache
+            for d_file in deleted:
+                if d_file in self.cryolink:
+                    del self.cryolink[d_file]
+
+            # 2. Rebuild the Census & Ext Tally from the surviving RAM
+            self.census = set()
+            self.ext_tally = {}
+            self.stem_map = {}
+            
+            for rel_path in self.cryolink.keys():
+                stem = Path(rel_path).stem.lower()
+                ext = Path(rel_path).suffix.lower()
+                name = Path(rel_path).name.lower()
+                self.census.add(stem)
+                self.ext_tally[ext] = self.ext_tally.get(ext, 0) + 1
+                self.ext_tally[name] = self.ext_tally.get(name, 0) + 1
+
+            # 3. Target the New/Modified files for Pass 1 (Surgical Strike)
+            for rel_path in added + modified:
+                stem = Path(rel_path).stem.lower()
+                ext = Path(rel_path).suffix.lower()
+                name = Path(rel_path).name.lower()
+                
+                self.census.add(stem)
+                self.ext_tally[ext] = self.ext_tally.get(ext, 0) + 1
+                self.ext_tally[name] = self.ext_tally.get(name, 0) + 1
+                self.stem_map[rel_path] = rel_path # Instruct Pass 1 to ONLY process these
+
+            # 4. Execute the Surgical Scan (Only parses new files)
+            self._first_pass_extraction()
+
+            # 5. The Ripple Effect (Recalculate Blast Radius for ALL files)
+            self.stem_map = {f: f for f in self.cryolink.keys()}
+            self._calculate_galactic_popularity()
+            self._second_pass_relational()
+
+            # 6. Audit Verification & ML Threat Inference
+            visible_galaxy, audit_singularity = self.auditor.audit(self.stars)
+            if visible_galaxy:
+                visible_galaxy = self.model_auditor.audit_galaxy(visible_galaxy)
+            
+            # 7. Synthesis and Database Forging
+            summary = self.processor.summarize_galaxy_metrics(visible_galaxy, audit_singularity)
+            session_meta = {
+                "engine": f"GitGalaxy Scope v{self.version} (Delta Mode)",
+                "target": self.root.name,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "duration_seconds": round(time.time() - start_time, 2),
+                "target_directory": str(self.root.resolve()),
+                "git_audit": self._get_git_audit() # Gets the NEW commit hash
+            }
+
+            self.db_recorder.record_mission(
+                stars=visible_galaxy,
+                singularity=audit_singularity,
+                summary=summary,
+                session_meta=session_meta,
+                output_path=db_output_path
+            )
+            
+            logger.info(f"--- DELTA_SUCCESS: {len(visible_galaxy)} stars mapped in {session_meta['duration_seconds']}s ---")
+            
+        except Exception as e:
+            logger.critical(f"FATAL_DELTA_COLLAPSE: {str(e)}", exc_info=True)
+            raise
+        finally:
+            self.cleanup()
 # ==============================================================================
 # MISSION CONTROL: THE ENTRY POINT
 # ==============================================================================
@@ -1526,7 +1591,10 @@ def main():
     parser.add_argument("--debug", action="store_true", help="Turn on verbose Analytical logging")
     parser.add_argument("--paranoid", action="store_true", help="Lower security thresholds to flag more potential threats.")
     
-    # --- NEW: EXCLUSIVE RECORDER FLAGS ---
+    # ---> NEW: THE SHADOW PATCH OVERRIDE <---
+    parser.add_argument("--shadow-patch-detected", action="store_true", help="Indicates the payload hash mutated without a version bump.")
+    
+    # --- EXCLUSIVE RECORDER FLAGS ---
     parser.add_argument("--llm-only", action="store_true", help="Run ONLY the LLM recorder")
     parser.add_argument("--gpu-only", action="store_true", help="Run ONLY the GPU recorder")
     parser.add_argument("--audit-only", action="store_true", help="Run ONLY the Audit recorder")
@@ -1553,7 +1621,24 @@ def main():
         # ---------------------------------------------------------
         target_path = Path(args.target)
         project_name = target_path.name
-        final_output = args.output if args.output else f"{project_name}_galaxy.json"
+        
+        # ---> DEFAULT PROTOTYPING PATH <---
+        # Hardcode your preferred testing directory here. 
+        # Leave as "" to default to your current terminal directory.
+        DEFAULT_OUT_DIR = "/srv/storage_16tb/projects/gitgalaxy/v6/updated_results_2"
+        
+        if args.output:
+            out_arg = Path(args.output)
+            # If it's an existing directory OR has no file extension, treat it as a target folder
+            if out_arg.is_dir() or not out_arg.suffix:
+                final_output = str(out_arg / f"{project_name}_galaxy.json")
+            else:
+                final_output = args.output
+        else:
+            if DEFAULT_OUT_DIR:
+                final_output = str(Path(DEFAULT_OUT_DIR) / f"{project_name}_galaxy.json")
+            else:
+                final_output = f"{project_name}_galaxy.json"
 
         # ---------------------------------------------------------
         # 2. The Domain Dialect Pre-Flight Patch
@@ -1616,7 +1701,8 @@ def main():
             "PRIORITY_WHITELIST": PRIORITY_WHITELIST,
             "DOCUMENTATION_LANGUAGES": PHYSICS_ASSET_MASKS.get("DOCUMENTATION_LANGUAGES", set()),
             "PARANOID_MODE": args.paranoid,
-            # --- NEW: PASS EXCLUSIVE FLAGS TO ORCHESTRATOR ---
+            "SHADOW_PATCH_DETECTED": args.shadow_patch_detected, # <--- Pass the flag
+            # --- PASS EXCLUSIVE FLAGS TO ORCHESTRATOR ---
             "LLM_ONLY": args.llm_only,
             "GPU_ONLY": args.gpu_only,
             "AUDIT_ONLY": args.audit_only,

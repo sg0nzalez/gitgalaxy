@@ -13,7 +13,7 @@ import logging
 import time
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
-from . import gitgalaxy_config as config
+from gitgalaxy.standards import gitgalaxy_config as config
 
 # ==============================================================================
 # GitGalaxy Phase 3: Chronometer (Temporal Sensor)

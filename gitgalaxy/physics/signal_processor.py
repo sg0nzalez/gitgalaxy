@@ -12,8 +12,8 @@ import logging
 import re
 import statistics
 from typing import Dict, Any, List, Optional, Tuple
-from . import analysis_lens as config
-from . import analysis_lens
+from gitgalaxy.standards import analysis_lens as config
+from gitgalaxy.standards import analysis_lens
 
 # ==============================================================================
 # GitGalaxy Phase 4: Signal Processor (The Physics Engine)
@@ -626,7 +626,6 @@ class SignalProcessor:
             else:
                 dominant_author = ghost_meta.get("ownership", "Unknown Architect")
                 
-
             telemetry_payload = {
                 "archetype": global_archetype,
                 "global_drift": global_drift,
@@ -636,6 +635,7 @@ class SignalProcessor:
                 "local_fingerprint": local_fingerprint,
                 "densities": {"cog_raw": round(cog_raw, 3)},
                 "raw_churn_freq": raw_churn_freq,
+                "func_complexity_gini": func_gini,
                 "ownership_entropy": ownership_score,
                 "author_distribution": silo_exposure,  
                 "ownership": dominant_author,          

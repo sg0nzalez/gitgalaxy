@@ -10,7 +10,7 @@
 import re
 import logging
 from typing import Dict, List, Optional, Tuple, Any, TypedDict
-from .language_standards import LENS_CONFIG, PRISM_CONFIG
+from gitgalaxy.standards.language_standards import LENS_CONFIG, PRISM_CONFIG
 
 # ==============================================================================
 # GitGalaxy Phase 2: Structural Refractor (The Prism)

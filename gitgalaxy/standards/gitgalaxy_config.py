@@ -13,17 +13,79 @@ import re
 gitgalaxy_config.py
 Phase 0 & 1: Repository Ingestion, Filtering, and Pre-Flight Context.
 
-This file serves as the lightweight configuration payload for the initial 
-radar walk, ensuring massive regex engines are not loaded into memory 
-until the files are strictly validated.
+This file serves as the core configuration payload. It defines the global 
+security exceptions and the lightweight ingestion rules used to filter 
+out noise before the heavy physics engines are loaded into memory.
 """
+
+# ------------------------------------------------------------------
+# ZERO-TRUST IMPORT CONTROL (Supply Chain Firewall)
+# Defines allowed and banned external dependencies (NPM, PyPI, Composer)
+# ------------------------------------------------------------------
+# True  = Strict Mode (Only allow packages explicitly in APPROVED_IMPORTS)
+# False = Audit Mode (Allow unknown packages, but block BLACKLISTED_IMPORTS)
+STRICT_IMPORT_MODE = False
+
+APPROVED_IMPORTS = [
+    # Examples (Add your approved dependencies here)
+]
+
+BLACKLISTED_IMPORTS = [
+    # Known compromised, malicious, or troll packages
+]
+
+
+# ------------------------------------------------------------------
+# GLOBAL DENYLIST
+# String patterns for files that should NEVER exist in the repository.
+# If a file matches these patterns, scanners will instantly block the commit.
+# Supports standard Unix wildcards (* for everything, ? for single char).
+# ------------------------------------------------------------------
+DENYLIST_PATTERNS = [
+    # "internal_*",         # Blocks internal_notes.txt, internal_architecture.md
+    # "*.kdbx",             # Blocks all KeePass password databases
+    # "*_backup.sql",       # Blocks database dumps ending in _backup.sql
+    # "master_key.*",       # Blocks master_key.pem, master_key.txt, etc.
+    # "*-secret-*.json"     # Blocks anything with '-secret-' in the middle
+]
+
+
+# ------------------------------------------------------------------
+# GLOBAL ALLOWLIST 
+# Add exact relative paths or partial string matches here to bypass security tools.
+# If a scanner finds a threat here, it will log an "Allowlist Bypass" warning 
+# rather than failing the build. Use this to mute mock data in test suites.
+# ------------------------------------------------------------------
+ALLOWLIST_PATHS = [
+    # "tests/phpunit/integration/includes/Json/key1.pem",
+    # "tests/phpunit/integration/includes/Json/key1.pem.pub",
+    # "tests/phpunit/integration/includes/Json/key2.pem",
+    # "tests/phpunit/integration/includes/Json/key2.pem.pub"
+]
+
+# ------------------------------------------------------------------
+# X-RAY INSPECTOR BYPASSES
+# X-Ray uses thermodynamic math (Shannon Entropy) which naturally flags
+# compression, foreign languages, and hashes. Add extensions or paths here 
+# to bypass the X-Ray engine without blinding the Vault Sentinel.
+# ------------------------------------------------------------------
+XRAY_BYPASS_EXTENSIONS = [
+    '.json', '.gz', '.zip', '.tar', '.png', '.jpg', '.jpeg', '.ico', '.yml'
+]
+
+XRAY_BYPASS_PATHS = [
+    "package-lock.json",
+    "yarn.lock",
+    "composer.lock"
+]
+
 
 # ------------------------------------------------------------------------------
 # 1. THE APERTURE SHIELD (Ingestion & Exclusion Rules)
 # Consumed by: aperture.py
 # ------------------------------------------------------------------------------
 APERTURE_CONFIG = {
-    # --- 0. THE SECRETS SHUNT (New) ---
+    # --- 0. THE SECRETS SHUNT ---
     # Files caught here will bypass standard physics math and instantly 
     # register a 100.0 score on the Secrets Risk exposure vector.
     "SECRETS_EXTENSIONS": {
@@ -131,7 +193,7 @@ APERTURE_CONFIG = {
 
 
 # ------------------------------------------------------------------------------
-# 2. PRIORITY WHITELIST (Architectural Anchors)
+# 2. PRIORITY ALLOWLIST (Architectural Anchors)
 # Consumed by: guidestar_lens.py
 # ------------------------------------------------------------------------------
 # These files are granted a high confidence score for importance by the GuideStar Lens.
@@ -266,10 +328,10 @@ EXACT_FILE_MATCH = {
 ORCHESTRATOR_RULES = {
     # Stems that are too common to count as relational popularity (The Hallucination Filter)
     "POPULARITY_STOP_STEMS": {
-        # Your existing structural stems:
+        # Structural stems:
         "text", "type", "index", "main", "util", "config", "core", "base",
         
-        # --- THE NEW SHADOW IMPORT SHIELD ---
+        # --- THE SHADOW IMPORT SHIELD ---
         # Python Stdlib:
         "sys", "os", "time", "math", "re", "json", "collections", "datetime", "string", "pathlib",
         # C/C++ Stdlib (Often imported without extensions in modern C++):

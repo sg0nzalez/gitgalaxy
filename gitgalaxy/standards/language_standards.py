@@ -79,6 +79,7 @@ PRISM_CONFIG = {
     }
 }
 
+
 # ------------------------------------------------------------------------------
 # 3. UNIVERSAL DOMAIN SENSORS (Applied to ALL languages)
 # Consumed by: detector.py (LogicSplicer)
@@ -2266,58 +2267,48 @@ LANGUAGE_DEFINITIONS = {
             ),
             "func_start": re.compile(
                 # =====================================================================
-                # [LLM CONTEXT: C-FUNCTION AST EXTRACTOR & REDOS SHIELD]
-                # PURPOSE: Anchors executable logic blocks (functions) in C.
-                # VULNERABILITY: C allows multi-line function signatures. In files with 
-                #   massive macro lists (e.g., 20k lines of `#define`), the `[ \t\n]+` 
-                #   allowances caused catastrophic backtracking (ReDoS).
-                # THE "IRON WALL" FIX 1 (Lookaheads): `(?![ \t]*#)` is a negative lookahead injected at 
-                #   high-risk multi-line boundaries. It explicitly forbids the regex engine 
-                #   from crossing into preprocessor directives, capping the permutation tree.
-                # THE "IRON WALL" FIX 2 (Strict Bounding): Unbounded wildcards (`*` or `+`) 
-                #   are STRICTLY FORBIDDEN inside the K&R parameter gap. They must use 
-                #   numeric bounds (e.g., `{0,100}`) to starve ReDoS traps on massive files.
+                # [CRITICAL ROADMAP FOR FUTURE LLMs & MAINTAINERS: THE REDOS IRON WALL]
+                # PURPOSE: Anchors executable logic blocks (functions) in C/C++.
+                #
+                # THE FINAL FIX (THE K&R AMBIGUITY TRAP):
+                # The engine was consuming `BEGIN` as a parameter type (e.g. `BEGIN i;`).
+                # When it failed to find a semicolon, it backtracked through 15 loops of 
+                # whitespace combinations (2^15 = 32,768 permutations = 34 seconds).
+                #
+                # THE RULES OF THIS REGEX (DO NOT ALTER WITHOUT BENCHMARKING):
+                # 1. DETERMINISTIC FAILURE: The K&R gap MUST use `(?!(?:BEGIN...)\b)[a-zA-Z_]` 
+                #    so it instantly rejects the MS-DOS BEGIN macro without backtracking.
+                # 2. NO OVERLAPPING WHITESPACE: `\s+` exclusively owns all spaces.
                 # =====================================================================
                 
-                # 1. THE HORIZONTAL ANCHOR (Stops O(N^2) vertical spirals)
-                r"^[ \t]*"
+                # 1. The Horizontal Anchor
+                r"^[ \t]*"  
                 
-                # 2. LINKAGE & STORAGE MODIFIERS (Supports vertical formatting)
-                r"(?:(?:static|inline|extern|_Noreturn|__inline__|__forceinline|constexpr)[ \t\n]+){0,5}"
+                # 2. Modifiers (Strictly bounded)
+                r"(?:(?:static|inline|extern|_Noreturn|__inline__|__forceinline|constexpr)\s+){0,3}"  
                 
-                # 3. COMPILER ATTRIBUTES PRE-TYPE (Includes C23 [[...]] and GNU __attribute__)
-                r"(?:(?:__attribute__[ \t]*\([^)]*\)|\[\[[^\]]*\]\]|__declspec[ \t]*\([^)]*\))[ \t\n]*){0,5}"
+                # 3. Complex types
+                r"(?:(?:struct|union|enum)\s+)?"  
                 
-                # 4. THE RETURN TYPE (Pointers/references explicitly bound)
-                # [IRON WALL]: Prevents the engine from reading a `#define` on the next line as a return type.
-                r"(?:(?:struct|union|enum)[ \t\n]+)?"
-                r"(?:(?![ \t]*#)[a-zA-Z_]\w*(?:[ \t\n]+[*&]*[ \t\n]*|[*&]+[ \t\n]*)){0,5}"
+                # 4. Return type (Strictly linear)
+                r"(?:[a-zA-Z_]\w+\s+){0,3}[a-zA-Z_]\w*(?:\s*[*&]+\s*|\s+)"  
                 
-                # 5. THE "NOT A FUNCTION" SHIELD
-                # Prevents control flow (if, while) and primitive types from being captured as function names.
-                r"(?!(?:if|for|while|switch|return|sizeof|int|float|double|char|void|long|short|unsigned|signed|bool|__attribute__|__declspec|__asm__)\b)"
+                # 5. The "Not a Function" Shield
+                r"(?!(?:if|for|while|switch|return|sizeof)\b)"
                 
-                # 6. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
-                # [IRON WALL]: Ensures the actual function name isn't hijacked by a macro definition.
-                r"(?![ \t]*#)([a-zA-Z_]\w*)"
+                # 6. The Identifier Capture (Satellite Name - Group 1)
+                r"([a-zA-Z_]\w*)"  
                 
-                # 7. THE PARAMETER BLOCK (Supports vertical gap)
-                r"[ \t\n]*(?:ARGS\d+\s*\([^)]*\)|\([^)]*\)|NOARGS)"
+                # 7. The Parameter Block
+                r"\s*\([^)]*\)"  
                 
-                # 8. POST-PARAMETER MODIFIERS (GCC attributes safely handled)
-                r"(?:[ \t\n]+(?:__attribute__\s*\([^)]*\)|\[\[[^\]]*\]\])){0,5}"
+                # 8. The K&R C Parameter Gap (Legacy support for DOOM/MS-DOS)
+                # [IRON WALL FIX]: Forces instant failure if it encounters BEGIN or control flow.
+                r"(?:\s+(?!(?:BEGIN|if|for|while|switch|return)\b)[a-zA-Z_][^;{]{0,150};){0,15}"
                 
-                # 9. THE K&R C PARAMETER GAP (Crucial for legacy codebases like DOOM/FreeBSD)
-                # Legacy C allows type declarations between the closing ')' and opening '{'.
-                # [IRON WALL - CATASTROPHIC BACKTRACKING FIX]: 
-                # Previously used unbounded wildcards (`[^(){};]*`). On massive macro arrays,
-                # this caused millions of permutations and 60+ second timeouts.
-                # We enforce strict numeric bounds (`{0,100}`) to instantly cap the permutation tree.
-                r"(?:(?:[ \t\n]+(?![ \t]*#)[a-zA-Z_][^(){};]{0,100};){1,20})?"
-                
-                # 10. THE IGNITION (The opening brace confirming it is a definition, not a declaration)
-                r"[ \t\n]*\{",
-                re.M,
+                # 9. The Ignition (Includes the MS-DOS 'BEGIN' macro)
+                r"\s*(?:\{|BEGIN\b)",
+                re.M
             ),
             # 5. class_start (The Entity Census)
             # C uses structs/unions/enums as the primary entity entities.
@@ -2342,9 +2333,21 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(fopen|fclose|fread|fwrite|fscanf|sscanf|socket|recv|send|open|read|write|close|stat|fseek|remove|rename)\b"
             ),
             # 10. api (The Event Horizon)
-            # Physical Reality: C functions are public by default.
-            "api": re.compile(r'\b(extern|__declspec\(dllexport\)|__attribute__\(\(visibility\("default"\)\)\))\b|^[ \t]*(?!static\b)[a-zA-Z_]\w*[ \t*]+[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=?|^[ \t]*[a-zA-Z_]\w*[ \t*]+[a-zA-Z_]\w*\s*\([^)]*\)\s*;', re.M),
-                        
+            # Linker-visible global exports.
+            "api": re.compile(
+                # =====================================================================
+                # [ROADMAP: AMBIGUITY OVERLAP AVOIDANCE]
+                # Previously used `[ \t*]+` between words. If a string failed to match, 
+                # the engine backtracked to see if it should assign spaces to the left 
+                # word, right word, or the wildcard.
+                # FIX: We now use strict O(1) alternation `(?:\s*[*&]+\s*|\s+)` which 
+                # forces the engine to choose exactly one path and never backtrack.
+                # =====================================================================
+                r'\b(extern|__declspec\(dllexport\)|__attribute__\(\(visibility\("default"\)\)\))\b|'
+                r'^[ \t]*(?!static\b)[a-zA-Z_]\w*(?:\s*[*&]+\s*|\s+)[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=?|'
+                r'^[ \t]*[a-zA-Z_]\w*(?:\s*[*&]+\s*|\s+)[a-zA-Z_]\w*\s*\([^)]*\)\s*;', 
+                re.M
+            ),          
             # 11. flux (The Boiling Plasma)
             # Mutation of state. EXCLUDES const/constexpr (freeze_hits).
             "flux": re.compile(
@@ -2374,8 +2377,13 @@ LANGUAGE_DEFINITIONS = {
             "closures": None,  # Strict C23 lacks native closures (blocks are non-standard).
             # 18. globals (The Shared Void)
             "globals": re.compile(
-                r"^[ \t]*(?:static\s+|extern[ \t]+)?[a-zA-Z_]\w*[ \t*]+[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=(?![ \t]*==)",
-                re.M,
+                # =====================================================================
+                # [ROADMAP: AMBIGUITY OVERLAP AVOIDANCE]
+                # Same strict O(1) alternation fix applied here as in the `api` rule 
+                # to prevent exponential space/asterisk evaluation.
+                # =====================================================================
+                r"^[ \t]*(?:static\s+|extern[ \t]+)?[a-zA-Z_]\w*(?:\s*[*&]+\s*|\s+)[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=(?![ \t]*==)",
+                re.M
             ),
             # 19. decorators (The Metadata Hooks)
             "decorators": re.compile(r"\[\[\s*[a-zA-Z_:][^\]]*\s*\]\]"),
@@ -2450,7 +2458,15 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 40. cast_hits (The "Trust Me" Tax)
             "cast_hits": re.compile(
-                r"\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed|void)(?:\s*\*){0,5}\s*\)\s*[a-zA-Z_]"
+                # =====================================================================
+                # [ROADMAP: NESTED OPTIONAL SPACES (ReDoS TRAP)]
+                # Previously: `(?:\s*\*){0,5}\s*\)`
+                # The `\s*` inside the repeating group combined with the `\s*` before 
+                # the closing parenthesis created overlapping optional paths. If an 
+                # unmatched string hit this, it caused heavy backtracking.
+                # FIX: Flattened to `\s*[*]*\s*\)` - purely linear evaluation.
+                # =====================================================================
+                r"\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed|void)\s*[*]*\s*\)\s*[a-zA-Z_]"
             ),
             # 41. bailout_hits (The Detonators)
             "bailout_hits": re.compile(

@@ -13,7 +13,7 @@ import statistics
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
-from . import analysis_lens as config
+from gitgalaxy.standards import analysis_lens as config
 
 # ==============================================================================
 # GitGalaxy Phase 10: LLM Recorder (The AI Translation Layer)

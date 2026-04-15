@@ -15,7 +15,7 @@ try:
 except ImportError:
     ML_AVAILABLE = False
 
-from .analysis_lens import RECORDING_SCHEMAS, AI_THREAT_THRESHOLD
+from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS, AI_THREAT_THRESHOLD
 
 class SecurityAuditor:
     """Calculates deep dependency graphs and executes XGBoost Threat Inference."""
@@ -70,7 +70,7 @@ class SecurityAuditor:
         else:
             self.logger.warning("⚠️ Pandas or XGBoost not installed in this environment. Running graph resolution only.")
 
-    def audit_galaxy(self, stars):
+    def audit_galaxy(self, stars, is_shadow_patch=False):
         if not stars: return stars
         
         self.logger.info("Resolving N-th degree dependency graphs...")
@@ -116,6 +116,15 @@ class SecurityAuditor:
                 predicted_class = int(np.argmax(probs_row))
                 ml_score = round(float(probs_row[predicted_class]) * 100.0, 2)
                 
+                # ---> THE SHADOW PATCH OVERRIDE <---
+                # If this flag is true, AND the file has any executable mass, peg it as a Tier 1 Threat
+                if is_shadow_patch and star.get("structural_mass", 0.0) > 0.5:
+                    predicted_class = 2 # Force it to "Stealer / Trojan"
+                    ml_score = 100.0
+                    if "domain_context" not in star["telemetry"]:
+                        star["telemetry"]["domain_context"] = {}
+                    star["telemetry"]["domain_context"]["alert"] = "SHADOW PATCH: Hash mutated without version bump!"
+
                 is_threat = (predicted_class > 0 and ml_score >= self.ai_threshold)
                 
                 # Inject into the domain context so the UI and JSON recorders pick it up automatically

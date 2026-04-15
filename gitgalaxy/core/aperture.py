@@ -148,7 +148,9 @@ class ApertureFilter:
         if path_obj.name in self.config.get("SECRETS_EXACT", set()) or \
            ext.lower() in self.config.get("SECRETS_EXTENSIONS", set()):
             reason = f"CRITICAL LEAK (Exposed Secret: '{path_obj.name}')"
-            self.logger.critical(f"🛡️ SECURITY BREACH: {reason} at {relative_path}")
+            
+            # Muted logger to prevent UI overlap; spokes now handle their own alerts
+            # self.logger.critical(f"🛡️ SECURITY BREACH: {reason} at {relative_path}")
             
             # THE FIX: Return False so it drops into Dark Matter for the Supernova Injection
             return False, size_bytes, reason

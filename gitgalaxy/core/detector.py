@@ -14,8 +14,8 @@ import logging
 import time
 import bisect
 from typing import Dict, List, Any, TypedDict, Optional, Tuple
-from .analysis_lens import RECORDING_SCHEMAS
-from .language_standards import UNIVERSAL_RULES, LANGUAGE_DEFINITIONS
+from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS
+from gitgalaxy.standards.language_standards import UNIVERSAL_RULES, LANGUAGE_DEFINITIONS
 
 # ==============================================================================
 # GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Cartographer
@@ -271,8 +271,7 @@ class LogicSplicer:
         
         if self.primary_lang_id not in self.languages or 'rules' not in self.languages.get(self.primary_lang_id, {}):
             try:
-                from .language_standards import LANGUAGE_DEFINITIONS
-                self.languages = LANGUAGE_DEFINITIONS
+                from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
                 self.logger.warning(f"[AUTO-HEAL] Re-injected LANGUAGE_DEFINITIONS for '{self.primary_lang_id}'")
             except ImportError:
                 pass

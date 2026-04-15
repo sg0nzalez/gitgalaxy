@@ -12,8 +12,8 @@ import logging
 import gc
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from . import analysis_lens
-from . import gitgalaxy_config
+from gitgalaxy.standards import analysis_lens
+from gitgalaxy.standards import gitgalaxy_config
 
 # ==============================================================================
 # GitGalaxy Phase 9: GPU Recorder (Formerly RecordKeeper)
