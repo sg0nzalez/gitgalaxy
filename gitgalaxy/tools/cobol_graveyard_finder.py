@@ -1,19 +1,63 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: The Graveyard Reaper
+# GitGalaxy Spoke: The Graveyard Reaper (v3 - Context & Copybook Aware)
 # Purpose: Static Analysis of COBOL AST to isolate orphaned data and dead code.
+#          Upgraded with an Inline Copybook Expander for cross-file memory tracking.
 # ==============================================================================
 import argparse
 import sys
 import re
 from pathlib import Path
 
+def resolve_copybooks(content: str, source_path: Path) -> str:
+    """
+    Recursively hunts for COBOL 'COPY' statements and injects the contents of the 
+    target .cpy file directly into the memory string to ensure accurate AST scanning.
+    Handles dynamic variable swapping via the REPLACING clause.
+    """
+    # Matches: COPY NAME. or COPY NAME REPLACING ==A== BY ==B==.
+    copy_pattern = re.compile(r'^[ \t]*COPY\s+[\'"]?([A-Z0-9_\-]+)[\'"]?(?:\s+REPLACING\s+(.+?))?\.?', re.MULTILINE | re.IGNORECASE)
+    
+    def replacer(match):
+        copy_name = match.group(1).upper()
+        replacing_clause = match.group(2)
+        # Scan the local neighborhood for the copybook
+        for ext in ['.cpy', '.cbl', '.cob', '.CPY']:
+            cpy_file = source_path.parent / f"{copy_name}{ext}"
+            if cpy_file.exists():
+                cpy_content = cpy_file.read_text(encoding='utf-8', errors='ignore').upper()
+                
+                # --- THE SHAPESHIFTER FIX ---
+                # If a REPLACING clause exists, parse the ==OLD== BY ==NEW== pairs and apply them
+                if replacing_clause:
+                    # Extracts pairs, ignoring the optional == delimiters
+                    pairs = re.findall(r'(?:==)?([A-Z0-9_\-]+)(?:==)?\s+BY\s+(?:==)?([A-Z0-9_\-]+)(?:==)?', replacing_clause, re.IGNORECASE)
+                    for old_val, new_val in pairs:
+                        # Use word boundaries (\b) so we don't accidentally replace partial words
+                        cpy_content = re.sub(r'\b' + re.escape(old_val) + r'\b', new_val, cpy_content)
+                        
+                return f"*> --- START COPY {copy_name} ---\n{cpy_content}\n*> --- END COPY {copy_name} ---"
+        
+        # If the copybook is missing from the repo, leave the statement intact to avoid crashing
+        return match.group(0)
+        
+    # Run the substitution up to 3 times to handle nested copybooks (COPY within a COPY)
+    safe_content = content
+    for _ in range(3):
+        safe_content = copy_pattern.sub(replacer, safe_content)
+        
+    return safe_content
+
 def x_ray_dead_code(filepath: Path) -> dict:
-    """Parses a COBOL file to find variables and paragraphs that are mathematically unreachable."""
+    """Parses a fully-expanded COBOL file to find mathematically unreachable logic and memory."""
     try:
-        content = filepath.read_text(encoding='utf-8', errors='ignore').upper()
+        raw_content = filepath.read_text(encoding='utf-8', errors='ignore').upper()
     except Exception:
         return None
+
+    # --- SYNERGY: THE COPYBOOK EXPANDER ---
+    # Resolve all external memory layouts into the local string before AST math
+    content = resolve_copybooks(raw_content, filepath)
 
     # COBOL is strictly divided. We need to split the data from the execution.
     if "PROCEDURE DIVISION" not in content:
@@ -27,13 +71,18 @@ def x_ray_dead_code(filepath: Path) -> dict:
     # 1. HUNTING ORPHANED DATA
     # ==========================================
     # Look for COBOL variable declarations (Levels 01-49, 77, 88)
-    # Example: 05 WS-CUSTOMER-NAME PIC X(50).
-    var_pattern = re.compile(r'^[ \t]*(?:0[1-9]|[1-4][0-9]|77|88)[ \t]+([A-Z0-9\-]+)', re.MULTILINE)
+    # Bypassing Area A sequence numbers by allowing up to 11 leading spaces/chars.
+    var_pattern = re.compile(r'^[ \tA-Z0-9]{0,11}(?:0[1-9]|[1-4][0-9]|77|88)[ \t]+([A-Z0-9\-]+)', re.MULTILINE)
     declared_vars = set(var_pattern.findall(data_div))
+
+    # Strip out common noise like FILLER
+    if "FILLER" in declared_vars:
+        declared_vars.remove("FILLER")
 
     used_vars = set()
     for var in declared_vars:
         # A variable is "used" if it appears as a whole word anywhere in the Procedure Division
+        # We use a fast regex boundary \b to prevent partial matches (e.g. tracking "ID" shouldn't flag "USER-ID")
         if re.search(r'\b' + re.escape(var) + r'\b', proc_div):
             used_vars.add(var)
 
@@ -42,7 +91,7 @@ def x_ray_dead_code(filepath: Path) -> dict:
     # ==========================================
     # 2. HUNTING PHANTOM PARAGRAPHS (Dead Code)
     # ==========================================
-    # Paragraphs usually start near the beginning of the line and end with a period.
+    # Paragraphs usually start near the margin and end with a period.
     para_pattern = re.compile(r'^[ \t]{0,11}([A-Z0-9\-]+)\.[ \t]*$', re.MULTILINE)
     paragraphs = para_pattern.findall(proc_div)
 
@@ -57,7 +106,7 @@ def x_ray_dead_code(filepath: Path) -> dict:
         reached_paragraphs = {entry_point}.union(called_targets)
         declared_paragraphs = set(paragraphs)
 
-        # The Math: Dead code is anything declared but never explicitly reached
+        # The Math: Dead code is anything declared but never explicitly called
         dead_paragraphs = declared_paragraphs - reached_paragraphs
 
     # Ignore system paragraphs and generic loop ends (like *-EXIT)
@@ -77,7 +126,7 @@ def x_ray_dead_code(filepath: Path) -> dict:
     }
 
 def main():
-    parser = argparse.ArgumentParser(description="GitGalaxy Graveyard Reaper")
+    parser = argparse.ArgumentParser(description="GitGalaxy Graveyard Reaper v3")
     parser.add_argument("target", help="Directory containing legacy COBOL payloads")
     args = parser.parse_args()
 

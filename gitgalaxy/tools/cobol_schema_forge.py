@@ -50,8 +50,14 @@ def parse_cobol_picture(pic_clause: str) -> dict:
 
     return {"sql": "TEXT", "json": "string"}
 
-def forge_schemas(filepath: Path):
-    """X-Rays a COBOL/Copybook file and forges the modern schemas."""
+def forge_schemas(filepath: Path, ignore_vars: set = None, corporate_header: str = ""):
+    """
+    X-Rays a COBOL/Copybook file and forges the modern schemas.
+    Upgraded to utilize shared IR context to drop dead memory addresses.
+    """
+    if ignore_vars is None:
+        ignore_vars = set()
+
     try:
         content = filepath.read_text(encoding='utf-8', errors='ignore').upper()
     except Exception:
@@ -95,20 +101,35 @@ def forge_schemas(filepath: Path):
         if not pic:
             continue
 
+        # --- SYNERGY: THE BLOAT CUTTER ---
+        # Instantly drop the variable if the Graveyard Reaper proved it is dead memory.
+        if name in ignore_vars:
+            continue
+
         safe_name = name.replace('-', '_')
         types = parse_cobol_picture(pic)
+        
+        # --- HONESTY SENSOR: DYNAMIC MEMORY ARRAY ---
+        # match.group(0) grabs the full matched string from the regex
+        warning = " -- ⚠️ WARNING: OCCURS DEPENDING ON detected. Use JSONB." if "DEPENDING ON" in match.group(0) else ""
         
         # Add notes if it's a legacy packed decimal
         comment = " -- Legacy: COMP-3 (Packed Decimal)" if usage and "COMP-3" in usage else ""
         
-        columns.append(f"    {safe_name.ljust(30)} {types['sql']}{comment}")
+        columns.append(f"    {safe_name.ljust(30)} {types['sql']}{comment}{warning}")
         json_properties[safe_name] = {"type": types['json'], "description": f"Legacy PIC: {pic}"}
 
     if not columns:
         return None
 
+    # Format the header for SQL
+    sql_header = ""
+    if corporate_header:
+        lines = corporate_header.strip().split('\n')
+        sql_header = "-- " + ("\n-- ".join(lines)) + "\n\n"
+
     # Forge PostgreSQL DDL
-    sql_ddl = f"CREATE TABLE {table_name} (\n"
+    sql_ddl = sql_header + f"CREATE TABLE {table_name} (\n"
     sql_ddl += ",\n".join(columns)
     sql_ddl += "\n);"
 
@@ -132,9 +153,9 @@ def main():
     if not target_path.exists():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
-
     print(f"🔨 GitGalaxy Schema Forge striking anvil for: {target_path.name}...\n")
 
+    # In standalone CLI mode, IR context defaults to an empty set.
     schemas = forge_schemas(target_path)
     
     if not schemas:
