@@ -13,23 +13,55 @@
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)](https://pypi.org/project/gitgalaxy/)
 [![Airgap Ready](https://img.shields.io/badge/Security-Airgap_Ready-teal.svg)](#)
 
-![Apollo 11 State Flux](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/apollo-11_state_flux.png)
 
-Code is art. Logic is art. Systems engineering is art.
+### **The blAST Engine - A custom heuristics based AST-free Knowledge Graph Generator for Repositories**
 
-GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is designed to extract the structural DNA of massive software repositories and render their non-visual architecture into measurable, explorable 3D galaxies.
+The blAST (Bypassing LLMs and ASTs) engine is a custom made knowledge graph engine that chunks repositories up at the function level and scores each function based on 50 unique metrics. It then rolls that data up to score each file and then rolls that data up to summarize the repo. By using a custom engine we are fully in control of what and how it searches. We built it so it doesn't require compilable code, that its fast and that it assess your entire repo. ASTs can't do that. ASTs are great for finding missing commas and memory overflows, they were not designed to be knowledge graph generators. They miss the forest for the trees. LLMs hallucinate if the context window gets to large and are probabilistic - you get different answers on different days. The blAST engine solves this. All languages have keywords, most have functions. We built a custom engine to treat code files like text files and scan for these keywords to build a true knowledge graph. This engine can keep up with you if you switch language mid file, it can fully assess your multi-language repo where the ratio of test files to coding files and repo structure all tell the engine invaluable information that AST-based knowledge graphs will never be able to give assess. Our scanning paradigm is fully transparent and customizable, any false positive or misclassified can be fixed; every assumption our system makes has been abstracted into a tunable variable (over 300). Think of this as a tunable telescope. You can query how many active API network nodes this code base produces, how many unique external imports, functions with concurrency risk, or files with extreme cognitive load, but in a sub-set of files, at a threshold hold you control, with dozens of unique white and black lists to reduce false positive fatigue. The system comes with smart defaults. It's been field tested on over a 1000 repos spanning 50+ coding languages and 250+ file extensions. 
 
-**1. The blAST Engine - The galaxyscope (Backend):** A hyper-scale, language-agnostic static analysis CLI. Based on 50 years of bioinformatics and genetic sequencing algorithms, it parses code at ~100,000 LOC/second. It outputs rich JSON telemetry, SQLite databases, and low-token Markdown briefs optimized for AI-agent workflows.
+**Core Technology**
+* Bypasses LLMs and rigid ASTs
+* Doesn't care if code compiles
+* AST-free
+* Maps code by keyword regex profiles
+* Eliminates LLM architectural hallucinations
+* Eliminates LLM context windows
+* Eliminates LLM probabilistic responses with large data
+* Scans 50+ languages, 250+ extensions, folder aware
 
-**2. The Observatory (Frontend):** Drop your galaxy.json into the free viewer at [GitGalaxy.io](https://gitgalaxy.io/) or use the repo's airgap_observatory, a standalone, zero-telemetry WebGPU visualizer. Both visualizers read the JSON contract and renders the entire code base as a procedural 3D galaxy where files are stars, allowing humans to visually map scale and risk exposure instantly.
+**Extreme Velocity & Scale**
+* 100,000 LOC/sec code analysis
+* 0.07 GB/sec raw log ingestion
+* Full-system scans in minutes
+* Zero data sampling required
+* Eliminates compute bottlenecks
+* 100% daily system coverage
 
-**Live Demo:** View 3D galaxy examples of Apollo-11, Linux, Tensorflow and more at [GitGalaxy.io](https://gitgalaxy.io/)
+**Intelligence & Tracking**
+* Builds longitudinal knowledge graphs
+* Tracks logic at the function level
+* Monitors risk exposures over time
+* Temporal code evolution tracking
+
+**Security & Deployment**
+* 100% air-gapped execution
+* on-premise deployment
+* Zero IP exfiltration risk
+* Zero-trust processing model
+
+**How to use**
+* python based, pip install gitgalaxy
+* CLI based 
+* output series of jsons and sqlite db
+* jsons specifically for AI-agent summary report
+* full sqlite3 db with all data for query and storage
+
+**Validation**
+* Population statistics from a 1000 repos
+* Comparing 10 different DOOM ports at the function and architecture level
+* How I used keyword patterns to automate the cleanup of COBOL repos to produce automated JCLs, DAGs, schemas
+* How I used keyword patterns to convert COBOL repos to a from scratch translation to a compiling java shell
 
 > **📖 Official Documentation:** Read the full technical specifications, architecture blueprints, and the Taxonomical Equivalence Map at **[squid-protocol.github.io/gitgalaxy](https://squid-protocol.github.io/gitgalaxy/)**.
-
-![GitGalaxy Data HUD](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/data_hud.png)
-
-![GitGalaxy Meta Visualizer](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/metavisualizer.png)
 
 ---
 
@@ -49,42 +81,18 @@ Point the GalaxyScope at any local repository or ZIP archive. The engine runs en
 galaxyscope /path/to/your/local/repo
 ```
 
-### 3. View the Galaxy
+### 3. Assess the Data
+**Option A: CLI Report based jsons saved to your computer for different needs**
 
-GitGalaxy offers two ways to visualize your 3D architecture, both built on a strict Zero-Trust Privacy Model where your code never leaves your machine.
 
-**Option A: The Web Viewer (Frictionless)**
-Simply drag and drop your generated "your_repo_galaxy.json" file (or a .zip of your raw repository) directly into GitGalaxy.io. All rendering and scanning happens entirely in your browser's local memory.
+**Option B: The Web Viewer (Frictionless)**
+If you like art things, I made a non-numerical dash board where each file is a star and it's size and color correspond to risk metrics. 
 
-**Option B: The Local Server (Enterprise & Offline)**
-For teams operating under strict compliance rules or behind corporate firewalls, GitGalaxy includes a 100% static, zero-telemetry local viewer called the Airgap Observatory.
+Simply drag and drop your generated "your_repo_GPU_galaxy.json" file (or a .zip of your raw repository) directly into GitGalaxy.io. All rendering and scanning happens entirely in your browser's local memory.
 
-There is no backend, no database, and no external API calls. It is a completely closed-box system built on static HTML and JavaScript, you just need to spin up a basic local server to view it.
-
-Navigate into the visualizer folder and start Python's built-in static web server:
-
-```bash
-git clone https://github.com/squid-protocol/gitgalaxy.git
-cd gitgalaxy/airgap_observatory
-python3 -m http.server 8000
-```
-Open your web browser and go to http://localhost:8000.
-
-Drag and drop your newly generated _galaxy.json file to instantly render your architecture.
+![Apollo 11 State Flux](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/apollo-11_state_flux.png)
 
 ![GitGalaxy SQLite Overview](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/sqlite_overview.png)
-
-## 🧬 The blAST Paradigm: Sequencing the DNA of Software
-
-Traditional computer science treats software like a rigid blueprint, using slow, language-specific Abstract Syntax Trees (ASTs) to analyze code. GitGalaxy treats code as a sequence to be scanned and then analyzed for patterns and occurrences using the **blAST (Broad Lexical Abstract Syntax Tracker)** engine.
-
-By applying the principles of biological sequence alignment to software, blAST hunts for the universal structural markers of logic across ~40 languages and ~250 file extensions. We translate this genetic code into "phenotypes"—measurable risk exposures.
-
-### Sequencing at Hyper-Scale
-By abandoning the compiler bottleneck, blAST achieves processing velocities that traditional ASTs simply cannot comprehend. In live telemetry tracking across the largest open-source ecosystems, blAST demonstrated its absolute scale:
-* **Peak Velocity:** Sequenced the 141,445 lines of the original **Apollo-11** Guidance Computer assembly code in **0.28 seconds** (an alignment rate of **513,298 LOC/s**).
-* **Massive Monoliths:** Chewed through the **3.2 million lines of OpenCV in just 11.11 seconds** (288,594 LOC/s). 
-* **Planetary Scale:** Effortlessly mapped the architectural DNA of planetary-scale repositories like **TensorFlow (7.8M LOC)**, **Kubernetes (5.5M LOC)**, and **FreeBSD (24.4M LOC)** in a fraction of the time required to compile them.
 
 ## Zero-Trust Architecture
 
@@ -94,13 +102,11 @@ Your code never leaves your machine. GitGalaxy performs 100% of its scanning and
 * **Ephemeral Memory Processing:** Repositories are unpacked into a volatile memory buffer (RAM) and are automatically purged when the browser tab is closed.
 * **Privacy-by-Design:** Even when using the web-based viewer, the data remains behind the user's firewall at all times.
 
-### The Viral Security Lens: Behavioral Threat Hunting
-Traditional security scanners rely on rigid, outdated virus signatures. blAST acts like an immune system, hunting for the *behavioral genetic markers* of a threat. By analyzing the structural density of I/O hits, execution triggers, and security bypasses, blAST is perfectly engineered to stop modern attack vectors:
 
-* **Supply-Chain Poisoning:** Instantly flags seemingly innocent setup scripts that possess an anomalous density of network I/O and dynamic execution (`eval`/`exec`).
-* **Logic Bombs & Sabotage:** Identifies code designed to destroy infrastructure by catching dense concentrations of catastrophic OS commands and raw hardware aborts.
-* **Steganography & Obfuscated Malware:** Mathematically exposes evasion techniques, flagging Unicode Smuggling (homoglyph imports) and sub-atomic custom XOR decryption loops.
-* **Credential Hemorrhaging:** Acts as a ruthless data vault scanner, isolating hardcoded cryptographic assets (`.pem`, `.pfx`, `.jks` files) buried deep within massive repositories.
+![GitGalaxy Data HUD](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/data_hud.png)
+
+![GitGalaxy Meta Visualizer](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/metavisualizer.png)
+
 
 ## License & Copyright
 
