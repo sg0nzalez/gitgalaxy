@@ -13,53 +13,49 @@
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)](https://pypi.org/project/gitgalaxy/)
 [![Airgap Ready](https://img.shields.io/badge/Security-Airgap_Ready-teal.svg)](#)
 
+### **The blAST Engine: A custom heuristics-based AST-free Knowledge Graph Generator**
 
-### **The blAST Engine - A custom heuristics based AST-free Knowledge Graph Generator for Repositories**
+The blAST (Bypassing LLMs and ASTs) engine is a custom-made knowledge graph engine that resolves repositories at the function level. It scores each function based on 50 unique metrics, rolls that data up to score the file, and finally summarizes the entire repository. 
 
-The blAST (Bypassing LLMs and ASTs) engine is a custom made knowledge graph engine that chunks repositories up at the function level and scores each function based on 50 unique metrics. It then rolls that data up to score each file and then rolls that data up to summarize the repo. By using a custom engine we are fully in control of what and how it searches. We built it so it doesn't require compilable code, that its fast and that it assess your entire repo. ASTs can't do that. ASTs are great for finding missing commas and memory overflows, they were not designed to be knowledge graph generators. They miss the forest for the trees. LLMs hallucinate if the context window gets to large and are probabilistic - you get different answers on different days. The blAST engine solves this. All languages have keywords, most have functions. We built a custom engine to treat code files like text files and scan for these keywords to build a true knowledge graph. This engine can keep up with you if you switch language mid file, it can fully assess your multi-language repo where the ratio of test files to coding files and repo structure all tell the engine invaluable information that AST-based knowledge graphs will never be able to give assess. Our scanning paradigm is fully transparent and customizable, any false positive or misclassified can be fixed; every assumption our system makes has been abstracted into a tunable variable (over 300). Think of this as a tunable telescope. You can query how many active API network nodes this code base produces, how many unique external imports, functions with concurrency risk, or files with extreme cognitive load, but in a sub-set of files, at a threshold hold you control, with dozens of unique white and black lists to reduce false positive fatigue. The system comes with smart defaults. It's been field tested on over a 1000 repos spanning 50+ coding languages and 250+ file extensions. 
+By utilizing a custom engine, we retain full control over the search space. We built it to be exceptionally fast, capable of assessing your entire repository without requiring compilable code—a fundamental limitation of standard Abstract Syntax Trees (ASTs). ASTs are great for finding missing commas and memory overflows, but they miss the forest for the trees when generating knowledge graphs. LLMs, on the other hand, suffer from hallucination during large context windows and yield probabilistic, fluctuating answers. 
+
+The blAST engine solves this. Because all programming languages utilize keywords and functions, our engine treats code files as text, scanning for these structural anchors to build a deterministic 3D knowledge graph. It seamlessly handles mid-file language switching, assesses the architectural ratio of test files to logic, and extracts invaluable project structure data that ASTs ignore. 
+
+Every assumption our system makes has been abstracted into over 300 tunable variables. Think of GitGalaxy as a highly calibrated telescope. You can query the number of active API network nodes, isolate unique external imports, or highlight functions exhibiting extreme cognitive load—all adjusted via custom whitelists and blacklists to eliminate false-positive fatigue. Field-tested on over 1,000 repositories spanning 50+ languages and 250+ extensions, the engine comes equipped with smart defaults ready for immediate deployment.
 
 **Core Technology**
 * Bypasses LLMs and rigid ASTs
-* Doesn't care if code compiles
-* AST-free
+* Doesn't care if code compiles (AST-free)
 * Maps code by keyword regex profiles
-* Eliminates LLM architectural hallucinations
-* Eliminates LLM context windows
-* Eliminates LLM probabilistic responses with large data
-* Scans 50+ languages, 250+ extensions, folder aware
+* Eliminates LLM architectural hallucinations and context window limits
+* Scans 50+ languages, 250+ extensions, fully folder-aware
 
 **Extreme Velocity & Scale**
 * 100,000 LOC/sec code analysis
 * 0.07 GB/sec raw log ingestion
-* Full-system scans in minutes
-* Zero data sampling required
-* Eliminates compute bottlenecks
+* Full-system scans in minutes without data sampling
 * 100% daily system coverage
 
 **Intelligence & Tracking**
 * Builds longitudinal knowledge graphs
 * Tracks logic at the function level
-* Monitors risk exposures over time
-* Temporal code evolution tracking
+* Monitors risk exposures and temporal code evolution over time
 
 **Security & Deployment**
 * 100% air-gapped execution
-* on-premise deployment
-* Zero IP exfiltration risk
+* On-premise deployment with zero IP exfiltration risk
 * Zero-trust processing model
 
 **How to use**
-* python based, pip install gitgalaxy
-* CLI based 
-* output series of jsons and sqlite db
-* jsons specifically for AI-agent summary report
-* full sqlite3 db with all data for query and storage
+* Python-based: `pip install gitgalaxy`
+* CLI execution
+* Outputs forensic JSONs (optimized for AI-agent summary reports) and a native SQLite3 database for robust querying and storage.
 
 **Validation**
-* Population statistics from a 1000 repos
-* Comparing 10 different DOOM ports at the function and architecture level
-* How I used keyword patterns to automate the cleanup of COBOL repos to produce automated JCLs, DAGs, schemas
-* How I used keyword patterns to convert COBOL repos to a from scratch translation to a compiling java shell
+* Population statistics derived from 1,000+ repositories.
+* Comparative function and architecture analysis of 10 different DOOM source ports.
+* Proven keyword pattern automation for mapping and cleaning COBOL mainframes (JCLs, DAGs, schemas).
+* Successful from-scratch translation of legacy COBOL to compiling Java Spring Boot architectures.
 
 > **📖 Official Documentation:** Read the full technical specifications, architecture blueprints, and the Taxonomical Equivalence Map at **[squid-protocol.github.io/gitgalaxy](https://squid-protocol.github.io/gitgalaxy/)**.
 
@@ -71,7 +67,6 @@ The blAST (Bypassing LLMs and ASTs) engine is a custom made knowledge graph engi
 
 ```bash
 pip install gitgalaxy
-```
 
 ### 2. Scan a Repository
 
@@ -81,14 +76,32 @@ Point the GalaxyScope at any local repository or ZIP archive. The engine runs en
 galaxyscope /path/to/your/local/repo
 ```
 
-### 3. Assess the Data
-**Option A: CLI Report based jsons saved to your computer for different needs**
+---
 
+## The GitGalaxy Ecosystem
 
-**Option B: The Web Viewer (Frictionless)**
-If you like art things, I made a non-numerical dash board where each file is a star and it's size and color correspond to risk metrics. 
+GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that graph to execute enterprise-grade operations.
 
-Simply drag and drop your generated "your_repo_GPU_galaxy.json" file (or a .zip of your raw repository) directly into GitGalaxy.io. All rendering and scanning happens entirely in your browser's local memory.
+* 🌌 **[The Hub: Orbital Optics & Cartography](docs/wiki/1_Foundation__Architecture.md)**
+  The core AST-free parsing engine that handles signal processing, spatial rendering, and telemetry recording.
+* 🏭 **[Legacy Modernization: Java Forge](tools/modernization/java_forge/README.md)**
+  Automated, high-fidelity pipelines designed to map, slice, and forge legacy COBOL monoliths into compiling Spring Boot microservices.
+* 🛠️ **[Legacy Modernization: COBOL Refactoring](tools/modernization/cobol_cleaner/README.md)**
+  Maintenance tools for legacy systems, including lexical patchers, graveyard code hunters, and JCL operational auditors.
+* 🛡️ **[Supply Chain Security](tools/security_ops/README.md)**
+  Pre-commit defense layers including the high-speed Vault Sentinel for secret detection and binary anomaly firewalls.
+* 📡 **[Network Auditing](tools/cartography/README.md)**
+  Full API network mapping to hunt down undocumented "Shadow APIs" by comparing physical codebase routers against official Swagger documentation.
+* 🕵️ **[Terabyte Log Scanning](tools/compliance/README.md)**
+  High-velocity PII leak hunters and regex-driven anomaly detectors built to chew through massive server logs.
+* 📋 **[Compliance Operations](tools/security_ops/README.md)**
+  Automated Software Bill of Materials (SBOM) generation based on the physical reality of the codebase.
+
+  ## The Web Viewer (Frictionless Dashboards)
+
+If you prefer visual analytics, we've built a non-numerical dashboard where each file represents a star, sized and colored according to specific risk metrics. 
+
+Simply drag and drop your generated `your_repo_GPU_galaxy.json` file (or a `.zip` of your raw repository) directly into [GitGalaxy.io](https://gitgalaxy.io/). All rendering and scanning happens entirely in your browser's local memory.
 
 ![Apollo 11 State Flux](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/apollo-11_state_flux.png)
 
@@ -102,11 +115,9 @@ Your code never leaves your machine. GitGalaxy performs 100% of its scanning and
 * **Ephemeral Memory Processing:** Repositories are unpacked into a volatile memory buffer (RAM) and are automatically purged when the browser tab is closed.
 * **Privacy-by-Design:** Even when using the web-based viewer, the data remains behind the user's firewall at all times.
 
-
 ![GitGalaxy Data HUD](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/data_hud.png)
 
 ![GitGalaxy Meta Visualizer](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/metavisualizer.png)
-
 
 ## License & Copyright
 
