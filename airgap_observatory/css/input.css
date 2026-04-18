@@ -1,9 +1,0 @@
-@import "tailwindcss";
-
-/* Tell Tailwind where to look for your classes */
-@source "../*.html";
-@source "../js/**/*.js";
-@source "../tools/**/*.js";
-@source "../config/**/*.js";
-
-/* You can put any of your custom CSS down here! */
