@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitgalaxy"
-version = "1.1.6"
+version = "2.0.0"
 authors = [
-  { name="Joe Esquibel" },
+  { name="Joseph Michael Esquibel" },
 ]
-description = "A high-speed static analysis engine that sequences source code like DNA to map architectural risk and security threats."
+description = "An AST-free, zero-trust static analysis engine for mapping architectural risk, securing CI/CD pipelines, and modernizing legacy monoliths."
 readme = "README.md"
 requires-python = ">=3.8"
 
@@ -17,12 +17,12 @@ license-files = ["LICENSE"]
 keywords = [
     "static-analysis", 
     "security", 
-    "threat-hunting", 
+    "devsecops", 
     "visualization", 
     "ast", 
     "zero-trust",
-    "webgpu",
-    "architecture"
+    "sbom",
+    "legacy-migration"
 ]
 
 classifiers = [
@@ -45,7 +45,34 @@ dependencies = []
 "Tracker" = "https://github.com/squid-protocol/gitgalaxy/issues"
 
 [project.scripts]
-blast = "gitgalaxy.galaxyscope:main" 
+# --- THE HUB (Core Orchestrators) ---
+galaxyscope = "gitgalaxy.galaxyscope:main" 
+blast = "gitgalaxy.galaxyscope:main"
+
+# --- THE SPOKES (DevSecOps Tooling) ---
+vault-sentinel = "gitgalaxy.tools.supply_chain_security.vault_sentinel:main"
+supply-chain-firewall = "gitgalaxy.tools.supply_chain_security.supply_chain_firewall:main"
+xray-inspector = "gitgalaxy.tools.supply_chain_security.binary_anomaly_detector:main"
+zero-trust-sbom = "gitgalaxy.tools.compliance.sbom_generator:main"
+pii-leak-hunter = "gitgalaxy.tools.terabyte_log_scanning.pii_leak_hunter:main"
+terabyte-log-scanner = "gitgalaxy.tools.terabyte_log_scanning.terabyte_log_scanner:main"
+api-network-map = "gitgalaxy.tools.network_auditing.full_api_network_map:main"
+
+# --- THE SPOKES (Legacy Modernization Controllers) ---
+cobol-refractor = "gitgalaxy.cobol_refractor_controller:main"
+cobol-to-java = "gitgalaxy.cobol_to_java_controller:main"
+batch-test-harness = "gitgalaxy.tools.cobol_to_java.batch_test_harness:main"
+
+# --- THE SPOKES (Individual Legacy Forges) ---
+cobol-compiler-forge = "gitgalaxy.tools.cobol_to_cobol.cobol_compiler_forge:main"
+cobol-dag-architect = "gitgalaxy.tools.cobol_to_cobol.cobol_dag_architect:main"
+cobol-etl-unpacker = "gitgalaxy.tools.cobol_to_cobol.cobol_etl_unpacker:main"
+cobol-graveyard-finder = "gitgalaxy.tools.cobol_to_cobol.cobol_graveyard_finder:main"
+cobol-jcl-forge = "gitgalaxy.tools.cobol_to_cobol.cobol_jcl_forge:main"
+cobol-microservice-slicer = "gitgalaxy.tools.cobol_to_cobol.cobol_microservice_slicer:main"
+cobol-schema-forge = "gitgalaxy.tools.cobol_to_cobol.cobol_schema_forge:main"
+cobol-system-limits = "gitgalaxy.tools.cobol_to_cobol.cobol_system_limits_reporter:main"
+
 
 # --- THE FIX: Explicitly allow only the package, block the heavy folders ---
 [tool.setuptools.packages.find]

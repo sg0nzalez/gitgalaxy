@@ -1,0 +1,77 @@
+# How to Map and Refactor Legacy COBOL Monoliths
+
+Enterprise migrations from legacy IBM Mainframes to the cloud are notoriously dangerous. Decades of technical debt result in millions of lines of code where no one knows what is actually executing, what is dead "Graveyard" memory, and how data physically flows between batch jobs.
+
+Traditional lift-and-shift tools just move the bloat to the cloud. GitGalaxy solves this using the **COBOL Refractor Controller**, a hybrid-memory orchestration engine that mathematically isolates dead code, maps deterministic data lineage, and generates a "Clean-Room" environment. 
+
+The outputs of this engine provide a dual guarantee: the sanitized code natively compiles against raw MVS 3.8j operating systems (1974 Hercules Mainframe), while simultaneously scaffolding modern cloud environments (PostgreSQL DDLs and JSON schemas).
+
+## The Orchestration Engine
+
+Because enterprise mainframes can contain terabytes of source code, the Refractor Controller uses a dynamic scale sensor. It defaults to a high-speed RAM dictionary for standard repos, but automatically shifts to a SQLite3 Storage Engine if the codebase hits critical mass, preventing Out-Of-Memory (OOM) crashes.
+
+### 1. Execute the Refraction Pipeline
+Point the controller at your legacy COBOL directory. You can optionally pass a specific target variable (`--var`) to trigger the Microservice Slicer to recursively taint-track business logic across the AST.
+
+```bash
+python gitgalaxy/tools/cobol_refractor_controller.py /path/to/legacy_mainframe --var "ACCOUNT-BALANCE"
+```
+
+### 2. Era-Aware Mainframe Compiler Forge
+Before code is migrated, it must be validated. The GitGalaxy **Compiler Forge** guarantees the sanitized legacy code will still compile. 
+
+Because enterprises mix decades of code, the Forge utilizes a **Dialect Sensor**. It scans the AST for post-1974 structural keywords (like `EVALUATE` or `END-IF`). 
+* If it detects COBOL-85, it dynamically routes the build JCL to modern enterprise compilers (`IGYWCL`). 
+* If it detects COBOL-74, it routes to legacy OS/VS compilers (`COBUCL`) to prevent catastrophic compiler strokes.
+
+Simultaneously, the Forge recursively flattens and inlines all `COPY` statements (with a hard failsafe depth of 10 to prevent infinite RAM loops from cyclic copybooks).
+
+### 3. Analyze the Master Audit Report
+The Controller spins up a timestamped `_gitgalaxy_clean` directory containing 6 distinct artifact pipelines. It expands copybooks inline, drops orphaned variables, strips away unreachable "Phantom Paragraphs," and maps the true I/O intent of the system.
+
+It outputs a `master_refraction_audit.txt` report proving the exact code bloat reduction:
+
+```text
+==========================================================
+ GITGALAXY MODERNIZATION REPORT
+==========================================================
+
+[1] EXECUTIVE METRICS & NECROSIS REDUCTION
+----------------------------------------------------------
+  • Files Scanned           : 1,402
+  • State Manager Mode      : RAM
+  • Unused Memory Addresses : 14,205 orphaned variables
+  • Unreachable Logic Blocks: 3,402 phantom paragraphs
+  ✂️ Estimated Bloat Removed: ~48,225 Lines of Code
+
+[2] ZERO-TRUST JCL ARCHITECTURE
+----------------------------------------------------------
+  • Programs Audited           : 850
+  • Original Legacy LOC        : 125,400 lines
+  • GitGalaxy Zero-Trust LOC   : 77,175 lines
+  📉 Total Code Bloat Removed  : 38.4%
+  🛡️ Over-Permissioned I/O     : 112 physical files secured
+
+[3] GENERATED CLOUD SCAFFOLDING
+----------------------------------------------------------
+  • PostgreSQL DDLs & JSON Schemas Forged : 420
+  • Zero-Trust Emulator JCLs Generated    : 850
+  • Isolated Microservice Slices Extracted: 1 (Target: ACCOUNT-BALANCE)
+
+[4] ⚠️ MANUAL INTERVENTION AUDIT (HONESTY PROTOCOL)
+----------------------------------------------------------
+  • AI Agent Job Tickets Generated : 2
+  The following files contain structural anomalies that require architectural review:
+  [!] [PAYMENT_ROUTER.cbl : Line 0412] CRITICAL LIMIT - Control flow mathematically compromised.
+```
+
+### 4. AI Agent Task Forge & The Honesty Protocol
+COBOL contains "Ancient Dragons"—structural commands like `ALTER`, `COPY REPLACING`, or `CICS ASYNC JUMPS` that dynamically rewrite the execution flow at runtime. These break deterministic mathematical mapping.
+
+GitGalaxy enforces an **Honesty Protocol**. When the System Limits Reporter detects one of these anomalies, it triggers the **Autonomous Agent Task Forge**.
+
+Instead of letting an LLM guess how to fix the file (which leads to catastrophic hallucinations), the Forge bounds the AI. It generates a strict JSON job ticket (`06_ai_agent_jobs/XYZ_agent_job.json`) that explicitly defines the extracted lineage (required inputs, outputs, and external calls). 
+
+The LLM is dispatched as a deterministic Systems Architect, tasked solely with resolving the specific structural anomaly without altering the core business logic.
+
+> **Read the full technical specification:** [Legacy Refraction Controller](../05-01-legacy-refraction-controller.md)

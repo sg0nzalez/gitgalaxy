@@ -120,9 +120,9 @@ If you prefer visual analytics, we've built a non-numerical dashboard where each
 
 Simply drag and drop your generated `your_repo_GPU_galaxy.json` file (or a `.zip` of your raw repository) directly into [GitGalaxy.io](https://gitgalaxy.io/). All rendering and scanning happens entirely in your browser's local memory.
 
-![Apollo 11 State Flux](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/apollo-11_state_flux.png)
+![GitGalaxy 3D structural mapping of API exposure and state flux risks in the Apollo 11 legacy codebase](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/apollo-11_state_flux.png)
 
-![GitGalaxy SQLite Overview](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/sqlite_overview.png)
+![GitGalaxy native SQLite3 database schema for AST-free enterprise codebase mapping and cybersecurity auditing](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/sqlite_overview.png)
 
 ## Zero-Trust Architecture
 
@@ -132,9 +132,9 @@ Your code never leaves your machine. GitGalaxy performs 100% of its scanning and
 * **Ephemeral Memory Processing:** Repositories are unpacked into a volatile memory buffer (RAM) and are automatically purged when the browser tab is closed.
 * **Privacy-by-Design:** Even when using the web-based viewer, the data remains behind the user's firewall at all times.
 
-![GitGalaxy Data HUD](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/data_hud.png)
+![GitGalaxy interactive WebGPU data HUD displaying real-time software architecture metrics, forensic analysis, and file-level risk telemetry](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/data_hud.png)
 
-![GitGalaxy Meta Visualizer](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/metavisualizer.png)
+![GitGalaxy Meta Visualizer 3D star map rendering complex software repository structures and K-means clustering archetypes in the browser](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/metavisualizer.png)
 
 ## License & Copyright
 

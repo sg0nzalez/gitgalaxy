@@ -1,14 +1,35 @@
-# GitGalaxy Documentation
+# 🌌 GitGalaxy Documentation
 
 **Code is art. Logic is art. Systems engineering is art.**
 
 GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is designed to extract the structural heuristics of massive software repositories and render their non-visual architecture into measurable, explorable 3D galaxies based on a deterministic relational knowledge graph.
 
+---
+
+## 🧭 Where should I start?
+
+### For Enterprise Architects & DevSecOps
+If you are looking to solve immediate, multi-million-dollar infrastructure problems, start with our **Enterprise Cookbook**. It provides copy-paste GitGalaxy recipes for:
+* 🛡️ [Enforcing a Zero-Trust Supply Chain Firewall](cookbook/enforce-supply-chain-firewall.md)
+* 🤖 [Sandboxing Autonomous AI Coding Agents](cookbook/sandbox-autonomous-agents.md)
+* 🏦 [Refactoring Legacy COBOL into Spring Boot](cookbook/map-cobol-monoliths.md)
+* 🕵️ [Hunting PII Leaks in Terabyte Logs](cookbook/hunt-pii-leaks.md)
+
+### For Systems Engineers & Developers
+If you want to understand the mathematics and physics driving the GitGalaxy engine, dive into the core architecture:
+* 🔭 [The Optical Pipeline & Aperture Filter](02-01-pipeline-overview.md)
+* 📐 [The 13-Point Risk Exposure Equations](08-01-methodology.md)
+* 🧠 [The Neural Auditor (K-Means Clustering)](02-19-neural-auditor.md)
+
+---
+
+## ⚙️ The Core Ecosystem
+
 ### 1. The blAST Engine - The GalaxyScope (Backend)
 A hyper-scale, language-agnostic static analysis CLI. Bypassing traditional ASTs, it parses code at ~100,000 LOC/second using deterministic regular expressions and a multi-phase Physics Engine. It outputs rich JSON telemetry, SQLite databases, and low-token Markdown briefs optimized for AI-agent workflows.
 
 ### 2. The Observatory (Frontend)
-Drop your `galaxy.json` into the free viewer at [GitGalaxy.io](https://gitgalaxy.io) or use the repo's `airgap_observatory`, a standalone, zero-telemetry WebGPU visualizer. Both visualizers read the JSON contract and render the entire codebase as a procedural 3D galaxy where files are stars, allowing humans to visually map scale and risk exposure instantly.
+Drop your `_galaxy.json` into the free viewer at [GitGalaxy.io](https://gitgalaxy.io) or use the repo's `airgap_observatory`, a standalone, zero-telemetry WebGPU visualizer. Both visualizers read the JSON contract and render the entire codebase as a procedural 3D galaxy where files are stars, allowing humans to visually map scale and risk exposure instantly.
 
 ---
 
@@ -17,20 +38,22 @@ Drop your `galaxy.json` into the free viewer at [GitGalaxy.io](https://gitgalaxy
 **1. Install**
 ```bash
 pip install gitgalaxy
+```
 
 **2. Scan a Repository**
 Point the GalaxyScope at any local repository or ZIP archive. The engine runs entirely on your local machine—zero data is transmitted.
 ```bash
 galaxyscope /path/to/your/local/repo
+```
 
 **3. View the Galaxy**
 GitGalaxy offers two ways to visualize your 3D architecture, both built on a strict Zero-Trust Privacy Model where your code never leaves your machine.
-* **The Web Viewer (Frictionless):** Drag and drop your generated `_galaxy.json` file directly into GitGalaxy.io. All rendering and scanning happens entirely in your browser's local memory.
+* **The Web Viewer (Frictionless):** Drag and drop your generated `_galaxy.json` file directly into [GitGalaxy.io](https://gitgalaxy.io). All rendering and scanning happens entirely in your browser's local memory.
 * **The Local Server (Enterprise & Offline):** For teams operating under strict compliance rules, GitGalaxy includes a 100% static, zero-telemetry local viewer called the Airgap Observatory.
 
 ---
 
-## ⚙️ The blAST Paradigm: Deterministic Structural Heuristics
+## 🔭 The blAST Paradigm: Deterministic Structural Heuristics
 
 Traditional computer science treats software like a rigid blueprint, using slow, language-specific Abstract Syntax Trees (ASTs) to analyze code. GitGalaxy treats code files as raw structural text using **blAST (Bypassing LLMs and ASTs)**.
 
@@ -54,4 +77,3 @@ This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid
 
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
 * 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
-
