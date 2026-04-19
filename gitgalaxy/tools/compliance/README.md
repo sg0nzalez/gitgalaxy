@@ -41,3 +41,4 @@ Run the Universal SBOM Generator against the root of your project. It will autom
 
 ```bash
 python3 sbom_generator.py /path/to/your/project
+```

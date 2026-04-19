@@ -1,4 +1,4 @@
-# GitGalaxy: Network Auditing & Cartography
+# GitGalaxy: Network Auditing & True API Mapping
 
 [![Frameworks](https://img.shields.io/badge/Supported-Python_|_Node_|_Java_|_Go-00C957.svg)](#)
 [![Architecture](https://img.shields.io/badge/Architecture-AST--Free_Regex-00BFFF.svg)](#)
@@ -6,33 +6,43 @@
 
 Welcome to the **GitGalaxy Network Auditing Suite**.
 
-Security documentation is theoretical. Compiled source code is physical reality. As monolithic codebases scale and microservices fracture, OpenAPI/Swagger specifications inevitably drift from the actual routing logic deployed in production. 
+Security documentation is theoretical. Compiled source code is physical reality. Attackers do not exploit the APIs you documented; they exploit the forgotten, undocumented endpoints left open in your code. 
 
-Attackers don't exploit the APIs you documented; they exploit the legacy test endpoints you forgot to remove. 
+Standard scanners rely on approved Swagger files to tell them what to test. GitGalaxy provides a deterministic source of truth. We do not care what is documented. We scan the raw codebase to reveal exactly what routing logic is actually open and exposed to the world.
 
-The **Full API Network Map** acts as a deterministic source of truth. It bypasses compilation and LLM hallucinations, utilizing raw structural regex to hunt down framework-specific web routers. It then applies strict set theory against your official Swagger documentation to isolate critical security gaps.
+### How It Works: Extracting the Truth
 
-### 🧠 How It Works: Router Physics & Set Theory
+We use structural regex to bypass documentation and map reality.
 
-1. **Extract the Theoretical Truth:** The engine parses your official security documentation (`swagger.json` or `swagger.yaml`) to build a baseline set of "Approved" APIs.
-2. **Map the Physical Reality:** Utilizing "Router Physics" (highly optimized regex traps), the engine scans the raw text of the target codebase, identifying physical execution routes mapped by the underlying web frameworks.
-3. **Mathematical Resolution:** The tool applies basic set theory to calculate exact risk exposure:
-    * **Shadow APIs (Critical Risk):** `Physical - Approved`. Endpoints that exist in the codebase and can be executed by attackers, but are completely missing from security documentation.
-    * **Ghost APIs (Documentation Bloat):** `Approved - Physical`. Endpoints that are officially documented and tested by security teams, but no longer exist in the physical source code.
+* **Map Physical Reality:** Scans raw text for actual execution routes.
+* **Extract Theoretical Truth:** Parses official Swagger or OpenAPI specifications.
+* **Mathematical Resolution:** Applies strict set theory to expose security gaps.
+* **Identify Shadow APIs:** Exposes undocumented, active endpoints (Critical Risk).
+* **Identify Ghost APIs:** Highlights documented but non-existent endpoints (Audit Bloat).
 
-### 🛠️ Core Capabilities
+### Core Capabilities
 
-The AST-free routing heuristics natively support the industry's most common backend frameworks without requiring a build environment:
-* **Python:** FastAPI & Flask (`@app.get`, `@router.post`)
-* **Node.js / TypeScript:** Express (`app.get`, `router.post`)
-* **Java:** Spring Boot (`@GetMapping`, `@PostMapping`)
-* **Golang:** Gorilla Mux & Gin (`.GET`, `.HandleFunc`)
+Our AST-free heuristics map open APIs without requiring a build environment.
+
+* **Python Routers:** FastAPI and Flask endpoints (`@app.get`).
+* **Node.js Routers:** Express framework routes (`app.post`).
+* **Java Routers:** Spring Boot mapping annotations (`@GetMapping`).
+* **Golang Routers:** Gorilla Mux and Gin handlers (`.HandleFunc`).
 
 ---
 
-### 🚀 Quickstart: Running the Network Mapper
+### Quickstart: Running the Network Mapper
 
-Execute the spoke tool directly, pointing it at both your physical source code and your theoretical documentation:
+Execute the tool directly against your physical source code and your theoretical documentation:
 
 ```bash
 python3 full_api_network_map.py /path/to/source/code --swagger /path/to/swagger.json
+```
+
+---
+
+### What You Get (The Audit Dashboard)
+A deterministic terminal dashboard ready for CI/CD integration or security review.
+
+* **Shadow APIs Detected:** Lists physical files containing hidden, undocumented routers.
+* **Ghost APIs Detected:** Lists missing routes to eliminate security team audit bloat.

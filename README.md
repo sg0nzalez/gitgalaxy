@@ -73,13 +73,14 @@ Every assumption our system makes has been abstracted into over 300 tunable vari
 
 ```bash
 pip install gitgalaxy
+```
 
-```bash
 
 ### 2. Scan a Repository
 
 Point the GalaxyScope at any local repository or ZIP archive. The engine runs entirely on your local machine—zero data is transmitted.
 
+```bash
 galaxyscope /path/to/your/local/repo
 ```
 
