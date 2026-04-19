@@ -406,6 +406,8 @@ class SignalProcessor:
             max_func_comp = 0
             avg_func_args = 0.0
             func_gini = 0.0
+            max_big_o = 1
+            max_db_complexity = 0
             
             func_ml_brain = getattr(analysis_lens, "GENERAL_FUNCTION_INFERENCE_MODEL", {})
             f_features = func_ml_brain.get("features", [])
@@ -425,10 +427,16 @@ class SignalProcessor:
             if satellites and not f_centroids:
                 self.logger.warning(f"⚠️ FUNCTION ML SILENT BYPASS: Brain loaded? {bool(func_ml_brain)} | Centroids: {len(f_centroids)} | Arch Key: {f_arch_key}")
 
+            # Initialize has_recursion before the if block
+            has_recursion = False
+            
             if satellites:
                 complexities = [s.get("branch", 0) for s in satellites]
                 max_func_comp = max(complexities)
                 avg_func_args = sum([s.get("args", 0) for s in satellites]) / len(satellites)
+                max_big_o = max([s.get("big_o_depth", 1) for s in satellites])
+                max_db_complexity = max([s.get("db_complexity", 0) for s in satellites])
+                has_recursion = any([s.get("is_recursive", False) for s in satellites])
                 
                 # 1. Z-Scores Mathematics
                 func_count = len(satellites)
@@ -542,15 +550,27 @@ class SignalProcessor:
             # ------------------------------------------------------------------
             # 2. CORE RISK EXPOSURE CALCULATIONS
             # ------------------------------------------------------------------
-            cog_score, cog_raw = self._calc_cog_load(loc, equations, irc, fc, mp_map.get("cog", 1.0))
+            # ---> HIGHER-ORDER SYNTHESIS: The OOM (Out of Memory) Bomb <---
+            # If O(N^3) or recursive, AND high flux, AND NO lazy_evaluation -> Massive Flux Multiplier
+            oom_multiplier = 1.0
+            if (max_big_o >= 3 or has_recursion) and equations.get("flux", 0) > 0:
+                if equations.get("lazy_evaluation", 0) == 0:
+                    oom_multiplier = 3.0 # Ticking OOM bomb (Bloating RAM)
+                else:
+                    oom_multiplier = 0.5 # Safely streamed (O(1) memory)
+                    
+            mp_map["flux"] = mp_map.get("flux", 1.0) * oom_multiplier
+            # --------------------------------------------------------------
+
+            cog_score, cog_raw = self._calc_cog_load(loc, equations, irc, fc, mp_map.get("cog", 1.0), func_gini)
             saf_score = self._calc_safety(loc, equations, irc, fc, mp_map.get("safety", 1.0))
             debt_score = self._calc_tech_debt(loc, equations, irc, mp_map.get("debt", 1.0))
             
             test_score = self._calc_verification(
-                loc, rel_path, meta.get("is_protected", False), equations, irc, fc, mp_map.get("test", 1.0), umbrella_bonus=umbrella_bonus
+                loc, rel_path, meta.get("is_protected", False), equations, irc, fc, mp_map.get("test", 1.0), umbrella_bonus=umbrella_bonus, popularity=popularity
             )
             
-            doc_score = self._calc_documentation(loc, doc_lines, equations, fc, irc, mp_map.get("doc", 1.0))
+            doc_score = self._calc_documentation(loc, doc_lines, equations, fc, irc, mp_map.get("doc", 1.0), satellites)
             spec_score = self._calc_spec_alignment(equations, mp_map.get("spec", 1.0))
             
             bureaucracy_dampener = min(loc / 15.0, 1.0)
@@ -563,8 +583,8 @@ class SignalProcessor:
                 "safety_score":   saf_score,
                 "tech_debt":      debt_score,
                 "verification":   test_score,
-                "api_exposure":   self._calc_api_exposure(equations, mp_map.get("api", 1.0)),
-                "concurrency":    self._calc_concurrency(loc, equations, irc, mp_map.get("async", 1.0)),
+                "api_exposure":   self._calc_api_exposure(equations, total_loc, popularity),
+                "concurrency":    self._calc_concurrency(loc, equations, irc, mp_map.get("async", 1.0), satellites),
                 "state_flux":     self._calc_state_flux(loc, equations, irc, mp_map.get("flux", 1.0)),
                 "graveyard":      self._calc_graveyard(total_loc, equations, mp_map.get("dead", 1.0)),
                 "spec_match":     spec_score,
@@ -636,8 +656,10 @@ class SignalProcessor:
                 "densities": {"cog_raw": round(cog_raw, 3)},
                 "raw_churn_freq": raw_churn_freq,
                 "func_complexity_gini": func_gini,
+                "max_algorithmic_complexity": "O(2^N) [Recursive]" if has_recursion else (f"O(N^{max_big_o})" if max_big_o > 1 else "O(N)"),
+                "max_db_complexity": max_db_complexity,
                 "ownership_entropy": ownership_score,
-                "author_distribution": silo_exposure,  
+                "author_distribution": silo_exposure,
                 "ownership": dominant_author,          
                 "domain_context": ghost_meta,
                 "mitigation_telemetry": meta.get("mitigation_telemetry", {})
@@ -754,6 +776,98 @@ class SignalProcessor:
                 for name, count in sorted(static_counts.items(), key=lambda x: x[1], reverse=True)
             }
 
+        # --- NEW: AI TOPOLOGY & LLM INTELLIGENCE ---
+        ai_sensor_keys = ["llm_api", "llm_orchestrator", "llm_vector_store", "llm_local_compute", "ai_tools", "ai_memory", "ai_logic_loop", "ml_traditional", "dl_frameworks"]
+        ai_indices = {k: self.SIGNAL_SCHEMA.index(k) for k in ai_sensor_keys if k in self.SIGNAL_SCHEMA}
+        
+        # Isolate the physical files harboring AI logic
+        ai_stars = []
+        for s in stars:
+            hv = s.get("hit_vector", [])
+            star_ai_mass = sum(hv[idx] for k, idx in ai_indices.items() if idx < len(hv))
+            if star_ai_mass > 0:
+                ai_stars.append(s)
+
+        llm_api_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_api")] if "llm_api" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_api") else 0 for s in stars)
+        llm_orch_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_orchestrator")] if "llm_orchestrator" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_orchestrator") else 0 for s in stars)
+        llm_vector_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_vector_store")] if "llm_vector_store" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_vector_store") else 0 for s in stars)
+        llm_local_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_local_compute")] if "llm_local_compute" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_local_compute") else 0 for s in stars)
+        
+        # Agentic Sensors
+        ai_tools_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_tools")] if "ai_tools" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_tools") else 0 for s in stars)
+        ai_memory_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_memory")] if "ai_memory" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_memory") else 0 for s in stars)
+        ai_loop_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_logic_loop")] if "ai_logic_loop" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_logic_loop") else 0 for s in stars)
+
+        # ML/DL Sensors
+        ml_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ml_traditional")] if "ml_traditional" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ml_traditional") else 0 for s in stars)
+        dl_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("dl_frameworks")] if "dl_frameworks" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("dl_frameworks") else 0 for s in stars)
+
+        ai_topology = {"classification": "Non-AI / Traditional", "insights": []}
+        
+        total_ai_mass = llm_api_total + llm_orch_total + llm_vector_total + llm_local_total + ai_tools_total + ai_memory_total + ai_loop_total + ml_total + dl_total
+        
+        if total_ai_mass > 0:
+            # Assess Agentic Autonomy First (Highest Complexity)
+            if ai_loop_total > 0 and ai_tools_total > 0:
+                ai_topology["classification"] = "Autonomous Agentic Fleet (Level 4)"
+                ai_topology["insights"].append("High density of bound tools and cyclic reasoning loops (ReAct). Agents possess autonomy to execute code. Critical risk of non-deterministic runtime behavior.")
+                if ai_memory_total == 0:
+                    ai_topology["insights"].append("WARNING: High autonomy but low memory density. Agents may suffer from context amnesia between loops.")
+            elif ai_tools_total > 0:
+                ai_topology["classification"] = "Tool-Augmented LLM (Level 3)"
+                ai_topology["insights"].append("LLM is explicitly bound to external functions/tools. High blast radius if prompt injection occurs.")
+            elif llm_local_total > 0:
+                ai_topology["classification"] = "Local Sovereignty (Heavy Compute)"
+                ai_topology["insights"].append("Repository contains local model execution or tensor math. Expect heavy GPU memory allocation.")
+            elif llm_vector_total > 0 and llm_api_total > 0:
+                ai_topology["classification"] = "RAG Pipeline (Retrieval-Augmented Generation)"
+                ai_topology["insights"].append("Active vector database integration detected. Architecture centers around data chunking and context retrieval.")
+            elif llm_orch_total > (llm_api_total * 2):
+                ai_topology["classification"] = "Framework-Heavy Orchestration"
+                ai_topology["insights"].append("Heavy reliance on agentic frameworks (e.g., LangChain). High cognitive load and abstraction risk.")
+            elif dl_total > 0:
+                ai_topology["classification"] = "Deep Learning Architecture"
+                ai_topology["insights"].append("Heavy neural network footprint detected (PyTorch/TensorFlow/JAX). Optimized for tensor math and gradient descent.")
+            elif ml_total > 0:
+                ai_topology["classification"] = "Statistical Machine Learning"
+                ai_topology["insights"].append("Traditional ML architecture detected (XGBoost/Scikit-Learn). Focus on decision trees, regressions, and structured data.")
+            else:
+                ai_topology["classification"] = "Cloud API Wrapper"
+                ai_topology["insights"].append("Thin wrapper around external LLM APIs. Low local compute mass, but high vendor lock-in risk.")
+                
+            # ---> N-DIMENSIONAL AI NETWORK POSTURE <---
+            if ai_stars:
+                # Find the most heavily relied-upon AI node in the graph
+                ai_stars.sort(key=lambda x: x.get("telemetry", {}).get("network_metrics", {}).get("pagerank_score", 0.0), reverse=True)
+                primary_ai_node = ai_stars[0]
+                net_mets = primary_ai_node.get("telemetry", {}).get("network_metrics", {})
+                
+                role = net_mets.get("ecosystem_role", "Unknown")
+                pr = net_mets.get("normalized_blast_radius", 0.0)
+                btw = net_mets.get("betweenness_score", 0.0)
+                
+                ai_topology["insights"].append(f"Structural Posture: The primary AI integration acts as a '{role}' within the repository.")
+                
+                if pr > 1.0:
+                    ai_topology["insights"].append(f"Systemic Risk (High): The AI components are deeply embedded with a massive Blast Radius (PageRank: {pr}). Hallucinations or prompt injections here will cascade catastrophically across the system.")
+                elif pr < 0.2:
+                    ai_topology["insights"].append("Containment (Low Risk): The AI components are safely isolated at the edge of the network with a minimal blast radius.")
+                    
+                if btw > 0.05:
+                    ai_topology["insights"].append("Cognitive Choke Point: The AI sits on the shortest path between major system domains (High Betweenness). It is acting as an intelligent router, filter, or mandatory data transformer.")
+
+            ai_topology["signal_mass"] = {
+                "Cloud APIs": llm_api_total,
+                "Orchestrators": llm_orch_total,
+                "Vector Stores": llm_vector_total,
+                "Local Compute": llm_local_total,
+                "Agent Tools": ai_tools_total,
+                "Agent Memory": ai_memory_total,
+                "Agent Loops": ai_loop_total,
+                "Traditional ML": ml_total,
+                "Deep Learning": dl_total
+            }
+
         # --- NEW: Repo Macro-Species Calculation ---
         repo_brain = getattr(config, "GENERAL_REPO_INFERENCE_MODEL", None)
         repo_macro_data = {"name": "Unclassified", "id": -1, "z_score": 0.0, "raw_drift": 0.0}
@@ -815,6 +929,7 @@ class SignalProcessor:
             },
             "composition": lang_comp,
             "ecosystem_fingerprint": ecosystem_fingerprint,
+            "ai_topology": ai_topology,
             "constellations": c_metrics
         }
         
@@ -919,7 +1034,7 @@ class SignalProcessor:
         # 4. Final Score Mapping (0-100)
         return space_ratio * 100.0
     
-    def _calc_cog_load(self, loc: int, eq: Dict[str, int], irc: int, fc: float, mp: float) -> Tuple[float, float]:
+    def _calc_cog_load(self, loc: int, eq: Dict[str, int], irc: int, fc: float, mp: float, func_gini: float = 0.0) -> Tuple[float, float]:
         safe_loc = max(loc, 1)
         t = self.risk_tuning.get("cognitive_load", {})
         
@@ -941,7 +1056,14 @@ class SignalProcessor:
         clamped_flux = min(flux_density * t.get("flux_mult", 2.0), t.get("flux_clamp", 0.75)) 
         heavy_logic = (concurrency_density * t.get("async_mult", 3.0)) + (heat_density * t.get("heat_mult", 5.0)) + (danger_density * t.get("danger_mult", 5.0))
         
-        total_density = clamped_branch + clamped_flux + heavy_logic + (irc / safe_loc)
+        # ---> THE GOD FUNCTION PENALTY <---
+        # If complexity is heavily skewed into a single massive function (High Gini),
+        # reading the file requires jarring mental context switches. Spike the load.
+        gini_multiplier = 1.0
+        if func_gini > 0.7:
+            gini_multiplier = 1.0 + (func_gini * 0.5)
+            
+        total_density = (clamped_branch + clamped_flux + heavy_logic + (irc / safe_loc)) * gini_multiplier
         
         if safe_loc <= 2 and total_density == 0:
             return 0.0, total_density
@@ -991,10 +1113,26 @@ class SignalProcessor:
         bad_debt = eq.get("fragile_debt", eq.get("keyword_debt", 0))
         stubs = eq.get("func_empty", 0)
         
-        if good_debt == 0 and bad_debt == 0 and stubs == 0:
+        # --- NEW: UNACKNOWLEDGED DEBT (SLOP) ---
+        orphans = eq.get("design_slop_orphans", 0)
+        duplicates = eq.get("design_slop_duplicates", 0)
+        
+        if good_debt == 0 and bad_debt == 0 and stubs == 0 and orphans == 0 and duplicates == 0:
             return 0.0
         
-        stress = (good_debt * t.get("good_debt_weight", 1.0)) + (bad_debt * t.get("bad_debt_weight", 3.0)) + (stubs * t.get("stub_weight", 0.5)) + (irc * t.get("irc_weight", 0.5))
+        # Slop carries a heavier baseline penalty because it is invisible to standard linters
+        slop_stress = (orphans * 2.0) + (duplicates * 5.0)
+        
+        stress = (good_debt * t.get("good_debt_weight", 1.0)) + \
+                 (bad_debt * t.get("bad_debt_weight", 3.0)) + \
+                 (stubs * t.get("stub_weight", 0.5)) + \
+                 (irc * t.get("irc_weight", 0.5)) + \
+                 slop_stress
+                 
+        # If there is active slop AND acknowledged debt, they multiply each other's severity
+        if slop_stress > 0 and (good_debt > 0 or bad_debt > 0):
+            stress *= 1.5
+
         density = (stress / max(loc, 1)) * 100.0
         threshold = t.get("threshold", 5.0)
         
@@ -1005,10 +1143,20 @@ class SignalProcessor:
             
         return min(raw_score * mp, 100.0)
 
-    def _calc_documentation(self, loc: int, doc_loc: int, eq: Dict[str, int], fc: float, irc: int, mp: float) -> float:
+    def _calc_documentation(self, loc: int, doc_loc: int, eq: Dict[str, int], fc: float, irc: int, mp: float, satellites: List[Dict[str, Any]] = None) -> float:
         t = self.risk_tuning.get("documentation", {})
         weighted_points = (eq.get("doc", 0) * t.get("doc_weight", 1.0)) + (eq.get("ownership", 0) * t.get("ownership_weight", 0.5)) + (doc_loc * t.get("doc_loc_weight", 0.33))
-        density = (weighted_points / loc) * 100.0
+        
+        # ---> THE BLIND COMPLEXITY PENALTY <---
+        # If the file contains incredibly heavy logic blocks or bad Big-O
+        # but the specific functions lack docstrings, the baseline coverage is a lie.
+        blind_penalty = 0.0
+        if satellites:
+            for sat in satellites:
+                if (sat.get("impact", 0) > 50 or sat.get("big_o_depth", 1) >= 3) and not sat.get("docstring"):
+                    blind_penalty += 15.0 # Flat 15% risk penalty per undocumented God Function
+
+        density = (weighted_points / max(loc, 1)) * 100.0
         
         if loc <= 2 and doc_loc == 0:
             return 0
@@ -1019,9 +1167,9 @@ class SignalProcessor:
         except OverflowError:
             raw_risk = 0.0 if density > threshold else 100.0
             
-        return min(raw_risk * (2.0 - fc), 100.0)
+        return min((raw_risk * (2.0 - fc)) + blind_penalty, 100.0)
 
-    def _calc_verification(self, loc: int, rel_path: str, is_protected: bool, eq: Dict[str, int], irc: int, fc: float, mp: float, umbrella_bonus: float = 0.0) -> float:
+    def _calc_verification(self, loc: int, rel_path: str, is_protected: bool, eq: Dict[str, int], irc: int, fc: float, mp: float, umbrella_bonus: float = 0.0, popularity: int = 0) -> float:
         """
         YIN: Test assertions (test).
         YANG: Bypassed/Mocked tests (test_skip).
@@ -1053,6 +1201,12 @@ class SignalProcessor:
         if loc > 300:
             mass_penalty = min(((loc - 300) / 100) * 5.0, 40.0)
             
+        # ---> THE LOAD-BEARER PENALTY <---
+        # If this file is a foundational pillar (highly imported), a lack of tests 
+        # threatens the entire ecosystem.
+        if popularity > 5:
+            mass_penalty += min(popularity * 2.0, 30.0)
+            
         final_coverage = max(0.0, coverage - mass_penalty)
         
         # INVERT FOR RISK: 100% Coverage = 0% Risk Exposure.
@@ -1075,7 +1229,7 @@ class SignalProcessor:
             
         return min(score, 100.0)
 
-    def _calc_api_exposure(self, eq: dict, total_loc: int) -> float:
+    def _calc_api_exposure(self, eq: dict, total_loc: int, popularity: int = 0) -> float:
         """
         YIN: Publicly exposed surfaces (api).
         YANG: Internal/Private boundaries (encapsulation).
@@ -1087,19 +1241,25 @@ class SignalProcessor:
             return 0.0
             
         # THERMODYNAMIC BALANCE (Ratio): Public / (Public + Private)
-        # 20 public methods and 80 private methods = 20% exposure ratio (Excellent).
-        # 20 public methods and 0 private methods = 100% exposure ratio (Dangerous Junk Drawer).
         exposure_ratio = api_hits / max(api_hits + encapsulation, 1.0)
         
-        # LOGARITHMIC MASS CORRECTION: Prevent tiny 10-line files from maxing out the score 
-        # just because they exported one variable.
+        # ---> THE ECHO CHAMBER FIX <---
+        # If a file exposes 50 APIs but has 0 inbound network edges, it's screaming into the void.
+        # We dampen the risk. If it has massive popularity, we amplify it.
+        network_multiplier = 1.0
+        if popularity == 0:
+            network_multiplier = 0.2 # 80% reduction for orphaned APIs
+        else:
+            network_multiplier = min(1.0 + (math.log1p(popularity) / 5.0), 2.0)
+            
+        # LOGARITHMIC MASS CORRECTION
         volume_weight = math.log1p(api_hits) / math.log1p(max(total_loc, 10))
         
-        return min(exposure_ratio * volume_weight * 100.0, 100.0)
+        return min(exposure_ratio * volume_weight * network_multiplier * 100.0, 100.0)
 
-    def _calc_concurrency(self, loc: int, eq: Dict[str, int], irc: int, mp: float) -> float:
+    def _calc_concurrency(self, loc: int, eq: Dict[str, int], irc: int, mp: float, satellites: List[Dict[str, Any]] = None) -> float:
         """
-        YIN: Threads/Async execution.
+        YIN: Threads/Async execution + Thread Starvation (O(N) Bombs).
         YANG: Mutex/Locks/Semaphores (sync_locks).
         """
         tuning = self.risk_tuning.get("concurrency", {})
@@ -1108,13 +1268,28 @@ class SignalProcessor:
         raw_concurrency = float(eq.get("concurrency", 0))
         sync_locks = float(eq.get("sync_locks", 0))
         
+        # --- THE THREAD STARVATION BOMB ---
+        # If an individual function has concurrency hits AND terrible Big-O, it spikes the risk.
+        starvation_multiplier = 1.0
+        if satellites:
+            for sat in satellites:
+                if sat.get("hit_vector", {}).get("concurrency", 0) > 0:
+                    big_o = sat.get("big_o_depth", 1)
+                    is_rec = sat.get("is_recursive", False)
+                    if is_rec:
+                        starvation_multiplier = max(starvation_multiplier, 5.0)
+                    elif big_o >= 3:
+                        starvation_multiplier = max(starvation_multiplier, 4.0)
+                    elif big_o == 2:
+                        starvation_multiplier = max(starvation_multiplier, 2.0)
+        
         # THERMODYNAMIC BALANCE: 1 lock mitigates 1.5 thread spawns.
         net_concurrency = max(0.0, raw_concurrency - (sync_locks * 1.5))
         
         if net_concurrency == 0:
             return 0.0
             
-        density = net_concurrency / max(loc + loc_padding, 1)
+        density = (net_concurrency * starvation_multiplier) / max(loc + loc_padding, 1)
         
         threshold = tuning.get("threshold_base", 4.0) # Matches your config!
         slope = tuning.get("sigmoid_slope", 0.4)
@@ -1255,7 +1430,7 @@ class SignalProcessor:
 
         # ---> THE AGENTIC SHIELD <---
         # AI/Robotics natively use dynamic execution. Dampen the payload if ML math is present.
-        agent_dampener = 1.0 + (eq.get("scientific", 0) * 2.0)
+        agent_dampener = 1.0 + (eq.get("scientific", 0) * 2.0) + (eq.get("llm_orchestrator", 0) * 3.0) + (eq.get("llm_local_compute", 0) * 2.0)
         hardware_dampener = 1.0 + (eq.get("hardware_bridge", 0) * 3.0)
         payload = payload / agent_dampener
         payload = payload / hardware_dampener
@@ -1310,10 +1485,15 @@ class SignalProcessor:
         input_vectors = eq.get("sec_io", 0) + (eq.get("ssr_boundaries", 0) * 2.0)
         execution_vectors = (eq.get("sec_danger", 0) * 4.0) + (eq.get("sec_safety_neg", 0) * 2.0)
         
-        # ---> THE AGENTIC SHIELD <---
-        # AI agents feed external inputs into execution blocks natively.
-        agent_dampener = 1.0 + (eq.get("scientific", 0) * 2.0)
-        execution_vectors = execution_vectors / agent_dampener
+        # ---> THE AGENTIC RCE SPIKE (Prompt Injection to Exec) <---
+        if eq.get("sec_danger", 0) > 0 and (eq.get("llm_orchestrator", 0) > 0 or eq.get("ai_tools", 0) > 0):
+            # If an AI can trigger eval/exec/OS commands, it's a massive vulnerability
+            execution_vectors *= 10.0
+            input_vectors += 5.0 # Treat the LLM itself as a hostile input vector
+        else:
+            # ---> THE AGENTIC SHIELD (Standard safe agents) <---
+            agent_dampener = 1.0 + (eq.get("scientific", 0) * 2.0) + (eq.get("llm_local_compute", 0) * 2.0)
+            execution_vectors = execution_vectors / agent_dampener
         
         # Hardware bridges natively take external input (usb/serial) and execute it.
         hardware_dampener = 1.0 + (eq.get("hardware_bridge", 0) * 3.0)
@@ -1416,6 +1596,10 @@ class SignalProcessor:
             return 0.0
 
         careless_amplifiers = 1.0 + eq.get("print_hits", 0) + eq.get("graveyard", 0) + eq.get("globals", 0)
+        
+        # LLM API keys are massive targets. If they are calling APIs without globals, spike the risk.
+        if eq.get("llm_api", 0) > 0 and eq.get("globals", 0) == 0:
+            careless_amplifiers *= 3.0
 
         if getattr(self, 'is_paranoid', False) == False and eq.get("sec_heat_triggers", 0) == 0:
             careless_amplifiers = min(careless_amplifiers, 2.0)
@@ -1483,11 +1667,40 @@ class SignalProcessor:
 
         sorted_by_cumulative = sorted(active_stars, key=get_cumulative_risk, reverse=True)
 
+        # --- NEW: CALCULATE N-DIMENSIONAL SYSTEMIC BOTTLENECKS ---
+        flux_idx = self.RISK_SCHEMA.index("state_flux") if "state_flux" in self.RISK_SCHEMA else -1
+        err_idx = self.RISK_SCHEMA.index("safety_score") if "safety_score" in self.RISK_SCHEMA else -1
+        doc_idx = self.RISK_SCHEMA.index("documentation") if "documentation" in self.RISK_SCHEMA else -1
+        
+        bottlenecks = {"contagious_mutation": [], "house_of_cards": [], "blind_bottleneck": []}
+        
+        for s in active_stars:
+            net = s.get("telemetry", {}).get("network_metrics", {})
+            rv = s.get("risk_vector", [])
+            p = s.get("path", "")
+            
+            btw = net.get("betweenness_score", 0.0)
+            close = net.get("closeness_score", 0.0)
+            pr = net.get("normalized_blast_radius", 0.0)
+            
+            flux_risk = rv[flux_idx] if flux_idx >= 0 and len(rv) > flux_idx else 0.0
+            err_risk = rv[err_idx] if err_idx >= 0 and len(rv) > err_idx else 0.0
+            doc_risk = rv[doc_idx] if doc_idx >= 0 and len(rv) > doc_idx else 0.0
+            
+            bottlenecks["contagious_mutation"].append({"path": p, "score": round(btw * flux_risk, 3), "btw": round(btw, 4), "flux": flux_risk})
+            bottlenecks["house_of_cards"].append({"path": p, "score": round(close * err_risk, 3), "close": round(close, 4), "err": err_risk})
+            bottlenecks["blind_bottleneck"].append({"path": p, "score": round(pr * doc_risk, 3), "pr": round(pr, 4), "doc": doc_risk})
+            
+        bottlenecks["contagious_mutation"].sort(key=lambda x: x["score"], reverse=True)
+        bottlenecks["house_of_cards"].sort(key=lambda x: x["score"], reverse=True)
+        bottlenecks["blind_bottleneck"].sort(key=lambda x: x["score"], reverse=True)
+
         # 4. Generate rankings using ONLY the masked `active_stars` list
         report = {
             "exposures": {},
             "file_impact": self._rank_list(active_stars, key_path=["file_impact"]),
             "function_impact": self._generate_function_rankings(active_stars),
+            "systemic_bottlenecks": {k: v[:5] for k, v in bottlenecks.items()},
             # Inject the new Cumulative Risk ranking directly into the root of the report
             "cumulative_risk": {
                 "highest": [{"name": s.get("name", "unknown"), "path": s.get("path", ""), "value": round(get_cumulative_risk(s), 2)} for s in sorted_by_cumulative[:10]],

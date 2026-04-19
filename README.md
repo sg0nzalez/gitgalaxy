@@ -25,9 +25,12 @@ Every assumption our system makes has been abstracted into over 300 tunable vari
 
 **Core Technology**
 * Bypasses LLMs and rigid ASTs
-* Doesn't care if code compiles (AST-free)
-* Maps code by keyword regex profiles
-* Eliminates LLM architectural hallucinations and context window limits
+* Doesn't require to code compiles (AST-free)
+* Produces full function-to-function call chains
+* Deterministically maps code by 60+ keyword regex profiles (Structural markers, I/O intents, state mutations)
+* Regex keyword profiles allow us to classify functions, files, classes, folders and repos 
+* Eliminates LLM architectural hallucinations
+* Eliminates LLM context window limits
 * Scans 50+ languages, 250+ extensions, fully folder-aware
 
 **Extreme Velocity & Scale**
@@ -37,6 +40,9 @@ Every assumption our system makes has been abstracted into over 300 tunable vari
 * 100% daily system coverage
 
 **Intelligence & Tracking**
+* Builds deterministic, relational 3D knowledge graphs
+* Extracts 18 exact Risk Exposures (Cognitive Load, Logic Bombs, Obscured Payloads).
+* Assess functions and files for O(N) variations to highlight bottlenecks
 * Builds longitudinal knowledge graphs
 * Tracks logic at the function level
 * Monitors risk exposures and temporal code evolution over time

@@ -157,6 +157,18 @@ class SecurityLens:
                 r'\b(?:malloc|calloc|realloc|free|memcpy|memset|memmove|strcpy|strcat|sprintf)\b\s*\(|'
                 r'\b(?:asm|__asm__|__asm)\b\s*[\(\{]',
                 re.I
+            ),
+            
+            # 12. AGENTIC RCE & PROMPT INJECTION BOUNDARIES
+            "llm_hooks": re.compile(
+                r'\b(?:openai|anthropic|cohere|litellm|langchain|llama_index|bedrock|chat\.completions\.create|invoke|generate)\b',
+                re.I
+            ),
+            
+            # 13. RAW DATABASE SINKS
+            "db_hooks": re.compile(
+                r'\b(?:execute|query|raw|cursor|execute_sql|executeBatch|query_db)\b\s*\(',
+                re.I
             )
         }
 
@@ -234,68 +246,133 @@ class SecurityLens:
         counts["entropy"] = entropy_hits
         snippets["entropy"] = entropy_snippets
                         
-        # ---> 4. LIGHTWEIGHT TAINT ANALYSIS (Universal LHS Slicer) <---
+        # ---> 4. N-DIMENSIONAL TAINT ANALYSIS (LHS Slicer) <---
         taint_hits = 0
+        prompt_injection_hits = 0
+        agentic_rce_hits = 0
         taint_snippets = []
         
-        # O(1) Short-Circuit: Taint is impossible if there's no I/O or no execution
-        if counts.get("io", 0) > 0 and counts.get("danger", 0) > 0 and not is_auto_gen:
+        # O(1) Short-Circuit: Taint is impossible if there's no sources (I/O, LLM) or sinks (Danger, DB, LLM)
+        has_global_io = counts.get("io", 0) > 0
+        has_global_danger = counts.get("danger", 0) > 0
+        has_global_llm = counts.get("llm_hooks", 0) > 0
+        has_global_db = counts.get("db_hooks", 0) > 0
+
+        if (has_global_io or has_global_llm) and (has_global_danger or has_global_llm or has_global_db) and not is_auto_gen:
             tainted_vars = set()
-            # Common language keywords to ignore during variable extraction
-            common_keywords = {"const", "let", "var", "def", "String", "int", "val", "final", "char", "bool", "auto", "global", "local"}
+            llm_tainted_vars = set()
+            common_keywords = {"const", "let", "var", "def", "String", "int", "val", "final", "char", "bool", "auto", "global", "local", "new", "await"}
             
             for line in safe_lines:
                 has_io = bool(self.THREAT_SIGNATURES["io"].search(line))
                 has_danger = bool(self.THREAT_SIGNATURES["danger"].search(line))
+                has_llm = bool(self.THREAT_SIGNATURES["llm_hooks"].search(line))
+                has_db = bool(self.THREAT_SIGNATURES["db_hooks"].search(line))
                 
-                # Scenario A: Same-Line Detonation (e.g. eval($_POST['data']))
-                if has_io and has_danger:
+                # Scenario A: Same-Line Detonation
+                if has_io and (has_danger or has_db):
                     taint_hits += 1
-                    if len(taint_snippets) < 3: taint_snippets.append(line[:60] + "...")
-                    continue
+                    if len(taint_snippets) < 3: taint_snippets.append(f"[I/O -> Exec/DB]: {line[:60]}...")
+                if has_io and has_llm:
+                    prompt_injection_hits += 1
+                    if len(taint_snippets) < 3: taint_snippets.append(f"[I/O -> LLM]: {line[:60]}...")
+                if has_llm and has_danger:
+                    agentic_rce_hits += 1
+                    if len(taint_snippets) < 3: taint_snippets.append(f"[LLM -> RCE]: {line[:60]}...")
                     
                 # Scenario B: The LHS Slicer (Capture Input)
-                if has_io:
+                if has_io or has_llm:
                     assign_op = ":=" if ":=" in line else "=" if "=" in line else None
                     if assign_op:
                         lhs = line.split(assign_op)[0]
-                        # Extract potential variable names (handles destructuring naturally)
                         possible_vars = re.findall(r'\b[a-zA-Z_]\w*\b', lhs)
                         for v in possible_vars:
                             if v not in common_keywords:
-                                tainted_vars.add(v)
+                                if has_io: tainted_vars.add(v)
+                                if has_llm: llm_tainted_vars.add(v)
                                 
                 # Scenario C: The Downward Scan (Check Execution)
-                if has_danger and tainted_vars:
-                    # Did a tainted variable touch this danger line?
+                if (has_danger or has_db or has_llm) and (tainted_vars or llm_tainted_vars):
                     for t_var in tainted_vars:
-                        # Use word boundaries so 'id' doesn't flag 'hidden'
                         if re.search(rf'\b{re.escape(t_var)}\b', line):
-                            taint_hits += 1
-                            if len(taint_snippets) < 3: taint_snippets.append(line[:60] + "...")
-                            break # Count the line once and move on
+                            if has_danger or has_db:
+                                taint_hits += 1
+                                if len(taint_snippets) < 3: taint_snippets.append(f"[Taint -> Exec/DB]: {line[:60]}...")
+                            if has_llm:
+                                prompt_injection_hits += 1
+                                if len(taint_snippets) < 3: taint_snippets.append(f"[Taint -> LLM]: {line[:60]}...")
+                                
+                    for l_var in llm_tainted_vars:
+                        if re.search(rf'\b{re.escape(l_var)}\b', line) and has_danger:
+                            agentic_rce_hits += 1
+                            if len(taint_snippets) < 3: taint_snippets.append(f"[LLM State -> RCE]: {line[:60]}...")
 
         counts["tainted_injection"] = taint_hits
+        counts["prompt_injection"] = prompt_injection_hits
+        counts["agentic_rce"] = agentic_rce_hits
         snippets["tainted_injection"] = taint_snippets
         
         # Return a nested dictionary
         return {"counts": counts, "snippets": snippets}
 
-    def evaluate_risk(self, aggregated_hits, total_loc):
+    def evaluate_risk(self, aggregated_hits, total_loc, network_metrics=None):
         """
-        Takes the raw physics hits, calculates the density, and checks 
-        if it breaches the dynamically injected policy thresholds.
+        Evaluates risk with N-Dimensional Network context awareness.
+        Highly central files (God Nodes) have drastically lower tolerance for threats.
         """
-        # Prevent division by zero
         loc_safe = total_loc if total_loc > 0 else 1
-        
         exposures = {}
+        
+        # --- 1. NETWORK GRAVITY MODIFIER ---
+        # A file with a massive blast radius cannot be allowed to have even minor threat densities.
+        network_multiplier = 1.0
+        if network_metrics:
+            pr = network_metrics.get("normalized_blast_radius", 0.0)
+            btw = network_metrics.get("betweenness_score", 0.0)
+            # If PageRank > 1.0 or Betweenness > 0.05, we multiply the perceived threat density
+            if pr > 1.0: network_multiplier += (pr * 0.5)
+            if btw > 0.05: network_multiplier += 0.5
         
         # 1. Hidden Malware Risk
         malware_hits = aggregated_hits.get("heat_triggers", 0) + aggregated_hits.get("bitwise_hits", 0) + aggregated_hits.get("shadow_imports", 0) + aggregated_hits.get("homoglyphs", 0) + aggregated_hits.get("entropy", 0)
-        malware_density = malware_hits / loc_safe
+        malware_density = (malware_hits / loc_safe) * network_multiplier
         if malware_density >= self.policy["hidden_malware_threshold"]:
             exposures["Hidden Malware Risk"] = malware_density
+
+        # 2. Logic Bomb / Sabotage Risk
+        sabotage_hits = aggregated_hits.get("graveyard", 0) + (aggregated_hits.get("danger", 0) * 1.5)
+        sabotage_density = (sabotage_hits / loc_safe) * network_multiplier
+        if sabotage_density >= self.policy["logic_bomb_threshold"]:
+            exposures["Logic Bomb Risk"] = sabotage_density
+
+        # 3. Data Injection Risk
+        injection_hits = aggregated_hits.get("io", 0) + aggregated_hits.get("danger", 0) + aggregated_hits.get("flux", 0)
+        injection_density = (injection_hits / loc_safe) * network_multiplier
+        if injection_density >= self.policy["injection_surface_threshold"]:
+            exposures["Data Injection Risk"] = injection_density
+
+        # 4. Memory Corruption Risk
+        memory_hits = aggregated_hits.get("memory_corruption", 0)
+        memory_density = (memory_hits / loc_safe) * network_multiplier
+        if memory_density >= self.policy["memory_corruption_threshold"]:
+            exposures["Memory Corruption Risk"] = memory_density
+
+        # 5. Secrets Risk
+        secrets_hits = aggregated_hits.get("private_info", 0)
+        secrets_density = (secrets_hits / loc_safe) * network_multiplier
+        if secrets_density >= self.policy["secrets_risk_threshold"]:
+            exposures["Secrets Leak Risk"] = secrets_density
+            
+        # 6. Advanced Agentic Threats
+        prompt_inj = aggregated_hits.get("prompt_injection", 0)
+        agentic_rce = aggregated_hits.get("agentic_rce", 0)
+        if agentic_rce > 0:
+            # Autonomous AI executing code is an instant critical risk regardless of density
+            exposures["Agentic RCE Risk (Critical)"] = 100.0 
+        elif prompt_inj > 0:
+            exposures["Prompt Injection Risk"] = min((prompt_inj / loc_safe) * network_multiplier * 100.0, 100.0)
+
+        return exposures
 
         # 2. Logic Bomb / Sabotage Risk
         sabotage_hits = aggregated_hits.get("graveyard", 0) + (aggregated_hits.get("danger", 0) * 1.5)

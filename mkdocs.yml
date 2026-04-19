@@ -1,12 +1,11 @@
 site_name: GitGalaxy
-site_description: The structural DNA of massive software repositories.
+site_description: The deterministic structural architecture of massive software repositories.
 site_url: https://squid-protocol.github.io/gitgalaxy/
 site_dir: docs_build
 
 repo_name: squid-protocol/gitgalaxy
 repo_url: https://github.com/squid-protocol/gitgalaxy
 
-### ADDED: Global Copyright Footer
 copyright: Copyright &copy; 2026 Joseph Michael Esquibel
 
 theme:
@@ -16,7 +15,6 @@ theme:
     primary: deep purple
     accent: cyan
 
-### ADDED: Social links for the bottom footer
 extra:
   social:
     - icon: fontawesome/solid/globe
@@ -41,62 +39,105 @@ extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js
 
 nav:
-  ### ADDED: External link back to the main visualizer app (Shows at the top of the sidebar)
   - '🌌 Open GitGalaxy Visualizer': https://gitgalaxy.io/
   - Home: index.md
   - '1. Foundation & Architecture': 
-      - 'Project Overview': 1_Foundation__Architecture.md
-  - '2. Physical Structure':
-      - 'Code Complexity': 21_How_we_represent_complexity_as_physical_structure.md
-      - 'Stars Size': 21A_Stars_Size.md
-      - 'Stars Pulse Rate': 21B_Stars_Pulse_Rate.md
-      - 'Stars Shape': 21C_Stars_Shape.md
-      - 'Satellite Unit': 21D_Satellite_Unit.md
-      - 'Satellite Orbital Distance': 21E_Satellite_Orbital_Distance.md
-      - 'Number of satellites': 21F_Number_of_satellites_in_a_unit.md
-      - 'Relative Positioning': 21G_Satellites_Relative_Positioning_in_a_unit.md
-      - 'Node Size (Argument Count)': 21H_Node_Size_Metric_Argument_Count.md
-      - 'Planetary Rings': 21I_Planetary_Rings.md
-      - 'Sequence Affinity': 21J_Relative_Positioning_Metric_Sequence__Affinity.md
-  - '3. Color Labeling (Risk)':
-      - 'Methodology': 22A_Overview_of_methodology.md
-      - 'Sub-Equations': 22B_Sub-Equations.md
-      - 'Transforming Regex Counts': 22C_Transforming_Noisy_Regex_Counts_Into_Something_Meaningful.md
-      - 'Ownership Entropy': 22D_Ownership_Mode_Shannon_Entropy.md
-      - 'Cognitive Load Exposure': 22E_Cognitive_Load_Exposure.md
-      - 'Deep Churn': 22F_Churn.md
-      - 'Structural Fortification': 22G_Safety_Mode_Metric_Structural_Fortification.md
-      - 'Technical Debt Exposure': 22I_Technical_Debt_Exposure.md
-      - 'Documentation Risk': 22J_Documentation_Risk_Exposure_Metric_Sigmoid_Debt.md
-      - 'File Stability (Heat)': 22K_File_Stability_Commit_Heat.md
-      - 'Test Coverage': 22L_Test_Coverage_Metric_Verification_Density.md
-      - 'Civil War (Tabs vs Spaces)': 22M_The_Civil_War_Algorithm_Tabs_vs_Spaces.md
-      - 'Graveyard Detector': 22N_The_Graveyard_Detector_Metric_Architectural_Transparency.md
-      - 'API Exposure': 22O_API_Exposure_Metric_The_Event_Horizon.md
-      - 'Concurrency Exposure': 22P_Concurrency_Exposure.md
-      - 'State Flux Exposure': 22Q_State_Flux_Exposure.md
-
-  - '4. Data Pipeline':
-      - 'Pipeline Overview': 23_Data_Analysis_Pipeline.md
-      - 'Optical Orchestration': 230_The_GalaxyScope_Chassis_--_Optical_Orchestration.md
-      - 'Aperture Filter': 231_The_Aperture_Filter_Adjusting_the_Telescopes_Filter_and_Focus.md
-      - 'GuideStar Protocol': 232_The_GuideStar_Protocol_Contextual_Intelligence.md
-      - 'Language Lens': 233_Focusing_the_Language_Lens.md
-      - 'Security Lens': 233_The_Security_Lens_--_Threat_Detection_Physics.md
-      - 'The Prism': 234_The_Prism_--_Splitting_the_comments_from_the_code.md
-      - 'The Detector': 235_The_Detector_--_The_Logic_Splicer__Cartographer.md
-      - 'Signal Processing': 236_Signal_Processing_Equations_and_2nd_Pass_scanning_Calculations.md
-      - 'Phase 0 Orchestrator': 237_Phase_0_Mission_Control_The_GalaxyScope_Orchestrator.md
-      - 'Spectral Audit': 237_The_Spectral_Audit_Quality_Control.md
-      - 'Audit Recorder': 238_The_Audit_Recorder.md
-      - 'GPU Recorder': 239_The_GPU_Recorder_Hypercompressed_Data_Storage.md
-      - 'LLM Recorder': 239_The_LLM_Recorder_AI_Translation_Layer.md
-  - '5. Validation & Outlook':
-      - 'Claim 1 (Search Strategies)': 240_Claim_1_--_Optimum_Search_Strategies_Change_with_Scale.md
-      - 'Claim 2 (Explicitness)': 241_Claim_2_--_Coding_Languages_Evolve_Towards_Explicitness.md
-      - 'Claim 3 (Taxonomy Map)': 242_--_Claim_3_--_Intent_Scales_Across_Syntax_The_Taxonomical_Equivalence_Map.md
-      - 'Claim 4 (Comparing Languages)': Ridgelines_Plots.md
-      - 'Claim 5 (File Archetypes)': File_Archetypes.md
-      - 'Claim 6 (Keyword Fingerprinting)': Keyword_Fingerprinting.md
-      - 'Claim 7 (Comparing DOOM Ports)': DOOM_Comparisons.md
-      - 'Future Outlooks': 7_Impacts__Future_Outlooks.md
+      - 'Project Overview': 01-project-overview.md
+      - 'GalaxyScope CLI Reference': 01-02-galaxyscope-cli-reference.md
+  - '2. Data Pipeline':
+      - 'Pipeline Overview': 02-01-pipeline-overview.md
+      - 'Optical Orchestration': 02-02-optical-orchestration.md
+      - 'Aperture Filter': 02-03-aperture-filter.md
+      - 'GuideStar Protocol': 02-04-guidestar-protocol.md
+      - 'Language Lens': 02-05-language-lens.md
+      - 'Security Lens': 02-06-security-lens.md
+      - 'The Prism': 02-07-the-prism.md
+      - 'The Detector': 02-08-the-detector.md
+      - 'Signal Processing': 02-09-signal-processing.md
+      - 'Spectral Audit': 02-11-spectral-audit.md
+      - 'Audit Recorder': 02-12-audit-recorder.md
+      - 'GPU Recorder': 02-13-gpu-recorder.md
+      - 'LLM Recorder': 02-14-llm-recorder.md
+      - 'The Chronometer': 02-15-chronometer.md
+      - 'Network Risk Sensor': 02-16-network-risk-sensor.md
+      - 'AI AppSec Sensor': 02-17-ai-appsec-sensor.md
+      - 'Dev Agent Firewall': 02-18-dev-agent-firewall.md
+      - 'Neural Auditor': 02-19-neural-auditor.md
+      - 'Security Auditor (XGBoost)': 02-20-security-auditor.md
+      - 'SQLite Record Keeper': 02-21-record-keeper.md
+      - 'State Rehydrator': 02-22-state-rehydrator.md
+  - '3. Validation & Outlook':
+      - 'Claim 1 (Search Strategies)': 03-01-claim-1-search-strategies.md
+      - 'Claim 2 (Explicitness)': 03-02-claim-2-explicitness.md
+      - 'Claim 3 (Taxonomy Map)': 03-03-claim-3-taxonomy-map.md
+      - 'Claim 4 (Comparing Languages)': 03-04-claim-4-comparing-languages.md
+      - 'Claim 5 (File Archetypes)': 03-05-claim-5-file-archetypes.md
+      - 'Claim 6 (Keyword Fingerprinting)': 03-06-claim-6-keyword-fingerprinting.md
+      - 'Claim 7 (Comparing DOOM Ports)': 03-07-claim-7-doom-comparisons.md
+      - 'Future Outlooks': 03-08-future-outlooks.md
+  - '4. Security Tools & Spokes':
+      - 'Full API Network Map': 04-01-full-api-network-map.md
+      - 'SBOM Generator': 04-02-sbom-generator.md
+      - 'Supply Chain Firewall': 04-03-supply-chain-firewall.md
+      - 'Vault Sentinel': 04-04-vault-sentinel.md
+      - 'Binary Anomaly Detector': 04-05-binary-anomaly-detector.md
+      - 'PII Leak Hunter': 04-06-pii-leak-hunter.md
+      - 'Terabyte Log Scanner': 04-07-terabyte-log-scanner.md
+  - '5. Legacy Modernization':
+      - 'Legacy Refraction Controller': 05-01-legacy-refraction-controller.md
+      - 'Spring Boot Scaffolding': 05-02-spring-boot-scaffolding.md
+      - 'Entity & Memory Mapping': 05-03-entity-and-memory-mapping.md
+      - 'API & Service Contracts': 05-04-api-and-service-contracts.md
+      - 'Autonomous Agent Tickets': 05-05-autonomous-agent-tickets.md
+      - 'Batch Test Harness': 05-06-batch-test-harness.md
+      - 'Mainframe Compiler Forge': 05-07-mainframe-compiler-forge.md
+      - 'DAG Architect': 05-08-dag-architect.md
+      - 'ETL Unpacker': 05-09-etl-unpacker.md
+      - 'Graveyard Reaper': 05-10-graveyard-reaper.md
+      - 'Zero-Trust Meta Auditor': 05-11-jcl-meta-auditor.md
+      - 'Zero-Trust JCL Forge': 05-12-zero-trust-jcl-forge.md
+      - 'Lexical Patcher': 05-13-lexical-patcher.md
+      - 'Microservice Slicer': 05-14-microservice-slicer.md
+      - 'Cloud Schema Forge': 05-15-cloud-schema-forge.md
+      - 'Anomaly Agent Task Forge': 05-16-anomaly-agent-task-forge.md
+      - 'System Limits Reporter': 05-17-system-limits-reporter.md
+  - '6. Configurations & Standards':
+      - 'GitGalaxy Config': 06-01-gitgalaxy-config.md
+      - 'Language Standards': 06-02-language-standards.md
+      - 'Analysis Lens (Math Constants)': 06-03-analysis-lens.md
+  - '7. Physical Structure (3D Galaxy)':
+      - 'Code Complexity': 07-01-code-complexity.md
+      - 'Stars Size': 07-02-stars-size.md
+      - 'Stars Pulse Rate': 07-03-stars-pulse-rate.md
+      - 'Stars Shape': 07-04-stars-shape.md
+      - 'Satellite Unit': 07-05-satellite-unit.md
+      - 'Satellite Orbital Distance': 07-06-satellite-orbital-distance.md
+      - 'Number of satellites': 07-07-number-of-satellites.md
+      - 'Relative Positioning': 07-08-relative-positioning.md
+      - 'Node Size (Argument Count)': 07-09-node-size.md
+      - 'Planetary Rings': 07-10-planetary-rings.md
+      - 'Sequence Affinity': 07-11-sequence-affinity.md
+      - 'Misc Equations': 07-12-misc-equations.md
+  - '8. Risk Exposures & Color Labeling':
+      - 'Methodology': 08-01-methodology.md
+      - 'Sub-Equations': 08-02-sub-equations.md
+      - 'Transforming Regex Counts': 08-03-transforming-regex-counts.md
+      - 'Ownership Entropy': 08-04-ownership-entropy.md
+      - 'Cognitive Load Exposure': 08-05-cognitive-load.md
+      - 'Deep Churn': 08-06-deep-churn.md
+      - 'Structural Fortification': 08-07-structural-fortification.md
+      - 'Technical Debt Exposure': 08-08-technical-debt.md
+      - 'Documentation Risk': 08-09-documentation-risk.md
+      - 'File Stability (Heat)': 08-10-file-stability.md
+      - 'Test Coverage': 08-11-test-coverage.md
+      - 'Civil War (Tabs vs Spaces)': 08-12-civil-war.md
+      - 'Graveyard Detector': 08-13-graveyard-detector.md
+      - 'API Exposure': 08-14-api-exposure.md
+      - 'Concurrency Exposure': 08-15-concurrency-exposure.md
+      - 'State Flux Exposure': 08-16-state-flux-exposure.md
+      - 'Specification Alignment': 08-18-specification-alignment.md
+      - 'Obscured Payload Exposure': 08-19-obscured-payload-exposure.md
+      - 'Logic Bomb Exposure': 08-20-logic-bomb-exposure.md
+      - 'Injection Surface Exposure': 08-21-injection-surface-exposure.md
+      - 'Memory Corruption Exposure': 08-22-memory-corruption-exposure.md
+      - 'Hardcoded Secrets Exposure': 08-23-hardcoded-secrets-exposure.md

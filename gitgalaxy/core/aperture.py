@@ -155,6 +155,14 @@ class ApertureFilter:
             # THE FIX: Return False so it drops into Dark Matter for the Supernova Injection
             return False, size_bytes, reason
 
+        # --- TIER 0.2: THE NEURAL AUDITOR SHUNT (Model Weights) ---
+        AI_MODEL_EXTS = {'.safetensors', '.gguf', '.onnx', '.pt', '.pth', '.bin', '.tflite', '.pb', '.h5'}
+        if ext.lower() in AI_MODEL_EXTS:
+            reason = f"AI MODEL WEIGHTS (Bypassing Standard Logic: '{ext}')"
+            self.logger.info(f"🧠 NEURAL AUDITOR SHUNT: Routing {path_obj.name} away from regex engines.")
+            # Return False to drop into Dark Matter, bypassing the memory-crashing I/O read
+            return False, size_bytes, reason
+
         # --- TIER 0.5: THE ABSOLUTE EXTENSION SHIELD ---
         if ext.lower() in self.black_hole_exts and ext.lower() not in self.whitelisted_extensions:
             reason = f"Blocked (Explicitly Blacklisted Extension: '{ext}')"

@@ -159,7 +159,12 @@ class GuideStarLens:
 
     def _survey_manifests(self):
         """Identifies authoritative project anchors and parses their internal logic."""
-        for manifest, lang in self.MANIFEST_MAP.items():
+        # Dynamically inject requirements.txt if it wasn't in the global config
+        active_manifests = dict(self.MANIFEST_MAP)
+        if 'requirements.txt' not in active_manifests:
+            active_manifests['requirements.txt'] = 'python'
+
+        for manifest, lang in active_manifests.items():
             path = self.root / manifest
             if path.exists():
                 # 1. Prioritize the manifest itself
@@ -171,14 +176,34 @@ class GuideStarLens:
     def _deep_inspect_manifest(self, path: Path, filename: str, lang: str):
         """Dispatches files to specific parsers based on their format."""
         try:
+            # 1. Scan for AI/LLM footprints in the raw text first
+            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                self._detect_ai_ecosystem(f.read(), filename)
+
+            # 2. Route to specific parsers for structural roadmaps
             if filename == 'package.json':
                 self._parse_package_json(path)
             elif filename == 'Makefile' or filename.endswith('.mk'):
                 self._parse_makefile(path)
-            elif filename in ('pyproject.toml', 'Cargo.toml'):
+            elif filename in ('pyproject.toml', 'Cargo.toml', 'requirements.txt'):
                 self._parse_toml_style_manifest(path, lang)
         except Exception as e:
             self.logger.debug(f"GuideStar: Deep inspection failed for '{filename}': {e}")
+
+    def _detect_ai_ecosystem(self, content: str, filename: str):
+        """Scans manifest files for explicit AI/LLM orchestrators or tensor frameworks."""
+        ai_keywords = {
+            'langchain', 'llama_index', 'openai', 'anthropic', 
+            'torch', 'tensorflow', 'transformers', 'huggingface_hub', 
+            'vllm', 'ollama', 'chromadb', 'pinecone'
+        }
+        
+        found = [kw for kw in ai_keywords if kw in content.lower()]
+        if found:
+            self.logger.info(f"🧠 AI ECOSYSTEM DETECTED: Found {found} in {filename}. Flagging repository archetype.")
+            # We inject a synthetic prior so the downstream pipeline knows this is an AI repo
+            self._inject_prior('__galaxy_brain__.ai', 'json', 1.0, f"AI Ecosystem Lock ({found[0]})")
+
 
     def _parse_package_json(self, path: Path):
         """Extracts 'main', 'bin', and 'scripts' from Node/JS manifests."""

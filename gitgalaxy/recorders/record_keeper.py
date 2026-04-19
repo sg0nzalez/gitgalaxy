@@ -73,9 +73,35 @@ class RecordKeeper:
                 z_score REAL,
                 avg_encapsulation_ratio REAL,
                 avg_imports_per_file REAL,
+                network_modularity REAL,
+                network_assortativity REAL,
+                network_cyclic_density REAL,
+                network_avg_path_length REAL,
+                network_articulation_points INTEGER,
                 {", ".join(hit_cols)},
                 file_composition TEXT,
                 UNIQUE(repo_name, commit_hash)
+            )
+        ''')
+
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS folder_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                repo_name TEXT,
+                commit_hash TEXT,
+                folder_path TEXT,
+                file_count INTEGER,
+                total_loc INTEGER,
+                total_coding_loc INTEGER,
+                total_functions INTEGER,
+                total_classes INTEGER,
+                total_mass REAL,
+                avg_cognitive_load REAL,
+                avg_tech_debt REAL,
+                max_cognitive_load REAL,
+                max_tech_debt REAL,
+                avg_churn_freq REAL,
+                FOREIGN KEY(repo_name, commit_hash) REFERENCES repo_data(repo_name, commit_hash) ON DELETE CASCADE
             )
         ''')
 
@@ -87,6 +113,7 @@ class RecordKeeper:
                 commit_hash TEXT,
                 file_name TEXT,
                 file_path TEXT,
+                parent_entity TEXT,
                 language TEXT,
                 constellation TEXT,
                 total_loc INTEGER,
@@ -98,10 +125,12 @@ class RecordKeeper:
                 raw_churn_freq REAL,
                 popularity INTEGER,
                 import_count INTEGER,
-                total_downstream INTEGER, 
-                total_upstream INTEGER,   
-                downstream_ratio REAL,   
-                upstream_ratio REAL,     
+                pagerank_score REAL,
+                normalized_blast_radius REAL,
+                betweenness_score REAL,
+                closeness_score REAL,
+                producer_ratio REAL,
+                ecosystem_role TEXT,
                 control_flow_ratio REAL,
                 function_count INTEGER,
                 class_count INTEGER,
@@ -129,8 +158,30 @@ class RecordKeeper:
                 has_credentials INTEGER,
                 binary_anomaly INTEGER,
                 glassworm_flag INTEGER,
+                token_mass INTEGER DEFAULT 0,
+                financial_read_cost REAL DEFAULT 0.0,
+                agentic_black_hole INTEGER DEFAULT 0,
+                requires_hitl INTEGER DEFAULT 0,
+                appsec_rce_funnel BOOLEAN DEFAULT 0,
+                appsec_god_mode BOOLEAN DEFAULT 0,
+                appsec_exfiltration BOOLEAN DEFAULT 0,
+                hallucination_zone BOOLEAN DEFAULT 0,
+                silent_mutation_risk BOOLEAN DEFAULT 0,
                 {", ".join(risk_cols)},
                 {", ".join(hit_cols)}
+            )
+        ''')
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS class_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_id INTEGER,
+                class_name TEXT,
+                inheritance_parents TEXT,
+                method_count INTEGER,
+                state_entanglement REAL,
+                lcom_score REAL,
+                FOREIGN KEY(file_id) REFERENCES file_data(id) ON DELETE CASCADE
             )
         ''')
 
@@ -138,6 +189,7 @@ class RecordKeeper:
             CREATE TABLE IF NOT EXISTS function_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 file_id INTEGER,
+                parent_class_id INTEGER,
                 func_name TEXT,
                 complexity INTEGER,
                 loc INTEGER,
@@ -146,6 +198,12 @@ class RecordKeeper:
                 keyword_density REAL,
                 func_archetype TEXT DEFAULT 'Unclassified',
                 func_z_score REAL DEFAULT 0.0,
+                big_o_depth INTEGER,
+                is_recursive INTEGER,
+                db_complexity INTEGER,
+                docstring TEXT,
+                calls_out_to TEXT,
+                token_mass INTEGER DEFAULT 0,
                 {", ".join(hit_cols)},
                 FOREIGN KEY(file_id) REFERENCES file_data(id) ON DELETE CASCADE
             )
@@ -165,6 +223,7 @@ class RecordKeeper:
 
         # ---> THE IDEMPOTENT WIPE <---
         cursor.execute("DELETE FROM file_data WHERE repo_name = ? AND commit_hash = ?", (repo_name, commit_hash))
+        cursor.execute("DELETE FROM folder_data WHERE repo_name = ? AND commit_hash = ?", (repo_name, commit_hash))
 
         # 2. INSERTION LOOP
         agg_total_loc = 0
@@ -266,34 +325,58 @@ class RecordKeeper:
             bin_anomaly = 1 if star.get("binary_anomaly", False) else 0
             glassworm = 1 if star.get("glassworm_flag", False) else 0
             
-            # --- N-TH DEGREE GRAPH EXTRACTION ---
-            dep_net = star.get("dependency_network", {})
-            tot_downstream = dep_net.get("total_downstream", 0)
-            tot_upstream = dep_net.get("total_upstream", 0)
-            
-            total_repo_files = max(len(stars), 1) 
-            down_ratio = round(tot_downstream / total_repo_files, 4)
-            up_ratio = round(tot_upstream / total_repo_files, 4)
+            # --- NETWORK TOPOLOGY EXTRACTION ---
+            net_mets = tel.get("network_metrics", {})
+            pagerank_score = net_mets.get("pagerank_score", 0.0)
+            blast_radius = net_mets.get("normalized_blast_radius", 0.0)
+            betweenness_score = net_mets.get("betweenness_score", 0.0)
+            closeness_score = net_mets.get("closeness_score", 0.0)
+            producer_ratio = net_mets.get("producer_ratio", 0.0)
+            ecosystem_role = net_mets.get("ecosystem_role", "Unknown")
 
             # ---> FIXED: EXTRACT CLASS COUNT FOR THE FILE <---
             class_idx = self.SIGNAL_SCHEMA.index("class_start") if "class_start" in self.SIGNAL_SCHEMA else -1
             class_count = hv[class_idx] if class_idx >= 0 and class_idx < len(hv) else 0
+            
+            # Meta and Big-O additions
+            repo_macro = tel.get("repo_macro_species", "Unknown")
+            repo_z = tel.get("repo_z_score", 0.0)
+            parent_ent = tel.get("domain_context", {}).get("parent_entity", "")
+
+            # --- NEW: AI GUARDRAILS, APPSEC & TOKEN PHYSICS ---
+            guardrails = tel.get("ai_guardrails", {})
+            appsec = tel.get("ai_appsec", {})
+            
+            is_black_hole = 1 if guardrails.get("is_agentic_black_hole") else 0
+            req_hitl = 1 if guardrails.get("requires_hitl") else 0
+            hallucination_zone = 1 if guardrails.get("hallucination_zone") else 0
+            silent_mutation = 1 if guardrails.get("silent_mutation_risk") else 0
+            
+            rce_funnel = 1 if appsec.get("is_rce_funnel") else 0
+            god_mode = 1 if appsec.get("over_permissioned_agent") else 0
+            exfiltration = 1 if appsec.get("agentic_exfiltration_risk") else 0
+            
+            file_token_mass = star.get("token_mass", 0)
+            file_read_cost = star.get("financial_read_cost", 0.0)
 
             row_data = [
-                repo_name, commit_date, commit_hash, Path(star.get("path", "")).name, star.get("path", ""),
+                repo_name, commit_date, commit_hash, Path(star.get("path", "")).name, star.get("path", ""), parent_ent,
                 star.get("lang_id", "unknown"), star.get("constellation", "__monolith__"),
                 star.get("total_loc", 0), star.get("coding_loc", 0),
                 star.get("file_impact", 0.0), tel.get("densities", {}).get("cog_raw", 0.0),
                 tel.get("ownership_entropy", 0.0), tel.get("author_distribution", 0.0),
                 tel.get("raw_churn_freq", 0.0), tel.get("popularity", 0), import_count,
-                tot_downstream, tot_upstream, down_ratio, up_ratio,
+                pagerank_score, blast_radius, betweenness_score, closeness_score, producer_ratio, ecosystem_role,
                 tel.get("control_flow_ratio", 0.0), func_count, class_count, func_comp_vector,
                 avg_loc, avg_comp, max_comp, avg_args, tel.get("func_complexity_gini", 0.0), 
                 func_internal_density, dependency_density, encapsulation_ratio,
                 tel.get("ownership", "Unknown"), ai_threat_class, ai_threat,
-                func_z_max, func_z_mean, func_z_median, pct_z_above_5, pct_z_above_15,
+                func_z_max, func_z_mean, func_z_median, pct_z_above_5, pct_z_above_15, 
                 file_archetype, file_fingerprint_str,
-                ai_score, is_malware, has_creds, bin_anomaly, glassworm
+                tel.get("max_algorithmic_complexity", "O(N)"), int(tel.get("max_db_complexity", 0)),
+                ai_score, is_malware, has_creds, bin_anomaly, glassworm,
+                file_token_mass, file_read_cost, is_black_hole, req_hitl,
+                rce_funnel, god_mode, exfiltration, hallucination_zone, silent_mutation
             ]
             
             row_data.extend(rv)
@@ -305,14 +388,17 @@ class RecordKeeper:
                 INSERT INTO file_data (
                     repo_name, commit_date, commit_hash, file_name, file_path, language, constellation, 
                     total_loc, coding_loc, structural_mass, cog_raw, ownership_entropy, silo_risk, 
-                    raw_churn_freq, popularity, import_count, total_downstream, total_upstream, downstream_ratio, upstream_ratio,
+                    raw_churn_freq, popularity, import_count, pagerank_score, normalized_blast_radius, betweenness_score, closeness_score, producer_ratio, ecosystem_role,
                     control_flow_ratio, function_count, class_count,
                     func_complexity_vector, avg_func_loc, avg_func_complexity, max_func_complexity, 
                     avg_func_args, func_complexity_gini, func_internal_density, dependency_density, encapsulation_ratio,
                     author, ai_threat_class, ai_threat_confidence, 
                     func_z_max, func_z_mean, func_z_median, pct_z_above_5, pct_z_above_15, 
                     file_archetype, file_fingerprint,
+                    repo_macro_species, repo_z_score,
+                    max_algorithmic_complexity, max_db_complexity,
                     ai_threat_score, is_malware, has_credentials, binary_anomaly, glassworm_flag,
+                    token_mass, financial_read_cost, agentic_black_hole, requires_hitl, appsec_rce_funnel, appsec_god_mode, appsec_exfiltration,
                     {", ".join([f"risk_{r.replace('-', '_')}" for r in self.RISK_SCHEMA])},
                     {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])}
                 ) VALUES ({placeholders})
@@ -320,22 +406,52 @@ class RecordKeeper:
             
             file_id = cursor.lastrowid
 
-            # ---> FIXED: The Function Extraction Loop <---
+            # ---> NEW: 1. Extract and Insert the Classes (Gas Giants) <---
+            gas_giants = star.get("gas_giants", [])
+            class_id_map = {} 
+            
+            for giant in gas_giants:
+                cursor.execute('''
+                    INSERT INTO class_data (
+                        file_id, class_name, inheritance_parents, 
+                        method_count, state_entanglement, lcom_score
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                ''', (
+                    file_id,
+                    giant.get("name", "Unknown"),
+                    json.dumps(giant.get("inheritance", [])),
+                    giant.get("method_count", 0),
+                    giant.get("state_entanglement", 0.0),
+                    giant.get("lcom_score", 0.0)
+                ))
+                class_id_map[giant.get("name")] = cursor.lastrowid
+
+            # ---> UPDATED: 2. Extract and Insert the Functions (Moons) <---
             func_rows = []
             for s in sats:
                 raw_hv = s.get("hit_vector", {})
                 func_hits = [int(raw_hv.get(h, 0)) for h in self.SIGNAL_SCHEMA]
                 
+                parent_class_name = s.get("parent_class_name")
+                parent_class_id = class_id_map.get(parent_class_name) if parent_class_name else None
+                
                 func_row_data = [
                     file_id, 
-                    str(s.get("name", "unknown_function"))[:255], 
+                    parent_class_id,
+                    str(s.get("name", "unknown_function"))[:255],
                     int(s.get("branch", 0)), 
                     int(s.get("loc", 0)), 
                     int(s.get("args", 0)), 
                     int(s.get("usage_status", 0)),
                     float(s.get("keyword_density", 0.0)),
                     s.get("archetype", "Unclassified"), 
-                    float(s.get("z_score", 0.0))        
+                    float(s.get("z_score", 0.0)),
+                    int(s.get("big_o_depth", 1)),
+                    1 if s.get("is_recursive", False) else 0,
+                    int(s.get("db_complexity", 0)),
+                    str(s.get("docstring", ""))[:2000],
+                    json.dumps(s.get("calls_out_to", [])),
+                    int(s.get("token_mass", 0))
                 ] + func_hits
                 
                 func_rows.append(func_row_data)
@@ -344,7 +460,7 @@ class RecordKeeper:
                 func_placeholders = ",".join(["?"] * len(func_rows[0]))
                 cursor.executemany(f'''
                     INSERT INTO function_data 
-                    (file_id, func_name, complexity, loc, args, usage_status, keyword_density, func_archetype, func_z_score, {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])}) 
+                    (file_id, func_name, complexity, loc, args, usage_status, keyword_density, func_archetype, func_z_score, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to, token_mass, {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])})
                     VALUES ({func_placeholders})
                 ''', func_rows)
 
@@ -362,6 +478,7 @@ class RecordKeeper:
         avg_imports = (agg_import_count / total_files) if total_files > 0 else 0.0
         
         typosquat_count = summary.get("typosquat_hits", summary.get("summary", {}).get("typosquat_hits", 0))
+        net_macro = summary.get("network_macro", {})
         
         repo_row_data = [
             repo_name,
@@ -377,11 +494,16 @@ class RecordKeeper:
             agg_build_files,    
             agg_config_files,   
             agg_test_files,     
-            typosquat_count,    # <--- FIXED: Now matches the variable name above!
+            typosquat_count,
             macro_info.get("name", "Unclassified"),
             float(macro_info.get("z_score", 0.0)),
             round(avg_encapsulation, 3),
-            round(avg_imports, 3)
+            round(avg_imports, 3),
+            net_macro.get("modularity", 0.0),
+            net_macro.get("assortativity", 0.0),
+            net_macro.get("cyclic_density", 0.0),
+            net_macro.get("avg_path_length", 0.0),
+            net_macro.get("articulation_points", 0)
         ] + agg_hits + [repo_composition_str]
 
         repo_placeholders = ",".join(["?"] * len(repo_row_data))
@@ -391,6 +513,7 @@ class RecordKeeper:
                 total_functions, total_classes, total_doc_files, total_build_files, total_config_files, total_test_files, 
                 typosquat_hits, macro_species, z_score,
                 avg_encapsulation_ratio, avg_imports_per_file,
+                network_modularity, network_assortativity, network_cyclic_density, network_avg_path_length, network_articulation_points,
                 {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])},
                 file_composition
             ) VALUES ({repo_placeholders})
@@ -405,14 +528,91 @@ class RecordKeeper:
                 repo_name, commit_hash, path, ext,
                 dark.get("reason", "Unknown"), dark.get("size_bytes", 0)
             ])
-            
-        if dark_rows:
-            cursor.executemany('''
-                INSERT INTO dark_matter_data 
-                (repo_name, commit_hash, file_path, extension, exclusion_reason, size_bytes)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', dark_rows)
 
-        conn.commit()
-        conn.close()
-        self.logger.info(f"Database sealed. Exported {len(stars)} files and functions to {db_file.name}")
+        if dark_rows:
+                cursor.executemany('''
+                    INSERT INTO dark_matter_data 
+                    (repo_name, commit_hash, file_path, extension, exclusion_reason, size_bytes)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', dark_rows)
+
+            # ==============================================================================
+            # 5. FOLDER-LEVEL ROLLUP (MATERIALIZED PATH AGGREGATION)
+            # ==============================================================================
+            folder_stats = {}
+            debt_idx = self.RISK_SCHEMA.index("tech_debt") if "tech_debt" in self.RISK_SCHEMA else -1
+
+            for star in stars:
+                file_path = star.get("path", "")
+                parts = file_path.split('/')[:-1] # Strip the filename to get directories
+                
+                # Determine all parent paths (e.g., src/api/auth -> src, src/api, src/api/auth)
+                paths_to_update = ["."] if not parts else []
+                current_path = ""
+                for part in parts:
+                    current_path = f"{current_path}/{part}" if current_path else part
+                    paths_to_update.append(current_path)
+
+                # Extract file metrics
+                loc = star.get("total_loc", 0)
+                coding_loc = star.get("coding_loc", 0)
+                mass = star.get("file_impact", 0.0)
+                func_count = len(star.get("satellites", []))
+                class_count = len(star.get("gas_giants", []))
+                
+                tel = star.get("telemetry", {})
+                cog_raw = tel.get("densities", {}).get("cog_raw", 0.0)
+                churn = tel.get("raw_churn_freq", 0.0)
+                
+                rv = star.get("risk_vector", [])
+                tech_debt = rv[debt_idx] if debt_idx >= 0 and len(rv) > debt_idx else 0.0
+
+                # Roll metrics upwards
+                for p in paths_to_update:
+                    if p not in folder_stats:
+                        folder_stats[p] = {
+                            "file_count": 0, "total_loc": 0, "total_coding_loc": 0,
+                            "total_functions": 0, "total_classes": 0, "total_mass": 0.0,
+                            "cog_loads": [], "tech_debts": [], "churns": []
+                        }
+                    fs = folder_stats[p]
+                    fs["file_count"] += 1
+                    fs["total_loc"] += loc
+                    fs["total_coding_loc"] += coding_loc
+                    fs["total_functions"] += func_count
+                    fs["total_classes"] += class_count
+                    fs["total_mass"] += mass
+                    fs["cog_loads"].append(cog_raw)
+                    fs["tech_debts"].append(tech_debt)
+                    fs["churns"].append(churn)
+
+            # Calculate Domain Averages and Insert
+            folder_rows = []
+            for f_path, stats in folder_stats.items():
+                avg_cog = sum(stats["cog_loads"]) / len(stats["cog_loads"]) if stats["cog_loads"] else 0.0
+                max_cog = max(stats["cog_loads"]) if stats["cog_loads"] else 0.0
+                
+                avg_debt = sum(stats["tech_debts"]) / len(stats["tech_debts"]) if stats["tech_debts"] else 0.0
+                max_debt = max(stats["tech_debts"]) if stats["tech_debts"] else 0.0
+                
+                avg_churn = sum(stats["churns"]) / len(stats["churns"]) if stats["churns"] else 0.0
+
+                folder_rows.append((
+                    repo_name, commit_hash, f_path,
+                    stats["file_count"], stats["total_loc"], stats["total_coding_loc"],
+                    stats["total_functions"], stats["total_classes"], round(stats["total_mass"], 2),
+                    round(avg_cog, 3), round(avg_debt, 3), round(max_cog, 3), round(max_debt, 3), round(avg_churn, 3)
+                ))
+
+            if folder_rows:
+                cursor.executemany('''
+                    INSERT INTO folder_data (
+                        repo_name, commit_hash, folder_path, file_count, total_loc, total_coding_loc,
+                        total_functions, total_classes, total_mass, avg_cognitive_load, avg_tech_debt,
+                        max_cognitive_load, max_tech_debt, avg_churn_freq
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', folder_rows)
+
+            conn.commit()
+            conn.close()
+            self.logger.info(f"Database sealed. Exported {len(stars)} files and {len(folder_rows)} folders to {db_file.name}")

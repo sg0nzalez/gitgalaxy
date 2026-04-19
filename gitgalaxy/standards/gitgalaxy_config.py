@@ -200,6 +200,9 @@ APERTURE_CONFIG = {
 # If found, their Bayesian confidence is boosted (+0.10) to ensure they
 # remain visible in the 3D map as high-priority architectural anchors.
 PRIORITY_WHITELIST = [
+    # --- AI Ecosystem Anchor ---
+    "__galaxy_brain__.ai",
+
     # --- Universal Entry Points ---
     "main.py", "app.py", "index.js", "server.js", "main.go", "main.rs",
     "index.ts", "app.ts", "main.cpp", "main.c", "Main.java", "program.cs",

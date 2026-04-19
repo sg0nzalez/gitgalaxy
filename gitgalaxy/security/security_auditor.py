@@ -4,11 +4,11 @@
 # ==============================================================================
 import logging
 import math
-import numpy as np
 from pathlib import Path
 from collections import Counter
 
 try:
+    import numpy as np
     import pandas as pd
     import xgboost as xgb
     ML_AVAILABLE = True

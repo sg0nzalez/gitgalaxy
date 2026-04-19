@@ -757,6 +757,14 @@ RECORDING_SCHEMAS = {
         "auth_middleware", "ipc_rpc_bridges", "feature_flags", "serialization_parsing", 
         "regex_execution", "time_date_logic",
         
+        # --- NEW: AI & LLM SENSORS ---
+        "llm_api", "llm_orchestrator", "llm_vector_store", "llm_local_compute",
+        "ai_tools", "ai_memory", "ai_logic_loop",
+        "ml_traditional", "dl_frameworks",
+
+        # --- NEW: ADVANCED ALGORITHMIC SENSORS ---
+        "lazy_evaluation", "vectorized_math",
+
         # --- NEW: LINGUISTIC & SLOP SENSORS ---
         "core_var_decl", "design_camel_case", "design_snake_case", "design_pascal_case", 
         "design_upper_case", "design_short_vars", "design_long_vars", 
@@ -766,10 +774,10 @@ RECORDING_SCHEMAS = {
         "sec_heat_triggers", "sec_safety_neg", "sec_io", "sec_danger", 
         "sec_flux", "sec_graveyard", "sec_bitwise_hits", "sec_shadow_imports",
         "sec_homoglyphs", "sec_private_info", "sec_extension_mismatch", "sec_entropy",
-        "sec_tainted_injection"
+        "sec_tainted_injection", "prompt_injection", "agentic_rce"
     ],
     "SAT_SCHEMA": [
-        "name", "loc", "branch", "angle_x10", "args", "type_id", "control_flow_x1000", "mag_x10", "start_line", "end_line"
+        "name", "loc", "branch", "angle_x10", "args", "type_id", "control_flow_x1000", "mag_x10", "start_line", "end_line", "docstring"
     ],
     "GPU_TEXTURE_LOOKUPS": [
         "standard", "crystalline", "plates", "digital", "metallic", 
@@ -811,6 +819,20 @@ RECORDING_SCHEMAS = {
         "cleanup": "Resource Deallocation & Cleanup", "encapsulation": "Private / Encapsulated Scopes",
         "listeners": "Event Listeners & Subscribers", "test_skip": "Bypassed / Skipped Tests",
         "indent_tabs": "Structural Tab Indentations", "indent_spaces": "Structural Space Indentations",
+        
+        # --- AI & LLM UI MAPPINGS ---
+        "llm_api": "Cloud LLM API Integrations",
+        "llm_orchestrator": "AI Orchestration Frameworks",
+        "llm_vector_store": "Vector Databases (RAG)",
+        "llm_local_compute": "Local Inference & Tensor Math",
+        "ai_tools": "Agentic Tool & Function Calling",
+        "ai_memory": "Agentic State & Memory Management",
+        "ai_logic_loop": "Autonomous Execution Loops (ReAct)",
+        "ml_traditional": "Traditional Machine Learning (Stats/Trees)",
+        "dl_frameworks": "Deep Learning & Neural Networks",
+        "lazy_evaluation": "Lazy Evaluation & Generators (O(1) Memory)",
+        "vectorized_math": "Vectorized Math & Tensor Operations",
+
         # --- SECURITY LENS UI MAPPINGS (Plain English) ---
         "sec_heat_triggers": "High-Entropy / Obfuscated Logic",
         "sec_safety_neg": "Safety & Constraint Bypasses",

@@ -24,12 +24,14 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Union, Set
 from collections import defaultdict
 
+
 # Hardware Layer (Strategy v6.2 Protocol - Optical Pipeline)
 from gitgalaxy.core.aperture import ApertureFilter, ApertureError, InaccessibleArtifactError
 from gitgalaxy.core.guidestar_lens import GuideStarLens 
 from gitgalaxy.standards.language_lens import LanguageDetector, FocusingError
 from gitgalaxy.core.prism import Prism, RefractionError
 from gitgalaxy.core.detector import LogicSplicer, Cartographer
+from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
 from gitgalaxy.physics.chronometer import Chronometer
 from gitgalaxy.physics.signal_processor import SignalProcessor
 from gitgalaxy.physics.spectral_auditor import SpectralAuditor
@@ -39,6 +41,8 @@ from gitgalaxy.recorders.llm_recorder import LLMRecorder
 from gitgalaxy.recorders.record_keeper import RecordKeeper
 from gitgalaxy.security.security_lens import SecurityLens
 from gitgalaxy.security.security_auditor import SecurityAuditor
+from gitgalaxy.ai_guardrails.dev_agent_firewall import DevAgentFirewall
+from gitgalaxy.ai_guardrails.ai_appsec_sensor import AIAppSecSensor
 from gitgalaxy.standards.gitgalaxy_config import APERTURE_CONFIG, PRIORITY_WHITELIST, GUIDESTAR_CONFIG, EXACT_FILE_MATCH, STATIC_ARCHETYPES, ORCHESTRATOR_RULES, COMMENT_DEFINITIONS
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS, PROJECT_OVERRIDES
 from gitgalaxy.standards.analysis_lens import ThreatPolicy, PATH_MODIFIERS, PHYSICS_ASSET_MASKS
@@ -333,7 +337,8 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                     code_stream=refraction["code_stream"], 
                     comment_stream=refraction["comment_stream"],
                     confidence=detection_result.get("intensity", 1.0),
-                    profile_regex=is_profiling
+                    profile_regex=is_profiling,
+                    raw_content=content_buffer
                 )
                 if is_file_profiling: phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
                 
@@ -470,6 +475,7 @@ class Orchestrator:
         self.cartographer = Cartographer(parent_logger=logger)
         self.processor = SignalProcessor(aperture_config=config, parent_logger=logger)
         self.auditor = SpectralAuditor(parent_logger=logger) 
+        self.network_sensor = NetworkRiskSensor(parent_logger=logger)
         
         # --- UPDATED: Instantiate New Dual Recorders ---
         self.gpu_recorder = GPURecorder(version=self.version, parent_logger=logger)
@@ -542,6 +548,20 @@ class Orchestrator:
             self._second_pass_relational()
             logger.info(f"⏱️ MACRO-CLOCK [Phase 2 - Relational]: {time.time() - t_phase:.2f}s")
 
+            # PHASE 3: Network Topology & Blast Radius
+            t_phase = time.time()
+            self.stars, network_macro = self.network_sensor.map_ecosystem(self.stars)
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 3 - Network Topology]: {time.time() - t_phase:.2f}s")
+
+            # PHASE 3.5: AI Guardrails & AppSec Threat Hunting
+            t_phase = time.time()
+            dev_firewall = DevAgentFirewall(parent_logger=logger)
+            self.stars = dev_firewall.evaluate_ecosystem(self.stars)
+            
+            appsec_sensor = AIAppSecSensor(parent_logger=logger)
+            self.stars = appsec_sensor.hunt_threats(self.stars)
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 3.5 - AI Defense]: {time.time() - t_phase:.2f}s")
+
             # PHASE 4: Audit Verification
             t_phase = time.time()
             visible_galaxy, audit_singularity = self.auditor.audit(self.stars)
@@ -558,6 +578,7 @@ class Orchestrator:
             # PHASE 6: Metrics Synthesis
             t_phase = time.time()
             summary = self.processor.summarize_galaxy_metrics(visible_galaxy, total_singularity)
+            summary["network_macro"] = network_macro
             report = self.processor.generate_forensic_report(visible_galaxy)
             logger.info(f"⏱️ MACRO-CLOCK [Phase 6 - Synthesis]: {time.time() - t_phase:.2f}s")
             
@@ -1320,6 +1341,62 @@ class Orchestrator:
                 synthetic_star["hit_vector"][idx] = 1
                 
             self.stars.append(synthetic_star)
+
+        # ==================================================================
+        # THE NEURAL SUPERNOVA INJECTION (Local AI Weights)
+        # Pull model weights out of Dark Matter, parse headers, and map them
+        # ==================================================================
+        models = [cand for cand in self.singularity_candidates if "AI MODEL WEIGHTS" in cand.get("reason", "")]
+        self.singularity_candidates = [cand for cand in self.singularity_candidates if "AI MODEL WEIGHTS" not in cand.get("reason", "")]
+
+        if models:
+            from gitgalaxy.physics.neural_auditor import NeuralAuditor
+            neural_auditor = NeuralAuditor(parent_logger=logger)
+
+            for model in models:
+                rel_path = model["path"]
+                size_bytes = model.get("size_bytes", 0)
+                full_path_str = str(self.root / rel_path)
+                
+                logger.info(f"🧠 NEURAL SUPERNOVA: Auditing local model weights for {rel_path}...")
+                
+                # Perform the zero-RAM binary header audit
+                audit_results = neural_auditor.audit_model(full_path_str)
+                
+                # Model weights are incredibly dense. We give them a massive file_impact (Gravity).
+                # 1 GB = ~100.0 Gravity points, capped at 10,000 to prevent breaking the 3D renderer.
+                gravity_mass = min((size_bytes / (1024 * 1024 * 1024)) * 100.0, 10000.0)
+                
+                synthetic_star = {
+                    "name": Path(rel_path).name,
+                    "path": rel_path,
+                    "lang_id": "binary_threat", # Forces it to render uniquely in the UI
+                    "coding_loc": 1,
+                    "total_loc": 1,
+                    "band": "ai_model_weights",
+                    "risk_vector": [0.0] * len(SignalProcessor.RISK_SCHEMA), 
+                    "hit_vector": [0] * len(SignalProcessor.SIGNAL_SCHEMA),
+                    "file_impact": max(gravity_mass, 500.0), # Minimum massive gravity
+                    "telemetry": {
+                        "ownership": "Neural Auditor",
+                        "domain_context": {
+                            "alert": "LOCAL MODEL WEIGHTS DETECTED",
+                            "architecture": audit_results["architecture"],
+                            "parameters": audit_results["parameters"],
+                            "quantization": audit_results["quantization"],
+                            "size_gb": f"{size_bytes / (1024**3):.2f} GB"
+                        },
+                        "identity_source_proof": "Neural Auditor Header Extraction",
+                        "identity_lock_tier": 0
+                    }
+                }
+                
+                # Force the hit_vector to register as local compute so the AI Topology catches it
+                if "llm_local_compute" in SignalProcessor.SIGNAL_SCHEMA:
+                    idx = SignalProcessor.SIGNAL_SCHEMA.index("llm_local_compute")
+                    synthetic_star["hit_vector"][idx] = 100 # Massive hit spike
+                    
+                self.stars.append(synthetic_star)
     
     def _prepare_target(self, target_input: Union[str, Path]) -> Path:
         """Prepares the filesystem for analysis."""
@@ -1540,6 +1617,9 @@ class Orchestrator:
             self.stem_map = {f: f for f in self.cryolink.keys()}
             self._calculate_galactic_popularity()
             self._second_pass_relational()
+            
+            # Re-map the directed graph because nodes/edges have mutated
+            self.stars, network_macro = self.network_sensor.map_ecosystem(self.stars)
 
             # 6. Audit Verification & ML Threat Inference
             visible_galaxy, audit_singularity = self.auditor.audit(self.stars)
@@ -1548,6 +1628,7 @@ class Orchestrator:
             
             # 7. Synthesis and Database Forging
             summary = self.processor.summarize_galaxy_metrics(visible_galaxy, audit_singularity)
+            summary["network_macro"] = network_macro
             session_meta = {
                 "engine": f"GitGalaxy Scope v{self.version} (Delta Mode)",
                 "target": self.root.name,

@@ -85,18 +85,64 @@ PRISM_CONFIG = {
 # Consumed by: detector.py (LogicSplicer)
 # ------------------------------------------------------------------------------
 UNIVERSAL_RULES = {
+    # ==========================================================================
+    # AI & LLM TOPOLOGY SENSORS
+    # Maps the repository's artificial intelligence footprint and infrastructure.
+    # ==========================================================================
+    # --- NEW: AI & LLM SENSORS ---
+    "llm_api": re.compile(r'\b(openai|anthropic|cohere|mistralai|litellm|google\.generativeai|bedrock)\b', re.I),
+    "llm_orchestrator": re.compile(r'\b(langchain|llama_index|haystack|semantic_kernel|autogen|crewai|smolagents)\b', re.I),
+    "llm_vector_store": re.compile(r'\b(chromadb|pinecone|qdrant|weaviate|milvus|faiss|pgvector|lancedb)\b', re.I),
+    "llm_local_compute": re.compile(r'\b(transformers|huggingface_hub|vllm|llama_cpp|ollama|mlx|safetensors)\b', re.I),
+    
+    # --- NEW: AI AGENT SENSORS (Autonomy & State) ---
+    "ai_tools": re.compile(r'\b(bind_tools|FunctionTool|tools=\[|tool_choice|@tool)\b', re.I),
+    "ai_memory": re.compile(r'\b(CompiledStateGraph|MemorySaver|SqliteSaver|ConversationBufferMemory|ChatMessageHistory)\b', re.I),
+    "ai_logic_loop": re.compile(r'\b(AgentExecutor|create_react_agent|PlanAndExecute|react_agent)\b', re.I),
+
+    # --- NEW: ML VS DL SENSORS (Data Science Hierarchy) ---
+    "ml_traditional": re.compile(r'\b(sklearn|scikit-learn|xgboost|lightgbm|catboost|statsmodels|prophet)\b', re.I),
+    "dl_frameworks": re.compile(r'\b(tensorflow|torch|keras|jax|flax|fastai|pytorch_lightning)\b', re.I),
+
     "core_var_decl": re.compile(r'\b[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=><]'),
+
+    # ==========================================================================
+    # LINGUISTIC & DESIGN SLOP SENSORS
+    # Maps variable naming conventions, styling factions, and readability debt.
+    # ==========================================================================
+    # Baseline variable declarations for ratio math.
+    "core_var_decl": re.compile(r'\b[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=><]'),
+    
+    # Tracking formatting factions (The stylistic 'Civil War' metrics).
     "design_camel_case": re.compile(r'\b[a-z]+[A-Z][a-zA-Z0-9]*\s*=[^=><]'),
     "design_snake_case": re.compile(r'\b[a-z]+(?:_[a-z0-9]+)+\s*=[^=><]'),
     "design_pascal_case": re.compile(r'\b[A-Z][a-z0-9]+[A-Z][a-zA-Z0-9]*\s*=[^=><]'),
     "design_upper_case": re.compile(r'\b[A-Z]+(?:_[A-Z0-9]+)*\s*=[^=><]'),
+    
+    # Extreme identifier lengths indicating poor encapsulation or cryptic code.
     "design_short_vars": re.compile(r'\b[a-zA-Z_]{1,2}\s*=[^=><]'),
     "design_long_vars": re.compile(r'\b[a-zA-Z_]{20,}\s*=[^=><]'),
+
+    # ==========================================================================
+    # CROSS-LANGUAGE DOMAIN INTENT
+    # Identifies universal architectural concepts regardless of the underlying syntax.
+    # ==========================================================================
+    # The Identity Vault: JWT, OAuth, and Role-Based Access Control logic.
     "auth_middleware": re.compile(r'\b(jwt|oauth|passport|saml|sso|verify_?token|check_?auth|check_?permissions?|rbac|bearer)\b', re.I),
+    
+    # The Distributed Network: Message brokers, pub/sub queues, and gRPC communication.
     "ipc_rpc_bridges": re.compile(r'\b(grpc|redis|kafka|amqp|rabbitmq|zmq|thrift|pubsub|celery|sidekiq|sqs|sns|eventbridge)\b', re.I),
+    
+    # The Toggle Switch: A/B testing and conditional feature rollout platforms.
     "feature_flags": re.compile(r'\b(launchdarkly|unleash|is_?enabled|feature_?flag|experiment|ab_?test|flag_?active|optimizely)\b', re.I),
+    
+    # The Data Translator: Marshalling and unmarshaling structured payloads.
     "serialization_parsing": re.compile(r'\b(json|yaml|xml|protobuf|bson|msgpack|csv)\b', re.I),
+    
+    # The Pattern Matcher: Native regex compilation and string searching.
     "regex_execution": re.compile(r'\b(re\.compile|re\.search|new\s+RegExp|preg_match|Pattern\.compile|Regex\.Match)\b', re.I),
+    
+    # The Chronometer: Handling dates, intervals, and timezone logic.
     "time_date_logic": re.compile(r'\b(datetime|timedelta|moment\(|date-fns|java\.time|ZonedDateTime|TimeSpan|Date\.now)\b', re.I)
 }
 
@@ -186,7 +232,7 @@ LANGUAGE_DEFINITIONS = {
             # 3. linear (The Smooth Path)
             # Structural boundaries. EXCLUDES: _private (encapsulation) and Final (freeze_hits).
             "linear": re.compile(
-                r"\b(def|class|return|import|from|as|pass|continue|break|yield|await|assert|del|global|nonlocal|type)\b"
+                r"\b(def|class|return|import|from|as|pass|continue|break|await|assert|del|global|nonlocal|type)\b"
             ),
             # 4. func_start (The Satellite Spawner)
             # Anchors executable logic. Steps safely over decorators.
@@ -195,10 +241,8 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            "class_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}class\s+\w+(?:\[[^\]]*\])?",
-                re.M,
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}class\s+([a-zA-Z_]\w*)(?:\[[^\]]*\])?(?:\s*\(\s*([a-zA-Z0-9_., \t]*)\s*\))?", re.M),
+            
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
             # 6. safety (The Defenders)
             "safety": re.compile(
@@ -354,6 +398,10 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"
             ),
+            # --- NEW: ADVANCED ALGORITHMIC SENSORS ---
+            "lazy_evaluation": re.compile(r"\b(yield|yield\s+from|Generator|AsyncGenerator|Iterator|AsyncIterator)\b"),
+            "vectorized_math": re.compile(r"\b(einsum|matmul|tensordot|vdot|bmm)\b|\.dot\s*\(|(?<=[a-zA-Z0-9_\]\)])\s*@\s*(?=[a-zA-Z0-9_\[\(])"),
+
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Python Specifics) ---
             "serialization_parsing": re.compile(r'\b(pickle\.loads?|pickle\.Unpickler|marshal\.loads?|ast\.literal_eval)\b'),
             "regex_execution": re.compile(r'\b(re\.compile|re\.search|re\.match|re\.sub|re\.findall|re\.split)\b'),
@@ -431,7 +479,7 @@ LANGUAGE_DEFINITIONS = {
             # 3. linear (The Smooth Path)
             # Structural declaration boundaries. EXCLUDES: Access modifiers (encapsulation) and const (freeze_hits).
             "linear": re.compile(
-                r"\b(let|var|import|export|return|class|extends|yield|super|await|delete)\b|=>"
+                r"\b(let|var|import|export|return|class|extends|super|await|delete)\b|=>"
             ),
             # 4. func_start (The Satellite Spawner)
             # Uses positive lookaheads (?=) to stop the match exactly at the identifier name.
@@ -452,10 +500,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            "class_start": re.compile(
-                r"^[ \t]*(?:export[ \t]+)?(?:default[ \t]+)?class\s+[a-zA-Z_$][\w$]*",
-                re.M,
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:export[ \t]+)?(?:default[ \t]+)?class\s+([a-zA-Z_$][\w$]*)(?:\s+extends\s+([a-zA-Z_$][\w$]*))?", re.M),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
             # 6. safety (The Defenders)
             "safety": re.compile(
@@ -620,6 +665,10 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"
             ),
+            # --- NEW: ADVANCED ALGORITHMIC SENSORS ---
+            "lazy_evaluation": re.compile(r"\b(yield|yield\s*\*|function\s*\*)\b"),
+            "vectorized_math": re.compile(r"\b(matmul|dot|cross|multiply)\s*\("),
+
             # --- PHASE 3: HYBRID DOMAIN SENSORS (JS/TS Specifics) ---
             "serialization_parsing": re.compile(r'\b(JSON\.parse|JSON\.stringify)\b'),
             "regex_execution": re.compile(r'\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\('),
@@ -689,7 +738,7 @@ LANGUAGE_DEFINITIONS = {
             # 3. linear (The Smooth Path)
             # Structural boundaries. EXCLUDES: Access modifiers (public/private) and Immutability (const).
             "linear": re.compile(
-                r"\b(var|return|class|interface|type|enum|import|export|yield|await|satisfies|using|namespace|module|implements|extends|declare)\b|=>"
+                r"\b(var|return|class|interface|type|enum|import|export|await|satisfies|using|namespace|module|implements|extends|declare)\b|=>"
             ),
             # 4. func_start (The Satellite Spawner)
             # Captures standard functions, assignments, object properties, and class methods.
@@ -710,10 +759,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            "class_start": re.compile(
-                r"^[ \t]*(?:export[ \t]+)?(?:abstract[ \t]+)?(?:default[ \t]+)?(?:class|enum)\s+[a-zA-Z_$][\w$]*",
-                re.M,
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:export[ \t]+)?(?:abstract[ \t]+)?(?:default[ \t]+)?(?:class|enum)\s+([a-zA-Z_$][\w$]*)(?:\s+(?:extends|implements)\s+([a-zA-Z_$][\w_$, \t]*))?", re.M),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
             # 6. safety (The Defenders)
             "safety": re.compile(
@@ -875,6 +921,10 @@ LANGUAGE_DEFINITIONS = {
             "test_skip": re.compile(
                 r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"
             ),
+            # --- NEW: ADVANCED ALGORITHMIC SENSORS ---
+            "lazy_evaluation": re.compile(r"\b(yield|yield\s*\*|function\s*\*|Generator|AsyncGenerator|Iterable|AsyncIterable)\b"),
+            "vectorized_math": re.compile(r"\b(matmul|dot|cross|multiply)\s*\("),
+
             # --- PHASE 3: HYBRID DOMAIN SENSORS (JS/TS Specifics) ---
             "serialization_parsing": re.compile(r'\b(JSON\.parse|JSON\.stringify)\b'),
             "regex_execution": re.compile(r'\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\('),
@@ -947,10 +997,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            "class_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]*){0,5}(?:(?:public|protected|private|static|final|sealed|non-sealed|abstract|strictfp)[ \t]+){0,5}(?:class|interface|enum|record)\s+[A-Za-z_$][\w_$]*",
-                re.M,
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]*){0,5}(?:(?:public|protected|private|static|final|sealed|non-sealed|abstract|strictfp)[ \t]+){0,5}(?:class|interface|enum|record)\s+([A-Za-z_$][\w_$]*)(?:\s+(?:extends|implements)\s+([A-Za-z_$][\w_$, \t<>\?]*))?", re.M),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
             # 6. safety (The Defenders)
             "safety": re.compile(
@@ -1236,10 +1283,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            "class_start": re.compile(
-                r"^[ \t]*(?:\[[^\]]*\][ \t]*){0,5}(?:(?:public|internal|private|protected|static|sealed|abstract|partial|file|unsafe|new)[ \t]+){0,5}(?:class|interface|struct|record|enum)\s+[A-Za-z_$][\w_$]*",
-                re.M,
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:\[[^\]]*\][ \t]*){0,5}(?:(?:public|internal|private|protected|static|sealed|abstract|partial|file|unsafe|new)[ \t]+){0,5}(?:class|interface|struct|record|enum)\s+([A-Za-z_$][\w_$]*)(?:\s*:\s*([A-Za-z_$][\w_$, \t<>\?]*))?", re.M),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
             # 6. safety (The Defenders)
             "safety": re.compile(
@@ -2580,11 +2624,7 @@ LANGUAGE_DEFINITIONS = {
                 r"function\s+(?:&\s*)?([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)(?=\s*\()",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
-            "class_start": re.compile(
-                r"^[ \t]*(?:#\[[^\]]*\][ \t]*){0,5}(?:(?:abstract|final|readonly)[ \t]+){0,3}(?:class|interface|trait|enum)\s+[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*",
-                re.M,
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:#\[[^\]]*\][ \t]*){0,5}(?:(?:abstract|final|readonly)[ \t]+){0,3}(?:class|interface|trait|enum)\s+([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)(?:\s+(?:extends|implements)\s+([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\\]*))?", re.M),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
             # 6. safety (The Defenders)
             "safety": re.compile(
@@ -3324,9 +3364,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            "class_start": re.compile(
-                r"^[ \t]*(?:class|module)\s+[A-Z]\w*(?:::[A-Z]\w*)*", re.M
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:class|module)\s+([A-Z]\w*(?:::[A-Z]\w*)*)(?:\s*<\s*([A-Z]\w*(?:::[A-Z]\w*)*))?", re.M),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
             # 6. safety (The Defenders)
             "safety": re.compile(

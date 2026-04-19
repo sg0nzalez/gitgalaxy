@@ -228,6 +228,19 @@ class LLMRecorder:
         lines.append(f"| Dominant Lang | {sum_data.get('dominant_language', 'UNK').upper()} |")
         lines.append("")
 
+        # --- 3.5 MACRO-NETWORK TOPOLOGY ---
+        net_macro = summary.get("network_macro", {})
+        if net_macro:
+            lines.append("## 3.5 MACRO-NETWORK TOPOLOGY (Resilience & Coupling)")
+            lines.append("| Metric | Value | Interpretation |")
+            lines.append("|---|---|---|")
+            lines.append(f"| Modularity | {net_macro.get('modularity', 0.0)} | High = Clean micro-boundaries. Low = Spaghetti coupling. |")
+            lines.append(f"| Assortativity | {net_macro.get('assortativity', 0.0)} | Positive = Resilient core. Negative = Fragile single-points-of-failure. |")
+            lines.append(f"| Cyclic Density | {net_macro.get('cyclic_density', 0.0)*100:.1f}% | % of files trapped in dependency loops (Static Friction). |")
+            lines.append(f"| Avg Path Length | {net_macro.get('avg_path_length', 0.0)} | Hops between files. Lower = Tighter coupling. |")
+            lines.append(f"| Articulation Pts | {net_macro.get('articulation_points', 0)} | Number of single files that, if removed, shatter the network. |")
+            lines.append("")
+
         # --- 4. LINGUISTIC COMPOSITION ---
         lines.append("## 4. COMPOSITION")
         if comp:
@@ -275,6 +288,23 @@ class LLMRecorder:
             lines.append("|---|---|---|")
             for arch, data in static_mass.items():
                 lines.append(f"| {arch} | {data['count']} | {data['pct']}% |")
+            lines.append("")
+
+        # --- 4.7 AI & DATA TOPOLOGY ---
+        ai_top = summary.get("ai_topology", {})
+        if ai_top:
+            lines.append("## 4.7 AI & MACHINE LEARNING TOPOLOGY")
+            lines.append(f"> **Classification:** `{ai_top.get('classification', 'Unknown')}`")
+            for insight in ai_top.get("insights", []):
+                lines.append(f"> - {insight}")
+            lines.append("")
+
+        data_top = summary.get("data_topology", {})
+        if data_top:
+            lines.append("## 4.8 DATA TOPOLOGY & RELATIONAL GRAVITY")
+            lines.append(f"> **Classification:** `{data_top.get('classification', 'Unknown')}`")
+            for insight in data_top.get("insights", []):
+                lines.append(f"> - {insight}")
             lines.append("")
 
         # --- 5. DARK MATTER ---
@@ -371,13 +401,58 @@ class LLMRecorder:
         # --- 8. GOD FUNCTIONS (THE SATELLITES) ---
         lines.append("## 8. SATELLITE HITLIST (Heaviest Functions)")
         lines.append("> *Note: The 'Impact' metric below represents Structural Magnitude (complexity, arguments, and length), NOT operational risk. These are the load-bearing pillars of the logic.*\n")
-        func_impacts = forensic_report.get("function_impact", {}).get("highest", [])
-        if func_impacts:
-            for f in func_impacts[:10]:
-                lines.append(f"- `{f.get('name')}` (@ `{f.get('file')}`) -> Impact: {f.get('impact')} | LOC: {f.get('loc')}")
+        
+        # Flatten all satellites to sort them globally
+        all_sats = []
+        for s in stars:
+            for sat in s.get("satellites", []):
+                sat_copy = sat.copy()
+                sat_copy["file"] = s.get("path", "Unknown")
+                all_sats.append(sat_copy)
+                
+        sorted_by_impact = sorted(all_sats, key=lambda x: x.get("impact", 0), reverse=True)
+        if sorted_by_impact:
+            for f in sorted_by_impact[:10]:
+                lines.append(f"- `{f.get('name')}` (@ `{f.get('file')}`) -> Impact: **{f.get('impact')}** | LOC: {f.get('loc')}")
+                doc = f.get('docstring', '').strip()
+                if doc:
+                    clean_doc = " ".join(doc.split())[:150] + ("..." if len(doc) > 150 else "")
+                    lines.append(f"  * *Intent:* {clean_doc}")
         else:
             lines.append("*No complex satellites detected.*")
         lines.append("")
+
+        # --- 8.5 ALGORITHMIC & DATABASE BOTTLENECKS ---
+        lines.append("## 8.5 ALGORITHMIC & DATABASE BOTTLENECKS")
+        lines.append("> Highlights the most computationally expensive and database-heavy functions across the repository.\n")
+        
+        # Sort by recursion first, then big-o depth
+        sorted_by_big_o = sorted(all_sats, key=lambda x: (x.get("is_recursive", False), x.get("big_o_depth", 1)), reverse=True)
+        complex_sats = [s for s in sorted_by_big_o if s.get("is_recursive", False) or s.get("big_o_depth", 1) > 2]
+        
+        if complex_sats:
+            lines.append("### Highest Time Complexity (Big-O)")
+            for f in complex_sats[:10]:
+                o_str = "O(2^N) [Recursive]" if f.get("is_recursive", False) else f"O(N^{f.get('big_o_depth', 1)})"
+                lines.append(f"- `{f.get('name')}` (@ `{f.get('file')}`) -> **{o_str}**")
+                doc = f.get('docstring', '').strip()
+                if doc:
+                    clean_doc = " ".join(doc.split())[:150] + ("..." if len(doc) > 150 else "")
+                    lines.append(f"  * *Intent:* {clean_doc}")
+            lines.append("")
+            
+        sorted_by_db = sorted(all_sats, key=lambda x: x.get("db_complexity", 0), reverse=True)
+        db_sats = [s for s in sorted_by_db if s.get("db_complexity", 0) > 0]
+        
+        if db_sats:
+            lines.append("### Highest Data Gravity (Database Complexity)")
+            for f in db_sats[:10]:
+                lines.append(f"- `{f.get('name')}` (@ `{f.get('file')}`) -> DB Complexity: **{f.get('db_complexity', 0)}**")
+                doc = f.get('docstring', '').strip()
+                if doc:
+                    clean_doc = " ".join(doc.split())[:150] + ("..." if len(doc) > 150 else "")
+                    lines.append(f"  * *Intent:* {clean_doc}")
+            lines.append("")
 
         # --- 9. TOP CONSTELLATIONS ---
         lines.append("## 9. CONSTELLATIONS (Top 10 Heaviest Folders)")
@@ -425,6 +500,26 @@ class LLMRecorder:
                 for s in high_flux:
                     if s.get("risk_vector")[flux_idx] > 0:
                         lines.append(f"- `{s.get('path')}` -> **{s.get('risk_vector')[flux_idx]}%** Exposure")
+                        
+        # Design Slop (Orphans & Duplicates) Hitlist
+        orphan_idx = self.SIGNAL_SCHEMA.index("design_slop_orphans") if "design_slop_orphans" in self.SIGNAL_SCHEMA else -1
+        dup_idx = self.SIGNAL_SCHEMA.index("design_slop_duplicates") if "design_slop_duplicates" in self.SIGNAL_SCHEMA else -1
+        
+        if orphan_idx >= 0 and dup_idx >= 0:
+            # Sort by total slop (orphans + duplicates)
+            high_slop = sorted(
+                [s for s in stars if len(s.get("hit_vector", [])) > max(orphan_idx, dup_idx)], 
+                key=lambda x: x.get("hit_vector")[orphan_idx] + x.get("hit_vector")[dup_idx], 
+                reverse=True
+            )[:5]
+            
+            if high_slop and (high_slop[0].get("hit_vector")[orphan_idx] + high_slop[0].get("hit_vector")[dup_idx]) > 0:
+                lines.append("### Highest Design Slop (Dead & Duplicated Logic)")
+                for s in high_slop:
+                    o_hits = s.get("hit_vector")[orphan_idx]
+                    d_hits = s.get("hit_vector")[dup_idx]
+                    if o_hits > 0 or d_hits > 0:
+                        lines.append(f"- `{s.get('path')}` -> **{o_hits}** Orphaned Functions | **{d_hits}** Duplicates")
         lines.append("")
 
         # --- 10.5 AI THREAT INTELLIGENCE ---
@@ -461,6 +556,39 @@ class LLMRecorder:
             lines.append("*No critical vulnerabilities or security lens thresholds breached.*")
         lines.append("")
         
+        # --- 10.7 AUTONOMOUS AI VULNERABILITIES ---
+        lines.append("## 10.7 AUTONOMOUS AI VULNERABILITIES (AGENTIC RCE & PROMPT INJECTION)")
+        lines.append("> **AI CONTEXT:** Identifies untrusted data flowing into LLM context windows (Prompt Injection) and LLM outputs flowing into dynamic execution (Agentic RCE).\n")
+        
+        pi_idx = self.SIGNAL_SCHEMA.index("prompt_injection") if "prompt_injection" in self.SIGNAL_SCHEMA else -1
+        rce_idx = self.SIGNAL_SCHEMA.index("agentic_rce") if "agentic_rce" in self.SIGNAL_SCHEMA else -1
+        
+        ai_vuln_found = False
+        
+        if rce_idx >= 0:
+            rce_stars = sorted([s for s in stars if len(s.get("hit_vector", [])) > rce_idx and s.get("hit_vector")[rce_idx] > 0], key=lambda x: x.get("hit_vector")[rce_idx], reverse=True)
+            if rce_stars:
+                ai_vuln_found = True
+                lines.append("### 🚨 Agentic RCE (Critical)")
+                lines.append("The following files pass autonomous LLM output directly into system execution commands. This allows the AI to run arbitrary code on the host machine.\n")
+                for s in rce_stars[:5]:
+                    lines.append(f"- `{s.get('path')}` -> **{s.get('hit_vector')[rce_idx]}** confirmed execution vectors")
+                lines.append("")
+                
+        if pi_idx >= 0:
+            pi_stars = sorted([s for s in stars if len(s.get("hit_vector", [])) > pi_idx and s.get("hit_vector")[pi_idx] > 0], key=lambda x: x.get("hit_vector")[pi_idx], reverse=True)
+            if pi_stars:
+                ai_vuln_found = True
+                lines.append("### 💉 Prompt Injection Surface")
+                lines.append("The following files pass raw, untrusted external I/O directly into an LLM context window without sanitization.\n")
+                for s in pi_stars[:5]:
+                    lines.append(f"- `{s.get('path')}` -> **{s.get('hit_vector')[pi_idx]}** exposed injection surfaces")
+                lines.append("")
+                
+        if not ai_vuln_found:
+            lines.append("*No autonomous AI vulnerabilities detected.*")
+        lines.append("")
+
         # ==============================================================================
         # --- 11. CUMULATIVE RISK HITLIST (NEW) ---
         # ==============================================================================
@@ -520,29 +648,12 @@ class LLMRecorder:
         # ==============================================================================
         lines.append("## 12. VISIBLE MATTER HITLIST (Top 25 Heaviest Files)")
         lines.append("> *Note: 'Mass' represents the file's total Structural Magnitude and gravitational pull within the system. It is independent of its Risk Profile. High mass implies high structural importance and centralization.*\n")
-        
-        # --- N-TH DEGREE GRAPH RESOLUTION ---
-        def get_nth_count(start, graph):
-            if start not in graph: return 0
-            vis = set()
-            q = [start]
-            while q:
-                n = q.pop(0)
-                for neighbor in graph.get(n, []):
-                    if neighbor not in vis:
-                        vis.add(neighbor)
-                        q.append(neighbor)
-            return len(vis)
-        
-        transitive_fragility = {s.get("path", ""): get_nth_count(s.get("path", ""), outbound_map) for s in stars}
-        transitive_blast = {s.get("path", ""): get_nth_count(s.get("path", ""), inbound_map) for s in stars}
-        # ------------------------------------
 
         sorted_stars = sorted(stars, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
         
         # DNA Bucketing Sets
         structure_keys = {"branch", "linear", "args", "func_start", "class_start"}
-        risk_keys = {"danger", "flux", "graveyard", "safety_neg", "planned_debt", "fragile_debt"}
+        risk_keys = {"danger", "flux", "graveyard", "safety_neg", "planned_debt", "fragile_debt", "design_slop_orphans", "design_slop_duplicates"}
         arch_keys = {"io", "concurrency", "api", "import"}
         defense_keys = {"safety", "freeze_hits", "cleanup", "test", "sync_locks", "doc"}
         
@@ -584,6 +695,7 @@ class LLMRecorder:
                 lines.append(f"- **Top Global Matches:** {', '.join(fp_strs)}")
                 
             lines.append(f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%")
+            lines.append(f"- **Algorithmic:** {tel.get('max_algorithmic_complexity', 'O(N)')} | **DB Complexity:** {tel.get('max_db_complexity', 0)}")
             lines.append(f"- **Risk Profile:** Cognitive Load ({cog}%), Tech Debt ({debt}%)")
             
             # Bucket the DNA Hits
@@ -604,7 +716,13 @@ class LLMRecorder:
             if sats:
                 lines.append("**Top Internal Satellites (Functions/Classes):**")
                 for sat in sats:
-                    lines.append(f"  * `{sat.get('name')}` (Impact: {sat.get('impact')} | LOC: {sat.get('loc')} | Branches: {sat.get('branch', 0)})")
+                    o_str = "O(2^N)" if sat.get("is_recursive", False) else f"O(N^{sat.get('big_o_depth', 1)})"
+                    db_str = f" | DB: {sat.get('db_complexity', 0)}" if sat.get("db_complexity", 0) > 0 else ""
+                    lines.append(f"  * `{sat.get('name')}` (Impact: {sat.get('impact')} | {o_str}{db_str})")
+                    doc = sat.get('docstring', '').strip()
+                    if doc:
+                        clean_doc = " ".join(doc.split())[:100] + ("..." if len(doc) > 100 else "")
+                        lines.append(f"    * *Intent:* {clean_doc}")
             
             # --- NEW MITIGATION TELEMETRY BLOCK ---
             mitigations = tel.get("mitigation_telemetry", {})
@@ -624,15 +742,21 @@ class LLMRecorder:
             
             # Dependency Graph Mapping (Named Edges)
             outbound = s.get("raw_imports", [])
-            inbound_count = tel.get("popularity", 0)
-            total_upstream = transitive_fragility.get(p, 0)
-            total_downstream = transitive_blast.get(p, 0)
+            net_mets = tel.get("network_metrics", {})
+            in_d = net_mets.get("in_degree", 0)
+            out_d = net_mets.get("out_degree", 0)
+            blast_rad = net_mets.get("normalized_blast_radius", 0.0)
+            between_score = net_mets.get("betweenness_score", 0.0)
+            close_score = net_mets.get("closeness_score", 0.0)
+            eco_role = net_mets.get("ecosystem_role", "Unknown")
             
             out_names = ", ".join([Path(x).name for x in outbound[:8]]) + ("..." if len(outbound) > 8 else "")
             
-            lines.append(f"* *Dependencies:*")
-            lines.append(f"  * `Imports (Direct: {len(outbound)} | Total Upstream: {total_upstream}):` {out_names if out_names else 'None'}")
-            lines.append(f"  * `Imported By (Direct: {inbound_count} | Total Downstream: {total_downstream}):` {'(Excluded from Brief to save tokens)' if inbound_count > 0 else 'None (Orphan / Entrypoint)'}")
+            lines.append(f"* *Network Topology:*")
+            lines.append(f"  * `Ecosystem Role:` {eco_role} | `Blast Radius (PageRank):` {blast_rad}")
+            lines.append(f"  * `Choke Point (Betweenness):` {between_score} | `Ripple Effect (Closeness):` {close_score}")
+            lines.append(f"  * `Imports (Out-Degree: {out_d}):` {out_names if out_names else 'None'}")
+            lines.append(f"  * `Imported By (In-Degree: {in_d}):` {'(Excluded from Brief to save tokens)' if in_d > 0 else 'None (Orphan / Entrypoint)'}")
             lines.append("")
         
         # ==============================================================================
@@ -759,7 +883,45 @@ class LLMRecorder:
                 silo_score = s.get("telemetry", {}).get("author_distribution", 0.0)
                 lines.append(f"- `{s.get('path')}` -> **{owner}** ({silo_score}% isolated ownership) | Mass: {s.get('file_impact')}")
             lines.append("")
-        
+
+        # ==============================================================================
+        # --- 13.8 SYSTEMIC NETWORK BOTTLENECKS (N-Dimensional Physics) ---
+        # ==============================================================================
+        sys_bots = forensic_report.get("systemic_bottlenecks", {})
+        if any(v and v[0]["score"] > 0 for v in sys_bots.values()):
+            lines.append("## 13.8 SYSTEMIC NETWORK BOTTLENECKS (N-Dimensional Physics)")
+            lines.append("> **AI CONTEXT:** These metrics cross-multiply Network Graph Theory against Risk Exposure to identify the exact mechanisms of runtime failure.\n")
+            
+            # Contagious Mutation
+            cm = sys_bots.get("contagious_mutation", [])
+            if cm and cm[0]["score"] > 0:
+                lines.append("### ☣️ Contagious Mutation (Betweenness * State Flux)")
+                lines.append("These files act as structural bridges between components, but possess highly volatile, mutating state. They cause unpredictable side-effects for all downstream consumers.\n")
+                for c in cm:
+                    if c["score"] > 0:
+                        lines.append(f"- `{c['path']}` -> **Severity: {c['score']}** (Bridge: {c['btw']} * Flux: {c['flux']}%)")
+                lines.append("")
+
+            # House of Cards
+            hoc = sys_bots.get("house_of_cards", [])
+            if hoc and hoc[0]["score"] > 0:
+                lines.append("### 🃏 House of Cards (Closeness * Error Risk)")
+                lines.append("These files are deeply embedded (1 or 2 hops from the entire codebase) but possess high error exposure. A runtime exception here will cascade instantly across the application.\n")
+                for h in hoc:
+                    if h["score"] > 0:
+                        lines.append(f"- `{h['path']}` -> **Severity: {h['score']}** (Embedded: {h['close']} * Error Risk: {h['err']}%)")
+                lines.append("")
+
+            # Blind Bottleneck
+            bb = sys_bots.get("blind_bottleneck", [])
+            if bb and bb[0]["score"] > 0:
+                lines.append("### 🙈 Blind Bottlenecks (Blast Radius * Doc Risk)")
+                lines.append("These are 'God Nodes' that the entire ecosystem relies upon, but they lack human intent, documentation, or ownership metadata. Modifying them is flying blind.\n")
+                for b in bb:
+                    if b["score"] > 0:
+                        lines.append(f"- `{b['path']}` -> **Severity: {b['score']}** (Blast Radius: {b['pr']} * Doc Risk: {b['doc']}%)")
+                lines.append("")
+
         # ==============================================================================
         # --- 14. SYSTEM PROMPT: HOW TO RESPOND ---
         # ==============================================================================
@@ -793,6 +955,7 @@ class LLMRecorder:
             cursor.execute('CREATE TABLE meta (key TEXT, value TEXT)')
             
             macro_info = summary.get("repo_macro_species", {})
+            net_macro = summary.get("network_macro", {})
             cursor.executemany('INSERT INTO meta VALUES (?, ?)', [
                 ("engine", session.get("engine")),
                 ("project", session.get("target")),
@@ -800,7 +963,12 @@ class LLMRecorder:
                 ("branch", session.get("git_audit", {}).get("branch")),
                 ("commit", session.get("git_audit", {}).get("commit_hash")),
                 ("repo_macro_species", macro_info.get("name", "Unclassified")),
-                ("repo_z_score", str(macro_info.get("z_score", 0.0)))
+                ("repo_z_score", str(macro_info.get("z_score", 0.0))),
+                ("network_modularity", str(net_macro.get("modularity", 0.0))),
+                ("network_assortativity", str(net_macro.get("assortativity", 0.0))),
+                ("network_cyclic_density", str(net_macro.get("cyclic_density", 0.0))),
+                ("network_avg_path_length", str(net_macro.get("avg_path_length", 0.0))),
+                ("network_articulation_points", str(net_macro.get("articulation_points", 0)))
             ])
 
             cursor.execute('DROP TABLE IF EXISTS stars')
@@ -810,6 +978,7 @@ class LLMRecorder:
                     id INTEGER PRIMARY KEY,
                     path TEXT,
                     filename TEXT,
+                    parent_entity TEXT,
                     constellation TEXT,
                     language TEXT,
                     lock_tier INTEGER,
@@ -830,6 +999,8 @@ class LLMRecorder:
                     local_drift REAL,
                     repo_macro_species TEXT,
                     repo_z_score REAL,
+                    max_algorithmic_complexity TEXT,
+                    max_db_complexity INTEGER,
                     {risk_cols}
                 )
             ''')
@@ -856,6 +1027,11 @@ class LLMRecorder:
                     type_id TEXT,
                     loc INTEGER,
                     impact REAL,
+                    big_o_depth INTEGER,
+                    is_recursive BOOLEAN,
+                    db_complexity INTEGER,
+                    docstring TEXT,
+                    calls_out_to TEXT,
                     FOREIGN KEY(star_id) REFERENCES stars(id)
                 )
             ''')
@@ -918,24 +1094,26 @@ class LLMRecorder:
                 repo_z = tel.get("repo_z_score", 0.0)
                 
                 # --- INJECT ALL RAW DNA METRICS ---
+                parent_entity = tel.get("domain_context", {}).get("parent_entity", "")
+                
                 cursor.execute(f'''
                     INSERT INTO stars (
-                        path, filename, constellation, language, lock_tier, 
-                        total_loc, coding_loc, doc_loc, file_impact, 
+                        path, filename, parent_entity, constellation, language, lock_tier, 
+                        total_loc, coding_loc, doc_loc, file_impact,
                         control_flow_ratio, author_distribution, ownership_entropy,
                         raw_churn_freq, cog_raw, ownership, popularity, 
                         archetype, global_drift, local_archetype, local_drift,
-                        repo_macro_species, repo_z_score,
+                        repo_macro_species, repo_z_score, max_algorithmic_complexity, max_db_complexity,
                         {", ".join(self.RISK_SCHEMA)}
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
                 ''', (
                     p, Path(p).name, c_name, star.get("lang_id"), star.get("lock_tier"), 
                     star.get("total_loc"), star.get("coding_loc"), star.get("doc_loc", 0), star.get("file_impact"),
                     tel.get("control_flow_ratio"), tel.get("author_distribution"), tel.get("ownership_entropy"),
                     tel.get("raw_churn_freq"), tel.get("densities", {}).get("cog_raw"), tel.get("ownership"), pop_count, 
                     tel.get("archetype", "Unknown"), tel.get("global_drift", 0.0), tel.get("local_archetype", "N/A"), tel.get("local_drift", 0.0),
-                    str(repo_macro), repo_z,
+                    str(repo_macro), repo_z, tel.get("max_algorithmic_complexity", "O(N)"), tel.get("max_db_complexity", 0),
                     *rv
                 ))
                 
@@ -946,9 +1124,12 @@ class LLMRecorder:
                 dna_data = [(sid, self.SIGNAL_SCHEMA[i], hv[i]) for i in range(len(hv)) if hv[i] > 0]
                 cursor.executemany('INSERT INTO dna_hits VALUES (?, ?, ?)', dna_data)
                 
+                import json
                 for sat in star.get("satellites", []):
-                    cursor.execute('INSERT INTO satellites (star_id, name, type_id, loc, impact) VALUES (?, ?, ?, ?, ?)', (
-                        sid, sat.get("name"), sat.get("type_id"), sat.get("loc"), sat.get("impact")
+                    calls_json = json.dumps(sat.get("calls_out_to", []))
+                    cursor.execute('INSERT INTO satellites (star_id, name, type_id, loc, impact, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+                        sid, sat.get("name"), sat.get("type_id"), sat.get("loc"), sat.get("impact"),
+                        sat.get("big_o_depth", 1), sat.get("is_recursive", False), sat.get("db_complexity", 0), sat.get("docstring", ""), calls_json
                     ))
 
                 raw_imports = star.get("raw_imports", [])

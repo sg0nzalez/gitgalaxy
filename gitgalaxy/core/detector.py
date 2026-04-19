@@ -16,6 +16,22 @@ import bisect
 from typing import Dict, List, Any, TypedDict, Optional, Tuple
 from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS
 from gitgalaxy.standards.language_standards import UNIVERSAL_RULES, LANGUAGE_DEFINITIONS
+HAS_TIKTOKEN = False
+try:
+    import tiktoken
+    HAS_TIKTOKEN = True
+    # cl100k_base is the standard for GPT-4, o1, and a highly accurate proxy for Claude
+    ENCODER = tiktoken.get_encoding("cl100k_base") 
+except ImportError:
+    pass
+
+def get_token_mass(text: str, deep_scan: bool = False) -> int:
+    """Calculates context window footprint. O(1) heuristic default, absolute precision if deep_scan is True."""
+    if not text:
+        return 0
+    if deep_scan and HAS_TIKTOKEN:
+        return len(ENCODER.encode(text, disallowed_special=()))
+    return max(1, len(text) // 4)
 
 # ==============================================================================
 # GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Cartographer
@@ -53,7 +69,13 @@ class Satellite(TypedDict, total=False):
     start_line: int
     end_line: int
     
+    big_o_depth: int
+    is_recursive: bool
+    db_complexity: int
+    docstring: str
+    calls_out_to: List[str]
     hit_vector: Dict[str, int]
+    token_mass: int
 
 
 class LogicData(TypedDict, total=False):
@@ -65,6 +87,8 @@ class LogicData(TypedDict, total=False):
     total_control_flow_ratio: float
     raw_imports: list  
     metadata: Dict[str, str]
+    token_mass: int
+    financial_read_cost: float
 
 
 # ==============================================================================
@@ -276,8 +300,9 @@ class LogicSplicer:
             except ImportError:
                 pass
 
-    def splice(self, code_stream: str, comment_stream: str, confidence: float = 1.0, profile_regex: bool = False) -> Dict[str, Any]:
+    def splice(self, code_stream: str, comment_stream: str, confidence: float = 1.0, profile_regex: bool = False, raw_content: str = "") -> Dict[str, Any]:
         """Executes the structural regex pass over refracted code streams."""
+        self.raw_content_lines = raw_content.splitlines() if raw_content else []
         regex_telemetry = {}
         t_start = time.time()
         
@@ -336,13 +361,28 @@ class LogicSplicer:
             segments = self._partition_segments(code_stream, self.primary_lang_id)
             
             t_eq = time.time()
-            equations, mitigation_telemetry, segment_spatial_maps = self.coding_analysis(segments, regex_telemetry if profile_regex else None)
+            equations, mitigation_telemetry, segment_spatial_maps, extracted_parents = self.coding_analysis(segments, regex_telemetry if profile_regex else None)
            
+            if extracted_parents:
+                # Store the top 3 parent entities to prevent massive string bloat on huge files
+                ghost_meta["parent_entity"] = ", ".join(list(dict.fromkeys(extracted_parents))[:3])
+
             equations = self.comment_analysis(comment_stream, self.primary_lang_id, equations)
             
             t_slice = time.time()
             satellites, sum_fxn_impact = self._function_slice(segments, segment_spatial_maps, regex_telemetry if profile_regex else None)
-        
+
+            # ---> NEW: FAST CLASS (GAS GIANT) EXTRACTOR <---
+            gas_giants = []
+            class_pattern = re.compile(r'^\s*(?:export\s+|public\s+|abstract\s+)?class\s+([a-zA-Z0-9_]+)(?:\s*(?:\(|extends\s+)([a-zA-Z0-9_]+))?', re.MULTILINE)
+            for match in class_pattern.finditer(code_stream):
+                gas_giants.append({
+                    "name": match.group(1),
+                    "inheritance": [match.group(2)] if match.group(2) else [],
+                    "method_count": 0,
+                    "state_entanglement": 0.0,
+                    "lcom_score": 0.0
+                })
 
             branch_hits = equations.get("branch", 0)
             linear_hits = equations.get("linear", 0)
@@ -379,14 +419,20 @@ class LogicSplicer:
             if orphan_count > 0:
                 equations["design_slop_orphans"] = orphan_count
 
+            # Calculate total file footprint, preferring the unshielded raw text if available
+            file_token_mass = get_token_mass(raw_content if raw_content else code_stream)
+
             result_payload = {
                 "equations": equations,
+                "gas_giants": gas_giants,
                 "satellites": satellites,
                 "logic_density": logic_density,
                 "sum_fxn_impact": sum_fxn_impact,
                 "total_control_flow_ratio": total_control_flow_ratio,
                 "metadata": ghost_meta,
-                "mitigation_telemetry": mitigation_telemetry # <--- ADD THIS
+                "mitigation_telemetry": mitigation_telemetry,
+                "token_mass": file_token_mass,
+                "financial_read_cost": round((file_token_mass / 1000000) * 3.00, 5)
             }
             if profile_regex:
                 result_payload["regex_telemetry"] = regex_telemetry
@@ -493,7 +539,48 @@ class LogicSplicer:
 
         return meta
 
+    def _extract_ghost_tether(self, start_line: int, lang_id: str) -> str:
+        """Surgically extracts the human intent (docstring/comments) using exact spatial coordinates."""
+        if not hasattr(self, 'raw_content_lines') or not self.raw_content_lines:
+            return ""
+            
+        # Convert the 1-indexed start_line to a 0-indexed array position
+        i = start_line - 1
+        if i < 0 or i >= len(self.raw_content_lines):
+            return ""
+            
+        doc_buffer = []
+        
+        # 1. Harvest Above (C, Java, JS, Rust, Go, PHP, C#)
+        for j in range(i - 1, max(-1, i - 15), -1):
+            prev = self.raw_content_lines[j].strip()
+            if not prev: continue
+            if prev.startswith(('#', '//', '/*', '*', '///', '--', '<!--', 'dnl', ';', '%')):
+                doc_buffer.insert(0, prev)
+            elif prev.endswith('*/') or prev.endswith('#>'):
+                doc_buffer.insert(0, prev)
+            elif prev.startswith('@') or prev.startswith('['): # Step over decorators safely
+                continue
+            else:
+                break
+                
+        # 2. Harvest Below (Python docstrings, MATLAB help, Ruby =begin)
+        if lang_id in ('python', 'matlab', 'ruby', 'elixir'):
+            for j in range(i + 1, min(len(self.raw_content_lines), i + 10)):
+                nxt = self.raw_content_lines[j].strip()
+                if not nxt: continue
+                if nxt.startswith(('"""', "'''", '%', '#', '=begin')):
+                    doc_buffer.append(nxt)
+                elif len(doc_buffer) > 0 and (nxt.endswith('"""') or nxt.endswith("'''") or nxt == '=end'):
+                    doc_buffer.append(nxt)
+                    break
+                else:
+                    break
+                    
+        return "\n".join(doc_buffer)[:2000] # Cap at 2000 chars to prevent DB bloat
+
     def _partition_segments(self, content: str, primary_id: str) -> List[Tuple[str, str, int]]:
+        """Splits content into language segments based on handshake triggers."""
         segments = []
         last_idx = 0
         current_line_offset = 0
@@ -537,6 +624,7 @@ class LogicSplicer:
             segments.append((primary_id, chunk, current_line_offset))
             
         return segments if segments else [(primary_id, content, 0)]
+
 
     def _find_balanced_end(self, safe_text: str, start_pos: int, opener: str, closer: str) -> int:
         """
@@ -602,10 +690,11 @@ class LogicSplicer:
 
         return unmitigated_count, mitigated_count
 
-    def coding_analysis(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Tuple[Dict[str, int], Dict[str, int], List[Dict[str, List[int]]]]: 
+    def coding_analysis(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Tuple[Dict[str, int], Dict[str, int], List[Dict[str, List[int]]], List[str]]: 
         counts: Dict[str, int] = {key: 0 for key in self.UNIVERSAL_METRICS_SCHEMA}
         mitigations: Dict[str, int] = {"mitigated_danger": 0, "mitigated_memory_allocs": 0, "amplified_rce": 0, "amplified_race_conditions": 0, "amplified_leaks": 0}
         segment_spatial_maps = []
+        extracted_parents = []
         
         for seg_lang, seg_code, _ in segments:
             # 1. Grab the language-specific rules
@@ -642,7 +731,15 @@ class LogicSplicer:
 
                     # ---> THE UPGRADE: Spatial Mapping instead of raw counting <---
                     if hasattr(pattern, 'finditer'):
-                        hit_indices = [m.start() for m in pattern.finditer(seg_code)]
+                        matches = list(pattern.finditer(seg_code))
+                        hit_indices = [m.start() for m in matches]
+                        
+                        # ---> THE LINEAGE EXTRACTOR <---
+                        # If the regex has 2+ capture groups, group 2 contains the inheritance mapping
+                        if rule_name == 'class_start' and pattern.groups >= 2:
+                            for m in matches:
+                                if m.group(2):
+                                    extracted_parents.append(m.group(2).strip())
                     else:
                         hit_indices = [m.start() for m in re.finditer(str(pattern), seg_code)]
                         
@@ -734,7 +831,7 @@ class LogicSplicer:
             counts['indent_spaces'] += len(re.findall(r'^[ ]{2,}(?=\S)', seg_code, flags=re.MULTILINE))
             segment_spatial_maps.append(spatial_map)
 
-        return counts, mitigations, segment_spatial_maps
+        return counts, mitigations, segment_spatial_maps, extracted_parents
     
     def comment_analysis(self, comment_stream: str, lang_id: str, counts: Dict[str, int]) -> Dict[str, int]:
         """
@@ -1479,8 +1576,42 @@ class LogicSplicer:
         
         # --- FAST CODING LOC HEURISTIC (Syntax Fixed!) ---
         # Quickly strip out blank lines and standard single-line comments to find the true logic mass
-        clean_lines = [l.strip() for l in block.splitlines()]
-        coding_loc = sum(1 for l in clean_lines if l and not l.startswith(('#', '//', '/*', '*')))
+        # THE FIX: Preserve leading whitespace to calculate Big-O nesting depth!
+        raw_lines = [l for l in block.splitlines() if l.strip() and not l.lstrip().startswith(('#', '//', '/*', '*'))]
+        coding_loc = len(raw_lines)
+        
+        # --- NEW: BIG-O ALGORITHMIC COMPLEXITY TRACKER ---
+        # Uses standard code indentation as a universal proxy for AST nesting depth.
+        max_indent = 0
+        if raw_lines:
+            base_indent = len(raw_lines[0]) - len(raw_lines[0].lstrip())
+            for line in raw_lines:
+                indent = len(line) - len(line.lstrip())
+                # Assume standard 4-space or 1-tab format per scope level
+                depth = (indent - base_indent) // 4
+                if depth > max_indent:
+                    max_indent = depth
+                    
+        # Clamp between O(1) and O(N^6) to prevent runaway formatting bugs from declaring infinite mass
+        big_o_depth = min(max(max_indent, 1), 6)
+        
+        # --- NEW: EXPONENTIAL O(2^N) RECURSION TRACKER ---
+        # Check if the function's name appears followed by a parenthesis/space inside its own body.
+        # We check for > 1 because the first hit is the function definition itself!
+        is_recursive = False
+        if name and len(name) > 2 and name not in {"Unknown_Sat", "Anonymous_Block", "Main"}:
+            # Fast heuristic: Count occurrences. If it appears more than once, it's highly likely recursive.
+            occurrence_count = len(re.findall(r'\b' + re.escape(name) + r'\b', block))
+            if occurrence_count > 1:
+                is_recursive = True
+        
+        # --- NEW: FUNCTION-LEVEL DATABASE COMPLEXITY (Data Gravity) ---
+        # Weight complex raw SQL (JOINs/CTEs) heavily, standard ORM calls moderately, and migrations lightly.
+        db_complexity = 0
+        if hit_vector:
+            db_complexity = (hit_vector.get("sql_complexity", 0) * 3) + \
+                            (hit_vector.get("orm_models", 0) * 2) + \
+                            (hit_vector.get("schema_migrations", 0) * 1)
 
         # --- NEW: FUNCTION-LEVEL KEYWORD DENSITY (The Micro-Auditor) ---
         # Total structural signals divided by the physical lines of the function.
@@ -1509,13 +1640,21 @@ class LogicSplicer:
         total_signals = branch_hits + linear_hits + args_count
         effective_loc = min(loc, (total_signals + 1) * 10)
 
-        # ---> THE FIX 2: SUB-LINEAR ARGUMENT DAMPENER <---
+        # ---> THE FIX 2: SUB-LINEAR ARGUMENT DAMPENER & BIG-O SCALAR <---
         # Apply a square root to the arguments to prevent combinatorial mass explosions
         # on edge-case mega-functions, while preserving the core physics philosophy.
         arg_multiplier = math.sqrt(args_count + 1)
+        
+        # Apply Big O Depth as an exponential gravity multiplier. 
+        # O(N)=1.0x, O(N^2)=1.5x, O(N^3)=2.0x, etc.
+        complexity_multiplier = 1.0 + ((big_o_depth - 1) * 0.5)
+        
+        # Recursive functions are dangerous and mathematically dense. Double their mass.
+        if is_recursive:
+            complexity_multiplier *= 2.0
 
-        # Calculate magnitude using the dampened arguments and logic-bounded length
-        magnitude = float((branch_hits + 1) * arg_multiplier + (0.05 * effective_loc))
+        # Calculate magnitude using the dampened arguments, Big-O depth, and logic-bounded length
+        magnitude = float((branch_hits + 1) * arg_multiplier * complexity_multiplier + (0.05 * effective_loc))
 
         # ---> THE FIX: SPATIAL GEOMETRY MATH <---
         # Calculate the Control Flow Ratio and the Fractal Fibonacci Angle (Theta)
@@ -1523,8 +1662,31 @@ class LogicSplicer:
         control_flow_ratio = (branch_hits / total_cf_signals) if total_cf_signals > 0 else 0.0
         angle = 22.5 + (1.0 - control_flow_ratio) * 67.5
 
+        # ---> NEW: THE GHOST TETHER <---
+        # Re-attach the human intent using the exact starting line coordinate!
+        docstring = self._extract_ghost_tether(start_line, self.primary_lang_id)
+
+        # ---> NEW: LEVEL 3 WIRING (Function Call Chains) <---
+        # We scan the block for any word followed by a parenthesis, minus common language keywords.
+        invocation_pattern = re.compile(r'\b([a-zA-Z_]\w*)\s*\(')
+        raw_calls = invocation_pattern.findall(block)
+        ignore_keywords = {
+            "if", "for", "while", "switch", "catch", "return", "sizeof", "typeof", 
+            "alignof", "decltype", "using", "throw", "await", "import", "require", 
+            "include", "def", "function", "class", "print", "println", "console", 
+            "log", "echo", "printf", "fmt", "assert", "expect", "require_once",
+            "include_once", "cast", "isinstance", "issubclass", "hasattr", "getattr",
+            "setattr", "delattr", "len", "max", "min", "range", "xrange", "enumerate",
+            "zip", "map", "filter", "list", "dict", "set", "tuple", "bool", "int",
+            "float", "str", "bytes", "bytearray", "memoryview", "super", "try", "except", "finally",
+            "String", "Array", "Object", "Number", "Boolean"
+        }
+        # Deduplicate and filter (excluding the function calling itself recursively)
+        calls_out = list(set([c for c in raw_calls if c not in ignore_keywords and c != name]))[:20]
+
         sat: Satellite = {
             "name": name[:40],
+            "calls_out_to": calls_out,
             "texture": texture_str, 
             "type_id": texture_str,
             "loc": loc,
@@ -1532,6 +1694,10 @@ class LogicSplicer:
             "branch": branch_hits,
             "args": args_count,
             "args_count": args_count,
+            "big_o_depth": big_o_depth,
+            "is_recursive": is_recursive,
+            "db_complexity": db_complexity,
+            "docstring": docstring,
             "logic_angle": round(angle, 2),
             "angle": round(angle, 2),
             "control_flow_ratio": round(control_flow_ratio, 3),
@@ -1543,7 +1709,8 @@ class LogicSplicer:
             "end_line": end_line,
             "hit_vector": hit_vector,
             "keyword_density": round(keyword_density, 3),
-            "coding_loc": coding_loc
+            "coding_loc": coding_loc,
+            "token_mass": get_token_mass(block)
         }
         return sat, magnitude
 
