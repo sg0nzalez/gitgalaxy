@@ -26,44 +26,40 @@ The blAST engine solves this. Because all programming languages utilize keywords
 Every assumption our system makes has been abstracted into over 300 tunable variables. Think of GitGalaxy as a highly calibrated telescope. You can query the number of active API network nodes, isolate unique external imports, or highlight functions exhibiting extreme cognitive load—all adjusted via custom whitelists and blacklists to eliminate false-positive fatigue. Field-tested on over 1,000 repositories spanning 50+ languages and 250+ extensions, the engine comes equipped with smart defaults ready for immediate deployment.
 
 **Core Technology**
-* Bypasses LLMs and rigid ASTs
-* Doesn't require to code compiles (AST-free)
-* Produces full function-to-function call chains
-* Deterministically maps code by 60+ keyword regex profiles (Structural markers, I/O intents, state mutations)
-* Regex keyword profiles allow us to classify functions, files, classes, folders and repos 
-* Eliminates LLM architectural hallucinations
-* Eliminates LLM context window limits
-* Scans 50+ languages, 250+ extensions, fully folder-aware
+* Bypasses LLMs and rigid ASTs.
+* Doesn't require code to compile (AST-free).
+* Produces full function-to-function call chains.
+* Deterministically maps code by 60+ keyword regex profiles (Structural markers, I/O intents, state mutations).
+* Regex keyword profiles allow us to classify functions, files, classes, folders and repos. 
+* Eliminates LLM architectural hallucinations and context window limits.
+* Scans 50+ languages, 250+ extensions, fully folder-aware. **([How to add a language in 1 minute and 1 prompt](gitgalaxy/standards/HOW_TO_ADD_LANGUAGE.md))**
 
 **Extreme Velocity & Scale**
-* 100,000 LOC/sec code analysis
-* 0.07 GB/sec raw log ingestion
-* Full-system scans in minutes without data sampling
-* 100% daily system coverage
+* 100,000 LOC/sec code analysis.
+* 0.07 GB/sec raw log ingestion.
+* Full-system scans in minutes without data sampling.
+* 100% daily system coverage.
 
-**Intelligence & Tracking**
-* Builds deterministic, relational 3D knowledge graphs
-* Extracts 18 exact Risk Exposures (Cognitive Load, Logic Bombs, Obscured Payloads).
-* Assess functions and files for O(N) variations to highlight bottlenecks
-* Builds longitudinal knowledge graphs
-* Tracks logic at the function level
-* Monitors risk exposures and temporal code evolution over time
+**Scientific Claims & Validation**
+GitGalaxy is backed by an academic-grade thesis detailing the equations powering the blAST engine.
+
+* **[Optimum Search Strategies Evolve](https://squid-protocol.github.io/gitgalaxy/03-01-claim-1-search-strategies/):** AST-free mapping. Outperforms rigid parsers and LLM context windows.
+* **[Languages are getting easier to regex for meaning and intent](https://squid-protocol.github.io/gitgalaxy/03-02-claim-2-explicitness/):** Quantifies linguistic opacity. Assigns mathematical "trust dampeners" to implicit languages.
+* **[All languages have keywords that roughly do the same thing, these can be grouped to make cross-language keyword maps](https://squid-protocol.github.io/gitgalaxy/03-03-claim-3-taxonomy-map/):** Standardizes 50+ languages into a single universal physical framework.
+* **[Cross-Language Comparisons of over 1000 repos](https://squid-protocol.github.io/gitgalaxy/03-04-claim-4-comparing-languages/):** Deterministic 1:1 benchmarking of distinct syntax architectures.
+* **[Universal File Archetypes by k-means clustering](https://squid-protocol.github.io/gitgalaxy/03-05-claim-5-file-archetypes/):** ML isolation of files into K-means clusters (e.g., "The God Nodes," "Declarative Glue").
+* **[Assessing the blAST engines cross-language capbility over 10 different DOOM ports](https://squid-protocol.github.io/gitgalaxy/03-07-claim-7-doom-comparisons/):** Comparative function analysis across 10 distinct DOOM source ports.
+* **Mainframe Proven:** Successful from-scratch translation of legacy COBOL monoliths to compiling Spring Boot architectures.
 
 **Security & Deployment**
-* 100% air-gapped execution
-* On-premise deployment with zero IP exfiltration risk
-* Zero-trust processing model
+* 100% air-gapped execution.
+* On-premise deployment with zero IP exfiltration risk.
+* Zero-trust processing model.
 
 **How to use**
 * Python-based: `pip install gitgalaxy`
 * CLI execution
 * Outputs forensic JSONs (optimized for AI-agent summary reports) and a native SQLite3 database for robust querying and storage.
-
-**Validation**
-* Population statistics derived from 1,000+ repositories.
-* Comparative function and architecture analysis of 10 different DOOM source ports.
-* Proven keyword pattern automation for mapping and cleaning COBOL mainframes (JCLs, DAGs, schemas).
-* Successful from-scratch translation of legacy COBOL to compiling Java Spring Boot architectures.
 
 > **📖 Official Documentation:** Read the full technical specifications, architecture blueprints, and the Taxonomical Equivalence Map at **[squid-protocol.github.io/gitgalaxy](https://squid-protocol.github.io/gitgalaxy/)**.
 
