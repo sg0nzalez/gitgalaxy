@@ -37,3 +37,15 @@ The Inspector hunts for specific Bitwise operations (`bitwise_hits`). High conce
 When the scan is complete, the X-Ray Inspector prints a Mission Report detailing the scan velocity and the exact files containing structural anomalies. 
 
 If any encrypted payloads, Magic Byte mismatches, or parasitic execution headers are detected, it issues a `TRIAGE ALERT`, exiting with a status code of `1` to violently block the malicious commit or Pull Request.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

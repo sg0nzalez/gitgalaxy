@@ -82,3 +82,15 @@ When the Aperture Filter encounters an opaque binary (e.g., `.png`, `.zip`, `.dl
 * **Magic Byte Verification:** Checks if the file's internal binary header actually matches its extension.
 * **Parasite Detection:** Scans the binary chunk for embedded execution headers (like `ELF`, `MZ`, or `#!/bin/`) hiding inside non-executable files.
 * **High-Entropy Carving:** Measures the entropy of the binary chunk. If it exceeds 7.95, it flags the binary as an encrypted or heavily packed weaponized payload.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

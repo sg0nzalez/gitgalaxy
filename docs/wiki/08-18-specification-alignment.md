@@ -25,3 +25,15 @@ $$Ratio = \min\left(\frac{spec\_exposure}{Entities}, 1.0\right)$$
 **Step C: Invert for Risk Exposure**
 We subtract the ratio from 1.0, multiply by 100, and apply the Path Modifier ($Mp$). 
 $$Exposure = \min((1.0 - Ratio) \times 100.0 \times Mp, 100.0)$$
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

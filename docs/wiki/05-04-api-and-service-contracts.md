@@ -20,3 +20,15 @@ The Service Forge generates the `@Service` skeleton where the actual business lo
 ## The Mock Service Shield
 
 To prevent missing external subroutines from crashing the Spring Application Context upon booting, the orchestrator generates Mock Services for any unresolved calls. These mock services intercept the legacy call, log a standard warning (`"Mock Service invoked. Implementation missing."`), and safely return execution to the main thread.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

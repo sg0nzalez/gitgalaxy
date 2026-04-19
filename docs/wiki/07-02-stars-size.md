@@ -50,3 +50,15 @@ $$\text{Radius} = 10 + \left( \log_2(\max(\text{Total Mass}, 1)) \times 2 \right
 | **The Planet** | 100 - 1,000 | ~20 to 26 units | Standard business logic. Visible, stable, but not overwhelming. The "Middle Class" of the galaxy. |
 | **The Star** | 1,000 - 20,000 | ~27 to 38 units | Core utilities, major controllers, or complex engines. These anchor local clusters and exert visible gravity. |
 | **The Super-Giant** | 20,000+ | ~40+ units | "God Objects," massive reducers, or legacy core files. These dominate the screen, signaling extreme structural density. |
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

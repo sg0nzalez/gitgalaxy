@@ -31,3 +31,15 @@ Flags files that possess high state volatility (`state_flux > 50`) and act as he
 Once the firewall completes its evaluation, it compiles the triggered guardrails and specific warning messages into an `ai_guardrails` report. This payload is injected directly back into the star's central telemetry. 
 
 This ensures that downstream output modules—specifically the LLM Recorder—can explicitly warn downstream AI agents about the physical constraints and dangers of the files they are attempting to edit.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

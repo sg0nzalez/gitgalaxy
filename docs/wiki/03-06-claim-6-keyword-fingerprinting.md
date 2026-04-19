@@ -41,3 +41,15 @@ When we expanded the scan to a random global sample of 2,000 files to track arch
 Most profoundly, the engine proved that architectural intent transcends the compiler. In our cross-pollination audit, **18.2% of architectural patterns were reused across completely different repositories**, and **7.4% of files shared their closest structural twin with a completely different programming language**.
 
 By proving that these universal, cross-language blueprints exist, we can move beyond standard refactoring. We can begin applying *directed evolution*—using AI to adapt legacy spaghetti code into the exact genetic sequence of a highly evolved, battle-tested survivor.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

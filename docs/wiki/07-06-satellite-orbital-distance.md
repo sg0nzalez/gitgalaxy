@@ -30,3 +30,15 @@ This equation produces a clean, readable spread of satellites based on their exa
 | **100 LOC** | ~260 units | **Standard Branch:** A normal, healthy distance. |
 | **1,000 LOC** | ~360 units | **Major Limb:** A noticeably distant, heavy function. |
 | **100,000 LOC** | ~560 units | **Megastructure Reach:** Pushed to the far edges of the local system. |
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

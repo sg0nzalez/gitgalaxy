@@ -117,3 +117,15 @@ To break the mechanical perfection of the mathematical spirals, the engine injec
   * **X/Y Jitter:** **100** units.
   * **Z Jitter:** **400** units (The Z-axis receives a 4x multiplier to aggressively deepen the volumetric layering of the stars).
 * **The "Why" (Reproducible Chaos):** A perfectly mathematical spiral feels artificial and makes it harder for the human eye to distinguish individual stars. Jitter provides the "texture" of a real galaxy. Because the seed is based on the filename, the chaos is strictly deterministic—a file will always "vibrate" to the exact same relative sub-coordinate every time the map is rendered, allowing the developer to build a persistent mental map of the project's physical shape.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

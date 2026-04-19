@@ -21,3 +21,15 @@ To identify dead execution logic, the Reaper maps the control flow of the progra
 2. It assumes the very first paragraph is the "Main Entry Point" and is always executed.
 3. It scans the entire file for explicit jump commands (`PERFORM` and `GO TO`) to build a set of all "Reached" targets.
 4. Any paragraph that is declared but never reached by a jump command from the main execution tree is flagged as a **Phantom Paragraph**. This list is passed to the DAG Architect and Microservice Slicer so they know to completely ignore those lines of code.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

@@ -43,3 +43,15 @@ Your code never leaves your machine. GitGalaxy performs 100% of its scanning and
 
 ### The Biaxial Security Lens
 Traditional security scanners rely on rigid, outdated signatures or easily confused LLMs. blAST acts as an autonomous AppSec firewall, hunting for the structural heuristics of a threat. By analyzing the density of I/O hits, execution triggers, and security bypasses—and comparing them against local language physics—blAST is perfectly engineered to detect logic bombs, obscured payloads, and injection surfaces.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

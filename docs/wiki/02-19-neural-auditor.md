@@ -30,3 +30,15 @@ The `.gguf` format (used heavily by `llama.cpp` for local quantized inference) e
 Once the Auditor successfully extracts the model's metadata, it passes the intelligence back to the Orchestrator. 
 
 Because AI model weights are incredibly dense and represent massive local compute gravity, the Orchestrator injects this data back into the 3D map as a **Neural Supernova**. The file is given a massive gravitational footprint (calculated by dividing its gigabyte size by a scalar) and its extracted metadata (Architecture, Parameter Count, Quantization) is attached directly to the visual node, allowing architects to see exactly what kind of AI brain is embedded in their repository.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

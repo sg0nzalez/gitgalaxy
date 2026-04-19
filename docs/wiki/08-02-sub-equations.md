@@ -83,3 +83,15 @@ These variables provide the mathematical counter-weights to Phase 2 and Phase 3 
 | `encapsulation_hits` | Logic deliberately hidden from view (The counter-weight to API Exposure). |
 | `listeners_hits` | Waiting to receive state from an external broadcast (The counter-weight to Events). |
 | `test_skip_hits` | Framework code that explicitly bypasses verification (e.g., `it.skip`). |
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

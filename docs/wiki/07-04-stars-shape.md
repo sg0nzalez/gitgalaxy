@@ -67,3 +67,15 @@ To emphasize the "Digital" nature of high-logic code, the rendering style shifts
 
 * **The Low Tier (Sphere):** Rendered with a solid, emissive material. It feels like a glowing planet with soft, volumetric light.
 * **The High Tiers (Icosahedron $\rightarrow$ Tetrahedron):** Rendered as Glow Wireframes. We expose the edges and facets, making the star look like a flickering vector projection. As the control flow ratio increases, the wireframe density thins out, making the final Tetrahedron look like **a lethal, minimalist pyramid of pure calculation**.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

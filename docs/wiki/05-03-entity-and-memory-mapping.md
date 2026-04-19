@@ -26,3 +26,15 @@ To ensure the generated Java code compiles instantly, the Entity Forge applies a
 1. **CamelCase Conversion:** Legacy hyphens (`CUSTOMER-NAME`) are converted to standard Java camelCase (`customerName`).
 2. **Numeric Prefixing:** Java variables cannot begin with a number. Legacy variables like `1099-FORM` are automatically prefixed (`v1099Form`).
 3. **Reserved Keyword Shielding:** If a legacy variable directly collides with a Java reserved keyword (e.g., `class`, `public`, `return`, `int`), the forge automatically appends a `Val` suffix (e.g., `classVal`) to guarantee successful Maven compilation.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

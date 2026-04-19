@@ -44,3 +44,15 @@ When these thresholds are breached, the firewall dumps the exact code snippets (
 The Supply Chain Firewall is designed to run as a blocking step in a CI/CD pipeline. 
 
 Upon completion, it prints a highly readable Mission Report detailing its scan velocity, the number of approved/banned packages, and the total number of Active Threats. If even a single threat or policy violation is found, the script exits with a status code of `1`, violently failing the build and preventing the infected dependency from reaching production.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

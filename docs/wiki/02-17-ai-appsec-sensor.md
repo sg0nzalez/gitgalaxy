@@ -33,3 +33,15 @@ The sensor flags files that combine LLM Logic with Outbound Network Sockets and 
 When the AppSec Sensor detects any of these intersections, it does not just increment a counter. It generates a detailed `ai_appsec` report containing explicit, critical warnings and injects it directly back into the star's central telemetry. 
 
 This ensures that downstream modules—specifically the `AuditRecorder` and `LLMRecorder`—can immediately highlight these files as critical, rule-based security failures in their respective manifests.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

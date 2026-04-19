@@ -145,3 +145,15 @@ The result is a taxonomical map that proves **intent scales across syntax.**
 The algorithm mathematically recognized that a massive, heavily annotated Java Service class (Cluster 1) has far more in common with a robust TypeScript Dependency Injection file than it does with a simple Java data model. It recognized that a dense, highly defensive Python script (Cluster 7) shares the exact same structural DNA as a defensively written Rust file.
 
 By grouping code by its physical behavior rather than its file extension, we have created a truly language-agnostic map of software architecture.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

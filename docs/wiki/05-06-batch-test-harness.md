@@ -20,3 +20,15 @@ To ensure consistent testing across varying local environments, the harness appl
 ## Granular Telemetry
 
 All Standard Output (STDOUT) and Standard Error (STDERR) from the Refractor, Java Forge, and Maven compiler are captured and piped into a `batch_test_reports/` directory. If a repository fails to compile, the harness dumps the exact Maven dependency or syntax error into an isolated log file, allowing the engineering team to rapidly debug translation bottlenecks.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

@@ -48,3 +48,15 @@ To add a proprietary or novel language:
 2. Create a new dictionary key (e.g., `my_custom_dsl`).
 3. Define its extensions, routing modes, and regex triggers.
 4. The next time the Orchestrator boots, the `LanguageDetector` and `LogicSplicer` will automatically ingest the new blueprint, instantly allowing the 3D Cartographer to map your custom code.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

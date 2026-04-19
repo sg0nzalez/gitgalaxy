@@ -36,3 +36,15 @@ When a hardcoded credential is breached, the Sentinel dumps the exact snippet to
 In testing environments, developers often use mock API keys or dummy certificates. To prevent the Sentinel from blocking legitimate test data, it cross-references the file path against the `ALLOWLIST_PATHS` defined in the global `gitgalaxy_config.py`. If a mock secret is found in an allowlisted test file, the tool logs it as an `[ALLOWED BYPASS]` but does not fail the build.
 
 When the scan is complete, the Sentinel generates a strict Mission Report detailing the Uncontrolled Leaks. If even a single unauthorized secret is exposed, the script exits with a status code of `1`, violently blocking the `git commit` or Pull Request.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

@@ -101,3 +101,15 @@ Looking at this matrix through the lens of a physics engine mapping functional h
 * **Evolutionary Absence (The `None` State):** Just as early aquatic organisms lacked lungs or wings because they didn't need them yet, early programming languages lack modern structural concepts.
     * *The Missing Traits:* Languages like Assembly, COBOL, and Fortran evolved long before concepts like `closures` (anonymous lambdas), `generics` (type abstractions), or `ui_frameworks` existed.
     * **The Result:** Rather than forcing these ancient languages into modern boxes, the taxonomy map explicitly defines these missing sensors as `None`. The engine acknowledges that the concept simply hadn't been discovered yet, safely bypassing those specific risk calculations without crashing or generating false anomalies.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

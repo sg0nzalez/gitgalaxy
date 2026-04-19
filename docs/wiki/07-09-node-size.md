@@ -39,3 +39,15 @@ This calculated scale directly modulates the 3D radius of the orbiting moon part
 | **2 - 4 Args** | $\sim 1.20 - 1.40$ | **Swollen Moon:** Normal business logic, carrying standard state. |
 | **5 - 10 Args** | $\sim 1.46 - 1.66$ | **Heavy Moon:** Bloated function, heavy I/O weight. |
 | **15+ Args** | $\sim 1.78+$ | **Gas Giant:** Visually burdensome, signaling a prime target for refactoring. |
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

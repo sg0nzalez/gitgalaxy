@@ -15,3 +15,15 @@ The Slicer heavily utilizes the global Intermediate Representation (IR) State Ma
 * **Orphaned Memory Abort:** Before scanning, the slicer checks the target variable against the Graveyard Reaper's state. If the target is known to be dead memory, the slicer aborts immediately, saving heavy compute cycles.
 * **The Ghost Deflector:** While mapping aliases, the slicer actively checks its current paragraph against the IR state. If the paragraph is flagged as mathematically unreachable, the slicer skips it. This prevents dead code from creating false-positive variable taints.
 * **Extraction Shield:** During the final code extraction phase, the slicer physically refuses to extract lines of code that reside inside dead paragraphs, guaranteeing the resulting microservice payload contains 100% active, executable logic.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

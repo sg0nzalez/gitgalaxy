@@ -23,3 +23,15 @@ Certain legacy COBOL commands fundamentally break modern Abstract Syntax Tree (A
 When the orchestrator runs, the System Limits Reporter acts as a strict verification gateway. 
 * If no anomalies are detected, the pipeline certifies that the DAG is "100% mathematically deterministic."
 * If anomalies *are* detected, the engine refuses to fail silently. It aggregates the specific files, line numbers, and severity codes into the Master Audit Report, explicitly flagging the repository as requiring human architectural review or autonomous LLM remediation before the modernization can be trusted.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

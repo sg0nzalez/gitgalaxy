@@ -38,3 +38,15 @@ As the scanner rips through the logs, it uses chronological regex to extract the
 The Scanner does not silo its findings to the terminal. Once the scan completes, it generates a `dynamic_telemetry.json` sidecar payload. 
 
 This JSON file maps the exact execution counts back to the program targets. This sidecar can then be re-ingested by the GitGalaxy Orchestrator to officially mark high-hit files as "Hot Producers" or flag 0-hit files as confirmed "Dead Code" that is ready for safe decommissioning.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

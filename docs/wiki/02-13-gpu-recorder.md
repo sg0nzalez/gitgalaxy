@@ -39,3 +39,15 @@ Before final serialization, the recorder shapes the payload for the frontend UI:
 * **Flattened Singularity:** The heavily nested Dark Matter composition statistics are flattened into a UI-friendly breakdown, explicitly separating formats and mapping their specific diagnostic reasons.
 * **Dynamic Lore Injection:** Fetches the `PROJECT_STORIES` registry to inject the specific narrative, historical significance, and highlighted artifacts into the root of the GPU manifest, bridging the gap between raw data and human storytelling.
 * **Final Sealing:** The JSON is serialized with `indent=None` and `separators=(',', ':')` to strip all whitespace, yielding the absolute lowest latency payload possible for the 3D visualizer.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

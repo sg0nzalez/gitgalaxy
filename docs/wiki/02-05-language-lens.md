@@ -81,3 +81,15 @@ For enterprise file inventory management, the Language Lens provides a fundament
 
 * **Absolute Repeatability:** The same file, scanned under the same Roadmap context, will *always* yield the exact same Identity Lock and Confidence Score. This consistency is vital for Software Bill of Materials (SBOM) generation.
 * **Traceable Inventory Logic:** Every identification is accompanied by its "Lock Tier" and "Source Proof". If a script is flagged as Python, the user can see precisely why (e.g., "Tier 1: Roadmap Lock via package.json" vs "Tier 4: Spectral Discovery"). This transparency allows security teams to distinguish between contextual certainty and heuristic discovery.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

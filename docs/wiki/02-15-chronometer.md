@@ -36,3 +36,15 @@ The Chronometer does not calculate final risk scores; it acts as a raw sensor, e
 * **Stability (Age):** Hands over the exact modification time (`mtime`) and the repository's minimum/maximum timestamps.
 * **Raw Churn Frequency:** Captures the total commit count within the historical sweep.
 * **Ownership Mapping:** Captures every author who modified the file and their respective commit counts. This powers the downstream **Ownership Entropy** and **Silo Risk** calculations.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

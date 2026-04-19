@@ -54,3 +54,15 @@ $$\text{EmissiveIntensity} = \text{MinIntensity} + \left( \sin(\text{Time} \time
 | :--- | :--- | :--- | :--- |
 | **The Firefly** (Low Refs) | 0.5 Hz *(Slow)* | 0.2 $\rightarrow$ 1.5 | A gentle, rhythmic shimmer. The object retains its rich theme color (e.g., Deep Cyan) and occasionally brightens. |
 | **The Reactor** (High Refs) | 1.5 Hz *(Stately)* | 1.0 $\rightarrow$ 4.0 | A powerful, "Core Saturation" effect. The center burns white-hot due to Bloom overload while the edges retain the theme color. It feels "heavy" and anchors the scene. |
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

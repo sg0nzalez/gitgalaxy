@@ -14,3 +14,15 @@ Mainframe environments often contain dozens of duplicated, fragmented, or obsole
 The auditor compares the baseline legacy metrics against the newly forged GitGalaxy JCLs:
 * **Code Bloat Reduction:** Calculates the exact number of lines saved by moving from monolithic, multi-step legacy jobs to streamlined, program-specific emulators.
 * **Over-Permissioned I/O Shedding:** Calculates the `excess_dds_blocked`. If a legacy JCL granted access to 15 datasets, but the COBOL AST proves the program only ever opens 3 of them, the auditor records the 12 blocked datasets as a quantifiable security improvement (Least Privilege Enforcement).
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

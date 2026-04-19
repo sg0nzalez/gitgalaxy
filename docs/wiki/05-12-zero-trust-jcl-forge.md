@@ -15,3 +15,15 @@ Once the required physical files (DD names) are extracted, the forge queries the
 * **Outputs (Write-Only or I/O):** The forge provisions the file with `DISP=(NEW,CATLG,DELETE)`, allocating fresh tracking space (`SPACE=(CYL,(5,1),RLSE)`) for the output generation.
 * **Inputs (Read-Only):** The forge restricts the file to `DISP=SHR` (Shared Read). 
 * **The Anomaly Warning:** If the program requests a file in its Data Division, but the DAG Architect proves the program *never actually opens it* in the execution logic, the forge defaults to read-only access and injects an explicit `WARNING: NO EXPLICIT OPEN INTENT` comment into the JCL for architectural review.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

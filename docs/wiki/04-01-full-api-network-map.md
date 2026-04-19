@@ -28,3 +28,15 @@ To determine the true security posture of the API boundary, the tool performs a 
 ## The Presentation Dashboard
 
 Because this tool is built for security and compliance teams, it prints a clean terminal dashboard. It explicitly lists the total counts for documented vs. physical endpoints, and clearly prints out the exact paths and files where any Shadow or Ghost APIs were discovered.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

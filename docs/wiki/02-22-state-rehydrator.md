@@ -34,3 +34,15 @@ Instead of a standard Git diff showing *text* changes, the engine outputs **Phys
 * *"This commit introduced a new Agentic RCE vulnerability."*
 
 This allows security and architecture teams to establish hard CI/CD quality gates based on mathematical structural drift rather than subjective code reviews.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

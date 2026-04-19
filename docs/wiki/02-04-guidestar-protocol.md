@@ -58,3 +58,15 @@ Instead of fuzzy README scraping, GuideStar establishes absolute truth by parsin
 * **Traceability:** Every file in the final inventory indicates whether its prior was provided by Context (GuideStar) or Signature (Language Lens).
 * **Dynamic Resolution:** When asked for a file's status, GuideStar checks in this exact order: `Exact Filename Match` $\rightarrow$ `Relative Path Match` $\rightarrow$ `Pattern Match (.gitattributes)` $\rightarrow$ `Sector Bias`. This ensures hyper-specific locks override generic folder biases.
 * **Clean Room Normalization:** Before injection, GuideStar cleans and normalizes all filenames (stripping `./` and leading whitespace) to ensure manifest references align perfectly with physical file paths.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

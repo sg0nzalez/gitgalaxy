@@ -54,3 +54,15 @@ GitGalaxy utilizes the standard 5-stop Universal Risk Spectrum to visualize the 
 By unifying Ownership under the Universal Risk Spectrum, GitGalaxy eliminates the need for expensive, multi-pass chromatic aberration shaders and per-author deterministic hashing.
 
 Because the Shannon Entropy calculation condenses infinite author complexity into a clean $0.0 - 100.0$ exposure vector in the backend (`signal_processor.py`), the frontend renderer inherently scales. Whether a file has 2 authors or 2,000, the WebGPU engine simply translates the float into the static linear gradient. This guarantees smooth 60 FPS performance even when mapping planetary-scale megastructures like Linux or Kubernetes, without requiring visual fallbacks or macroscopic LOD (Level of Detail) toggles.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

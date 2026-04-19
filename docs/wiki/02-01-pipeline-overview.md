@@ -85,3 +85,15 @@ The GalaxyScope is designed as an "Open Chassis," capable of swapping lenses and
     Because the final stage of processing requires destructively clearing RAM, the chassis features an intelligent output router. By passing exclusive flags (`--gpu-only`, `--audit-only`, `--llm-only`, `--db-only`), the chassis can bypass unneeded formatting steps (like the SQLite schema construction or Markdown parsing) to save memory and I/O latency.
 * **Shared Metadata Locking (The Session Lock)**
     As the mission concludes, the chassis generates a `session_meta` payload containing the Engine Identity, Scan Duration, and an immutable Git Audit (including Branch, SHA-1 Hash, Remote URL, and Latest Commit Date). The Session Lock ensures that every architectural map is permanently anchored to a specific point in the project's history.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

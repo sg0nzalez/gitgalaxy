@@ -21,3 +21,15 @@ If the file is calling external LLM APIs (`llm_api > 0`) but has zero global con
 **Step D: Final Calculation**
 $$LeakMass = BaseLeak \times Amplifiers$$
 Because a leaked secret is dangerous regardless of file size, we use a much smaller Laplace pad (+50) before mapping the density to the final 0-100 risk score.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

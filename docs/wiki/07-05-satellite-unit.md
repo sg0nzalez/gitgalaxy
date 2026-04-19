@@ -47,3 +47,15 @@ $$\text{Impact Score} = \left( (\text{BranchHits} + 1) \times (\text{Args} + 1) 
 * **Args:** The weight of inputs and coupling.
 * **LOC:** The physical length of the function (scaled down by $0.05$ to prioritize logic over verbosity).
 * **Multiplier (10):** Scales the integer up for storage efficiency in vectorized formats.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

@@ -52,3 +52,15 @@ We map the abstract number $C$ to a physical **Fractal Depth**. This determines 
 | **> 8** | **2** | **The Tree** | Distinct branching structure (3-4 moons). | Standard business logic. Loops inside conditions. |
 | **> 15** | **3** | **The Thicket** | Dense, aggressive branching (A swarm of moons). | Complex algorithms, state machines, or legacy parsers. |
 | **> 25** | **4** | **The Jungle** | Chaotic fractal explosion (Solid with branches). | "God Objects," massive switch statements, or deep recursion. |
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

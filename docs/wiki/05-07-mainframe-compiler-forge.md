@@ -15,3 +15,15 @@ Legacy code frequently relies on external `COPY` statements, fragmenting the bus
 
 ## Execution Intent Extraction
 The forge parses the structural boundaries of the file to extract the `PROGRAM-ID` and all physical file allocations (`SELECT ... ASSIGN TO`). It uses this data to automatically scaffold the Phase 1 infrastructure provisioning steps (`IEFBR14`) in the generated JCL, ensuring all required datasets are allocated before the compiler runs.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

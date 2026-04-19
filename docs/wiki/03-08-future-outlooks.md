@@ -171,5 +171,16 @@ The Trojan: To bypass environments, it must actively suppress safety nets, alter
 
 The Exfiltration Vector: To steal data or pull down a secondary payload, it must utilize network I/O boundaries.
 
-The Supply Chain attack: When a payload is snuck into a random file on the outskirts of a project, its structural composition changes entirely. A simple differential scan during a pull request will immediately flag the sudden spike in regex hits and the deviation from its expected Archetype. Regardless of who made the change, manual review could be required with human verification before the mutated architecture is accepted. Even if the change was slowly dripped in over the course of days, one could easily employ a weekly or monthly diff analysis to look for outliers. 
+The Supply Chain attack: When a payload is snuck into a random file on the outskirts of a project, its structural composition changes entirely. A simple differential scan during a pull request will immediately flag the sudden spike in regex hits and the deviation from its expected Archetype. Regardless of who made the change, manual review could be required with human verification before the mutated architecture is accepted. Even if the change was slowly dripped in over the course of days, one could easily employ a weekly or monthly diff analysis to look for outliers.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
 

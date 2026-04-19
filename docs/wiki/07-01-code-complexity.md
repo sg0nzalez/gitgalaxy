@@ -14,3 +14,15 @@ Code complexity is mapped directly to physical structure, creating organic, dist
 | **Satellite Size** | Argument Count | **Volume.** Large moons represent "Heavy" functions with many inputs; small dots represent lightweight utilities. |
 | **Star's Rings** | External Library Imports | **Accretion Disks.** Files tethered to many external dependencies manifest glowing rings, symbolizing a large "Gravity Well." |
 | **Star's Position** | Semantic Affinity (Directory/Path) | **Neighborhoods.** Files are grouped into sectoral clusters based on folder structure, creating distinct "Auth," "UI," and "API" continents. |
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

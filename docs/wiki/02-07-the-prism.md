@@ -89,3 +89,15 @@ To map the galaxy on a 2D plane without constellations colliding, the engine use
 To break the mechanical perfection of the mathematical spirals, the engine injects "Organic Noise."
 * **MD5 Seed Logic:** It hashes the filename to a hex string, mapping it to a normalized coordinate modifier.
 * **Reproducible Chaos:** A perfectly mathematical spiral feels artificial. Jitter provides the "texture" of a real galaxy. Because the seed is based on the filename, the chaos is strictly deterministic—a file will always "vibrate" to the exact same relative sub-coordinate every time the map is rendered.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

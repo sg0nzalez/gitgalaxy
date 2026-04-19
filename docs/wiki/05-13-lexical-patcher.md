@@ -13,3 +13,15 @@ Because altering mainframe source code carries extreme risk, the patcher first e
 The `NEXT SENTENCE` directive is a notoriously dangerous legacy construct that acts as an implicit, invisible `GO TO` jumping past the next period. This breaks deterministic control flow.
 * **COBOL-85 Mode:** The patcher safely rewrites the trap into a localized, block-scoped `CONTINUE` statement, appending a traceable `*>` inline comment to document the automated remediation.
 * **COBOL-74 Mode:** The patcher leaves the `NEXT SENTENCE` command intact but cleans the surrounding whitespace to ensure the downstream AST slicer can accurately track the statement without crashing.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

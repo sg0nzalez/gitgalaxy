@@ -63,3 +63,15 @@ Alongside ranking individual vectors (like highest Tech Debt or lowest Safety), 
 * **Contagious Mutation:** `Betweenness * State Flux`. These files act as structural bridges between components but possess highly volatile, mutating state, causing unpredictable side-effects for downstream consumers.
 * **House of Cards:** `Closeness * Error Risk`. These files are deeply embedded (1 or 2 hops from the entire codebase) but possess high error exposure. A runtime exception here will cascade instantly across the application.
 * **Blind Bottleneck:** `Blast Radius * Doc Risk`. These are "God Nodes" that the entire ecosystem relies upon, but they lack human intent or documentation. Modifying them is flying blind.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

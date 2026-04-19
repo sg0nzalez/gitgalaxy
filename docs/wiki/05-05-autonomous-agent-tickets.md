@@ -18,3 +18,15 @@ The ticket includes a strict System Prompt engineered to suppress generative hal
 1. **No External Systems:** The agent is explicitly forbidden from inventing external systems or databases not defined in the JSON context.
 2. **Interface Forcing:** The agent is instructed to write standard interface calls to the provided `external_dependencies`, rather than attempting to guess and write the external logic itself.
 3. **Deterministic Output:** The agent is required to return a valid JSON object containing a `diagnosis` string and the isolated `java_code`, ensuring the pipeline can programmatically insert the result into the forged `@Service` class.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

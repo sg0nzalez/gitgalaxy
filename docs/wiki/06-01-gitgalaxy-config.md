@@ -34,3 +34,15 @@ When the `GPURecorder` serializes the final 3D map, it pulls from this config to
 ## Aperture Black Holes (`APERTURE_CONFIG`)
 
 While the `.gitignore` specifies what shouldn't be tracked by version control, the `APERTURE_CONFIG` defines what should be completely invisible to the physics engines. It contains the `BLACK_HOLES` set—a global list of directories (`node_modules`, `.venv`, `dist`, `__pycache__`) that are violently bypassed during both the initial filesystem survey and the Chronometer's OS-level fallbacks.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

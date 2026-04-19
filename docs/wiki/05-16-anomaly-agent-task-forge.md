@@ -20,3 +20,15 @@ To ensure the LLM generates a structurally sound patch without breaking the unde
 1. **Architectural Persona:** The agent is instructed to act as a "deterministic legacy systems architect."
 2. **Logic Preservation:** The agent is explicitly commanded to *only* resolve the listed anomalies and is forbidden from altering the core business logic.
 3. **Deterministic Output:** The agent must return its solution as a strictly formatted JSON object containing a `diagnosis` string (explaining the fix) and the `patched_code` string, allowing the GitGalaxy pipeline to automatically integrate the patched file without human copy-pasting.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

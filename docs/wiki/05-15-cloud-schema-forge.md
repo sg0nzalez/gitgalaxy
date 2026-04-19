@@ -17,3 +17,15 @@ Before generating a column for a detected variable, the Schema Forge queries the
 The forge scans for complex mainframe-specific memory behaviors and injects architectural warnings directly into the generated SQL as comments:
 * **Dynamic Arrays:** If it detects an `OCCURS DEPENDING ON` clause (an array whose length changes dynamically at runtime), it flags the column with a critical warning to utilize a `JSONB` data type, as strict relational columns cannot handle dynamic array allocation.
 * **Packed Decimals:** It flags `COMP-3` variables to alert downstream engineering teams that the original data source is binary-compressed.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

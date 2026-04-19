@@ -46,3 +46,15 @@ If a file's cryptographic hash has mutated without a corresponding version bump 
 The predictions are not siloed. The Auditor injects the `AI Threat Class`, the exact `AI Threat Confidence` percentage, and an `is_ml_threat` boolean directly back into the star's central `domain_context` telemetry. 
 
 This guarantees that downstream systems—like the `AuditRecorder` and `LLMRecorder`—can place these ML-confirmed threats at the very top of their respective security reports.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

@@ -16,3 +16,15 @@ To save physical disk space, IBM mainframes compress numeric data using COMP-3. 
 
 ## EBCDIC Character Translation
 Standard text fields and zoned decimals are read in their raw EBCDIC encoding and translated to standard UTF-8. The unpacker strictly uses the `cp037` code page (the standard IBM US EBCDIC character set) to ensure special characters and legacy formatting survive the transition to the cloud intact.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

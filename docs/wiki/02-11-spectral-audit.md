@@ -51,3 +51,15 @@ If a file fails the density audit but contains a massive comment-to-code ratio (
 
 ### Relegation to Dark Matter
 Files failing the audit (and not saved by Quarantine or Necrosis) are stripped of their metadata and cast into the Singularity. To ensure SBOM Traceability, they are formatted into an Inert Dark Matter schema that preserves their "Bayesian Optics" (the failed claim, confidence, and source proof) so engineers can audit *why* the prediction was refuted.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

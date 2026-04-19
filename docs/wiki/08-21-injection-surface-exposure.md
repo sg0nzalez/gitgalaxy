@@ -21,3 +21,15 @@ $$InjectionMass = (InputVectors \times ExecutionVectors) \times ArchetypeMultipl
 
 **Step D: Taint & Sigmoid**
 Like the Logic Bomb, confirmed Tainted Injections add a massive +500.0 gravity spike before being routed through the standard Laplace-smoothed Sigmoid curve.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

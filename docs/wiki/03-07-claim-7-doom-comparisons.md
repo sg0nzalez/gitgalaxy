@@ -98,3 +98,15 @@ Codebases evolve, mutate, and rot. A standard linter will tell you if you missed
 By mapping the syntactic physics of a repository—measuring the density of state mutations, the blast radius of dependencies, and the sheer structural mass of individual functions—GitGalaxy doesn't just show you lines of code. It reveals the load-bearing pillars holding your system together, the dangerous blind spots lurking in the dark matter, and the exact moment a codebase loses its original DNA. 
 
 If a scanner can track the genetic drift of DOOM across 30 years and a half-dozen languages, imagine what it can map in your production repositories.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+

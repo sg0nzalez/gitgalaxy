@@ -51,3 +51,15 @@ Agents can write dynamic SQL queries against the following constructed tables:
 * **`satellites`**: The extracted functions/classes tied back to their parent `star_id`, complete with their Big-O time complexity.
 * **`dna_hits` (The Regex Hit Ledger)**: A flattened, queryable list of every single regex pattern triggered by a file. *(Note: Table name preserved for schema compatibility).*
 * **`inbound_dependencies` & `outbound_dependencies`**: The bi-directional RAG graph, allowing an agent to recursively query the blast radius of any file.
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+
