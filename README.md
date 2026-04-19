@@ -84,24 +84,35 @@ galaxyscope /path/to/your/local/repo
 
 ---
 
+
+
 ## The GitGalaxy Ecosystem
 
-GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that graph to execute enterprise-grade operations.
+GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations.
 
-* 🌌 **[The Hub: Orbital Optics & Cartography](docs/wiki/1_Foundation__Architecture.md)**
-  The core AST-free parsing engine that handles signal processing, spatial rendering, and telemetry recording.
-* 🏭 **[Legacy Modernization: Java Forge](tools/modernization/java_forge/README.md)**
-  Automated, high-fidelity pipelines designed to map, slice, and forge legacy COBOL monoliths into compiling Spring Boot microservices.
-* 🛠️ **[Legacy Modernization: COBOL Refactoring](tools/modernization/cobol_cleaner/README.md)**
-  Maintenance tools for legacy systems, including lexical patchers, graveyard code hunters, and JCL operational auditors.
-* 🛡️ **[Supply Chain Security](tools/security_ops/README.md)**
-  Pre-commit defense layers including the high-speed Vault Sentinel for secret detection and binary anomaly firewalls.
-* 📡 **[Network Auditing](tools/cartography/README.md)**
-  Full API network mapping to hunt down undocumented "Shadow APIs" by comparing physical codebase routers against official Swagger documentation.
-* 🕵️ **[Terabyte Log Scanning](tools/compliance/README.md)**
-  High-velocity PII leak hunters and regex-driven anomaly detectors built to chew through massive server logs.
-* 📋 **[Compliance Operations](tools/security_ops/README.md)**
-  Automated Software Bill of Materials (SBOM) generation based on the physical reality of the codebase.
+### [The Hub: Orbital Optics & Cartography](docs/wiki/01-project-overview.md)
+The central blAST engine. It bypasses rigid ASTs using mathematical heuristics to map O(N) multi-dimensional relationships across 50+ languages, managing signal processing, spatial layout, and high-speed SQLite telemetry recording.
+
+### [Dual-Sided AI Guardrails](tools/ai_guardrails/README.md)
+Specialized sensors protecting both your application and your codebase. The AppSec Sensor detects weaponized LLM features (RCE funnels, exfiltration risks), while the Dev Agent Firewall evaluates token mass and blast radius to restrict autonomous coding agents from modifying dangerous "Black Hole" files.
+
+### [Legacy Modernization: Java Forge](tools/cobol_to_java/README.md)
+A deterministic, high-fidelity translation pipeline. It converts legacy COBOL into fully compiling, modern Spring Boot architectures, mapping memory exactly and scaffolding JPA entities, REST controllers, and Maven builds before utilizing AI to translate isolated business logic.
+
+### [Legacy Modernization: COBOL Refactoring](tools/cobol_to_cobol/README.md)
+A mathematical x-ray suite for sanitizing mainframe monoliths. It safely neutralizes legacy lexical traps, extracts dead "Graveyard" memory, maps topological DAG execution orders, and generates Zero-Trust JCL configurations for modern cloud deployments.
+
+### [Supply Chain Security](tools/supply_chain_security/README.md)
+Extreme-velocity pre-commit firewalls. Instead of trusting manifest files, it scans physical internals to block steganography, sub-atomic XOR decryption loops, homoglyph typosquatting, and exposed cryptographic vaults before they ever enter your CI/CD pipeline.
+
+### [Network Auditing](tools/network_auditing/README.md)
+A deterministic mapping tool that hunts undocumented vulnerabilities. It uses structural regex to find active physical routing logic (Express, Spring Boot, FastAPI) and applies set theory against official OpenAPI/Swagger documentation to isolate critical Shadow APIs and outdated Ghost APIs.
+
+### [Terabyte Log Scanning](tools/terabyte_log_scanning/README.md)
+Unindexed, tactical log analysis operating at 0.07 GB/sec. It streams massive database dumps to deterministically hunt and mask PII (Credit Cards, SSNs, AWS Keys) and uses static architecture maps to prove exact runtime execution frequencies with ASCII time-series histograms.
+
+### [Compliance Operations](tools/compliance/README.md)
+A Zero-Trust Software Bill of Materials (SBOM) generator. It refuses to blindly trust `package.json` or `requirements.txt` files, instead locating the physical dependencies on disk, mathematically verifying their entropy and linguistic identity, and generating strict CycloneDX 1.4 JSON reports.
 
   ## The Web Viewer (Frictionless Dashboards)
 
