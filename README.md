@@ -74,32 +74,31 @@ Every assumption our system makes has been abstracted into over 300 tunable vari
 ```bash
 pip install gitgalaxy
 
+```bash
+
 ### 2. Scan a Repository
 
 Point the GalaxyScope at any local repository or ZIP archive. The engine runs entirely on your local machine—zero data is transmitted.
 
-```bash
 galaxyscope /path/to/your/local/repo
 ```
 
 ---
 
+### [Project Overview](docs/wiki/01-project-overview.md)
+The central blAST engine. It bypasses rigid ASTs using mathematical heuristics to map O(N) multi-dimensional relationships across 50+ languages, managing signal processing, spatial layout, and high-speed SQLite telemetry recording.
+
 
 
 ## The GitGalaxy Ecosystem
 
-GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations.
+GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations. The following toolsets provide novel heuristic solutions to several open problems in computing. 
 
-### [The Hub: Orbital Optics & Cartography](docs/wiki/01-project-overview.md)
-The central blAST engine. It bypasses rigid ASTs using mathematical heuristics to map O(N) multi-dimensional relationships across 50+ languages, managing signal processing, spatial layout, and high-speed SQLite telemetry recording.
 
-### [Dual-Sided AI Guardrails](tools/ai_guardrails/README.md)
-Specialized sensors protecting both your application and your codebase. The AppSec Sensor detects weaponized LLM features (RCE funnels, exfiltration risks), while the Dev Agent Firewall evaluates token mass and blast radius to restrict autonomous coding agents from modifying dangerous "Black Hole" files.
-
-### [Legacy Modernization: Java Forge](tools/cobol_to_java/README.md)
+### [Legacy Modernization: Converting Raw Cobol Repos to Java Spring Boots](tools/cobol_to_java/README.md)
 A deterministic, high-fidelity translation pipeline. It converts legacy COBOL into fully compiling, modern Spring Boot architectures, mapping memory exactly and scaffolding JPA entities, REST controllers, and Maven builds before utilizing AI to translate isolated business logic.
 
-### [Legacy Modernization: COBOL Refactoring](tools/cobol_to_cobol/README.md)
+### [Legacy Modernization: Converting Raw Cobol Repos to cleaner Cobol Repos](tools/cobol_to_cobol/README.md)
 A mathematical x-ray suite for sanitizing mainframe monoliths. It safely neutralizes legacy lexical traps, extracts dead "Graveyard" memory, maps topological DAG execution orders, and generates Zero-Trust JCL configurations for modern cloud deployments.
 
 ### [Supply Chain Security](tools/supply_chain_security/README.md)
@@ -111,8 +110,11 @@ A deterministic mapping tool that hunts undocumented vulnerabilities. It uses st
 ### [Terabyte Log Scanning](tools/terabyte_log_scanning/README.md)
 Unindexed, tactical log analysis operating at 0.07 GB/sec. It streams massive database dumps to deterministically hunt and mask PII (Credit Cards, SSNs, AWS Keys) and uses static architecture maps to prove exact runtime execution frequencies with ASCII time-series histograms.
 
-### [Compliance Operations](tools/compliance/README.md)
+### [Compliance Operations - SBOM Generators](tools/compliance/README.md)
 A Zero-Trust Software Bill of Materials (SBOM) generator. It refuses to blindly trust `package.json` or `requirements.txt` files, instead locating the physical dependencies on disk, mathematically verifying their entropy and linguistic identity, and generating strict CycloneDX 1.4 JSON reports.
+
+### [AI Guardrails](tools/ai_guardrails/README.md)
+Specialized keyword sensors protecting both your application and your codebase. The AppSec Sensor detects weaponized LLM features (RCE funnels, exfiltration risks), while the Dev Agent Firewall evaluates token mass and blast radius to restrict autonomous coding agents from modifying dangerous over context token-draining files. Helps identify which files need to be chunked to reduce context overload. 
 
   ## The Web Viewer (Frictionless Dashboards)
 
