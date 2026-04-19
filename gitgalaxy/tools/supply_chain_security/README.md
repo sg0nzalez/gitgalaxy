@@ -63,3 +63,12 @@ python3 binary_anomaly_detector.py ./src/
 ```bash
 python3 vault_sentinel.py .
 ```
+
+---
+### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
+This tool is a specialized spoke in the larger GitGalaxy ecosystem. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Explore the official wiki to see the sub-atomic heuristics used to catch obfuscated malware:
+
+* 📖 **[Supply Chain Firewall Architecture](../../../docs/wiki/04-03-supply-chain-firewall.md)**
+* 📖 **[Binary Anomaly & Entropy Mathematics](../../../docs/wiki/04-05-binary-anomaly-detector.md)**
+* 📖 **[Hardcoded Secrets Exposure Equations](../../../docs/wiki/08-23-hardcoded-secrets-exposure.md)**
+* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

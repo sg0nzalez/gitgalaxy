@@ -59,3 +59,13 @@ The controller generates a timestamped `_gitgalaxy_clean` directory containing:
 4. `04_ir_state_dumps/`: Relational JSON graphs mapping dead-code state and DAG lineage.
 5. `05_microservice_slices/`: Isolated JSON business logic ready for translation.
 6. `06_ai_agent_jobs/`: Structured JSON tickets for LLM remediation.
+
+
+---
+### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
+This tool is a specialized spoke in the larger GitGalaxy ecosystem. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Read the official documentation to explore the internal physics of the refraction controllers:
+
+* 📖 **[The Legacy Refraction Controller](../../../docs/wiki/05-01-legacy-refraction-controller.md)**
+* 📖 **[Graveyard Reaper & Dead Code Mathematics](../../../docs/wiki/05-10-graveyard-reaper.md)**
+* 📖 **[Zero-Trust JCL Forge Mechanics](../../../docs/wiki/05-12-zero-trust-jcl-forge.md)**
+* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

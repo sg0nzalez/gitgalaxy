@@ -43,3 +43,12 @@ python3 pii_leak_hunter.py /path/to/massive_database_dump.sql
 ```bash
 python3 terabyte_log_scanner.py /path/to/production.log --ir ../core/ir_state.json
 ```
+
+---
+### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
+This tool is a specialized spoke in the larger GitGalaxy ecosystem. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Read the official documentation to see the Bayesian logic that powers our Zero-Trust verification:
+
+* 📖 **[SBOM Generator Architecture](../../../docs/wiki/04-02-sbom-generator.md)**
+* 📖 **[The Spectral Auditor (Catching Spoofs)](../../../docs/wiki/02-11-spectral-audit.md)**
+* 📖 **[The Guidestar Protocol (Intent & Evasion)](../../../docs/wiki/02-04-guidestar-protocol.md)**
+* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

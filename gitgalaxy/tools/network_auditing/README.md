@@ -46,3 +46,12 @@ A deterministic terminal dashboard ready for CI/CD integration or security revie
 
 * **Shadow APIs Detected:** Lists physical files containing hidden, undocumented routers.
 * **Ghost APIs Detected:** Lists missing routes to eliminate security team audit bloat.
+
+---
+### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
+This tool is a specialized spoke in the larger GitGalaxy ecosystem. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Read the official documentation to see how we deterministically map API routes:
+
+* 📖 **[Full API Network Map Architecture](../../../docs/wiki/04-01-full-api-network-map.md)**
+* 📖 **[The Network Risk Sensor Mechanics](../../../docs/wiki/02-16-network-risk-sensor.md)**
+* 📖 **[API Exposure Risk Equations](../../../docs/wiki/08-14-api-exposure.md)**
+* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

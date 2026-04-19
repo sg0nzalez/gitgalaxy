@@ -44,3 +44,12 @@ This is a fundamentally novel approach to AI security, built for extreme velocit
 * **Zero Compilation:** Scans raw text instantly. No build environment required.
 * **Contextual Reporting:** Explains the exact architectural danger. No useless "Yes/No" alerts.
 * **CI/CD Ready:** Scans at 100k+ LOC/sec. Blocks dangerous PRs synchronously.
+
+---
+### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
+This tool is a specialized spoke in the larger GitGalaxy ecosystem. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Read the official wiki to see the exact physics powering these guardrails:
+
+* 📖 **[AI AppSec Sensor Architecture](../../../docs/wiki/02-17-ai-appsec-sensor.md)**
+* 📖 **[Dev Agent Firewall Mechanics](../../../docs/wiki/02-18-dev-agent-firewall.md)**
+* 📖 **[Logic Bomb & Injection Surface Risk Equations](../../../docs/wiki/08-20-logic-bomb-exposure.md)**
+* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

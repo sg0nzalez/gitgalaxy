@@ -64,3 +64,13 @@ To generate the Spring Boot architecture, point the controller at the `_gitgalax
 ```bash
 python3 cobol_to_java_controller.py /path/to/legacy_repo_gitgalaxy_clean_20260419
 ```
+
+
+---
+### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
+This tool is a specialized spoke in the larger GitGalaxy ecosystem. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Dive into the official wiki to understand the exact translation mechanics and memory-mapping heuristics:
+
+* 📖 **[Spring Boot Scaffolding Logic](../../../docs/wiki/05-02-spring-boot-scaffolding.md)**
+* 📖 **[Entity & Memory Mapping Rules](../../../docs/wiki/05-03-entity-and-memory-mapping.md)**
+* 📖 **[API & Service Contract Generation](../../../docs/wiki/05-04-api-and-service-contracts.md)**
+* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

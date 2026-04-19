@@ -42,3 +42,10 @@ Run the Universal SBOM Generator against the root of your project. It will autom
 ```bash
 python3 sbom_generator.py /path/to/your/project
 ```
+
+---
+### 🌌 Powered by the blAST Engine
+This tool is a spoke in the larger GitGalaxy ecosystem. It is powered by the **blAST Engine**, an AST-free, mathematical heuristics engine capable of mapping repositories at 100,000 LOC/sec.
+
+* 📖 **[Read the Official Wiki](https://squid-protocol.github.io/gitgalaxy/)** for deep dives into the engine's physics, architecture blueprints, and the Taxonomical Equivalence Map.
+* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)** to explore other enterprise tools like Supply Chain Firewalls and Terabyte Log Scanners.

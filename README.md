@@ -9,6 +9,8 @@
 [![Analysis](https://img.shields.io/badge/Analysis-Code_Bioinformatics-00BFFF.svg)](#)
 [![Threat Hunting](https://img.shields.io/badge/Threat_Hunting-Behavioral-FF4500.svg)](#)
 [![Architecture](https://img.shields.io/badge/Architecture-Zero__Trust-teal.svg)](#)
+[![Coverage](https://img.shields.io/badge/Coverage-50%2B_Languages-00C957.svg)](#)
+[![Scale](https://img.shields.io/badge/Scale-100k%2B_LOC%2Fsec-00BFFF.svg)](#)
 
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)](https://pypi.org/project/gitgalaxy/)
 [![Airgap Ready](https://img.shields.io/badge/Security-Airgap_Ready-teal.svg)](#)
