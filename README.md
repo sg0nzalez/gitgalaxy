@@ -94,27 +94,26 @@ The central blAST engine. It bypasses rigid ASTs using mathematical heuristics t
 
 GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations. The following toolsets provide novel heuristic solutions to several open problems in computing. 
 
-
-### [Legacy Modernization: Converting Raw Cobol Repos to Java Spring Boots](tools/cobol_to_java/README.md)
+### [Legacy Modernization: Converting Raw Cobol Repos to Java Spring Boots](gitgalaxy/tools/cobol_to_java/README.md)
 A deterministic, high-fidelity translation pipeline. It converts legacy COBOL into fully compiling, modern Spring Boot architectures, mapping memory exactly and scaffolding JPA entities, REST controllers, and Maven builds before utilizing AI to translate isolated business logic.
 
-### [Legacy Modernization: Converting Raw Cobol Repos to cleaner Cobol Repos](tools/cobol_to_cobol/README.md)
+### [Legacy Modernization: Converting Raw Cobol Repos to cleaner Cobol Repos](gitgalaxy/tools/cobol_to_cobol/README.md)
 A mathematical x-ray suite for sanitizing mainframe monoliths. It safely neutralizes legacy lexical traps, extracts dead "Graveyard" memory, maps topological DAG execution orders, and generates Zero-Trust JCL configurations for modern cloud deployments.
 
-### [Supply Chain Security](tools/supply_chain_security/README.md)
+### [Supply Chain Security](gitgalaxy/tools/supply_chain_security/README.md)
 Extreme-velocity pre-commit firewalls. Instead of trusting manifest files, it scans physical internals to block steganography, sub-atomic XOR decryption loops, homoglyph typosquatting, and exposed cryptographic vaults before they ever enter your CI/CD pipeline.
 
-### [Network Auditing](tools/network_auditing/README.md)
+### [Network Auditing](gitgalaxy/tools/network_auditing/README.md)
 A deterministic mapping tool that hunts undocumented vulnerabilities. It uses structural regex to find active physical routing logic (Express, Spring Boot, FastAPI) and applies set theory against official OpenAPI/Swagger documentation to isolate critical Shadow APIs and outdated Ghost APIs.
 
-### [Terabyte Log Scanning](tools/terabyte_log_scanning/README.md)
+### [Terabyte Log Scanning](gitgalaxy/tools/terabyte_log_scanning/README.md)
 Unindexed, tactical log analysis operating at 0.07 GB/sec. It streams massive database dumps to deterministically hunt and mask PII (Credit Cards, SSNs, AWS Keys) and uses static architecture maps to prove exact runtime execution frequencies with ASCII time-series histograms.
 
-### [Compliance Operations - SBOM Generators](tools/compliance/README.md)
+### [Compliance Operations - SBOM Generators](gitgalaxy/tools/compliance/README.md)
 A Zero-Trust Software Bill of Materials (SBOM) generator. It refuses to blindly trust `package.json` or `requirements.txt` files, instead locating the physical dependencies on disk, mathematically verifying their entropy and linguistic identity, and generating strict CycloneDX 1.4 JSON reports.
 
-### [AI Guardrails](tools/ai_guardrails/README.md)
-Specialized keyword sensors protecting both your application and your codebase. The AppSec Sensor detects weaponized LLM features (RCE funnels, exfiltration risks), while the Dev Agent Firewall evaluates token mass and blast radius to restrict autonomous coding agents from modifying dangerous over context token-draining files. Helps identify which files need to be chunked to reduce context overload. 
+### [AI Guardrails](gitgalaxy/tools/ai_guardrails/README.md)
+Specialized keyword sensors protecting both your application and your codebase. The AppSec Sensor detects weaponized LLM features (RCE funnels, exfiltration risks), while the Dev Agent Firewall evaluates token mass and blast radius to restrict autonomous coding agents from modifying dangerous over context token-draining files. Helps identify which files need to be chunked to reduce context overload.
 
   ## The Web Viewer (Frictionless Dashboards)
 
