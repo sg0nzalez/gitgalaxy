@@ -14,19 +14,19 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_cognitive_load_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_cognitive_load_exposure_ridgeplot.png" width="300" loading="lazy" alt="Cognitive Load Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_cognitive_load_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Cognitive Load Exposure"/><br/>
         <b>Cognitive Load Exposure</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_tech_debt_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_tech_debt_exposure_ridgeplot.png" width="300" loading="lazy" alt="Tech Debt Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_tech_debt_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Tech Debt Exposure"/><br/>
         <b>Tech Debt Exposure</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_error_and_exception_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_error_and_exception_exposure_ridgeplot.png" width="300" loading="lazy" alt="Error & Exception Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_error_and_exception_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Error & Exception Exposure"/><br/>
         <b>Error & Exception Exposure</b>
       </a>
     </td>
@@ -34,19 +34,19 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_api_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_api_exposure_ridgeplot.png" width="300" loading="lazy" alt="API Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_api_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on API Exposure"/><br/>
         <b>API Exposure</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_state_flux_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_state_flux_exposure_ridgeplot.png" width="300" loading="lazy" alt="State Flux Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_state_flux_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on State Flux Exposure"/><br/>
         <b>State Flux Exposure</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_concurrency_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_concurrency_exposure_ridgeplot.png" width="300" loading="lazy" alt="Concurrency Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_concurrency_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Concurrency Exposure"/><br/>
         <b>Concurrency Exposure</b>
       </a>
     </td>
@@ -54,19 +54,19 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_testing_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_testing_exposure_ridgeplot.png" width="300" loading="lazy" alt="Testing Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_testing_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Testing Exposure"/><br/>
         <b>Testing Exposure</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_documentation_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_documentation_exposure_ridgeplot.png" width="300" loading="lazy" alt="Documentation Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_documentation_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Documentation Exposure"/><br/>
         <b>Documentation Exposure</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_specification_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_specification_exposure_ridgeplot.png" width="300" loading="lazy" alt="Specification Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_specification_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Specification Exposure"/><br/>
         <b>Specification Exposure</b>
       </a>
     </td>
@@ -74,13 +74,13 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_graveyard_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_graveyard_exposure_ridgeplot.png" width="300" loading="lazy" alt="Graveyard Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_graveyard_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Graveyard Exposure"/><br/>
         <b>Graveyard Exposure</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_civil_war_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_civil_war_exposure_ridgeplot.png" width="300" loading="lazy" alt="Civil War (Formatting) Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_civil_war_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Civil War Formatting Exposure"/><br/>
         <b>Civil War Exposure</b>
       </a>
     </td>
@@ -94,19 +94,19 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/structural_mass_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/structural_mass_ridgeplot.png" width="300" loading="lazy" alt="Structural Mass"/><br/>
+        <img src="../assets/analyses_ridgeplots/structural_mass_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Structural Mass"/><br/>
         <b>Structural Mass</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/control_flow_ratio_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/control_flow_ratio_ridgeplot.png" width="300" loading="lazy" alt="Control Flow Ratio"/><br/>
+        <img src="../assets/analyses_ridgeplots/control_flow_ratio_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Control Flow Ratio"/><br/>
         <b>Control Flow Ratio</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/hit_control_flow_branches_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/hit_control_flow_branches_ridgeplot.png" width="300" loading="lazy" alt="Control Flow Branches"/><br/>
+        <img src="../assets/analyses_ridgeplots/hit_control_flow_branches_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Control Flow Branches"/><br/>
         <b>Control Flow Branches</b>
       </a>
     </td>
@@ -114,19 +114,19 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/max_func_complexity_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/max_func_complexity_ridgeplot.png" width="300" loading="lazy" alt="Max Function Complexity"/><br/>
+        <img src="../assets/analyses_ridgeplots/max_func_complexity_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Max Function Complexity"/><br/>
         <b>Max Function Complexity</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/avg_func_args_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/avg_func_args_ridgeplot.png" width="300" loading="lazy" alt="Avg Function Arguments"/><br/>
+        <img src="../assets/analyses_ridgeplots/avg_func_args_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Avg Function Arguments"/><br/>
         <b>Avg Function Arguments</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/import_count_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/import_count_ridgeplot.png" width="300" loading="lazy" alt="Outbound Imports"/><br/>
+        <img src="../assets/analyses_ridgeplots/import_count_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Outbound Imports"/><br/>
         <b>Outbound Imports</b>
       </a>
     </td>
@@ -134,7 +134,7 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/hit_i_o_and_network_boundaries_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/hit_i_o_and_network_boundaries_ridgeplot.png" width="300" loading="lazy" alt="I/O & Network Boundaries"/><br/>
+        <img src="../assets/analyses_ridgeplots/hit_i_o_and_network_boundaries_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on I/O & Network Boundaries"/><br/>
         <b>I/O & Network Boundaries</b>
       </a>
     </td>
@@ -149,19 +149,19 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_volatility_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_volatility_exposure_ridgeplot.png" width="300" loading="lazy" alt="Volatility Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_volatility_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Volatility Exposure (Churn)"/><br/>
         <b>Volatility Exposure (Churn)</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_instability_exposure_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_instability_exposure_ridgeplot.png" width="300" loading="lazy" alt="Instability Exposure"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_instability_exposure_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Instability Exposure (Age)"/><br/>
         <b>Instability Exposure (Age)</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/silo_risk_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/silo_risk_ridgeplot.png" width="300" loading="lazy" alt="Silo Risk"/><br/>
+        <img src="../assets/analyses_ridgeplots/silo_risk_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Silo Risk (Bus Factor)"/><br/>
         <b>Silo Risk (Bus Factor)</b>
       </a>
     </td>
@@ -169,7 +169,7 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/ownership_entropy_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/ownership_entropy_ridgeplot.png" width="300" loading="lazy" alt="Ownership Entropy"/><br/>
+        <img src="../assets/analyses_ridgeplots/ownership_entropy_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Ownership Entropy"/><br/>
         <b>Ownership Entropy</b>
       </a>
     </td>
@@ -184,19 +184,19 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_hardcoded_payload_artifacts_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_hardcoded_payload_artifacts_ridgeplot.png" width="300" loading="lazy" alt="Hardcoded Payload Artifacts"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_hardcoded_payload_artifacts_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Hardcoded Payload Artifacts"/><br/>
         <b>Hardcoded Payload Artifacts</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_obfuscation_and_evasion_surface_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_obfuscation_and_evasion_surface_ridgeplot.png" width="300" loading="lazy" alt="Obfuscation & Evasion Surface"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_obfuscation_and_evasion_surface_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Obfuscation & Evasion Surface"/><br/>
         <b>Obfuscation & Evasion Surface</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_exploit_generation_surface_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_exploit_generation_surface_ridgeplot.png" width="300" loading="lazy" alt="Exploit Generation Surface"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_exploit_generation_surface_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Exploit Generation Surface"/><br/>
         <b>Exploit Generation Surface</b>
       </a>
     </td>
@@ -204,13 +204,13 @@ The following ridge line plots visualize the distribution of these risk exposure
   <tr>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_weaponizable_injection_vectors_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_weaponizable_injection_vectors_ridgeplot.png" width="300" loading="lazy" alt="Weaponizable Injection Vectors"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_weaponizable_injection_vectors_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Weaponizable Injection Vectors"/><br/>
         <b>Weaponizable Injection Vectors</b>
       </a>
     </td>
     <td>
       <a href="../assets/analyses_ridgeplots/risk_raw_memory_manipulation_ridgeplot.png">
-        <img src="../assets/analyses_ridgeplots/risk_raw_memory_manipulation_ridgeplot.png" width="300" loading="lazy" alt="Raw Memory Manipulation"/><br/>
+        <img src="../assets/analyses_ridgeplots/risk_raw_memory_manipulation_ridgeplot.png" width="300" loading="lazy" alt="Ridge plot comparing different programming languages based on Raw Memory Manipulation"/><br/>
         <b>Raw Memory Manipulation</b>
       </a>
     </td>
@@ -228,4 +228,3 @@ This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid
 
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
 * 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
-

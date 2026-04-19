@@ -19,10 +19,10 @@ theme:
 extra:
   social:
     - icon: "fontawesome/solid/globe"
-      link: "https://gitgalaxy.io/"
+      link: "[https://gitgalaxy.io/](https://gitgalaxy.io/)"
       name: "GitGalaxy Visualizer"
     - icon: "fontawesome/brands/github"
-      link: "https://github.com/squid-protocol/gitgalaxy"
+      link: "[https://github.com/squid-protocol/gitgalaxy](https://github.com/squid-protocol/gitgalaxy)"
       name: "GitHub Source Code"
 
 docs_dir: "docs/wiki"
@@ -40,10 +40,10 @@ plugins:
 
 extra_javascript:
   - "javascripts/mathjax.js"
-  - "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"
+  - "[https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js](https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js)"
 
 nav:
-  - '🌌 Open GitGalaxy Visualizer': "https://gitgalaxy.io/"
+  - '🌌 Open GitGalaxy Visualizer': "[https://gitgalaxy.io/](https://gitgalaxy.io/)"
   - 'Home': "index.md"
   - 'Enterprise Cookbook (Use Cases)': 
       - 'Enable 24/7 Delta Monitoring': "cookbook/continuous-delta-monitoring.md"
@@ -64,6 +64,9 @@ nav:
   - '1. Foundation & Architecture': 
       - 'Project Overview': "01-project-overview.md"
       - 'GalaxyScope CLI Reference': "01-02-galaxyscope-cli-reference.md"
+      - 'The blAST Paradigm (ASTs vs LLMs)': "01-03-the-blast-paradigm.md"
+      - 'Installation & Airgap Setup': "01-04-airgap-installation.md"
+      - 'How to Read the Galaxy (Visuals)': "01-05-how-to-read-the-galaxy.md"
   - '2. Data Pipeline':
       - 'Pipeline Overview': "02-01-pipeline-overview.md"
       - 'Optical Orchestration': "02-02-optical-orchestration.md"
