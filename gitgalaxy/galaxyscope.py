@@ -41,8 +41,8 @@ from gitgalaxy.recorders.llm_recorder import LLMRecorder
 from gitgalaxy.recorders.record_keeper import RecordKeeper
 from gitgalaxy.security.security_lens import SecurityLens
 from gitgalaxy.security.security_auditor import SecurityAuditor
-from gitgalaxy.ai_guardrails.dev_agent_firewall import DevAgentFirewall
-from gitgalaxy.ai_guardrails.ai_appsec_sensor import AIAppSecSensor
+from gitgalaxy.tools.ai_guardrails.dev_agent_firewall import DevAgentFirewall
+from gitgalaxy.tools.ai_guardrails.ai_appsec_sensor import AIAppSecSensor
 from gitgalaxy.standards.gitgalaxy_config import APERTURE_CONFIG, PRIORITY_WHITELIST, GUIDESTAR_CONFIG, EXACT_FILE_MATCH, STATIC_ARCHETYPES, ORCHESTRATOR_RULES, COMMENT_DEFINITIONS
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS, PROJECT_OVERRIDES
 from gitgalaxy.standards.analysis_lens import ThreatPolicy, PATH_MODIFIERS, PHYSICS_ASSET_MASKS

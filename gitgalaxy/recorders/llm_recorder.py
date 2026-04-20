@@ -1106,9 +1106,9 @@ class LLMRecorder:
                         repo_macro_species, repo_z_score, max_algorithmic_complexity, max_db_complexity,
                         {", ".join(self.RISK_SCHEMA)}
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
                 ''', (
-                    p, Path(p).name, c_name, star.get("lang_id"), star.get("lock_tier"), 
+                    p, Path(p).name, parent_entity, c_name, star.get("lang_id"), star.get("lock_tier"), 
                     star.get("total_loc"), star.get("coding_loc"), star.get("doc_loc", 0), star.get("file_impact"),
                     tel.get("control_flow_ratio"), tel.get("author_distribution"), tel.get("ownership_entropy"),
                     tel.get("raw_churn_freq"), tel.get("densities", {}).get("cog_raw"), tel.get("ownership"), pop_count, 

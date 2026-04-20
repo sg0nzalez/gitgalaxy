@@ -153,6 +153,10 @@ class RecordKeeper:
                 pct_z_above_15 REAL DEFAULT 0.0, 
                 file_archetype TEXT, 
                 file_fingerprint TEXT,
+                repo_macro_species TEXT,
+                repo_z_score REAL,
+                max_algorithmic_complexity TEXT,
+                max_db_complexity INTEGER,
                 ai_threat_score REAL,
                 is_malware INTEGER,
                 has_credentials INTEGER,
@@ -171,7 +175,6 @@ class RecordKeeper:
                 {", ".join(hit_cols)}
             )
         ''')
-
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS class_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -373,6 +376,7 @@ class RecordKeeper:
                 tel.get("ownership", "Unknown"), ai_threat_class, ai_threat,
                 func_z_max, func_z_mean, func_z_median, pct_z_above_5, pct_z_above_15, 
                 file_archetype, file_fingerprint_str,
+                repo_macro, repo_z,
                 tel.get("max_algorithmic_complexity", "O(N)"), int(tel.get("max_db_complexity", 0)),
                 ai_score, is_malware, has_creds, bin_anomaly, glassworm,
                 file_token_mass, file_read_cost, is_black_hole, req_hitl,
@@ -386,7 +390,7 @@ class RecordKeeper:
             
             cursor.execute(f'''
                 INSERT INTO file_data (
-                    repo_name, commit_date, commit_hash, file_name, file_path, language, constellation, 
+                    repo_name, commit_date, commit_hash, file_name, file_path, parent_entity, language, constellation, 
                     total_loc, coding_loc, structural_mass, cog_raw, ownership_entropy, silo_risk, 
                     raw_churn_freq, popularity, import_count, pagerank_score, normalized_blast_radius, betweenness_score, closeness_score, producer_ratio, ecosystem_role,
                     control_flow_ratio, function_count, class_count,
@@ -398,7 +402,7 @@ class RecordKeeper:
                     repo_macro_species, repo_z_score,
                     max_algorithmic_complexity, max_db_complexity,
                     ai_threat_score, is_malware, has_credentials, binary_anomaly, glassworm_flag,
-                    token_mass, financial_read_cost, agentic_black_hole, requires_hitl, appsec_rce_funnel, appsec_god_mode, appsec_exfiltration,
+                    token_mass, financial_read_cost, agentic_black_hole, requires_hitl, appsec_rce_funnel, appsec_god_mode, appsec_exfiltration, hallucination_zone, silent_mutation_risk,
                     {", ".join([f"risk_{r.replace('-', '_')}" for r in self.RISK_SCHEMA])},
                     {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])}
                 ) VALUES ({placeholders})
@@ -460,7 +464,7 @@ class RecordKeeper:
                 func_placeholders = ",".join(["?"] * len(func_rows[0]))
                 cursor.executemany(f'''
                     INSERT INTO function_data 
-                    (file_id, func_name, complexity, loc, args, usage_status, keyword_density, func_archetype, func_z_score, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to, token_mass, {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])})
+                    (file_id, parent_class_id, func_name, complexity, loc, args, usage_status, keyword_density, func_archetype, func_z_score, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to, token_mass, {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])})
                     VALUES ({func_placeholders})
                 ''', func_rows)
 
@@ -519,7 +523,7 @@ class RecordKeeper:
             ) VALUES ({repo_placeholders})
         ''', repo_row_data)
         
-        # 4. DARK MATTER LEDGER INSERTION
+# 4. DARK MATTER LEDGER INSERTION
         dark_rows = []
         for dark in singularity:
             path = dark.get("path", "")
@@ -530,89 +534,89 @@ class RecordKeeper:
             ])
 
         if dark_rows:
-                cursor.executemany('''
-                    INSERT INTO dark_matter_data 
-                    (repo_name, commit_hash, file_path, extension, exclusion_reason, size_bytes)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', dark_rows)
+            cursor.executemany('''
+                INSERT INTO dark_matter_data 
+                (repo_name, commit_hash, file_path, extension, exclusion_reason, size_bytes)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', dark_rows)
 
-            # ==============================================================================
-            # 5. FOLDER-LEVEL ROLLUP (MATERIALIZED PATH AGGREGATION)
-            # ==============================================================================
-            folder_stats = {}
-            debt_idx = self.RISK_SCHEMA.index("tech_debt") if "tech_debt" in self.RISK_SCHEMA else -1
+        # ==============================================================================
+        # 5. FOLDER-LEVEL ROLLUP (MATERIALIZED PATH AGGREGATION)
+        # ==============================================================================
+        folder_stats = {}
+        debt_idx = self.RISK_SCHEMA.index("tech_debt") if "tech_debt" in self.RISK_SCHEMA else -1
 
-            for star in stars:
-                file_path = star.get("path", "")
-                parts = file_path.split('/')[:-1] # Strip the filename to get directories
-                
-                # Determine all parent paths (e.g., src/api/auth -> src, src/api, src/api/auth)
-                paths_to_update = ["."] if not parts else []
-                current_path = ""
-                for part in parts:
-                    current_path = f"{current_path}/{part}" if current_path else part
-                    paths_to_update.append(current_path)
+        for star in stars:
+            file_path = star.get("path", "")
+            parts = file_path.split('/')[:-1] # Strip the filename to get directories
+            
+            # Determine all parent paths (e.g., src/api/auth -> src, src/api, src/api/auth)
+            paths_to_update = ["."] if not parts else []
+            current_path = ""
+            for part in parts:
+                current_path = f"{current_path}/{part}" if current_path else part
+                paths_to_update.append(current_path)
 
-                # Extract file metrics
-                loc = star.get("total_loc", 0)
-                coding_loc = star.get("coding_loc", 0)
-                mass = star.get("file_impact", 0.0)
-                func_count = len(star.get("satellites", []))
-                class_count = len(star.get("gas_giants", []))
-                
-                tel = star.get("telemetry", {})
-                cog_raw = tel.get("densities", {}).get("cog_raw", 0.0)
-                churn = tel.get("raw_churn_freq", 0.0)
-                
-                rv = star.get("risk_vector", [])
-                tech_debt = rv[debt_idx] if debt_idx >= 0 and len(rv) > debt_idx else 0.0
+            # Extract file metrics
+            loc = star.get("total_loc", 0)
+            coding_loc = star.get("coding_loc", 0)
+            mass = star.get("file_impact", 0.0)
+            func_count = len(star.get("satellites", []))
+            class_count = len(star.get("gas_giants", []))
+            
+            tel = star.get("telemetry", {})
+            cog_raw = tel.get("densities", {}).get("cog_raw", 0.0)
+            churn = tel.get("raw_churn_freq", 0.0)
+            
+            rv = star.get("risk_vector", [])
+            tech_debt = rv[debt_idx] if debt_idx >= 0 and len(rv) > debt_idx else 0.0
 
-                # Roll metrics upwards
-                for p in paths_to_update:
-                    if p not in folder_stats:
-                        folder_stats[p] = {
-                            "file_count": 0, "total_loc": 0, "total_coding_loc": 0,
-                            "total_functions": 0, "total_classes": 0, "total_mass": 0.0,
-                            "cog_loads": [], "tech_debts": [], "churns": []
-                        }
-                    fs = folder_stats[p]
-                    fs["file_count"] += 1
-                    fs["total_loc"] += loc
-                    fs["total_coding_loc"] += coding_loc
-                    fs["total_functions"] += func_count
-                    fs["total_classes"] += class_count
-                    fs["total_mass"] += mass
-                    fs["cog_loads"].append(cog_raw)
-                    fs["tech_debts"].append(tech_debt)
-                    fs["churns"].append(churn)
+            # Roll metrics upwards
+            for p in paths_to_update:
+                if p not in folder_stats:
+                    folder_stats[p] = {
+                        "file_count": 0, "total_loc": 0, "total_coding_loc": 0,
+                        "total_functions": 0, "total_classes": 0, "total_mass": 0.0,
+                        "cog_loads": [], "tech_debts": [], "churns": []
+                    }
+                fs = folder_stats[p]
+                fs["file_count"] += 1
+                fs["total_loc"] += loc
+                fs["total_coding_loc"] += coding_loc
+                fs["total_functions"] += func_count
+                fs["total_classes"] += class_count
+                fs["total_mass"] += mass
+                fs["cog_loads"].append(cog_raw)
+                fs["tech_debts"].append(tech_debt)
+                fs["churns"].append(churn)
 
-            # Calculate Domain Averages and Insert
-            folder_rows = []
-            for f_path, stats in folder_stats.items():
-                avg_cog = sum(stats["cog_loads"]) / len(stats["cog_loads"]) if stats["cog_loads"] else 0.0
-                max_cog = max(stats["cog_loads"]) if stats["cog_loads"] else 0.0
-                
-                avg_debt = sum(stats["tech_debts"]) / len(stats["tech_debts"]) if stats["tech_debts"] else 0.0
-                max_debt = max(stats["tech_debts"]) if stats["tech_debts"] else 0.0
-                
-                avg_churn = sum(stats["churns"]) / len(stats["churns"]) if stats["churns"] else 0.0
+        # Calculate Domain Averages and Insert
+        folder_rows = []
+        for f_path, stats in folder_stats.items():
+            avg_cog = sum(stats["cog_loads"]) / len(stats["cog_loads"]) if stats["cog_loads"] else 0.0
+            max_cog = max(stats["cog_loads"]) if stats["cog_loads"] else 0.0
+            
+            avg_debt = sum(stats["tech_debts"]) / len(stats["tech_debts"]) if stats["tech_debts"] else 0.0
+            max_debt = max(stats["tech_debts"]) if stats["tech_debts"] else 0.0
+            
+            avg_churn = sum(stats["churns"]) / len(stats["churns"]) if stats["churns"] else 0.0
 
-                folder_rows.append((
-                    repo_name, commit_hash, f_path,
-                    stats["file_count"], stats["total_loc"], stats["total_coding_loc"],
-                    stats["total_functions"], stats["total_classes"], round(stats["total_mass"], 2),
-                    round(avg_cog, 3), round(avg_debt, 3), round(max_cog, 3), round(max_debt, 3), round(avg_churn, 3)
-                ))
+            folder_rows.append((
+                repo_name, commit_hash, f_path,
+                stats["file_count"], stats["total_loc"], stats["total_coding_loc"],
+                stats["total_functions"], stats["total_classes"], round(stats["total_mass"], 2),
+                round(avg_cog, 3), round(avg_debt, 3), round(max_cog, 3), round(max_debt, 3), round(avg_churn, 3)
+            ))
 
-            if folder_rows:
-                cursor.executemany('''
-                    INSERT INTO folder_data (
-                        repo_name, commit_hash, folder_path, file_count, total_loc, total_coding_loc,
-                        total_functions, total_classes, total_mass, avg_cognitive_load, avg_tech_debt,
-                        max_cognitive_load, max_tech_debt, avg_churn_freq
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', folder_rows)
+        if folder_rows:
+            cursor.executemany('''
+                INSERT INTO folder_data (
+                    repo_name, commit_hash, folder_path, file_count, total_loc, total_coding_loc,
+                    total_functions, total_classes, total_mass, avg_cognitive_load, avg_tech_debt,
+                    max_cognitive_load, max_tech_debt, avg_churn_freq
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', folder_rows)
 
-            conn.commit()
-            conn.close()
-            self.logger.info(f"Database sealed. Exported {len(stars)} files and {len(folder_rows)} folders to {db_file.name}")
+        conn.commit()
+        conn.close()
+        self.logger.info(f"Database sealed. Exported {len(stars)} files and {len(folder_rows)} folders to {db_file.name}")
