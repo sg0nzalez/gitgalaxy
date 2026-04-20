@@ -42,7 +42,7 @@ from gitgalaxy.recorders.audit_recorder import AuditRecorder
 from gitgalaxy.recorders.llm_recorder import LLMRecorder
 from gitgalaxy.recorders.record_keeper import RecordKeeper
 from gitgalaxy.security.security_lens import SecurityLens
-from gitgalaxy.security.security_auditor import SecurityAuditor
+from gitgalaxy.security.security_auditor import SecurityAuditor, ML_AVAILABLE
 from gitgalaxy.tools.ai_guardrails.dev_agent_firewall import DevAgentFirewall
 from gitgalaxy.tools.ai_guardrails.ai_appsec_sensor import AIAppSecSensor
 from gitgalaxy.standards.gitgalaxy_config import APERTURE_CONFIG, PRIORITY_WHITELIST, GUIDESTAR_CONFIG, EXACT_FILE_MATCH, STATIC_ARCHETYPES, ORCHESTRATOR_RULES, COMMENT_DEFINITIONS
@@ -528,7 +528,14 @@ class Orchestrator:
         start_time = time.time()
         logger.info(f"--- MISSION_IGNITION: {self.root.name} (v{self.version}) ---")
         
-        if not HAS_NETWORKX or not HAS_TIKTOKEN:
+        if not HAS_NETWORKX or not HAS_TIKTOKEN or not ML_AVAILABLE:
+            missing_libs = []
+            if not HAS_NETWORKX: missing_libs.append("networkx")
+            if not HAS_TIKTOKEN: missing_libs.append("tiktoken")
+            if not ML_AVAILABLE: missing_libs.extend(["xgboost", "pandas", "numpy"])
+            
+            pip_cmd = f"pip install {' '.join(missing_libs)}"
+            
             logger.warning("")
             logger.warning(" ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
             logger.warning(" ┃ ⚠️  ZERO-DEPENDENCY MODE ACTIVE                                         ┃")
@@ -536,8 +543,10 @@ class Orchestrator:
             logger.warning(" ┃ Missing computational engines. Metrics will be safely set to NULL:      ┃")
             if not HAS_NETWORKX: logger.warning(" ┃  - networkx (Network Topology, Blast Radius, Choke Points)              ┃")
             if not HAS_TIKTOKEN: logger.warning(" ┃  - tiktoken (Absolute Token Mass, Financial Read Cost)                  ┃")
+            if not ML_AVAILABLE: logger.warning(" ┃  - xgboost, pandas (Advanced ML Threat Inference & Taxonomy)            ┃")
             logger.warning(" ┃                                                                         ┃")
-            logger.warning(" ┃ To unlock absolute precision, run: pip install networkx tiktoken        ┃")
+            logger.warning(" ┃ To unlock absolute precision, run:                                      ┃")
+            logger.warning(f" ┃    {pip_cmd}".ljust(75) + "┃")
             logger.warning(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
             logger.warning("")
 
@@ -615,16 +624,18 @@ class Orchestrator:
             duration = round(raw_duration, 2)
 
             session_meta = {
-                "engine": f"GitGalaxy Scope v{self.version}",
+                "engine": f"GitGalaxy Scope v{self.version} (Delta Mode)",
                 "target": self.root.name,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "duration_seconds": duration,
+                "duration_seconds": round(time.time() - start_time, 2),
                 "target_directory": str(self.root.resolve()),
                 "git_audit": self._get_git_audit(),
                 "missing_dependencies": {
                     "networkx": not HAS_NETWORKX,
-                    "tiktoken": not HAS_TIKTOKEN
-                }
+                    "tiktoken": not HAS_TIKTOKEN,
+                    "xgboost": not ML_AVAILABLE
+                },
+                "zero_dependency_mode": (not HAS_NETWORKX or not HAS_TIKTOKEN or not ML_AVAILABLE)
             }
             
             if "singularity" not in summary: 
@@ -1656,7 +1667,12 @@ class Orchestrator:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "duration_seconds": round(time.time() - start_time, 2),
                 "target_directory": str(self.root.resolve()),
-                "git_audit": self._get_git_audit() # Gets the NEW commit hash
+                "git_audit": self._get_git_audit(), # Gets the NEW commit hash
+                "missing_dependencies": {
+                    "networkx": not HAS_NETWORKX,
+                    "tiktoken": not HAS_TIKTOKEN
+                },
+                "zero_dependency_mode": (not HAS_NETWORKX or not HAS_TIKTOKEN)
             }
 
             self.db_recorder.record_mission(

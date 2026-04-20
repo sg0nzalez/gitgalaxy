@@ -147,7 +147,13 @@ class LLMRecorder:
         lines.append(f"| **Git Branch** | `{git_audit.get('branch', 'N/A')}` |")
         lines.append(f"| **Git Commit** | `{git_audit.get('commit_hash', 'N/A')}` |")
         lines.append(f"| **Git Remote** | `{git_audit.get('remote_url', 'N/A')}` |")
+        lines.append(f"| **Zero-Dependency Mode** | `{'ACTIVE (Degraded Precision)' if session_meta.get('zero_dependency_mode') else 'Inactive (Full Precision)'}` |")
         lines.append("")
+        
+        if session_meta.get("zero_dependency_mode"):
+            lines.append("> **⚠️ ZERO-DEPENDENCY MODE ACTIVE:**")
+            lines.append("> External C-backed calculation engines (`networkx`, `tiktoken`) were not installed during this scan. Advanced metrics like Token Mass, Financial Read Cost, and N-Dimensional Network Topology (Blast Radius, Betweenness Centrality) are intentionally recorded as `null` or `0` to prevent data poisoning. Do not hallucinate values for these metrics.")
+            lines.append("")
         
         # ---> NEW: HARVEST AI THREAT SCORES & CREATE BILLBOARD <---
         ml_threats = []
@@ -961,6 +967,7 @@ class LLMRecorder:
                 ("timestamp", session.get("timestamp")),
                 ("branch", session.get("git_audit", {}).get("branch")),
                 ("commit", session.get("git_audit", {}).get("commit_hash")),
+                ("zero_dependency_mode", "True" if session.get("zero_dependency_mode") else "False"),
                 ("repo_macro_species", macro_info.get("name", "Unclassified")),
                 ("repo_z_score", str(macro_info.get("z_score", 0.0))),
                 ("network_modularity", str(net_macro.get("modularity", 0.0))),

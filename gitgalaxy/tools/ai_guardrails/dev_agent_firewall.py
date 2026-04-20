@@ -43,17 +43,17 @@ class DevAgentFirewall:
                 guardrails["warnings"].append("WARNING: High Blast Radius with severe risk debt. Human-in-the-Loop required for modifications.")
 
             # 3. The Hallucination Zone (Metaprogramming + Low Docs)
-            meta_heavy = s.get("telemetry", {}).get("heat_triggers", 0) > 2 
-            doc_density = s.get("telemetry", {}).get("doc_density", 1.0)
+            meta_heavy = file_data.get("telemetry", {}).get("heat_triggers", 0) > 2 
+            doc_density = file_data.get("telemetry", {}).get("doc_density", 1.0)
             
             if meta_heavy and doc_density < 0.2:
                 guardrails["hallucination_zone"] = True
                 guardrails["warnings"].append("DANGER: Hallucination Zone. Dynamic metaprogramming detected with < 20% documentation density. AI will likely hallucinate missing methods.")
 
             # 4. The Silent Mutation Risk (High Flux + High Blast + No Tests)
-            state_flux = s.get("telemetry", {}).get("state_flux", 0)
+            state_flux = file_data.get("telemetry", {}).get("state_flux", 0)
             in_degree = network_metrics.get("in_degree", 0)
-            has_tests = s.get("telemetry", {}).get("has_tests", False) 
+            has_tests = file_data.get("telemetry", {}).get("has_tests", False)
             
             if state_flux > 50 and in_degree > 5 and not has_tests:
                 guardrails["silent_mutation_risk"] = True

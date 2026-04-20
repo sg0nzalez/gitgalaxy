@@ -32,7 +32,7 @@ class AIAppSecSensor:
             
             arch_api = telemetry.get("arch_api", 0) > 0  # Publicly exposed
             arch_io = telemetry.get("arch_io", 0) > 0    # Network/Disk I/O
-            db_complexity = s.get("max_db_complexity", 0) # Data gravity
+            db_complexity = file_data.get("max_db_complexity", 0) # Data gravity
             
             # Security DNA
             sec_danger = telemetry.get("sec_danger", 0) > 0     # eval, exec, subprocess
