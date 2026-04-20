@@ -25,21 +25,21 @@ try:
 except ImportError:
     pass
 
-def get_token_mass(text: str, deep_scan: bool = False) -> int:
-    """Calculates context window footprint. O(1) heuristic default, absolute precision if deep_scan is True."""
+def get_token_mass(text: str, deep_scan: bool = False) -> Optional[int]:
+    """Calculates context window footprint. Returns None if tiktoken is missing to prevent dataset poisoning."""
     if not text:
         return 0
-    if deep_scan and HAS_TIKTOKEN:
+    if HAS_TIKTOKEN:
         return len(ENCODER.encode(text, disallowed_special=()))
-    return max(1, len(text) // 4)
+    return None
 
 # ==============================================================================
 # GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Cartographer
 # Strategy v6.3.0 Protocol: Fluid-State Counters, Language Sliding & Semantic Modes
 # ==============================================================================
 
-class Satellite(TypedDict, total=False):
-    """Metadata for a surgically extracted logic block."""
+class FunctionNode(TypedDict, total=False):
+    """Metadata for a surgically extracted function or logic block."""
     name: str
     
     # Dual-Key mapping to ensure compatibility with all pipeline versions
@@ -81,7 +81,7 @@ class Satellite(TypedDict, total=False):
 class LogicData(TypedDict, total=False):
     """The standardized output schema for Strategy v6.2.0+ compliance."""
     equations: Dict[str, int]
-    satellites: List[Satellite]
+    functions: List[FunctionNode]
     logic_density: float
     sum_fxn_impact: float
     total_control_flow_ratio: float
@@ -370,19 +370,59 @@ class LogicSplicer:
             equations = self.comment_analysis(comment_stream, self.primary_lang_id, equations)
             
             t_slice = time.time()
-            satellites, sum_fxn_impact = self._function_slice(segments, segment_spatial_maps, regex_telemetry if profile_regex else None)
+            functions, sum_fxn_impact = self._function_slice(segments, segment_spatial_maps, regex_telemetry if profile_regex else None)
 
-            # ---> NEW: FAST CLASS (GAS GIANT) EXTRACTOR <---
-            gas_giants = []
-            class_pattern = re.compile(r'^\s*(?:export\s+|public\s+|abstract\s+)?class\s+([a-zA-Z0-9_]+)(?:\s*(?:\(|extends\s+)([a-zA-Z0-9_]+))?', re.MULTILINE)
-            for match in class_pattern.finditer(code_stream):
-                gas_giants.append({
+            # ---> NEW: FAST CLASS EXTRACTOR & FUNCTION LINKAGE <---
+            classes = []
+            # Upgraded regex to catch standard OOP entities across polyglot languages
+            class_pattern = re.compile(r'^\s*(?:export\s+|public\s+|abstract\s+)?(?:class|struct|interface|trait|enum)\s+([a-zA-Z0-9_]+)(?:\s*(?:\(|extends\s+|implements\s+|:\s*)([a-zA-Z0-9_]+))?', re.MULTILINE)
+            
+            class_matches = list(class_pattern.finditer(code_stream))
+            for i, match in enumerate(class_matches):
+                start_idx = match.start()
+                # Scope ends at the next class declaration, or the end of the file
+                end_idx = class_matches[i+1].start() if i + 1 < len(class_matches) else len(code_stream)
+                
+                # Convert raw string indices to line numbers for spatial bounding
+                start_line = code_stream.count('\n', 0, start_idx) + 1
+                end_line = code_stream.count('\n', 0, end_idx) + 1
+                
+                classes.append({
                     "name": match.group(1),
                     "inheritance": [match.group(2)] if match.group(2) else [],
+                    "_start_line": start_line,
+                    "_end_line": end_line,
                     "method_count": 0,
                     "state_entanglement": 0.0,
                     "lcom_score": 0.0
                 })
+
+            # ---> LINK FUNCTIONS TO CLASSES & CALCULATE CLASS PHYSICS <---
+            for cls in classes:
+                class_methods = []
+                for func in functions:
+                    # If the function falls within the spatial bounds of the class
+                    if cls["_start_line"] <= func.get("start_line", 0) <= cls["_end_line"]:
+                        func["parent_class_name"] = cls["name"]
+                        class_methods.append(func)
+                
+                cls["method_count"] = len(class_methods)
+                
+                # State Entanglement: Density of state mutations (flux) inside the class methods
+                total_flux = sum(m.get("hit_vector", {}).get("flux", 0) for m in class_methods)
+                cls["state_entanglement"] = round((total_flux / max(cls["method_count"], 1)) * 5.0, 2)
+                
+                # LCOM (Lack of Cohesion of Methods): Approximation using arguments vs mutations
+                total_args = sum(m.get("args", 0) for m in class_methods)
+                if cls["method_count"] > 1:
+                    cohesion_ratio = total_flux / max(total_args, 1)
+                    cls["lcom_score"] = round(max(0.0, min(100.0, 100.0 - (cohesion_ratio * 25.0))), 2)
+                else:
+                    cls["lcom_score"] = 0.0
+                    
+                # Erase the temporary spatial boundaries
+                del cls["_start_line"]
+                del cls["_end_line"]
 
             branch_hits = equations.get("branch", 0)
             linear_hits = equations.get("linear", 0)
@@ -398,23 +438,23 @@ class LogicSplicer:
             token_counts = collections.Counter(re.findall(r'\b\w+\b', code_stream))
             
             orphan_count = 0
-            sat_names = [s.get("name", "") for s in satellites]
-            sat_name_counts = collections.Counter(sat_names)
+            func_names = [f.get("name", "") for f in functions]
+            func_name_counts = collections.Counter(func_names)
 
-            for sat in satellites:
-                sat_name = sat.get("name", "")
+            for func in functions:
+                func_name = func.get("name", "")
                 usage_status = 0 # 0 = Normal
                 
                 # Check for Duplicates (Defined multiple times in the same file)
-                if sat_name and sat_name_counts[sat_name] > 1:
+                if func_name and func_name_counts[func_name] > 1:
                     usage_status = 2 # 2 = Duplicate
-                elif len(sat_name) > 3 and sat_name not in {"Unknown_Sat", "Anonymous_Block", "Main", "Declarative_Block"}:
+                elif len(func_name) > 3 and func_name not in {"Unknown_Sat", "Anonymous_Block", "Main", "Declarative_Block"}:
                     # If the function name only exists where it was defined, it's an orphan
-                    if token_counts[sat_name] <= 1:
+                    if token_counts[func_name] <= 1:
                         orphan_count += 1
                         usage_status = 1 # 1 = Orphan / Unused
                         
-                sat["usage_status"] = usage_status
+                func["usage_status"] = usage_status
                         
             if orphan_count > 0:
                 equations["design_slop_orphans"] = orphan_count
@@ -424,15 +464,15 @@ class LogicSplicer:
 
             result_payload = {
                 "equations": equations,
-                "gas_giants": gas_giants,
-                "satellites": satellites,
+                "classes": classes,
+                "functions": functions,
                 "logic_density": logic_density,
                 "sum_fxn_impact": sum_fxn_impact,
                 "total_control_flow_ratio": total_control_flow_ratio,
                 "metadata": ghost_meta,
                 "mitigation_telemetry": mitigation_telemetry,
                 "token_mass": file_token_mass,
-                "financial_read_cost": round((file_token_mass / 1000000) * 3.00, 5)
+                "financial_read_cost": round((file_token_mass / 1000000) * 3.00, 5) if file_token_mass is not None else None
             }
             if profile_regex:
                 result_payload["regex_telemetry"] = regex_telemetry
@@ -978,7 +1018,7 @@ class LogicSplicer:
     # THE MASTER DISPATCHER
     # ==============================================================================
 
-    def _function_slice(self, segments: List[Tuple[str, str, int]], segment_spatial_maps: List[Dict[str, List[int]]], regex_telemetry: dict = None) -> Tuple[List[Satellite], float]:
+    def _function_slice(self, segments: List[Tuple[str, str, int]], segment_spatial_maps: List[Dict[str, List[int]]], regex_telemetry: dict = None) -> Tuple[List[FunctionNode], float]:
         """The Master Routing Dispatcher: Directs the optical signal into the correct integration mode."""
         all_satellites = []
         global_impact = 0.0
@@ -1034,7 +1074,7 @@ class LogicSplicer:
     # INTEGRATION MODES (Slicers)
     # ==============================================================================
 
-    def _slice_by_labels(self, code: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[Satellite], float]:
+    def _slice_by_labels(self, code: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[FunctionNode], float]:
         """[INTEGRATION MODE A] - Greedy Label-Based Scan (Assembly, COBOL)."""
         satellites = []
         sum_fxn_impact = 0.0
@@ -1087,7 +1127,7 @@ class LogicSplicer:
 
         return satellites, sum_fxn_impact
 
-    def _slice_by_braces(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]], family: str = 'std_c') -> Tuple[List[Satellite], float]:
+    def _slice_by_braces(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]], family: str = 'std_c') -> Tuple[List[FunctionNode], float]:
         
         """[INTEGRATION MODE B] - Global Recursive Scope Analysis (C-Family & Lisp)."""
         satellites = []
@@ -1232,7 +1272,7 @@ class LogicSplicer:
 
         return satellites, sum_fxn_impact
 
-    def _slice_by_indentation(self, code: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[Satellite], float]:         
+    def _slice_by_indentation(self, code: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[FunctionNode], float]:         
         """[INTEGRATION MODE C] - Density Stratification (Python, YAML)."""
         satellites = []
         sum_fxn_impact = 0.0
@@ -1331,7 +1371,7 @@ class LogicSplicer:
 
         return satellites, sum_fxn_impact
 
-    def _slice_by_keywords(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[Satellite], float]:
+    def _slice_by_keywords(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[FunctionNode], float]:
         """[INTEGRATION MODE D] - Semantic Handshake Stack (Shell, Ruby, Lua)."""
         self.logger.debug(f"[DIAGNOSTIC] Mode D: Initiating _slice_by_keywords for {lang_id}")
         config = SemanticScopeRegistry.get_config(lang_id)
@@ -1451,7 +1491,7 @@ class LogicSplicer:
         self.logger.debug(f"[DIAGNOSTIC] Mode D: Extracted {len(satellites)} satellites.")
         return satellites, sum_fxn_impact
     
-    def _slice_by_terminator(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[Satellite], float]:
+    def _slice_by_terminator(self, code: str, lang_id: str, rules: Dict[str, Any], offset: int, spatial_map: Dict[str, List[int]]) -> Tuple[List[FunctionNode], float]:
         """[INTEGRATION MODE E] - Terminator Cleaving (SQL, Erlang, Prolog)."""
         config = SemanticScopeRegistry.get_config(lang_id)
         if not config:
@@ -1546,7 +1586,7 @@ class LogicSplicer:
     # SHARED SATELLITE PHYSICS ENGINE
     # ==============================================================================
 
-    def _process_satellite_physics(self, name: str, block: str, loc: int, start_line: int, end_line: int, rules: Dict[str, Any], start_idx: int = 0, end_idx: int = 0, spatial_map: Dict[str, List[int]] = None) -> Tuple[Satellite, float]:
+    def _process_satellite_physics(self, name: str, block: str, loc: int, start_line: int, end_line: int, rules: Dict[str, Any], start_idx: int = 0, end_idx: int = 0, spatial_map: Dict[str, List[int]] = None) -> Tuple[FunctionNode, float]:
         args_pattern = rules.get('args')
         
         # --- THE FIX: O(log N) Binary Search for Structural DNA ---
@@ -1606,12 +1646,12 @@ class LogicSplicer:
                 is_recursive = True
         
         # --- NEW: FUNCTION-LEVEL DATABASE COMPLEXITY (Data Gravity) ---
-        # Weight complex raw SQL (JOINs/CTEs) heavily, standard ORM calls moderately, and migrations lightly.
+        # Mapped to active v6 schemas: 'io' (DB connections/SQL), 'flux' (mutations), and 'serialization_parsing' (JSON/ORMs).
         db_complexity = 0
         if hit_vector:
-            db_complexity = (hit_vector.get("sql_complexity", 0) * 3) + \
-                            (hit_vector.get("orm_models", 0) * 2) + \
-                            (hit_vector.get("schema_migrations", 0) * 1)
+            db_complexity = (hit_vector.get("io", 0) * 3) + \
+                            (hit_vector.get("serialization_parsing", 0) * 2) + \
+                            (hit_vector.get("flux", 0) * 1)
 
         # --- NEW: FUNCTION-LEVEL KEYWORD DENSITY (The Micro-Auditor) ---
         # Total structural signals divided by the physical lines of the function.
@@ -1684,7 +1724,7 @@ class LogicSplicer:
         # Deduplicate and filter (excluding the function calling itself recursively)
         calls_out = list(set([c for c in raw_calls if c not in ignore_keywords and c != name]))[:20]
 
-        sat: Satellite = {
+        sat: FunctionNode = {
             "name": name[:40],
             "calls_out_to": calls_out,
             "texture": texture_str, 
@@ -1846,26 +1886,26 @@ class Cartographer:
 
 
 
-    def map_galaxy(self, stars: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def map_repository(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Injects 3D coordinates using a Ray-Casting Dynamic Mask.
-        Ensures galaxies wrap around previous turns of the spiral by measuring
+        Ensures ecosystem graphs wrap around previous turns of the spiral by measuring
         all previously placed obstruction circles.
         """
-        if not stars:
+        if not parsed_files:
             return []
 
-        self.logger.info(f"Cartographer: Executing Ray-Casting Dynamic Mask packing for {len(stars)} bodies...")
+        self.logger.info(f"Cartographer: Executing Ray-Casting Dynamic Mask packing for {len(parsed_files)} bodies...")
 
         # 1. Sectorization
         sectors: Dict[str, List[Dict[str, Any]]] = {}
-        for star in stars:
-            path_str = star.get("path", star.get("filename", ""))
+        for file_node in parsed_files:
+            path_str = file_node.get("path", file_node.get("filename", ""))
             parts = [p for p in path_str.replace("\\", "/").split("/") if p]
             sector_name = "/".join(parts[:-1]) if len(parts) > 1 else "__monolith__"
-            star["constellation"] = sector_name # Saves to RAM for other reports
+            file_node["directory_group"] = sector_name # Saves to RAM for other reports
             if sector_name not in sectors: sectors[sector_name] = []
-            sectors[sector_name].append(star)
+            sectors[sector_name].append(file_node)
 
         # 2. Hull Calculation
         sector_stats = []
@@ -2000,7 +2040,7 @@ class Cartographer:
 
             prev_radius = sec_radius
 
-        return stars
+        return parsed_files
 
 
 

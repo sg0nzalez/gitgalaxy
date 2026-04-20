@@ -179,8 +179,8 @@ class SignalProcessor:
         base_weights.update(alien_penalties)
         
         if alien_penalties:
-            self.logger.warning(f"👽 ALIEN ENTITY DETECTED: {file_lang} file hiding in a {folder_eco} neighborhood. Applying severe penalties: {alien_penalties}")
-
+            self.logger.debug(f"👽 ALIEN ENTITY DETECTED: {file_lang} file hiding in a {folder_eco} neighborhood. Applying severe penalties: {alien_penalties}")
+            
         return base_weights
     
     def _calculate_silo_risk(self, authors: dict) -> float:
@@ -402,7 +402,7 @@ class SignalProcessor:
             safe_denom = max(logic_loc, meta.get("coding_loc", 1))
             
             # ---> START FUNCTION-LEVEL ML CLASSIFICATION <---
-            satellites = meta.get("satellites", [])
+            functions = meta.get("functions", [])
             max_func_comp = 0
             avg_func_args = 0.0
             func_gini = 0.0
@@ -424,26 +424,26 @@ class SignalProcessor:
             ])
 
             # ---> NEW: DIAGNOSTIC ML LOGGING <---
-            if satellites and not f_centroids:
+            if functions and not f_centroids:
                 self.logger.warning(f"⚠️ FUNCTION ML SILENT BYPASS: Brain loaded? {bool(func_ml_brain)} | Centroids: {len(f_centroids)} | Arch Key: {f_arch_key}")
 
             # Initialize has_recursion before the if block
             has_recursion = False
             
-            if satellites:
-                complexities = [s.get("branch", 0) for s in satellites]
+            if functions:
+                complexities = [f.get("branch", 0) for f in functions]
                 max_func_comp = max(complexities)
-                avg_func_args = sum([s.get("args", 0) for s in satellites]) / len(satellites)
-                max_big_o = max([s.get("big_o_depth", 1) for s in satellites])
-                max_db_complexity = max([s.get("db_complexity", 0) for s in satellites])
-                has_recursion = any([s.get("is_recursive", False) for s in satellites])
+                avg_func_args = sum([f.get("args", 0) for f in functions]) / len(functions)
+                max_big_o = max([f.get("big_o_depth", 1) for f in functions])
+                max_db_complexity = max([f.get("db_complexity", 0) for f in functions])
+                has_recursion = any([f.get("is_recursive", False) for f in functions])
                 
                 # 1. Z-Scores Mathematics
-                func_count = len(satellites)
+                func_count = len(functions)
                 mean_comp = statistics.mean(complexities) if func_count > 0 else 0.0
                 std_comp = statistics.pstdev(complexities) if func_count > 1 else 0.0
 
-                for s in satellites:
+                for s in functions:
                     # Apply Z-Score directly to RAM dictionary
                     c = s.get("branch", 0)
                     z_val = (c - mean_comp) / std_comp if std_comp > 0 else 0.0
@@ -570,7 +570,7 @@ class SignalProcessor:
                 loc, rel_path, meta.get("is_protected", False), equations, irc, fc, mp_map.get("test", 1.0), umbrella_bonus=umbrella_bonus, popularity=popularity
             )
             
-            doc_score = self._calc_documentation(loc, doc_lines, equations, fc, irc, mp_map.get("doc", 1.0), satellites)
+            doc_score = self._calc_documentation(loc, doc_lines, equations, fc, irc, mp_map.get("doc", 1.0), functions)
             spec_score = self._calc_spec_alignment(equations, mp_map.get("spec", 1.0))
             
             bureaucracy_dampener = min(loc / 15.0, 1.0)
@@ -584,7 +584,7 @@ class SignalProcessor:
                 "tech_debt":      debt_score,
                 "verification":   test_score,
                 "api_exposure":   self._calc_api_exposure(equations, total_loc, popularity),
-                "concurrency":    self._calc_concurrency(loc, equations, irc, mp_map.get("async", 1.0), satellites),
+                "concurrency":    self._calc_concurrency(loc, equations, irc, mp_map.get("async", 1.0), functions),
                 "state_flux":     self._calc_state_flux(loc, equations, irc, mp_map.get("flux", 1.0)),
                 "graveyard":      self._calc_graveyard(total_loc, equations, mp_map.get("dead", 1.0)),
                 "spec_match":     spec_score,
@@ -609,11 +609,11 @@ class SignalProcessor:
             # ------------------------------------------------------------------
             # 4. CALCULATE FILE IMPACT (The Mass)
             # ------------------------------------------------------------------
-            satellites = meta.get("satellites", [])
+            functions = meta.get("functions", [])
             func_start = equations.get("func_start", 0)
             
-            if satellites:
-                sum_function_impacts = sum(sat.get("impact", 0) for sat in satellites)
+            if functions:
+                sum_function_impacts = sum(f.get("impact", 0) for f in functions)
             else:
                 if func_start == 0:
                     temp_branches = 0
@@ -688,60 +688,60 @@ class SignalProcessor:
     # GLOBAL SYNTHESIS & 2-PASS NORMALIZATION
     # ==========================================================================
 
-    def summarize_galaxy_metrics(self, stars: List[Dict[str, Any]], singularity: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def summarize_galaxy_metrics(self, parsed_files: List[Dict[str, Any]], unparsable_files: List[Dict[str, Any]]) -> Dict[str, Any]:
         """[GLOBAL SYNTHESIS] Executes Pass 2 Normalization and aggregates health metrics."""
         
         # Execute Pass 2: Temporal Normalization across the Universe
-        self._normalize_temporal_metrics(stars)
+        self._normalize_temporal_metrics(parsed_files)
         
-        total_files = len(stars) + len(singularity)
+        total_files = len(parsed_files) + len(unparsable_files)
         if total_files == 0: 
             return {}
 
-        self.logger.info(f"Synthesizing galaxy metrics across {total_files} artifacts ({len(stars)} visible, {len(singularity)} dark matter)...")
+        self.logger.info(f"Synthesizing repository metrics across {total_files} artifacts ({len(parsed_files)} verified, {len(unparsable_files)} unparsable)...")
         
         # Safely extract score averages from the risk_vector list via mapping
         def get_avg(metric_name):
             if metric_name not in self.RISK_SCHEMA: return 0.0
             idx = self.RISK_SCHEMA.index(metric_name)
-            scores = [s["risk_vector"][idx] for s in stars if "risk_vector" in s and len(s["risk_vector"]) > idx]
+            scores = [f["risk_vector"][idx] for f in parsed_files if "risk_vector" in f and len(f["risk_vector"]) > idx]
             return round(statistics.mean(scores), 3) if scores else 0.0
 
         lang_comp = {}
         total_loc = 0
-        for s in stars:
-            lang = s.get("lang_id", "unknown")
-            loc = s.get("coding_loc", 0)
-            impact = s.get("file_impact", 0.0) # <-- ADD THIS
+        for f in parsed_files:
+            lang = f.get("lang_id", "unknown")
+            loc = f.get("coding_loc", 0)
+            impact = f.get("file_impact", 0.0) 
             total_loc += loc
             if lang not in lang_comp: 
                 lang_comp[lang] = {"files": 0, "loc": 0, "impact": 0.0}
             lang_comp[lang]["files"] += 1
             lang_comp[lang]["loc"] += loc
-            lang_comp[lang]["impact"] += impact # <-- ADD THIS
+            lang_comp[lang]["impact"] += impact 
 
         churn_idx = self.RISK_SCHEMA.index("churn")
-        high_volatility = len([s for s in stars if "risk_vector" in s and len(s["risk_vector"]) > churn_idx and s["risk_vector"][churn_idx] > 80.0])
-        volatility_idx = round(high_volatility / max(len(stars), 1), 3)
-        darkness_ratio = round(len(singularity) / max(total_files, 1), 3)
+        high_volatility = len([f for f in parsed_files if "risk_vector" in f and len(f["risk_vector"]) > churn_idx and f["risk_vector"][churn_idx] > 80.0])
+        volatility_idx = round(high_volatility / max(len(parsed_files), 1), 3)
+        darkness_ratio = round(len(unparsable_files) / max(total_files, 1), 3)
 
         self.logger.info(f"Synthesis Complete | Volatility Index: {volatility_idx:.2f} | Darkness Ratio: {darkness_ratio * 100:.1f}%")
 
-        # --- NEW: Constellation Aggregation Logic ---
-        constellations_data = {}
-        for s in stars:
-            c_name = s.get("constellation", "__monolith__")
-            if c_name not in constellations_data: 
-                constellations_data[c_name] = {"count": 0, "mass": 0.0, "risks": [0.0] * len(self.RISK_SCHEMA)}
+        # --- NEW: Directory Group Aggregation Logic ---
+        directory_group_data = {}
+        for f in parsed_files:
+            d_name = f.get("directory_group", "__monolith__")
+            if d_name not in directory_group_data: 
+                directory_group_data[d_name] = {"count": 0, "mass": 0.0, "risks": [0.0] * len(self.RISK_SCHEMA)}
             
-            constellations_data[c_name]["count"] += 1
-            constellations_data[c_name]["mass"] += s.get("file_impact", 0.0)
+            directory_group_data[d_name]["count"] += 1
+            directory_group_data[d_name]["mass"] += f.get("file_impact", 0.0)
             
-            for i, val in enumerate(s.get("risk_vector", [])):
+            for i, val in enumerate(f.get("risk_vector", [])):
                 if i < len(self.RISK_SCHEMA): 
-                    constellations_data[c_name]["risks"][i] += val
+                    directory_group_data[d_name]["risks"][i] += val
                     
-        c_metrics = {
+        d_metrics = {
             name: {
                 "file_count": data["count"], 
                 "total_mass": round(data["mass"], 2), 
@@ -750,7 +750,7 @@ class SignalProcessor:
                     for i in range(len(self.RISK_SCHEMA))
                 }
             } 
-            for name, data in constellations_data.items()
+            for name, data in directory_group_data.items()
         }
 
         # --- NEW: Ecosystem Fingerprint (Archetype Ratios) ---
@@ -758,21 +758,21 @@ class SignalProcessor:
         archetype_counts = {}
         static_counts = {}
         
-        for s in stars:
-            arch = s.get("telemetry", {}).get("archetype", "Unknown")
+        for f in parsed_files:
+            arch = f.get("telemetry", {}).get("archetype", "Unknown")
             if arch.startswith("Static:"):
                 static_counts[arch] = static_counts.get(arch, 0) + 1
             else:
                 archetype_counts[arch] = archetype_counts.get(arch, 0) + 1
                 
         ecosystem_fingerprint = {"ml_clusters": {}, "static_mass": {}}
-        if len(stars) > 0:
+        if len(parsed_files) > 0:
             ecosystem_fingerprint["ml_clusters"] = {
-                name: {"count": count, "pct": round((count / len(stars)) * 100.0, 1)}
+                name: {"count": count, "pct": round((count / len(parsed_files)) * 100.0, 1)}
                 for name, count in sorted(archetype_counts.items(), key=lambda x: x[1], reverse=True)
             }
             ecosystem_fingerprint["static_mass"] = {
-                name: {"count": count, "pct": round((count / len(stars)) * 100.0, 1)}
+                name: {"count": count, "pct": round((count / len(parsed_files)) * 100.0, 1)}
                 for name, count in sorted(static_counts.items(), key=lambda x: x[1], reverse=True)
             }
 
@@ -781,27 +781,26 @@ class SignalProcessor:
         ai_indices = {k: self.SIGNAL_SCHEMA.index(k) for k in ai_sensor_keys if k in self.SIGNAL_SCHEMA}
         
         # Isolate the physical files harboring AI logic
-        ai_stars = []
-        for s in stars:
-            hv = s.get("hit_vector", [])
-            star_ai_mass = sum(hv[idx] for k, idx in ai_indices.items() if idx < len(hv))
-            if star_ai_mass > 0:
-                ai_stars.append(s)
+        ai_files = []
+        for f in parsed_files:
+            hv = f.get("hit_vector", [])
+            file_ai_mass = sum(hv[idx] for k, idx in ai_indices.items() if idx < len(hv))
+            if file_ai_mass > 0:
+                ai_files.append(f)
 
-        llm_api_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_api")] if "llm_api" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_api") else 0 for s in stars)
-        llm_orch_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_orchestrator")] if "llm_orchestrator" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_orchestrator") else 0 for s in stars)
-        llm_vector_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_vector_store")] if "llm_vector_store" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_vector_store") else 0 for s in stars)
-        llm_local_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_local_compute")] if "llm_local_compute" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_local_compute") else 0 for s in stars)
+        llm_api_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_api")] if "llm_api" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_api") else 0 for f in parsed_files)
+        llm_orch_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_orchestrator")] if "llm_orchestrator" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_orchestrator") else 0 for f in parsed_files)
+        llm_vector_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_vector_store")] if "llm_vector_store" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_vector_store") else 0 for f in parsed_files)
+        llm_local_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("llm_local_compute")] if "llm_local_compute" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("llm_local_compute") else 0 for f in parsed_files)
         
         # Agentic Sensors
-        ai_tools_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_tools")] if "ai_tools" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_tools") else 0 for s in stars)
-        ai_memory_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_memory")] if "ai_memory" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_memory") else 0 for s in stars)
-        ai_loop_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_logic_loop")] if "ai_logic_loop" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_logic_loop") else 0 for s in stars)
+        ai_tools_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_tools")] if "ai_tools" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_tools") else 0 for f in parsed_files)
+        ai_memory_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_memory")] if "ai_memory" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_memory") else 0 for f in parsed_files)
+        ai_loop_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ai_logic_loop")] if "ai_logic_loop" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ai_logic_loop") else 0 for f in parsed_files)
 
         # ML/DL Sensors
-        ml_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ml_traditional")] if "ml_traditional" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ml_traditional") else 0 for s in stars)
-        dl_total = sum(s.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("dl_frameworks")] if "dl_frameworks" in self.SIGNAL_SCHEMA and len(s.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("dl_frameworks") else 0 for s in stars)
-
+        ml_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("ml_traditional")] if "ml_traditional" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("ml_traditional") else 0 for f in parsed_files)
+        dl_total = sum(f.get("hit_vector", [])[self.SIGNAL_SCHEMA.index("dl_frameworks")] if "dl_frameworks" in self.SIGNAL_SCHEMA and len(f.get("hit_vector", [])) > self.SIGNAL_SCHEMA.index("dl_frameworks") else 0 for f in parsed_files)
         ai_topology = {"classification": "Non-AI / Traditional", "insights": []}
         
         total_ai_mass = llm_api_total + llm_orch_total + llm_vector_total + llm_local_total + ai_tools_total + ai_memory_total + ai_loop_total + ml_total + dl_total
@@ -836,10 +835,10 @@ class SignalProcessor:
                 ai_topology["insights"].append("Thin wrapper around external LLM APIs. Low local compute mass, but high vendor lock-in risk.")
                 
             # ---> N-DIMENSIONAL AI NETWORK POSTURE <---
-            if ai_stars:
+            if ai_files:
                 # Find the most heavily relied-upon AI node in the graph
-                ai_stars.sort(key=lambda x: x.get("telemetry", {}).get("network_metrics", {}).get("pagerank_score", 0.0), reverse=True)
-                primary_ai_node = ai_stars[0]
+                ai_files.sort(key=lambda x: x.get("telemetry", {}).get("network_metrics", {}).get("pagerank_score", 0.0), reverse=True)
+                primary_ai_node = ai_files[0]
                 net_mets = primary_ai_node.get("telemetry", {}).get("network_metrics", {})
                 
                 role = net_mets.get("ecosystem_role", "Unknown")
@@ -872,10 +871,10 @@ class SignalProcessor:
         repo_brain = getattr(config, "GENERAL_REPO_INFERENCE_MODEL", None)
         repo_macro_data = {"name": "Unclassified", "id": -1, "z_score": 0.0, "raw_drift": 0.0}
         
-        if repo_brain and stars:
+        if repo_brain and parsed_files:
             # Rebuild the ratios based purely on the K-Means features
             feature_counts = {feat: archetype_counts.get(feat, 0) for feat in repo_brain["features"]}
-            live_ratios = [feature_counts[feat] / len(stars) for feat in repo_brain["features"]]
+            live_ratios = [feature_counts[feat] / len(parsed_files) for feat in repo_brain["features"]]
             
             distances = []
             for i in range(repo_brain["k_clusters"]):
@@ -898,28 +897,25 @@ class SignalProcessor:
                 "raw_drift": round(raw_drift, 3)
             }
             
-            # Inject into stars so security_auditor and gpu_recorder have it in RAM
-            for s in stars:
-                s["telemetry"]["repo_macro_species"] = assigned_idx
-                s["telemetry"]["repo_z_score"] = repo_macro_data["z_score"]
+            # Inject into parsed_files so security_auditor and gpu_recorder have it in RAM
+            for f in parsed_files:
+                f["telemetry"]["repo_macro_species"] = assigned_idx
+                f["telemetry"]["repo_z_score"] = repo_macro_data["z_score"]
                 for i, d in enumerate(distances):
-                    s["telemetry"][f"dist_to_{i}"] = d
+                    f["telemetry"][f"dist_to_{i}"] = d
 
         return {
             "summary": {
                 "total_files": total_files,
-                "visible_stars": len(stars),
+                "verified_files": len(parsed_files),
                 "total_loc": total_loc,
                 "dominant_language": self._get_dominant_lang(lang_comp),
                 "volatility_index": volatility_idx,
                 "Percent_Visible": round((1 - darkness_ratio) * 100, 1)
             },
-            "repo_macro_species": repo_macro_data,  # <--- NEW
-            "singularity": {
-                "ambig_file_count": len(singularity),
-            },
-            "singularity": {
-                "ambig_file_count": len(singularity),
+            "repo_macro_species": repo_macro_data,
+            "unparsable_files": {
+                "ambig_file_count": len(unparsable_files),
             },
             "health": {
                 "avg_cognitive_load": get_avg("cognitive_load"),
@@ -930,17 +926,17 @@ class SignalProcessor:
             "composition": lang_comp,
             "ecosystem_fingerprint": ecosystem_fingerprint,
             "ai_topology": ai_topology,
-            "constellations": c_metrics
+            "directory_groups": d_metrics
         }
         
-    def _normalize_temporal_metrics(self, stars: List[Dict[str, Any]]):
+    def _normalize_temporal_metrics(self, parsed_files: List[Dict[str, Any]]):
         """[PASS 2] Normalizes churn using a Logarithmic Curve for better UI gradients."""
-        if not stars: return
+        if not parsed_files: return
         max_freq = 0.0
         
         # Pass 2.A: Find the volcano (Global Max)
-        for s in stars:
-            freq = s.get("telemetry", {}).get("raw_churn_freq", 0.0)
+        for file_data in parsed_files:
+            freq = file_data.get("telemetry", {}).get("raw_churn_freq", 0.0)
             if freq > max_freq:
                 max_freq = freq
                 
@@ -949,19 +945,19 @@ class SignalProcessor:
         safe_max_f = math.log1p(max(max_freq, 1.0))
         idx = self.RISK_SCHEMA.index("churn")
         
-        # Pass 2.B: Normalize every star against the logarithmic curve
-        for s in stars:
-            freq = s.get("telemetry", {}).get("raw_churn_freq", 0.0)
+        # Pass 2.B: Normalize every file against the logarithmic curve
+        for file_data in parsed_files:
+            freq = file_data.get("telemetry", {}).get("raw_churn_freq", 0.0)
             
             # THE FIX: Apply the same logarithmic curve to the individual file
             base_score = (math.log1p(freq) / safe_max_f) * 100.0
             
-            mp = s.get("telemetry", {}).get("multipliers", {}).get("churn", 1.0)
+            mp = file_data.get("telemetry", {}).get("multipliers", {}).get("churn", 1.0)
             final_churn = min(base_score * mp, 100.0)
             
             # Inject Churn directly into the correct Risk Vector index
-            if "risk_vector" in s and len(s["risk_vector"]) > idx:
-                s["risk_vector"][idx] = round(final_churn, 2)
+            if "risk_vector" in file_data and len(file_data["risk_vector"]) > idx:
+                file_data["risk_vector"][idx] = round(final_churn, 2)
 
     # ==========================================================================
     # FORENSIC EQUATIONS (The Physics Models)
@@ -1143,7 +1139,7 @@ class SignalProcessor:
             
         return min(raw_score * mp, 100.0)
 
-    def _calc_documentation(self, loc: int, doc_loc: int, eq: Dict[str, int], fc: float, irc: int, mp: float, satellites: List[Dict[str, Any]] = None) -> float:
+    def _calc_documentation(self, loc: int, doc_loc: int, eq: Dict[str, int], fc: float, irc: int, mp: float, functions: List[Dict[str, Any]] = None) -> float:
         t = self.risk_tuning.get("documentation", {})
         weighted_points = (eq.get("doc", 0) * t.get("doc_weight", 1.0)) + (eq.get("ownership", 0) * t.get("ownership_weight", 0.5)) + (doc_loc * t.get("doc_loc_weight", 0.33))
         
@@ -1151,9 +1147,9 @@ class SignalProcessor:
         # If the file contains incredibly heavy logic blocks or bad Big-O
         # but the specific functions lack docstrings, the baseline coverage is a lie.
         blind_penalty = 0.0
-        if satellites:
-            for sat in satellites:
-                if (sat.get("impact", 0) > 50 or sat.get("big_o_depth", 1) >= 3) and not sat.get("docstring"):
+        if functions:
+            for func in functions:
+                if (func.get("impact", 0) > 50 or func.get("big_o_depth", 1) >= 3) and not func.get("docstring"):
                     blind_penalty += 15.0 # Flat 15% risk penalty per undocumented God Function
 
         density = (weighted_points / max(loc, 1)) * 100.0
@@ -1257,7 +1253,7 @@ class SignalProcessor:
         
         return min(exposure_ratio * volume_weight * network_multiplier * 100.0, 100.0)
 
-    def _calc_concurrency(self, loc: int, eq: Dict[str, int], irc: int, mp: float, satellites: List[Dict[str, Any]] = None) -> float:
+    def _calc_concurrency(self, loc: int, eq: Dict[str, int], irc: int, mp: float, functions: List[Dict[str, Any]] = None) -> float:
         """
         YIN: Threads/Async execution + Thread Starvation (O(N) Bombs).
         YANG: Mutex/Locks/Semaphores (sync_locks).
@@ -1271,11 +1267,11 @@ class SignalProcessor:
         # --- THE THREAD STARVATION BOMB ---
         # If an individual function has concurrency hits AND terrible Big-O, it spikes the risk.
         starvation_multiplier = 1.0
-        if satellites:
-            for sat in satellites:
-                if sat.get("hit_vector", {}).get("concurrency", 0) > 0:
-                    big_o = sat.get("big_o_depth", 1)
-                    is_rec = sat.get("is_recursive", False)
+        if functions:
+            for func in functions:
+                if func.get("hit_vector", {}).get("concurrency", 0) > 0:
+                    big_o = func.get("big_o_depth", 1)
+                    is_rec = func.get("is_recursive", False)
                     if is_rec:
                         starvation_multiplier = max(starvation_multiplier, 5.0)
                     elif big_o >= 3:
@@ -1634,9 +1630,9 @@ class SignalProcessor:
     # REPORTING UTILITIES
     # --------------------------------------------------------------------------
 
-    def generate_forensic_report(self, stars: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def generate_forensic_report(self, parsed_files: List[Dict[str, Any]]) -> Dict[str, Any]:
         """[FORENSIC RANKING] Generates Top/Bottom 3 for dynamically indexed exposures."""
-        if not stars: return {}
+        if not parsed_files: return {}
         self.logger.info("Generating forensic exposure rankings...")
 
         # ====================================================================
@@ -1645,27 +1641,27 @@ class SignalProcessor:
         # ====================================================================
         STRUCTURAL_ASSETS = self.asset_masks.get("STRUCTURAL_ASSETS", set())
 
-        # 2. Filter the stars to ONLY include active executable logic
-        active_stars = [
-            star for star in stars 
-            if star.get("lang_id", "unknown").lower() not in STRUCTURAL_ASSETS
+        # 2. Filter the files to ONLY include active executable logic
+        active_files = [
+            file_data for file_data in parsed_files 
+            if file_data.get("lang_id", "unknown").lower() not in STRUCTURAL_ASSETS
         ]
 
         # 3. Fallback: If a repo is *only* markdown/data files, don't crash
-        if not active_stars:
-            active_stars = stars
+        if not active_files:
+            active_files = parsed_files
 
         # ====================================================================
         # NEW: CALCULATE CUMULATIVE RISK (Excluding Civil War)
         # ====================================================================
         civil_war_idx = self.RISK_SCHEMA.index("civil_war") if "civil_war" in self.RISK_SCHEMA else -1
         
-        def get_cumulative_risk(s):
-            rv = s.get("risk_vector", [])
+        def get_cumulative_risk(f):
+            rv = f.get("risk_vector", [])
             # Sum all exposures except civil_war
             return sum(val for i, val in enumerate(rv) if i != civil_war_idx and i < len(rv))
 
-        sorted_by_cumulative = sorted(active_stars, key=get_cumulative_risk, reverse=True)
+        sorted_by_cumulative = sorted(active_files, key=get_cumulative_risk, reverse=True)
 
         # --- NEW: CALCULATE N-DIMENSIONAL SYSTEMIC BOTTLENECKS ---
         flux_idx = self.RISK_SCHEMA.index("state_flux") if "state_flux" in self.RISK_SCHEMA else -1
@@ -1674,10 +1670,10 @@ class SignalProcessor:
         
         bottlenecks = {"contagious_mutation": [], "house_of_cards": [], "blind_bottleneck": []}
         
-        for s in active_stars:
-            net = s.get("telemetry", {}).get("network_metrics", {})
-            rv = s.get("risk_vector", [])
-            p = s.get("path", "")
+        for file_data in active_files:
+            net = file_data.get("telemetry", {}).get("network_metrics", {})
+            rv = file_data.get("risk_vector", [])
+            p = file_data.get("path", "")
             
             btw = net.get("betweenness_score", 0.0)
             close = net.get("closeness_score", 0.0)
@@ -1695,21 +1691,21 @@ class SignalProcessor:
         bottlenecks["house_of_cards"].sort(key=lambda x: x["score"], reverse=True)
         bottlenecks["blind_bottleneck"].sort(key=lambda x: x["score"], reverse=True)
 
-        # 4. Generate rankings using ONLY the masked `active_stars` list
+        # 4. Generate rankings using ONLY the masked `active_files` list
         report = {
             "exposures": {},
-            "file_impact": self._rank_list(active_stars, key_path=["file_impact"]),
-            "function_impact": self._generate_function_rankings(active_stars),
+            "file_impact": self._rank_list(active_files, key_path=["file_impact"]),
+            "function_impact": self._generate_function_rankings(active_files),
             "systemic_bottlenecks": {k: v[:5] for k, v in bottlenecks.items()},
             # Inject the new Cumulative Risk ranking directly into the root of the report
             "cumulative_risk": {
-                "highest": [{"name": s.get("name", "unknown"), "path": s.get("path", ""), "value": round(get_cumulative_risk(s), 2)} for s in sorted_by_cumulative[:10]],
-                "lowest": [{"name": s.get("name", "unknown"), "path": s.get("path", ""), "value": round(get_cumulative_risk(s), 2)} for s in reversed(sorted_by_cumulative[-3:])]
+                "highest": [{"name": f.get("name", "unknown"), "path": f.get("path", ""), "value": round(get_cumulative_risk(f), 2)} for f in sorted_by_cumulative[:10]],
+                "lowest": [{"name": f.get("name", "unknown"), "path": f.get("path", ""), "value": round(get_cumulative_risk(f), 2)} for f in reversed(sorted_by_cumulative[-3:])]
             }
         }
 
         for idx, rk in enumerate(self.RISK_SCHEMA):
-            report["exposures"][rk] = self._rank_list(active_stars, key_path=["risk_vector", idx])
+            report["exposures"][rk] = self._rank_list(active_files, key_path=["risk_vector", idx])
             
         return report
     
@@ -1751,10 +1747,10 @@ class SignalProcessor:
                     
         return active_multipliers
 
-    def _rank_list(self, stars: List[Dict[str, Any]], key_path: List[Any]) -> Dict[str, List[Dict[str, Any]]]:
+    def _rank_list(self, parsed_files: List[Dict[str, Any]], key_path: List[Any]) -> Dict[str, List[Dict[str, Any]]]:
         """Extracts top and bottom ranks safely navigating dictionaries and lists."""
-        def get_val(s):
-            curr = s
+        def get_val(f):
+            curr = f
             for k in key_path: 
                 if isinstance(curr, dict):
                     curr = curr.get(k, 0.0)
@@ -1764,22 +1760,22 @@ class SignalProcessor:
                     return 0.0
             return float(curr) if isinstance(curr, (int, float)) else 0.0
         
-        sorted_stars = sorted(stars, key=get_val, reverse=True)
+        sorted_files = sorted(parsed_files, key=get_val, reverse=True)
         return {
-            "highest": [{"name": s.get("name", "unknown"), "path": s.get("path", ""), "value": get_val(s)} for s in sorted_stars[:3]],
-            "lowest": [{"name": s.get("name", "unknown"), "path": s.get("path", ""), "value": get_val(s)} for s in reversed(sorted_stars[-3:])]
+            "highest": [{"name": f.get("name", "unknown"), "path": f.get("path", ""), "value": get_val(f)} for f in sorted_files[:3]],
+            "lowest": [{"name": f.get("name", "unknown"), "path": f.get("path", ""), "value": get_val(f)} for f in reversed(sorted_files[-3:])]
         }
 
-    def _generate_function_rankings(self, stars: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    def _generate_function_rankings(self, parsed_files: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
         all_funcs = []
-        for s in stars:
-            for sat in s.get("satellites", []):
-                if isinstance(sat, dict):
+        for f in parsed_files:
+            for func in f.get("functions", []):
+                if isinstance(func, dict):
                     all_funcs.append({
-                        "name": sat.get("name", "anon"), 
-                        "file": s.get("name", "unknown"), 
-                        "impact": sat.get("impact", 0), 
-                        "loc": sat.get("loc", 0)
+                        "name": func.get("name", "anon"), 
+                        "file": f.get("name", "unknown"), 
+                        "impact": func.get("impact", 0), 
+                        "loc": func.get("loc", 0)
                     })
         all_funcs.sort(key=lambda x: x["impact"], reverse=True)
         return {"highest": all_funcs[:3], "lowest": all_funcs[-3:] if len(all_funcs) >= 3 else all_funcs}

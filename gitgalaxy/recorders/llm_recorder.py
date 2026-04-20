@@ -55,8 +55,8 @@ class LLMRecorder:
 
     def generate_artifacts(
         self, 
-        stars: List[Dict[str, Any]], 
-        singularity: List[Dict[str, Any]], 
+        parsed_files: List[Dict[str, Any]], 
+        unparsable_files: List[Dict[str, Any]], 
         summary: Dict[str, Any], 
         session_meta: Dict[str, Any], 
         output_dir: str,
@@ -78,7 +78,7 @@ class LLMRecorder:
         
         # --- REVERSE DEPENDENCY RESOLUTION (Calculated once for both outputs) ---
         resolution_map = {}
-        for s in stars:
+        for s in parsed_files:
             path = s.get("path", "")
             name = s.get("name", Path(path).name)
             stem = Path(path).stem
@@ -86,10 +86,10 @@ class LLMRecorder:
             if name: resolution_map[name] = path
             if stem: resolution_map[stem] = path
 
-        inbound_map = {s.get("path", ""): [] for s in stars}
-        outbound_map = {s.get("path", ""): [] for s in stars}
+        inbound_map = {s.get("path", ""): [] for s in parsed_files}
+        outbound_map = {s.get("path", ""): [] for s in parsed_files}
         
-        for s in stars:
+        for s in parsed_files:
             curr = s.get("path", "")
             for imp in s.get("raw_imports", []):
                 if imp in resolution_map:
@@ -99,10 +99,10 @@ class LLMRecorder:
                         if target_path not in outbound_map[curr]: outbound_map[curr].append(target_path)
 
         # 1. Build the Relational Knowledge Graph
-        self._generate_sqlite_graph(stars, singularity, summary, session_meta, output_path_db, inbound_map)
+        self._generate_sqlite_graph(parsed_files, unparsable_files, summary, session_meta, output_path_db, inbound_map)
         
         # 2. Build the Token-Optimized Markdown Brief
-        md_content = self._build_markdown(stars, singularity, summary, session_meta, forensic_report, inbound_map, outbound_map)
+        md_content = self._build_markdown(parsed_files, unparsable_files, summary, session_meta, forensic_report, inbound_map, outbound_map)
         
         try:
             with open(output_path_md, "w", encoding="utf-8") as f:
@@ -113,8 +113,8 @@ class LLMRecorder:
     
     def _build_markdown(
         self, 
-        stars: List[Dict[str, Any]], 
-        singularity: List[Dict[str, Any]], 
+        parsed_files: List[Dict[str, Any]], 
+        unparsable_files: List[Dict[str, Any]], 
         summary: Dict[str, Any], 
         session_meta: Dict[str, Any],
         forensic_report: Dict[str, Any],
@@ -128,9 +128,9 @@ class LLMRecorder:
         comp = summary.get("composition", {})
         git_audit = session_meta.get("git_audit", {})
         
-        bypassed_count = summary.get("singularity", {}).get("unparsable", 0)
-        total_excluded = len(singularity) + bypassed_count
-        visible_count = sum_data.get("visible_stars", len(stars))
+        bypassed_count = summary.get("unparsable_files", {}).get("ambig_file_count", 0)
+        total_excluded = len(unparsable_files) + bypassed_count
+        visible_count = sum_data.get("verified_files", len(parsed_files))
         
         lines = []
         lines.append(f"# ARCHITECTURAL_BRIEF: {target}")
@@ -151,7 +151,7 @@ class LLMRecorder:
         
         # ---> NEW: HARVEST AI THREAT SCORES & CREATE BILLBOARD <---
         ml_threats = []
-        for s in stars:
+        for s in parsed_files:
             score_val, score_str = self._parse_threat_score(s)
             if s.get("is_ml_threat", False) or score_val >= 50.0:
                 ml_threats.append((s, score_val, score_str))
@@ -311,7 +311,7 @@ class LLMRecorder:
         lines.append("## 5. DARK MATTER (Non-scanned items ARTIFACTS)")
         lines.append(f"*Total Excluded Artifacts: {total_excluded}*\n")
         
-        comp_breakdown = summary.get("singularity", {}).get("composition_by_extension_and_reason", {})
+        comp_breakdown = summary.get("unparsable_files", {}).get("composition_by_extension_and_reason", {})
         
         if comp_breakdown:
             lines.append("**Composition by Extension & Reason:**")
@@ -320,7 +320,6 @@ class LLMRecorder:
                 for rsn, count in list(reasons.items())[:3]:
                     safe_rsn = (rsn.replace("Unparsable", "Unrecognized Syntax")
                                    .replace("Structural Saturation", "Dense Structure")
-                                   .replace("Singularity", "Dark Matter")
                                    .replace("Necrosis", "Optical Bypass")
                                    .replace("Blocked", "Excluded"))
                     clean_reasons.append(f"{count}x {safe_rsn.strip()}")
@@ -328,7 +327,7 @@ class LLMRecorder:
                 reason_str = ", ".join(clean_reasons)
                 lines.append(f"- `{ext}`: {reason_str}")
         else:
-            legacy_breakdown = summary.get("singularity", {}).get("breakdown", {})
+            legacy_breakdown = summary.get("unparsable_files", {}).get("breakdown", {})
             sing_items = []
             for k, v in sorted(legacy_breakdown.items(), key=lambda x: x[1] if isinstance(x[1], int) else 0, reverse=True):
                 if isinstance(v, int) and v > 0:
@@ -351,7 +350,7 @@ class LLMRecorder:
             if risk_slug == "civil_war":
                 continue
                 
-            vals = [s.get("risk_vector", [])[i] for s in stars if len(s.get("risk_vector", [])) > i]
+            vals = [s.get("risk_vector", [])[i] for s in parsed_files if len(s.get("risk_vector", [])) > i]
             risk_label = exposure_labels.get(risk_slug, risk_slug.replace('_', ' ').title())
             
             if vals:
@@ -370,42 +369,42 @@ class LLMRecorder:
         # 7.A: I/O Bottlenecks
         io_idx = self.SIGNAL_SCHEMA.index("io") if "io" in self.SIGNAL_SCHEMA else -1
         if io_idx >= 0:
-            top_io = sorted(stars, key=lambda x: x.get("hit_vector", [])[io_idx] if len(x.get("hit_vector", [])) > io_idx else 0, reverse=True)[:3]
+            top_io = sorted(parsed_files, key=lambda x: x.get("hit_vector", [])[io_idx] if len(x.get("hit_vector", [])) > io_idx else 0, reverse=True)[:3]
             lines.append("### Top I/O Latency Risks")
             for s in top_io: 
                 lines.append(f"- `{s.get('path')}` (Hits: {s.get('hit_vector', [])[io_idx]})")
             lines.append("")
 
         # 7.B: Structural Pillars (Imported By)
-        pillars = sorted(stars, key=lambda x: x.get("telemetry", {}).get("popularity", 0), reverse=True)[:5]
+        pillars = sorted(parsed_files, key=lambda x: x.get("telemetry", {}).get("popularity", 0), reverse=True)[:5]
         lines.append("### Top 5 Structural Pillars (Highest 'Imported By' / Blast Radius)")
         lines.append("These files act as core load-bearing infrastructure. Changes here carry a high risk of cascading breaks.\n")
-        for rank, star in enumerate(pillars, 1):
-            name = star.get("name", "Unknown")
-            path = star.get("path", "Unknown")
-            count = star.get("telemetry", {}).get("popularity", 0)
+        for rank, file_data in enumerate(pillars, 1):
+            name = file_data.get("name", "Unknown")
+            path = file_data.get("path", "Unknown")
+            count = file_data.get("telemetry", {}).get("popularity", 0)
             lines.append(f"{rank}. **{name}** (`{path}`) — {count} inbound connections")
         lines.append("")
 
         # 7.C: Orchestrators (Imports)
-        orchestrators = sorted(stars, key=lambda x: len(x.get("raw_imports", [])) if isinstance(x.get("raw_imports"), list) else 0, reverse=True)[:5]
+        orchestrators = sorted(parsed_files, key=lambda x: len(x.get("raw_imports", [])) if isinstance(x.get("raw_imports"), list) else 0, reverse=True)[:5]
         lines.append("### Top 5 Orchestrators (Highest 'Imports' / Fragility Index)")
         lines.append("These files pull in the most external dependencies. They are highly coupled and fragile to API changes.\n")
-        for rank, star in enumerate(orchestrators, 1):
-            name = star.get("name", "Unknown")
-            path = star.get("path", "Unknown")
-            count = len(star.get("raw_imports", [])) if isinstance(star.get("raw_imports"), list) else 0
+        for rank, file_data in enumerate(orchestrators, 1):
+            name = file_data.get("name", "Unknown")
+            path = file_data.get("path", "Unknown")
+            count = len(file_data.get("raw_imports", [])) if isinstance(file_data.get("raw_imports"), list) else 0
             lines.append(f"{rank}. **{name}** (`{path}`) — {count} outbound dependencies")
         lines.append("")
 
-        # --- 8. GOD FUNCTIONS (THE SATELLITES) ---
-        lines.append("## 8. SATELLITE HITLIST (Heaviest Functions)")
+        # --- 8. GOD FUNCTIONS (THE FUNCTIONS) ---
+        lines.append("## 8. FUNCTION HITLIST (Heaviest Functions)")
         lines.append("> *Note: The 'Impact' metric below represents Structural Magnitude (complexity, arguments, and length), NOT operational risk. These are the load-bearing pillars of the logic.*\n")
         
-        # Flatten all satellites to sort them globally
+        # Flatten all functions to sort them globally
         all_sats = []
-        for s in stars:
-            for sat in s.get("satellites", []):
+        for s in parsed_files:
+            for sat in s.get("functions", []):
                 sat_copy = sat.copy()
                 sat_copy["file"] = s.get("path", "Unknown")
                 all_sats.append(sat_copy)
@@ -454,15 +453,15 @@ class LLMRecorder:
                     lines.append(f"  * *Intent:* {clean_doc}")
             lines.append("")
 
-        # --- 9. TOP CONSTELLATIONS ---
-        lines.append("## 9. CONSTELLATIONS (Top 10 Heaviest Folders)")
-        constellations = summary.get("constellations", {})
+        # --- 9. DIRECTORY GROUPS ---
+        lines.append("## 9. DIRECTORY GROUPS (Top 10 Heaviest Folders)")
+        constellations = summary.get("directory_groups", {})
         if constellations:
             lines.append("| Folder Path | Files | Total Mass | Avg Cog Load | Avg Debt |")
             lines.append("|---|---|---|---|---|")
             
             sorted_consts = sorted(
-                constellations.items(), 
+                constellations.items(),
                 key=lambda x: x[1].get("total_mass", 0.0), 
                 reverse=True
             )[:10]
@@ -484,7 +483,7 @@ class LLMRecorder:
         # Tech Debt Hitlist
         debt_idx = self.RISK_SCHEMA.index("tech_debt") if "tech_debt" in self.RISK_SCHEMA else -1
         if debt_idx >= 0:
-            high_debt = sorted([s for s in stars if len(s.get("risk_vector", [])) > debt_idx], key=lambda x: x.get("risk_vector")[debt_idx], reverse=True)[:5]
+            high_debt = sorted([s for s in parsed_files if len(s.get("risk_vector", [])) > debt_idx], key=lambda x: x.get("risk_vector")[debt_idx], reverse=True)[:5]
             if high_debt and high_debt[0].get("risk_vector")[debt_idx] > 0:
                 lines.append("### Highest Tech Debt (Fragile/Planned)")
                 for s in high_debt:
@@ -494,7 +493,7 @@ class LLMRecorder:
         # State Flux (Volatility) Hitlist
         flux_idx = self.RISK_SCHEMA.index("state_flux") if "state_flux" in self.RISK_SCHEMA else -1
         if flux_idx >= 0:
-            high_flux = sorted([s for s in stars if len(s.get("risk_vector", [])) > flux_idx], key=lambda x: x.get("risk_vector")[flux_idx], reverse=True)[:5]
+            high_flux = sorted([s for s in parsed_files if len(s.get("risk_vector", [])) > flux_idx], key=lambda x: x.get("risk_vector")[flux_idx], reverse=True)[:5]
             if high_flux and high_flux[0].get("risk_vector")[flux_idx] > 0:
                 lines.append("### Highest State Flux (Mutation/Volatility)")
                 for s in high_flux:
@@ -508,7 +507,7 @@ class LLMRecorder:
         if orphan_idx >= 0 and dup_idx >= 0:
             # Sort by total slop (orphans + duplicates)
             high_slop = sorted(
-                [s for s in stars if len(s.get("hit_vector", [])) > max(orphan_idx, dup_idx)], 
+                [s for s in parsed_files if len(s.get("hit_vector", [])) > max(orphan_idx, dup_idx)], 
                 key=lambda x: x.get("hit_vector")[orphan_idx] + x.get("hit_vector")[dup_idx], 
                 reverse=True
             )[:5]
@@ -543,13 +542,13 @@ class LLMRecorder:
         for v_key in vuln_keys:
             if v_key in self.RISK_SCHEMA:
                 v_idx = self.RISK_SCHEMA.index(v_key)
-                v_stars = sorted([s for s in stars if len(s.get("risk_vector", [])) > v_idx and s.get("risk_vector")[v_idx] > 0.0], key=lambda x: x.get("risk_vector")[v_idx], reverse=True)
+                v_files = sorted([s for s in parsed_files if len(s.get("risk_vector", [])) > v_idx and s.get("risk_vector")[v_idx] > 0.0], key=lambda x: x.get("risk_vector")[v_idx], reverse=True)
                 
-                if v_stars:
+                if v_files:
                     vuln_found = True
                     label = exposure_labels.get(v_key, v_key.replace('_', ' ').title())
                     lines.append(f"### {label}")
-                    for s in v_stars[:5]:
+                    for s in v_files[:5]:
                         lines.append(f"- `{s.get('path')}` -> **{s.get('risk_vector')[v_idx]}%** Exposure")
         
         if not vuln_found:
@@ -566,22 +565,22 @@ class LLMRecorder:
         ai_vuln_found = False
         
         if rce_idx >= 0:
-            rce_stars = sorted([s for s in stars if len(s.get("hit_vector", [])) > rce_idx and s.get("hit_vector")[rce_idx] > 0], key=lambda x: x.get("hit_vector")[rce_idx], reverse=True)
-            if rce_stars:
+            rce_files = sorted([s for s in parsed_files if len(s.get("hit_vector", [])) > rce_idx and s.get("hit_vector")[rce_idx] > 0], key=lambda x: x.get("hit_vector")[rce_idx], reverse=True)
+            if rce_files:
                 ai_vuln_found = True
                 lines.append("### 🚨 Agentic RCE (Critical)")
                 lines.append("The following files pass autonomous LLM output directly into system execution commands. This allows the AI to run arbitrary code on the host machine.\n")
-                for s in rce_stars[:5]:
+                for s in rce_files[:5]:
                     lines.append(f"- `{s.get('path')}` -> **{s.get('hit_vector')[rce_idx]}** confirmed execution vectors")
                 lines.append("")
                 
         if pi_idx >= 0:
-            pi_stars = sorted([s for s in stars if len(s.get("hit_vector", [])) > pi_idx and s.get("hit_vector")[pi_idx] > 0], key=lambda x: x.get("hit_vector")[pi_idx], reverse=True)
-            if pi_stars:
+            pi_files = sorted([s for s in parsed_files if len(s.get("hit_vector", [])) > pi_idx and s.get("hit_vector")[pi_idx] > 0], key=lambda x: x.get("hit_vector")[pi_idx], reverse=True)
+            if pi_files:
                 ai_vuln_found = True
                 lines.append("### 💉 Prompt Injection Surface")
                 lines.append("The following files pass raw, untrusted external I/O directly into an LLM context window without sanitization.\n")
-                for s in pi_stars[:5]:
+                for s in pi_files[:5]:
                     lines.append(f"- `{s.get('path')}` -> **{s.get('hit_vector')[pi_idx]}** exposed injection surfaces")
                 lines.append("")
                 
@@ -598,12 +597,12 @@ class LLMRecorder:
         cumulative_risks = forensic_report.get("cumulative_risk", {}).get("highest", [])
         if cumulative_risks:
             # Create a fast-lookup map to pull detailed file stats by path
-            star_map = {s.get("path"): s for s in stars}
+            file_map = {f.get("path"): f for f in parsed_files}
             
             for rank, cr in enumerate(cumulative_risks[:10], 1):
                 p = cr.get("path")
                 c_val = cr.get("value")
-                s = star_map.get(p)
+                s = file_map.get(p)
                 
                 # Fallback if the star object is somehow missing
                 if not s:
@@ -633,7 +632,7 @@ class LLMRecorder:
                 lines.append(f"- **Primary Risk Drivers:** {', '.join(top_file_risks) if top_file_risks else 'None'}")
                 
                 # Fetch the top 3 heaviest functions in this specific file
-                sats = sorted(s.get("satellites", []), key=lambda x: x.get("impact", 0), reverse=True)[:3]
+                sats = sorted(s.get("functions", []), key=lambda x: x.get("impact", 0), reverse=True)[:3]
                 if sats:
                     sat_strs = [f"`{sat.get('name')}` (Impact: {sat.get('impact')})" for sat in sats]
                     lines.append(f"- **Heaviest Functions:** {', '.join(sat_strs)}")
@@ -649,7 +648,7 @@ class LLMRecorder:
         lines.append("## 12. VISIBLE MATTER HITLIST (Top 25 Heaviest Files)")
         lines.append("> *Note: 'Mass' represents the file's total Structural Magnitude and gravitational pull within the system. It is independent of its Risk Profile. High mass implies high structural importance and centralization.*\n")
 
-        sorted_stars = sorted(stars, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
+        sorted_files = sorted(parsed_files, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
         
         # DNA Bucketing Sets
         structure_keys = {"branch", "linear", "args", "func_start", "class_start"}
@@ -657,7 +656,7 @@ class LLMRecorder:
         arch_keys = {"io", "concurrency", "api", "import"}
         defense_keys = {"safety", "freeze_hits", "cleanup", "test", "sync_locks", "doc"}
         
-        for s in sorted_stars:
+        for s in sorted_files:
             p = s.get("path", "UNK")
             l = s.get("lang_id", "UNK").upper()
             m = s.get("file_impact", 0.0)
@@ -712,9 +711,9 @@ class LLMRecorder:
                     elif key in defense_keys: def_hits.append(hit_string)
                     
             # --- Add this right below your DNA bucketing lines ---
-            sats = sorted(s.get("satellites", []), key=lambda x: x.get("impact", 0), reverse=True)[:5]
+            sats = sorted(s.get("functions", []), key=lambda x: x.get("impact", 0), reverse=True)[:5]
             if sats:
-                lines.append("**Top Internal Satellites (Functions/Classes):**")
+                lines.append("**Top Internal Functions/Classes:**")
                 for sat in sats:
                     o_str = "O(2^N)" if sat.get("is_recursive", False) else f"O(N^{sat.get('big_o_depth', 1)})"
                     db_str = f" | DB: {sat.get('db_complexity', 0)}" if sat.get("db_complexity", 0) > 0 else ""
@@ -768,7 +767,7 @@ class LLMRecorder:
         drifting_files = []
         trojan_files = []
         
-        for s in stars:
+        for s in parsed_files:
             tel = s.get("telemetry", {})
             
             # 1. Biaxial Trojan Check
@@ -779,7 +778,7 @@ class LLMRecorder:
                 biaxial_ratio = l_drift / g_drift
                 if biaxial_ratio > 1.5:
                     trojan_files.append({
-                        "star": s, "ratio": biaxial_ratio, "g_drift": g_drift, "l_drift": l_drift,
+                        "file_data": s, "ratio": biaxial_ratio, "g_drift": g_drift, "l_drift": l_drift,
                         "g_arch": tel.get("archetype"), "l_arch": tel.get("local_archetype")
                     })
             
@@ -793,7 +792,7 @@ class LLMRecorder:
                 
                 if delta <= 0.9:
                     drifting_files.append({
-                        "star": s, "delta": delta,
+                        "file_data": s, "delta": delta,
                         "primary": (primary_arch, primary_dist),
                         "secondary": (secondary_arch, secondary_dist)
                     })
@@ -802,7 +801,7 @@ class LLMRecorder:
             lines.append("### 🚨 Biaxial Anomalies (Severe Anti-Patterns / Language Violations)")
             trojan_files.sort(key=lambda x: x["ratio"], reverse=True)
             for t in trojan_files[:5]:
-                s = t["star"]
+                s = t["file_data"]
                 lines.append(f"- `{s.get('path')}` ({s.get('lang_id', 'UNK').upper()}) | **Biaxial Ratio: {round(t['ratio'], 2)}x**")
                 lines.append(f"  * **Global Archetype:** `{t['g_arch']}` (Drift: {t['g_drift']} IQR)")
                 lines.append(f"  * **Local Reality:** `{t['l_arch']}` (Drift: {t['l_drift']} IQR)")
@@ -820,7 +819,7 @@ class LLMRecorder:
                 files.sort(key=lambda x: x["delta"])
                 
                 for drift in files[:5]:
-                    s = drift["star"]
+                    s = drift["file_data"]
                     p = s.get("path", "UNK")
                     l = s.get("lang_id", "UNK").upper()
                     m = s.get("file_impact", 0.0)
@@ -852,7 +851,7 @@ class LLMRecorder:
             debt_idx = self.RISK_SCHEMA.index("tech_debt")
             
             hotspots = []
-            for s in stars:
+            for s in parsed_files:
                 rv = s.get("risk_vector", [])
                 if len(rv) > max(churn_idx, cog_idx, debt_idx):
                     if rv[churn_idx] > 50.0 and (rv[cog_idx] > 50.0 or rv[debt_idx] > 50.0):
@@ -869,7 +868,7 @@ class LLMRecorder:
 
         # 2. Key Person Dependencies (High Impact + High Silo)
         siloed_pillars = [
-            s for s in stars 
+            s for s in parsed_files 
             if s.get("telemetry", {}).get("author_distribution", 0.0) > 80.0 
             and s.get("file_impact", 0.0) > 50.0
         ]
@@ -939,8 +938,8 @@ class LLMRecorder:
                 
     def _generate_sqlite_graph(
         self, 
-        stars: List[Dict[str, Any]], 
-        singularity: List[Dict[str, Any]], 
+        parsed_files: List[Dict[str, Any]], 
+        unparsable_files: List[Dict[str, Any]], 
         summary: Dict[str, Any], 
         session: Dict[str, Any], 
         db_path: Path,
@@ -1064,7 +1063,7 @@ class LLMRecorder:
                 )
             ''')
 
-            const_meta = summary.get("constellations", {})
+            const_meta = summary.get("directory_groups", {})
 
             for c_name, c_data in const_meta.items():
                 exps = c_data.get("avg_exposures", {})
@@ -1081,12 +1080,12 @@ class LLMRecorder:
                     exps.get("verification", 0.0)
                 ))
 
-            for star in stars:
-                p = star.get("path")
-                c_name = star.get("constellation", "__monolith__")
-                tel = star.get("telemetry", {})
+            for file_data in parsed_files:
+                p = file_data.get("path")
+                c_name = file_data.get("directory_group", "__monolith__")
+                tel = file_data.get("telemetry", {})
                 
-                rv = star.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
+                rv = file_data.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
                 pop_count = len(inbound_map.get(p, []))
                 
                 # Extract repo-level metadata (can be injected via ML pass)
@@ -1108,8 +1107,8 @@ class LLMRecorder:
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(['?'] * len(self.RISK_SCHEMA))})
                 ''', (
-                    p, Path(p).name, parent_entity, c_name, star.get("lang_id"), star.get("lock_tier"), 
-                    star.get("total_loc"), star.get("coding_loc"), star.get("doc_loc", 0), star.get("file_impact"),
+                    p, Path(p).name, parent_entity, c_name, file_data.get("lang_id"), file_data.get("lock_tier"), 
+                    file_data.get("total_loc"), file_data.get("coding_loc"), file_data.get("doc_loc", 0), file_data.get("file_impact"),
                     tel.get("control_flow_ratio"), tel.get("author_distribution"), tel.get("ownership_entropy"),
                     tel.get("raw_churn_freq"), tel.get("densities", {}).get("cog_raw"), tel.get("ownership"), pop_count, 
                     tel.get("archetype", "Unknown"), tel.get("global_drift", 0.0), tel.get("local_archetype", "N/A"), tel.get("local_drift", 0.0),
@@ -1120,19 +1119,21 @@ class LLMRecorder:
                 sid = cursor.lastrowid
                 
                 # Dynamic Hit Insertion (Automatically includes all sec_ signatures)
-                hv = star.get("hit_vector", [])
+                hv = file_data.get("hit_vector", [])
                 dna_data = [(sid, self.SIGNAL_SCHEMA[i], hv[i]) for i in range(len(hv)) if hv[i] > 0]
                 cursor.executemany('INSERT INTO dna_hits VALUES (?, ?, ?)', dna_data)
                 
                 import json
-                for sat in star.get("satellites", []):
-                    calls_json = json.dumps(sat.get("calls_out_to", []))
+                for func in file_data.get("functions", []):
+                    calls_json = json.dumps(func.get("calls_out_to", []))
                     cursor.execute('INSERT INTO satellites (star_id, name, type_id, loc, impact, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
-                        sid, sat.get("name"), sat.get("type_id"), sat.get("loc"), sat.get("impact"),
-                        sat.get("big_o_depth", 1), sat.get("is_recursive", False), sat.get("db_complexity", 0), sat.get("docstring", ""), calls_json
+                        sid, func.get("name"), func.get("type_id"), func.get("loc"), func.get("impact"),
+                        func.get("big_o_depth", 1), func.get("is_recursive", False), func.get("db_complexity", 0), func.get("docstring", ""), calls_json
                     ))
 
-                raw_imports = star.get("raw_imports", [])
+                raw_imports = file_data.get("raw_imports", [])
+
+                raw_imports = file_data.get("raw_imports", [])
                 if raw_imports:
                     out_data = [(sid, imp) for imp in raw_imports]
                     cursor.executemany('INSERT INTO outbound_dependencies VALUES (?, ?)', out_data)

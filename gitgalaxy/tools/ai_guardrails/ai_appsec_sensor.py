@@ -17,13 +17,13 @@ class AIAppSecSensor:
     def __init__(self, parent_logger=None):
         self.logger = parent_logger.getChild("appsec_sensor") if parent_logger else logging.getLogger("appsec_sensor")
 
-    def hunt_threats(self, stars: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def hunt_threats(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info("AI AppSec Sensor: Hunting for Agentic Vulnerabilities...")
         
-        for s in stars:
+        for file_data in parsed_files:
             # Extract the raw DNA triggers (assuming they are tallied in 'telemetry')
-            telemetry = s.get("telemetry", {})
-            risk_vector = s.get("risk_vector", [])
+            telemetry = file_data.get("telemetry", {})
+            risk_vector = file_data.get("risk_vector", [])
             
             # Extract specific architectural signals
             ai_orchestrator = telemetry.get("ai_orchestrator", 0) > 0
@@ -70,7 +70,7 @@ class AIAppSecSensor:
                     "CRITICAL [Exfiltration Vector]: LLM logic has access to network sockets AND environment secrets. High risk of SSRF and key exfiltration via prompt injection."
                 )
 
-            # Inject the AppSec report back into the star's telemetry
-            s["telemetry"]["ai_appsec"] = appsec_report
+            # Inject the AppSec report back into the file's telemetry
+            file_data["telemetry"]["ai_appsec"] = appsec_report
             
-        return stars
+        return parsed_files

@@ -72,7 +72,7 @@ class AuditRecorder:
             return round(value / default_scalar, 3)
         return value
 
-    def generate_report(self, stars, singularity, summary, forensic_report, session_meta, output_path):
+    def generate_report(self, parsed_files, unparsable_files, summary, forensic_report, session_meta, output_path):
         """
         Subphase 2.3: Transforms raw pipeline data into a verbose forensic manifest.
         Optimized to handle projects with 10,000+ files efficiently.
@@ -103,56 +103,53 @@ class AuditRecorder:
         risk_labels = [exposure_labels.get(k, self.format_label(k)) for k in self.RISK_SCHEMA]
         hit_labels = [self.format_label(k) for k in self.HIT_SCHEMA]
 
-        # --- NEW CONSTELLATION SORTING & HIERARCHY ---
-        pretty_constellations = {}
-        constellations_meta = summary.get("constellations", {})
+        # --- NEW DIRECTORY GROUP SORTING & HIERARCHY ---
+        pretty_directory_groups = {}
+        directory_groups_meta = summary.get("directory_groups", {})
         
         # Sort folders by mass descending
-        sorted_constellations = sorted(
-            constellations_meta.items(), 
+        sorted_directory_groups = sorted(
+            directory_groups_meta.items(), 
             key=lambda x: x[1].get("total_mass", 0.0), 
             reverse=True
         )
 
-        # Initialize the ordered dictionary with constellation-level metrics
-        for c_name, c_data in sorted_constellations:
-            pretty_constellations[c_name] = {
-                "Constellation Mass": c_data.get("total_mass", 0.0),
-                "File Count": c_data.get("file_count", 0),
+        # Initialize the ordered dictionary with directory-level metrics
+        for d_name, d_data in sorted_directory_groups:
+            pretty_directory_groups[d_name] = {
+                "Directory Group Mass": d_data.get("total_mass", 0.0),
+                "File Count": d_data.get("file_count", 0),
                 "Average Risk Exposures": {
                     exposure_labels.get(k, self.format_label(k)): f"{v}%" 
-                    for k, v in c_data.get("avg_exposures", {}).items()
+                    for k, v in d_data.get("avg_exposures", {}).items()
                 },
-                "Stars / Files": {}
+                "Files": {}
             }
 
-        # Track archetypes per folder for the Constellation Fingerprint
-        folder_archetype_counts = {}
-        
-        # Track archetypes per folder for the Constellation Fingerprint
+        # Track archetypes per folder for the Directory Fingerprint
         folder_archetype_counts = {}
 
-        # 2. Row Reconstruction (Visible Stars) mapped into Constellations
-        for star in stars:
-            path = star.get("path", "Unknown")
-            telemetry = star.get("telemetry", {})
-            lang_raw = str(star.get("lang_id", "Unknown")).lower()
-            c_name = star.get("constellation", "__monolith__")
+        # 2. Row Reconstruction (Parsed Files) mapped into Directory Groups
+        for file_data in parsed_files:
+            path = file_data.get("path", "Unknown")
+            telemetry = file_data.get("telemetry", {})
+            lang_raw = str(file_data.get("lang_id", "Unknown")).lower()
+            d_name = file_data.get("directory_group", "__monolith__")
             
             # --- THE ULTIMATE UPSTREAM BYPASS FIX ---
             doc_languages = {"markdown", "plaintext", "rst", "text", "md"}
-            if lang_raw in doc_languages and len(star.get("risk_vector", [])) < len(self.RISK_SCHEMA):
+            if lang_raw in doc_languages and len(file_data.get("risk_vector", [])) < len(self.RISK_SCHEMA):
                 # Inject 18-point synthetic Risk Blanket
-                star["risk_vector"] = [0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                file_data["risk_vector"] = [0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
                 telemetry["control_flow_ratio"] = 0.0
-                if not star.get("file_impact"):
-                    star["file_impact"] = round(max(star.get("total_loc", 1) / 50.0, 1.0), 2)
+                if not file_data.get("file_impact"):
+                    file_data["file_impact"] = round(max(file_data.get("total_loc", 1) / 50.0, 1.0), 2)
             
             # --- SYSTEM LEVEL FIX: Dynamic Identity Block ---
             identity_block = {
-                "Filename": star.get("name", Path(path).name),
+                "Filename": file_data.get("name", Path(path).name),
                 "Path": path,
-                "Language": str(star.get("lang_id", "Unknown")).title(),
+                "Language": str(file_data.get("lang_id", "Unknown")).title(),
                 "Architect": telemetry.get("ownership", "Unknown Architect")
             }
             
@@ -165,8 +162,8 @@ class AuditRecorder:
                         display_key = "Museum Entry"
                     identity_block[display_key] = custom_val
 
-            identity_block["Lock Tier"] = star.get("lock_tier", telemetry.get("identity_lock_tier", 4))
-            identity_block["Identity Proof"] = telemetry.get("identity_source_proof", star.get("source_proof", "Discovery"))
+            identity_block["Lock Tier"] = file_data.get("lock_tier", telemetry.get("identity_lock_tier", 4))
+            identity_block["Identity Proof"] = telemetry.get("identity_source_proof", file_data.get("source_proof", "Discovery"))
             
             # ---> NEW: EXPLICITLY INJECT AI SCORE <---
             if "AI Threat Score" in domain_data:
@@ -174,7 +171,7 @@ class AuditRecorder:
             
             # --- THE FACTION INTERCEPTOR ---
             exposures_dict = {}
-            for label, v in zip(risk_labels, star.get("risk_vector") or [0.0] * len(risk_labels)):
+            for label, v in zip(risk_labels, file_data.get("risk_vector") or [0.0] * len(risk_labels)):
                 if label == "Civil War Exposure":
                     if v == 0.0: 
                         exposures_dict[label] = "Team Tabs"
@@ -189,9 +186,9 @@ class AuditRecorder:
 
             # Track the archetype for the folder-level summary
             arch = telemetry.get("archetype", "Unknown Archetype")
-            if c_name not in folder_archetype_counts:
-                folder_archetype_counts[c_name] = {}
-            folder_archetype_counts[c_name][arch] = folder_archetype_counts[c_name].get(arch, 0) + 1
+            if d_name not in folder_archetype_counts:
+                folder_archetype_counts[d_name] = {}
+            folder_archetype_counts[d_name][arch] = folder_archetype_counts[d_name].get(arch, 0) + 1
 
             # ---> NEW: FORMAT MITIGATIONS <---
             mitigation_data = telemetry.get("mitigation_telemetry", {})
@@ -200,13 +197,13 @@ class AuditRecorder:
                 for key, val in mitigation_data.items() if val > 0
             }
 
-            # Assemble the star profile
-            star_profile = {
+            # Assemble the file profile
+            file_profile = {
                 "1. Identity": identity_block,
                 "2. Spatial Coordinates": {
-                    "X": star.get("pos_x", 0.0), 
-                    "Y": star.get("pos_y", 0.0), 
-                    "Z": star.get("pos_z", 0.0)
+                    "X": file_data.get("pos_x", 0.0), 
+                    "Y": file_data.get("pos_y", 0.0), 
+                    "Z": file_data.get("pos_z", 0.0)
                 },
                 "3. Architectural Profile": {
                     "Repository Archetype": arch,
@@ -216,10 +213,10 @@ class AuditRecorder:
                     "File Archetype": telemetry.get("local_archetype", "N/A"),
                     "File Drift (Z-Score)": telemetry.get("local_drift", 0.0),
                     "File Fingerprint": {k: round(v, 3) for k, v in telemetry.get("local_fingerprint", {}).items()} if isinstance(telemetry.get("local_fingerprint"), dict) else {},
-                    "Total LOC": star.get("total_loc", 0),
-                    "coding LOC": star.get("coding_loc", 0),
-                    "Documentation LOC": star.get("doc_loc", 0),
-                    "Structural Mass": round(star.get("file_impact", 0.0), 3),
+                    "Total LOC": file_data.get("total_loc", 0),
+                    "coding LOC": file_data.get("coding_loc", 0),
+                    "Documentation LOC": file_data.get("doc_loc", 0),
+                    "Structural Mass": round(file_data.get("file_impact", 0.0), 3),
                     "Control Flow Ratio": f"{round(telemetry.get('control_flow_ratio', 0.0) * 100, 1)}%",
                     "Popularity Rank": telemetry.get("popularity", 0),
                     "Raw Churn Frequency": telemetry.get("raw_churn_freq", 0.0),
@@ -228,43 +225,43 @@ class AuditRecorder:
                     "Raw Cognitive Density": telemetry.get("densities", {}).get("cog_raw", 0.0)
                 },
                 "4. Risk Exposures": exposures_dict,
-                "5. Function Analysis (Satellites)": [
+                "5. Function Analysis": [
                     {
-                        "Function Name": sat.get("name", "Unknown"),
-                        "Structural Impact": sat.get("impact", sat.get("magnitude", 0.0)),
-                        "Lines of Code (LOC)": sat.get("loc", 0),
-                        "Control Flow Branches": sat.get("branch", sat.get("branch_count", 0)),
-                        "Input Parameters": sat.get("args", sat.get("args_count", 0)),
-                        "Control Flow Ratio": f"{round((sat.get('control_flow_ratio') or sat.get('cf_ratio') or 0.0) * 100, 1)}%",
-                        "Start Line": sat.get("start_line", 0),
-                        "End Line": sat.get("end_line", 0)
+                        "Function Name": func.get("name", "Unknown"),
+                        "Structural Impact": func.get("impact", func.get("magnitude", 0.0)),
+                        "Lines of Code (LOC)": func.get("loc", 0),
+                        "Control Flow Branches": func.get("branch", func.get("branch_count", 0)),
+                        "Input Parameters": func.get("args", func.get("args_count", 0)),
+                        "Control Flow Ratio": f"{round((func.get('control_flow_ratio') or func.get('cf_ratio') or 0.0) * 100, 1)}%",
+                        "Start Line": func.get("start_line", 0),
+                        "End Line": func.get("end_line", 0)
                     }
-                    for sat in star.get("satellites", []) if isinstance(sat, dict)
+                    for func in file_data.get("functions", []) if isinstance(func, dict)
                 ],
                 "6. Contextual Mitigations & Amplifications": formatted_mitigations if formatted_mitigations else "None Detected",
                 "7. Structural DNA (Net Mitigated Signals)": {
-                    label: v for label, v in zip(hit_labels, star.get("hit_vector") or [0] * len(hit_labels))
+                    label: v for label, v in zip(hit_labels, file_data.get("hit_vector") or [0] * len(hit_labels))
                 },
                 # ---> THE 4 DEPENDENCY METRICS (Read cleanly from RAM) <---
                 "8. Dependency Network": {
-                    "Direct Upstream (Fragility)": star.get("dependency_network", {}).get("direct_upstream", len(star.get("raw_imports", []))),
-                    "Direct Downstream (Blast Radius)": star.get("dependency_network", {}).get("direct_downstream", telemetry.get("popularity", 0)),
-                    "Total Upstream (Absolute Fragility)": star.get("dependency_network", {}).get("total_upstream", 0),
-                    "Total Downstream (Absolute Blast Radius)": star.get("dependency_network", {}).get("total_downstream", 0)
+                    "Direct Upstream (Fragility)": file_data.get("dependency_network", {}).get("direct_upstream", len(file_data.get("raw_imports", []))),
+                    "Direct Downstream (Blast Radius)": file_data.get("dependency_network", {}).get("direct_downstream", telemetry.get("popularity", 0)),
+                    "Total Upstream (Absolute Fragility)": file_data.get("dependency_network", {}).get("total_upstream", 0),
+                    "Total Downstream (Absolute Blast Radius)": file_data.get("dependency_network", {}).get("total_downstream", 0)
                 },
                 
-                "9. Extracted Dependencies": sorted(list(star.get("raw_imports", [])))
+                "9. Extracted Dependencies": sorted(list(file_data.get("raw_imports", [])))
             }
             
-            # Map the star into its parent constellation
-            if c_name not in pretty_constellations:
-                pretty_constellations[c_name] = {"Constellation Mass": 0.0, "Stars / Files": {}}
-            pretty_constellations[c_name]["Stars / Files"][path] = star_profile
+            # Map the file into its parent directory group
+            if d_name not in pretty_directory_groups:
+                pretty_directory_groups[d_name] = {"Directory Group Mass": 0.0, "Files": {}}
+            pretty_directory_groups[d_name]["Files"][path] = file_profile
 
         # --- CALCULATE FOLDER-LEVEL ARCHETYPE SUMMARIES ---
-        for c_name, c_data in pretty_constellations.items():
-            folder_files = len(c_data.get("Stars / Files", {}))
-            arch_counts = folder_archetype_counts.get(c_name, {})
+        for d_name, d_data in pretty_directory_groups.items():
+            folder_files = len(d_data.get("Files", {}))
+            arch_counts = folder_archetype_counts.get(d_name, {})
             
             if folder_files > 0 and arch_counts:
                 # Calculate percentages and sort highest to lowest
@@ -274,44 +271,44 @@ class AuditRecorder:
                 }
                 
                 # Reconstruct the dictionary so the Fingerprint sits cleanly at the top of the JSON
-                reordered_c_data = {
-                    "Constellation Mass": c_data.get("Constellation Mass", 0.0),
-                    "File Count": c_data.get("File Count", folder_files),
+                reordered_d_data = {
+                    "Directory Group Mass": d_data.get("Directory Group Mass", 0.0),
+                    "File Count": d_data.get("File Count", folder_files),
                     "Ecosystem Fingerprint (Archetypes)": fingerprint,
-                    "Average Risk Exposures": c_data.get("Average Risk Exposures", {}),
-                    "Stars / Files": c_data.get("Stars / Files", {})
+                    "Average Risk Exposures": d_data.get("Average Risk Exposures", {}),
+                    "Files": d_data.get("Files", {})
                 }
-                pretty_constellations[c_name] = reordered_c_data
+                pretty_directory_groups[d_name] = reordered_d_data
 
-        # 3. Format Dark Matter (Excluded Artifacts)
-        pretty_singularity = []
+        # 3. Format Unparsable Files (Excluded Artifacts)
+        pretty_unparsable = []
         target_dir = Path(session_meta.get("target_directory", ""))
 
         # 3.1 Format standard excluded items for the JSON output
-        for dark in singularity:
-            rel_path = dark.get("path", "Unknown")
+        for unparsable in unparsable_files:
+            rel_path = unparsable.get("path", "Unknown")
             abs_path = target_dir / rel_path
             
             # Physically weighs the file on disk if the pipeline dropped the byte count
             try:
-                actual_size = os.path.getsize(abs_path) if abs_path.exists() else dark.get('size_bytes', 0)
+                actual_size = os.path.getsize(abs_path) if abs_path.exists() else unparsable.get('size_bytes', 0)
             except Exception:
-                actual_size = dark.get('size_bytes', 0)
+                actual_size = unparsable.get('size_bytes', 0)
 
-            pretty_singularity.append({
+            pretty_unparsable.append({
                 "Path": rel_path,
-                "Forensic Category": "Dark Matter (Excluded Artifact)",
-                "Diagnostic Reason": dark.get("reason", "Engine Shielding (Format Excluded)"),
+                "Forensic Category": "Excluded Artifact",
+                "Diagnostic Reason": unparsable.get("reason", "Engine Shielding (Format Excluded)"),
                 "Size": f"{actual_size} bytes",
-                "Identity Confidence": f"{round(dark.get('identity_confidence', 0.0) * 100, 1)}%",
-                "Discovery Proof": dark.get("identity_source_proof", "Radar Scan")
+                "Identity Confidence": f"{round(unparsable.get('identity_confidence', 0.0) * 100, 1)}%",
+                "Discovery Proof": unparsable.get("identity_source_proof", "Radar Scan")
             })
 
         # 3.2 Append optically bypassed artifacts to the local output list
-        for anon_path in summary.get("singularity", {}).get("unparsable_artifacts", []):
-            pretty_singularity.append({
+        for anon_path in summary.get("unparsable_files", {}).get("unparsable_artifacts", []):
+            pretty_unparsable.append({
                 "Path": anon_path,
-                "Forensic Category": "Dark Matter (Optical Bypass)",
+                "Forensic Category": "Optical Bypass",
                 "Diagnostic Reason": "Engine Bypass (Dense Structure or Unrecognized Syntax)",
                 "Size": "Unknown (Prism Bypass)",
                 "Identity Confidence": "0.0% (Scan Yielded No Data)",
@@ -361,13 +358,13 @@ class AuditRecorder:
         risk_indices = {k: self.RISK_SCHEMA.index(k) for k in sec_risk_mapping.keys() if k in self.RISK_SCHEMA}
         hit_indices = {k: self.HIT_SCHEMA.index(k) for k in sec_hit_mapping.keys() if k in self.HIT_SCHEMA}
 
-        # Sweep the stars for security anomalies
-        for star in stars:
-            path = star.get("path", "Unknown")
-            domain_ctx = star.get("telemetry", {}).get("domain_context", {})
+        # Sweep the files for security anomalies
+        for file_data in parsed_files:
+            path = file_data.get("path", "Unknown")
+            domain_ctx = file_data.get("telemetry", {}).get("domain_context", {})
 
             # ---> NEW: HARVEST ML SCORES <---
-            is_ml_threat = star.get("is_ml_threat", False)
+            is_ml_threat = file_data.get("is_ml_threat", False)
             ai_score_str = domain_ctx.get("AI Threat Score", "0.0%")
             
             try:
@@ -390,7 +387,7 @@ class AuditRecorder:
                     "Diagnostic": f"CRITICAL LEAK (Exposed Secret/Key): {domain_ctx.get('aperture_reason', 'Manual Bypass')}"
                 })
                 
-            risk_vector = star.get("risk_vector", [])
+            risk_vector = file_data.get("risk_vector", [])
             if len(risk_vector) == len(self.RISK_SCHEMA):
                 for r_key, r_idx in risk_indices.items():
                     score = risk_vector[r_idx]
@@ -401,7 +398,7 @@ class AuditRecorder:
                         vuln_exposures[label]["Artifacts Flagged"] += 1
             
             # Aggregate the raw threat hits
-            hit_vector = star.get("hit_vector")
+            hit_vector = file_data.get("hit_vector")
             if isinstance(hit_vector, list) and len(hit_vector) == len(self.HIT_SCHEMA):
                 for h_key, h_idx in hit_indices.items():
                     hits = hit_vector[h_idx]
@@ -445,7 +442,7 @@ class AuditRecorder:
                 "Critical Targets": top_ml_threats
             },
             "Scope": {
-                "Artifacts Evaluated": len(stars),
+                "Artifacts Evaluated": len(parsed_files),
                 "Threat Signatures Monitored": len(sec_hit_mapping),
                 "Vulnerability Vectors Calculated": len(sec_risk_mapping)
             },
@@ -494,8 +491,8 @@ class AuditRecorder:
             "2. Global Synthesis Summary": summary,
             "3. Forensic Security & Vulnerability Audit": security_audit,
             "4. High-Value Forensic Report": forensic_report,
-            "5. Dark Matter (Excluded Artifacts)": pretty_singularity,
-            "6. Visible Matter (Scanned Artifacts)": pretty_constellations
+            "5. Unparsable Files (Excluded Artifacts)": pretty_unparsable,
+            "6. Parsed Files (Scanned Artifacts)": pretty_directory_groups
         }
 
         # --- THE FIX ---

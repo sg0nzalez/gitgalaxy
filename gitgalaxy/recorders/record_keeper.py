@@ -33,7 +33,7 @@ class RecordKeeper:
             "branch": "struct_branch", "linear": "struct_linear", "args": "struct_args", "func_start": "struct_func_start", "class_start": "struct_class_start", "closures": "struct_closures", "comprehensions": "struct_comprehensions", "macros": "struct_macros", "decorators": "struct_decorators", "generics": "struct_generics", "core_var_decl": "struct_var_decl", "indent_tabs": "struct_tabs", "indent_spaces": "struct_spaces", "design_camel_case": "struct_camel_case", "design_snake_case": "struct_snake_case", "design_pascal_case": "struct_pascal_case", "design_upper_case": "struct_upper_case", "design_short_vars": "struct_short_vars", "design_long_vars": "struct_long_vars", "flux": "state_flux", "danger": "state_danger", "graveyard": "state_graveyard", "safety_neg": "state_safety_neg", "design_slop_orphans": "state_slop_orphans", "design_slop_duplicates": "state_slop_duplicates", "planned_debt": "state_planned_debt", "fragile_debt": "state_fragile_debt", "bailout_hits": "state_bailout_hits", "halt_hits": "state_halt_hits", "heat_triggers": "state_heat_triggers", "pointers": "state_pointers", "memory_alloc": "state_memory_alloc", "cast_hits": "state_cast_hits", "print_hits": "state_print_hits", "io": "arch_io", "api": "arch_api", "concurrency": "arch_concurrency", "import": "arch_import", "ui_framework": "arch_ui_framework", "globals": "arch_globals", "ipc_rpc_bridges": "arch_ipc", "ssr_boundaries": "arch_ssr_boundaries", "events": "arch_events", "scientific": "arch_scientific", "dependency_injection": "arch_dependency_injection", "hardware_bridge": "arch_hardware", "cryptography": "arch_crypto", "serialization_parsing": "arch_serialization", "regex_execution": "arch_regex", "time_date_logic": "arch_time", "feature_flags": "arch_feature_flags", "inline_asm": "arch_inline_asm", "safety": "def_safety", "freeze_hits": "def_freeze_hits", "cleanup": "def_cleanup", "sync_locks": "def_sync_locks", "test": "def_test", "test_skip": "def_test_skip", "doc": "def_doc", "listeners": "def_listeners", "encapsulation": "def_encapsulation", "auth_middleware": "def_auth", "telemetry": "def_telemetry", "ownership": "def_ownership", "spec_exposure": "def_spec_exposure", "sec_private_info": "threat_private_info", "sec_tainted_injection": "threat_tainted_injection", "sec_heat_triggers": "threat_obfuscated", "sec_bitwise_hits": "threat_crypto_math", "sec_extension_mismatch": "threat_extension_mismatch", "sec_entropy": "threat_entropy", "sec_danger": "threat_eval_exec", "sec_safety_neg": "threat_bypasses", "sec_io": "threat_network_hooks", "sec_flux": "threat_env_mutation", "sec_shadow_imports": "threat_stego_imports", "sec_homoglyphs": "threat_homoglyphs"
         }
 
-    def record_mission(self, stars: List[Dict], singularity: List[Dict], summary: Dict, session_meta: Dict, output_path: str):
+    def record_mission(self, parsed_files: List[Dict], unparsable_files: List[Dict], summary: Dict, session_meta: Dict, output_path: str):
         """Builds the SQLite database directly from RAM."""
         repo_name = session_meta.get("target", "Unknown")
         git_audit = session_meta.get("git_audit", {})
@@ -41,7 +41,7 @@ class RecordKeeper:
         commit_hash = git_audit.get("commit_hash", "Unknown")
         
         db_file = Path(output_path)
-        self.logger.info(f"Record Keeper: Forging native SQLite database -> {db_file.name}")
+        self.logger.debug(f"Record Keeper: Forging native SQLite database -> {db_file.name}")
 
         conn = sqlite3.connect(db_file)
         # Enforce foreign keys so cascading deletes work perfectly
@@ -242,15 +242,15 @@ class RecordKeeper:
         agg_config_files = 0
         agg_test_files = 0
 
-        for star in stars:
-            tel = star.get("telemetry", {})
-            sats = star.get("satellites", [])
+        for file_data in parsed_files:
+            tel = file_data.get("telemetry", {})
+            functions = file_data.get("functions", [])
             
             # Function Mathematics
-            func_count = len(sats)
-            complexities = [int(s.get("branch", 0)) for s in sats]
-            locs = [int(s.get("loc", 0)) for s in sats]
-            args_list = [int(s.get("args", 0)) for s in sats]
+            func_count = len(functions)
+            complexities = [int(f.get("branch", 0)) for f in functions]
+            locs = [int(f.get("loc", 0)) for f in functions]
+            args_list = [int(f.get("args", 0)) for f in functions]
             
             avg_comp = float(sum(complexities) / func_count) if func_count > 0 else 0.0
             max_comp = float(max(complexities)) if func_count > 0 else 0.0
@@ -283,8 +283,8 @@ class RecordKeeper:
 
             func_internal_density = (avg_comp / avg_loc) if avg_loc > 0 else 0.0
             
-            logic_loc_denom = max(int(star.get("coding_loc", 1) * tel.get("control_flow_ratio", 0.0)), 1)
-            import_count = len(star.get("raw_imports", []))
+            logic_loc_denom = max(int(file_data.get("coding_loc", 1) * tel.get("control_flow_ratio", 0.0)), 1)
+            import_count = len(file_data.get("raw_imports", []))
             dependency_density = import_count / float(logic_loc_denom)
 
             ai_threat_conf_str = tel.get("domain_context", {}).get("AI Threat Confidence", tel.get("domain_context", {}).get("AI Threat Score", "0.0%"))
@@ -292,14 +292,14 @@ class RecordKeeper:
             ai_threat_class = tel.get("domain_context", {}).get("AI Threat Class", "Safe")
             encapsulation_ratio = float(tel.get("encapsulation_ratio", 1.0))
 
-            rv = star.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
-            hv = star.get("hit_vector", [0] * len(self.SIGNAL_SCHEMA))
+            rv = file_data.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
+            hv = file_data.get("hit_vector", [0] * len(self.SIGNAL_SCHEMA))
 
             file_archetype = tel.get("archetype", "Unknown")
             file_fingerprint_str = json.dumps(tel.get("archetype_fingerprint", {}))
 
-            agg_total_loc += star.get("total_loc", 0)
-            agg_coding_loc += star.get("coding_loc", 0)
+            agg_total_loc += file_data.get("total_loc", 0)
+            agg_coding_loc += file_data.get("coding_loc", 0)
             agg_func_count += func_count
             agg_import_count += import_count
             agg_encapsulation += encapsulation_ratio
@@ -308,8 +308,8 @@ class RecordKeeper:
                     agg_hits[i] += val
 
             # ---> NEW: TALLY THE INFRASTRUCTURE <---
-            lang = star.get("lang_id", "unknown").lower()
-            path_str = star.get("path", "").lower()
+            lang = file_data.get("lang_id", "unknown").lower()
+            path_str = file_data.get("path", "").lower()
             
             if lang in ("markdown", "plaintext", "rst", "asciidoc"):
                 agg_doc_files += 1
@@ -322,11 +322,11 @@ class RecordKeeper:
                 agg_test_files += 1
 
             # --- SECURITY EXTRACTIONS ---
-            ai_score = float(star.get("ai_threat_score", tel.get("domain_context", {}).get("AI Threat Score", 0.0)))
-            is_malware = 1 if star.get("is_malware", False) else 0
-            has_creds = 1 if star.get("has_credentials", False) else 0
-            bin_anomaly = 1 if star.get("binary_anomaly", False) else 0
-            glassworm = 1 if star.get("glassworm_flag", False) else 0
+            ai_score = float(file_data.get("ai_threat_score", tel.get("domain_context", {}).get("AI Threat Score", 0.0)))
+            is_malware = 1 if file_data.get("is_malware", False) else 0
+            has_creds = 1 if file_data.get("has_credentials", False) else 0
+            bin_anomaly = 1 if file_data.get("binary_anomaly", False) else 0
+            glassworm = 1 if file_data.get("glassworm_flag", False) else 0
             
             # --- NETWORK TOPOLOGY EXTRACTION ---
             net_mets = tel.get("network_metrics", {})
@@ -359,14 +359,14 @@ class RecordKeeper:
             god_mode = 1 if appsec.get("over_permissioned_agent") else 0
             exfiltration = 1 if appsec.get("agentic_exfiltration_risk") else 0
             
-            file_token_mass = star.get("token_mass", 0)
-            file_read_cost = star.get("financial_read_cost", 0.0)
+            file_token_mass = file_data.get("token_mass", 0)
+            file_read_cost = file_data.get("financial_read_cost", 0.0)
 
             row_data = [
-                repo_name, commit_date, commit_hash, Path(star.get("path", "")).name, star.get("path", ""), parent_ent,
-                star.get("lang_id", "unknown"), star.get("constellation", "__monolith__"),
-                star.get("total_loc", 0), star.get("coding_loc", 0),
-                star.get("file_impact", 0.0), tel.get("densities", {}).get("cog_raw", 0.0),
+                repo_name, commit_date, commit_hash, Path(file_data.get("path", "")).name, file_data.get("path", ""), parent_ent,
+                file_data.get("lang_id", "unknown"), file_data.get("directory_group", "__monolith__"),
+                file_data.get("total_loc", 0), file_data.get("coding_loc", 0),
+                file_data.get("file_impact", 0.0), tel.get("densities", {}).get("cog_raw", 0.0),
                 tel.get("ownership_entropy", 0.0), tel.get("author_distribution", 0.0),
                 tel.get("raw_churn_freq", 0.0), tel.get("popularity", 0), import_count,
                 pagerank_score, blast_radius, betweenness_score, closeness_score, producer_ratio, ecosystem_role,
@@ -410,11 +410,11 @@ class RecordKeeper:
             
             file_id = cursor.lastrowid
 
-            # ---> NEW: 1. Extract and Insert the Classes (Gas Giants) <---
-            gas_giants = star.get("gas_giants", [])
+            # ---> NEW: 1. Extract and Insert the Classes <---
+            classes = file_data.get("classes", [])
             class_id_map = {} 
             
-            for giant in gas_giants:
+            for cls in classes:
                 cursor.execute('''
                     INSERT INTO class_data (
                         file_id, class_name, inheritance_parents, 
@@ -422,40 +422,40 @@ class RecordKeeper:
                     ) VALUES (?, ?, ?, ?, ?, ?)
                 ''', (
                     file_id,
-                    giant.get("name", "Unknown"),
-                    json.dumps(giant.get("inheritance", [])),
-                    giant.get("method_count", 0),
-                    giant.get("state_entanglement", 0.0),
-                    giant.get("lcom_score", 0.0)
+                    cls.get("name", "Unknown"),
+                    json.dumps(cls.get("inheritance", [])),
+                    cls.get("method_count", 0),
+                    cls.get("state_entanglement", 0.0),
+                    cls.get("lcom_score", 0.0)
                 ))
-                class_id_map[giant.get("name")] = cursor.lastrowid
+                class_id_map[cls.get("name")] = cursor.lastrowid
 
-            # ---> UPDATED: 2. Extract and Insert the Functions (Moons) <---
+            # ---> UPDATED: 2. Extract and Insert the Functions <---
             func_rows = []
-            for s in sats:
-                raw_hv = s.get("hit_vector", {})
+            for func in functions:
+                raw_hv = func.get("hit_vector", {})
                 func_hits = [int(raw_hv.get(h, 0)) for h in self.SIGNAL_SCHEMA]
                 
-                parent_class_name = s.get("parent_class_name")
+                parent_class_name = func.get("parent_class_name")
                 parent_class_id = class_id_map.get(parent_class_name) if parent_class_name else None
                 
                 func_row_data = [
                     file_id, 
                     parent_class_id,
-                    str(s.get("name", "unknown_function"))[:255],
-                    int(s.get("branch", 0)), 
-                    int(s.get("loc", 0)), 
-                    int(s.get("args", 0)), 
-                    int(s.get("usage_status", 0)),
-                    float(s.get("keyword_density", 0.0)),
-                    s.get("archetype", "Unclassified"), 
-                    float(s.get("z_score", 0.0)),
-                    int(s.get("big_o_depth", 1)),
-                    1 if s.get("is_recursive", False) else 0,
-                    int(s.get("db_complexity", 0)),
-                    str(s.get("docstring", ""))[:2000],
-                    json.dumps(s.get("calls_out_to", [])),
-                    int(s.get("token_mass", 0))
+                    str(func.get("name", "unknown_function"))[:255],
+                    int(func.get("branch", 0)), 
+                    int(func.get("loc", 0)), 
+                    int(func.get("args", 0)), 
+                    int(func.get("usage_status", 0)),
+                    float(func.get("keyword_density", 0.0)),
+                    func.get("archetype", "Unclassified"), 
+                    float(func.get("z_score", 0.0)),
+                    int(func.get("big_o_depth", 1)),
+                    1 if func.get("is_recursive", False) else 0,
+                    int(func.get("db_complexity", 0)),
+                    str(func.get("docstring", ""))[:2000],
+                    json.dumps(func.get("calls_out_to", [])),
+                    int(func.get("token_mass")) if func.get("token_mass") is not None else None
                 ] + func_hits
                 
                 func_rows.append(func_row_data)
@@ -475,8 +475,8 @@ class RecordKeeper:
         macro_info = summary.get("repo_macro_species", {})
         repo_composition_str = json.dumps(summary.get("composition", {}))
         
-        total_files = len(stars)
-        total_dark_matter = len(singularity)
+        total_files = len(parsed_files)
+        total_unparsable = len(unparsable_files)
         
         avg_encapsulation = (agg_encapsulation / total_files) if total_files > 0 else 1.0
         avg_imports = (agg_import_count / total_files) if total_files > 0 else 0.0
@@ -489,7 +489,7 @@ class RecordKeeper:
             commit_date,
             commit_hash,
             total_files,
-            total_dark_matter,  
+            total_unparsable,
             agg_total_loc,
             agg_coding_loc,
             agg_func_count,
@@ -523,22 +523,22 @@ class RecordKeeper:
             ) VALUES ({repo_placeholders})
         ''', repo_row_data)
         
-# 4. DARK MATTER LEDGER INSERTION
-        dark_rows = []
-        for dark in singularity:
-            path = dark.get("path", "")
+# 4. UNPARSABLE FILES LEDGER INSERTION
+        unparsable_rows = []
+        for unparsable in unparsable_files:
+            path = unparsable.get("path", "")
             ext = Path(path).suffix.lower() if '.' in Path(path).name else "none"
-            dark_rows.append([
+            unparsable_rows.append([
                 repo_name, commit_hash, path, ext,
-                dark.get("reason", "Unknown"), dark.get("size_bytes", 0)
+                unparsable.get("reason", "Unknown"), unparsable.get("size_bytes", 0)
             ])
 
-        if dark_rows:
+        if unparsable_rows:
             cursor.executemany('''
                 INSERT INTO dark_matter_data 
                 (repo_name, commit_hash, file_path, extension, exclusion_reason, size_bytes)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', dark_rows)
+            ''', unparsable_rows)
 
         # ==============================================================================
         # 5. FOLDER-LEVEL ROLLUP (MATERIALIZED PATH AGGREGATION)
@@ -546,8 +546,8 @@ class RecordKeeper:
         folder_stats = {}
         debt_idx = self.RISK_SCHEMA.index("tech_debt") if "tech_debt" in self.RISK_SCHEMA else -1
 
-        for star in stars:
-            file_path = star.get("path", "")
+        for file_data in parsed_files:
+            file_path = file_data.get("path", "")
             parts = file_path.split('/')[:-1] # Strip the filename to get directories
             
             # Determine all parent paths (e.g., src/api/auth -> src, src/api, src/api/auth)
@@ -558,17 +558,17 @@ class RecordKeeper:
                 paths_to_update.append(current_path)
 
             # Extract file metrics
-            loc = star.get("total_loc", 0)
-            coding_loc = star.get("coding_loc", 0)
-            mass = star.get("file_impact", 0.0)
-            func_count = len(star.get("satellites", []))
-            class_count = len(star.get("gas_giants", []))
+            loc = file_data.get("total_loc", 0)
+            coding_loc = file_data.get("coding_loc", 0)
+            mass = file_data.get("file_impact", 0.0)
+            func_count = len(file_data.get("functions", []))
+            class_count = len(file_data.get("classes", []))
             
-            tel = star.get("telemetry", {})
+            tel = file_data.get("telemetry", {})
             cog_raw = tel.get("densities", {}).get("cog_raw", 0.0)
             churn = tel.get("raw_churn_freq", 0.0)
             
-            rv = star.get("risk_vector", [])
+            rv = file_data.get("risk_vector", [])
             tech_debt = rv[debt_idx] if debt_idx >= 0 and len(rv) > debt_idx else 0.0
 
             # Roll metrics upwards
@@ -619,4 +619,4 @@ class RecordKeeper:
 
         conn.commit()
         conn.close()
-        self.logger.info(f"Database sealed. Exported {len(stars)} files and {len(folder_rows)} folders to {db_file.name}")
+        self.logger.debug(f"Database sealed. Exported {len(parsed_files)} files and {len(folder_rows)} directory groups to {db_file.name}")

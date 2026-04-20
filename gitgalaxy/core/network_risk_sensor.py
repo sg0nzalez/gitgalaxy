@@ -260,21 +260,21 @@ class NetworkRiskSensor:
             
             if "telemetry" not in s: s["telemetry"] = {}
             s["telemetry"]["network_metrics"] = {
-                "pagerank_score": 0.0,
-                "normalized_blast_radius": min(in_d * 0.1, 5.0), # Fallback heuristic
-                "betweenness_score": 0.0,
-                "closeness_score": 0.0,
+                "pagerank_score": None,
+                "normalized_blast_radius": None, 
+                "betweenness_score": None,
+                "closeness_score": None,
                 "in_degree": in_d,
                 "out_degree": out_d,
                 "producer_ratio": round(producer_ratio, 3),
                 "ecosystem_role": ecosystem_role,
-                "systemic_threat_vector": [0.0] * len(self.RISK_SCHEMA),
-                "is_algorithmic_bottleneck": False
+                "systemic_threat_vector": None,
+                "is_algorithmic_bottleneck": None
             }
             s["telemetry"]["popularity"] = in_d
             
         macro_metrics = {
-            "modularity": 0.0, "assortativity": 0.0, "cyclic_density": 0.0,
-            "avg_path_length": 0.0, "articulation_points": 0
+            "modularity": None, "assortativity": None, "cyclic_density": None,
+            "avg_path_length": None, "articulation_points": None
         }
         return stars, macro_metrics

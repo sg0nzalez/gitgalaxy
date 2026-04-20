@@ -26,6 +26,8 @@ from collections import defaultdict
 
 
 # Hardware Layer (Strategy v6.2 Protocol - Optical Pipeline)
+from gitgalaxy.core.network_risk_sensor import HAS_NETWORKX
+from gitgalaxy.core.detector import HAS_TIKTOKEN
 from gitgalaxy.core.aperture import ApertureFilter, ApertureError, InaccessibleArtifactError
 from gitgalaxy.core.guidestar_lens import GuideStarLens 
 from gitgalaxy.standards.language_lens import LanguageDetector, FocusingError
@@ -497,8 +499,8 @@ class Orchestrator:
         self.census: Set[str] = set()
         self.stem_map: Dict[str, str] = {}
         self.cryolink: Dict[str, Dict[str, Any]] = {}
-        self.stars: List[Dict[str, Any]] = []
-        self.singularity_candidates: List[Dict[str, Any]] = [] 
+        self.parsed_files: List[Dict[str, Any]] = []
+        self.unparsable_files: List[Dict[str, Any]] = [] 
         self.anomalies: List[Dict[str, str]] = []
         self.popularity_scores: Dict[str, int] = {}
         self.ext_tally: Dict[str, int] = {}
@@ -525,6 +527,19 @@ class Orchestrator:
         """Executes the synthesis protocol with dual-recorder exit strategy."""
         start_time = time.time()
         logger.info(f"--- MISSION_IGNITION: {self.root.name} (v{self.version}) ---")
+        
+        if not HAS_NETWORKX or not HAS_TIKTOKEN:
+            logger.warning("")
+            logger.warning(" ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
+            logger.warning(" ┃ ⚠️  ZERO-DEPENDENCY MODE ACTIVE                                         ┃")
+            logger.warning(" ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫")
+            logger.warning(" ┃ Missing computational engines. Metrics will be safely set to NULL:      ┃")
+            if not HAS_NETWORKX: logger.warning(" ┃  - networkx (Network Topology, Blast Radius, Choke Points)              ┃")
+            if not HAS_TIKTOKEN: logger.warning(" ┃  - tiktoken (Absolute Token Mass, Financial Read Cost)                  ┃")
+            logger.warning(" ┃                                                                         ┃")
+            logger.warning(" ┃ To unlock absolute precision, run: pip install networkx tiktoken        ┃")
+            logger.warning(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛")
+            logger.warning("")
 
         try:
             # PHASE 0: Radar & Pre-Flight
@@ -550,49 +565,49 @@ class Orchestrator:
 
             # PHASE 3: Network Topology & Blast Radius
             t_phase = time.time()
-            self.stars, network_macro = self.network_sensor.map_ecosystem(self.stars)
+            self.parsed_files, network_macro = self.network_sensor.map_ecosystem(self.parsed_files)
             logger.info(f"⏱️ MACRO-CLOCK [Phase 3 - Network Topology]: {time.time() - t_phase:.2f}s")
 
             # PHASE 3.5: AI Guardrails & AppSec Threat Hunting
             t_phase = time.time()
             dev_firewall = DevAgentFirewall(parent_logger=logger)
-            self.stars = dev_firewall.evaluate_ecosystem(self.stars)
+            self.parsed_files = dev_firewall.evaluate_ecosystem(self.parsed_files)
             
             appsec_sensor = AIAppSecSensor(parent_logger=logger)
-            self.stars = appsec_sensor.hunt_threats(self.stars)
+            self.parsed_files = appsec_sensor.hunt_threats(self.parsed_files)
             logger.info(f"⏱️ MACRO-CLOCK [Phase 3.5 - AI Defense]: {time.time() - t_phase:.2f}s")
 
             # PHASE 4: Audit Verification
             t_phase = time.time()
-            visible_galaxy, audit_singularity = self.auditor.audit(self.stars)
-            total_singularity = self.singularity_candidates + audit_singularity
+            repository_graph, audit_singularity = self.auditor.audit(self.parsed_files)
+            total_unparsable = self.unparsable_files + audit_singularity
             logger.info(f"⏱️ MACRO-CLOCK [Phase 4 - Auditor]: {time.time() - t_phase:.2f}s")
             
             # PHASE 5: 3D Cartography
             t_phase = time.time()
-            if visible_galaxy:
-                visible_galaxy = self.cartographer.map_galaxy(visible_galaxy)
-            stars_mapped_count = len(visible_galaxy) if visible_galaxy else 0
+            if repository_graph:
+                repository_graph = self.cartographer.map_repository(repository_graph)
+            files_mapped_count = len(repository_graph) if repository_graph else 0
             logger.info(f"⏱️ MACRO-CLOCK [Phase 5 - Cartography]: {time.time() - t_phase:.2f}s")
             
             # PHASE 6: Metrics Synthesis
             t_phase = time.time()
-            summary = self.processor.summarize_galaxy_metrics(visible_galaxy, total_singularity)
+            summary = self.processor.summarize_galaxy_metrics(repository_graph, total_unparsable)
             summary["network_macro"] = network_macro
-            report = self.processor.generate_forensic_report(visible_galaxy)
+            report = self.processor.generate_forensic_report(repository_graph)
             logger.info(f"⏱️ MACRO-CLOCK [Phase 6 - Synthesis]: {time.time() - t_phase:.2f}s")
             
             # PHASE 7.8: Advanced ML Threat Hunting & Graph Resolution
             t_phase = time.time()
-            if visible_galaxy:
+            if repository_graph:
                 # Pass the Shadow Patch flag to the Security Auditor
                 is_shadow_patch = self.config.get("SHADOW_PATCH_DETECTED", False)
-                visible_galaxy = self.model_auditor.audit_galaxy(visible_galaxy, is_shadow_patch=is_shadow_patch)
+                repository_graph = self.model_auditor.audit_galaxy(repository_graph, is_shadow_patch=is_shadow_patch)
             logger.info(f"⏱️ MACRO-CLOCK [Phase 7.8 - ML Auditor]: {time.time() - t_phase:.2f}s")
 
             # --- PHASE 7.5: SHARED METADATA LOCKING ---
-            # Calculate physical mass before the GPU Recorder destroys the visible_galaxy list
-            total_loc = sum(s.get("total_loc", 0) for s in (visible_galaxy or []))
+            # Calculate physical mass before the GPU Recorder destroys the repository_graph list
+            total_loc = sum(s.get("total_loc", 0) for s in (repository_graph or []))
         
             # Calculate rate using exact precision BEFORE rounding for display
             raw_duration = time.time() - start_time
@@ -605,14 +620,18 @@ class Orchestrator:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "duration_seconds": duration,
                 "target_directory": str(self.root.resolve()),
-                "git_audit": self._get_git_audit()
+                "git_audit": self._get_git_audit(),
+                "missing_dependencies": {
+                    "networkx": not HAS_NETWORKX,
+                    "tiktoken": not HAS_TIKTOKEN
+                }
             }
             
             if "singularity" not in summary: 
                 summary["singularity"] = {}
                 
             # Pass the array into the function, and merge the results directly
-            summary["singularity"].update(self._summarize_anomalies(total_singularity))
+            summary["singularity"].update(self._summarize_anomalies(total_unparsable))
 
             # --- PURE OUTPUT ROUTER ---
             # Respect the exact path provided, just ensure the parent folder exists
@@ -633,11 +652,11 @@ class Orchestrator:
                     out_path = Path(output_file)
                     safe_suffix = out_path.suffix if out_path.suffix else ".json"
                     audit_output = str(out_path.with_name(f"{out_path.stem}_audit{safe_suffix}"))
-                    logger.info(f"AUDIT: Generating comprehensive human-readable forensic log -> {audit_output}")
+                    logger.debug(f"AUDIT: Generating comprehensive human-readable forensic log -> {audit_output}")
                     
                     self.audit_recorder.generate_report(
-                        stars=visible_galaxy,
-                        singularity=total_singularity,
+                        parsed_files=repository_graph,
+                        unparsable_files=total_unparsable,
                         summary=summary,
                         forensic_report=report,
                         session_meta=session_meta,
@@ -655,8 +674,8 @@ class Orchestrator:
                     logger.info(f"LLM: Generating AI translation artifacts -> {output_dir}")
                     
                     self.llm_recorder.generate_artifacts(
-                        stars=visible_galaxy,
-                        singularity=total_singularity,
+                        parsed_files=repository_graph,
+                        unparsable_files=total_unparsable,
                         summary=summary,
                         session_meta=session_meta,
                         output_dir=output_dir,
@@ -674,8 +693,8 @@ class Orchestrator:
                     logger.info(f"SQLITE: Generating repository-specific database -> {db_output}")
                     
                     self.db_recorder.record_mission(
-                        stars=visible_galaxy,
-                        singularity=total_singularity, # <--- NEW: Pass the Dark Matter
+                        parsed_files=repository_graph,
+                        unparsable_files=total_unparsable,
                         summary=summary,
                         session_meta=session_meta,
                         output_path=db_output
@@ -692,8 +711,8 @@ class Orchestrator:
                 logger.info(f"GPU: Generating minified payload -> {gpu_output}")
                 # record_mission destructively clears RAM as it pivots
                 payload = self.gpu_recorder.record_mission(
-                    stars=visible_galaxy,
-                    singularity=total_singularity,
+                    parsed_files=repository_graph,
+                    unparsable_files=total_unparsable,
                     summary=summary,
                     forensic_report=report,
                     repo_name=self.root.name
@@ -702,9 +721,12 @@ class Orchestrator:
                 payload["meta"]["session"] = session_meta
                 self.gpu_recorder.save_minified(payload, gpu_output)
 
-            logger.info(f"--- MISSION_SUCCESS: {stars_mapped_count} stars mapped in {duration}s ---")
+            logger.info(f"--- MISSION_SUCCESS: {files_mapped_count} files mapped in {duration}s ---")
             logger.info(f"--- ENGINE_TELEMETRY: Processed {total_loc:,} lines of code at {loc_per_sec:,} LOC/s ---")
             logger.info(f"--- ARCHIVES_SEALED: {gpu_output} & {audit_output} ---")
+            
+            if not HAS_NETWORKX or not HAS_TIKTOKEN:
+                logger.warning(" ⚠️  NOTE: Mission completed in Zero-Dependency Mode. Run `pip install networkx tiktoken` for full precision.")
             
             if self.config.get("FILE_SPEED"):
                 self._render_file_speed_chart()
@@ -777,7 +799,7 @@ class Orchestrator:
                     self.ext_tally[name] = self.ext_tally.get(name, 0) + 1 
                 else:
                     # Route directly to Dark Matter, bypassing the Multi-Processing pool
-                    self.singularity_candidates.append({
+                    self.unparsable_files.append({
                         "path": rel_path,
                         "reason": reason,
                         "identity_confidence": 0.0,
@@ -826,13 +848,13 @@ class Orchestrator:
                     self.ext_tally[ext] = self.ext_tally.get(ext, 0) + 1
                     self.ext_tally[name] = self.ext_tally.get(name, 0) + 1 
                 else:
-                    self.singularity_candidates.append({
+                    self.unparsable_files.append({
                         "path": rel_p,
                         "reason": reason,
                         "identity_confidence": 0.0,
                         "size_bytes": size_bytes
                     })
-                    self._record_anomaly(rel_p, reason)     
+                    self._record_anomaly(rel_p, reason)
 
     def _first_pass_extraction(self):
         """Pass 1: Parallel Refraction & Matter Eviction via Multi-Core Map-Reduce."""
@@ -917,7 +939,7 @@ class Orchestrator:
                                     
                         elif status == "singularity":
                             logger.debug(f"SINGULARITY_BYPASS: '{rel_path}' lacks structural integrity. Relegating to Dark Matter.")
-                            self.singularity_candidates.append({
+                            self.unparsable_files.append({
                                 "path": rel_path,
                                 "reason": res["reason"],
                                 "identity_confidence": res.get("identity_confidence", 0.0),
@@ -944,7 +966,7 @@ class Orchestrator:
                     logger.error(f"  -> TIMEOUT: {stuck_file}")
                     
                     self._record_anomaly(stuck_file, "Thread Timeout (Regex ReDoS)")
-                    self.singularity_candidates.append({
+                    self.unparsable_files.append({
                         "path": stuck_file,
                         "reason": "Thread Timeout (Regex ReDoS)",
                         "identity_confidence": 0.0,
@@ -1287,7 +1309,7 @@ class Orchestrator:
             telemetry_payload["identity_source_proof"] = meta.get("source_proof", "Discovery")
             telemetry_payload["threat_snippets"] = meta.get("threat_snippets", {})
 
-            self.stars.append({
+            self.parsed_files.append({
                 **meta,
                 "name": Path(rel_path).name,
                 "risk_vector": forensic_result["risk_vector"],
@@ -1300,10 +1322,10 @@ class Orchestrator:
         # THE SECRETS SUPERNOVA INJECTION (Synthetic Visualization)
         # Pull critical leaks out of Dark Matter and force them onto the map
         # ==================================================================
-        leaks = [cand for cand in self.singularity_candidates if "CRITICAL LEAK" in cand.get("reason", "")]
+        leaks = [cand for cand in self.unparsable_files if "CRITICAL LEAK" in cand.get("reason", "")]
         
         # Remove them from Dark Matter so they aren't double-counted in the summary
-        self.singularity_candidates = [cand for cand in self.singularity_candidates if "CRITICAL LEAK" not in cand.get("reason", "")]
+        self.unparsable_files = [cand for cand in self.unparsable_files if "CRITICAL LEAK" not in cand.get("reason", "")]
         
         from gitgalaxy.physics.signal_processor import SignalProcessor
         
@@ -1335,19 +1357,18 @@ class Orchestrator:
                 }
             }
             
-            # Manually flag the sec_private_info hit so UI tooltips show the exact trigger
             if "sec_private_info" in SignalProcessor.SIGNAL_SCHEMA:
                 idx = SignalProcessor.SIGNAL_SCHEMA.index("sec_private_info")
                 synthetic_star["hit_vector"][idx] = 1
                 
-            self.stars.append(synthetic_star)
+            self.parsed_files.append(synthetic_star)
 
         # ==================================================================
         # THE NEURAL SUPERNOVA INJECTION (Local AI Weights)
         # Pull model weights out of Dark Matter, parse headers, and map them
         # ==================================================================
-        models = [cand for cand in self.singularity_candidates if "AI MODEL WEIGHTS" in cand.get("reason", "")]
-        self.singularity_candidates = [cand for cand in self.singularity_candidates if "AI MODEL WEIGHTS" not in cand.get("reason", "")]
+        models = [cand for cand in self.unparsable_files if "AI MODEL WEIGHTS" in cand.get("reason", "")]
+        self.unparsable_files = [cand for cand in self.unparsable_files if "AI MODEL WEIGHTS" not in cand.get("reason", "")]
 
         if models:
             from gitgalaxy.physics.neural_auditor import NeuralAuditor
@@ -1396,7 +1417,7 @@ class Orchestrator:
                     idx = SignalProcessor.SIGNAL_SCHEMA.index("llm_local_compute")
                     synthetic_star["hit_vector"][idx] = 100 # Massive hit spike
                     
-                self.stars.append(synthetic_star)
+                self.parsed_files.append(synthetic_star)
     
     def _prepare_target(self, target_input: Union[str, Path]) -> Path:
         """Prepares the filesystem for analysis."""
@@ -1619,15 +1640,15 @@ class Orchestrator:
             self._second_pass_relational()
             
             # Re-map the directed graph because nodes/edges have mutated
-            self.stars, network_macro = self.network_sensor.map_ecosystem(self.stars)
+            self.parsed_files, network_macro = self.network_sensor.map_ecosystem(self.parsed_files)
 
             # 6. Audit Verification & ML Threat Inference
-            visible_galaxy, audit_singularity = self.auditor.audit(self.stars)
-            if visible_galaxy:
-                visible_galaxy = self.model_auditor.audit_galaxy(visible_galaxy)
+            repository_graph, audit_singularity = self.auditor.audit(self.parsed_files)
+            if repository_graph:
+                repository_graph = self.model_auditor.audit_galaxy(repository_graph)
             
             # 7. Synthesis and Database Forging
-            summary = self.processor.summarize_galaxy_metrics(visible_galaxy, audit_singularity)
+            summary = self.processor.summarize_galaxy_metrics(repository_graph, audit_singularity)
             summary["network_macro"] = network_macro
             session_meta = {
                 "engine": f"GitGalaxy Scope v{self.version} (Delta Mode)",
@@ -1639,14 +1660,14 @@ class Orchestrator:
             }
 
             self.db_recorder.record_mission(
-                stars=visible_galaxy,
-                singularity=audit_singularity,
+                parsed_files=repository_graph,
+                unparsable_files=audit_singularity,
                 summary=summary,
                 session_meta=session_meta,
                 output_path=db_output_path
             )
             
-            logger.info(f"--- DELTA_SUCCESS: {len(visible_galaxy)} stars mapped in {session_meta['duration_seconds']}s ---")
+            logger.info(f"--- DELTA_SUCCESS: {len(repository_graph)} files mapped in {session_meta['duration_seconds']}s ---")
             
         except Exception as e:
             logger.critical(f"FATAL_DELTA_COLLAPSE: {str(e)}", exc_info=True)

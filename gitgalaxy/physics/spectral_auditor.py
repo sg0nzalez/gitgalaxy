@@ -60,21 +60,21 @@ class SpectralAuditor:
             "macros", "pointers", "memory_alloc", "inline_asm"
         ]
 
-    def audit(self, stars: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        """Executes statistical gating to identify 'Hollow Stars' (outliers/data-dumps)."""
+    def audit(self, parsed_files: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """Executes statistical gating to identify data-dumps and structural outliers."""
         import os # Required for extension splitting in Consensus Engine
         
-        if not stars: 
-            self.logger.debug("Spectral Audit skipped: Empty star roster provided.")
+        if not parsed_files: 
+            self.logger.debug("Spectral Audit skipped: Empty file roster provided.")
             return [], []
 
-        self.logger.info(f"Powering up planetary sensor grid. Scanning {len(stars)} celestial bodies for structural anomalies...")
+        self.logger.info(f"Powering up planetary sensor grid. Scanning {len(parsed_files)} celestial bodies for structural anomalies...")
                 
-        total_stars = max(len(stars), 1)
-        orphan_threshold = max(3, int(math.log10(total_stars) * 2))
+        total_files = max(len(parsed_files), 1)
+        orphan_threshold = max(3, int(math.log10(total_files) * 2))
         self.logger.debug(f"Dynamic Ecosystem Orphan Threshold set to: <= {orphan_threshold} files.")
         
-        visible, singularity = [], []
+        verified_files, unparsable_files = [], []
         
         # =================================================================
         # GATE 0: EMPIRICAL BAYES LOOP-BACK (The Consensus Engine)
@@ -83,7 +83,7 @@ class SpectralAuditor:
         ambiguous_pen = []
         
         # 1. The Triage
-        for s in stars:
+        for s in parsed_files:
             telemetry = s.get("telemetry", {})
             tier = telemetry.get("identity_lock_tier", s.get("lock_tier", 4))
             proof = telemetry.get("identity_source_proof", s.get("source_proof", ""))
@@ -164,10 +164,10 @@ class SpectralAuditor:
                     continue
             
             # If we reach here, the file was ambiguous and the ecosystem couldn't save it.
-            # Banish it to the Singularity immediately to prevent hallucinations.
+            # Banish it to unparsable_files immediately to prevent hallucinations.
                     
             reason = f"Unresolved Ambiguity (Tier 4 Fallback failed Ecosystem Consensus)"
-            singularity.append(self._format_for_singularity(s, reason))
+            unparsable_files.append(self._format_for_singularity(s, reason))
             
         if resolved_count > 0:
             self.logger.info(f"Consensus Engine Override: Stabilized {resolved_count} fluctuating signatures into known orbits.")
@@ -221,7 +221,7 @@ class SpectralAuditor:
                 
             # Immediately bypass inert matter from all statistical checks
             if is_inert:
-                visible.extend(group)
+                verified_files.extend(group)
                 self.logger.debug(f"[{lid}] Bypassed {len(group)} artifact(s) (Dynamic Inert Matter: 0 Signals).")
                 continue
 
@@ -246,7 +246,7 @@ class SpectralAuditor:
                         s["lang_id"] = "plaintext"
                         s["telemetry"]["identity_source_proof"] = "Orphan Guard Fallback"
                         s["equations"] = {} # Inert matter has no logic equations
-                        visible.append(s)
+                        verified_files.append(s)
                     continue
                 
             # =================================================================
@@ -357,7 +357,7 @@ class SpectralAuditor:
                         # SPEC ALIGNMENT: Grant Reprieve from Relegation without mutating lang_id
                         s["is_necrotic"] = True 
                         self.logger.debug(f"[{lid}] Necrosis Guard: '{name}' failed audit ({relegation_reason}) but granted a Reprieve from Relegation.")
-                        visible.append(s)
+                        verified_files.append(s)
                         necrotic_count += 1
                         
                     elif self._is_threat(s):
@@ -366,8 +366,8 @@ class SpectralAuditor:
                         # making it look like a data dump. This guard explicitly saves it from the trash 
                         # and forces it onto the map so the auditor can see the threat.
                         s["is_quarantined"] = True 
-                        self.logger.critical(f"[{lid}] 🚨 QUARANTINE GUARD ACTIVATED: '{name}' failed structural audit ({relegation_reason}) but contains ACTIVE THREAT SIGNATURES. Forcing to Visible Galaxy!")
-                        visible.append(s)
+                        self.logger.critical(f"[{lid}] 🚨 QUARANTINE GUARD ACTIVATED: '{name}' failed structural audit ({relegation_reason}) but contains ACTIVE THREAT SIGNATURES. Forcing to Visible Map!")
+                        verified_files.append(s)
                         # We treat it as visible so it passes down to the Signal Processor and GPU Recorder
                         
                     else:
@@ -380,21 +380,21 @@ class SpectralAuditor:
                             )
                         elif loc > 1000:
                             # SIZE-AWARE WARNING: If a massive file is dropped, alert the engineer.
-                            self.logger.warning(f"Massive Data Dump Relegated: '{path}' (LOC: {loc}) stripped to Singularity. Reason: {relegation_reason}")
+                            self.logger.warning(f"Massive Data Dump Relegated: '{path}' (LOC: {loc}) stripped to unparsable. Reason: {relegation_reason}")
                         else:
-                            self.logger.debug(f"[{lid}] Relegated: '{name}' stripped to Singularity. Reason: {relegation_reason}")
+                            self.logger.debug(f"[{lid}] Relegated: '{name}' stripped to unparsable. Reason: {relegation_reason}")
 
                         # Format it as Inert Dark Matter to save memory and ensure schema consistency
-                        singularity.append(self._format_for_singularity(s, relegation_reason))
+                        unparsable_files.append(self._format_for_singularity(s, relegation_reason))
                         relegated_count += 1
                 else:
-                    visible.append(s)
+                    verified_files.append(s)
 
             if relegated_count > 0 or necrotic_count > 0:
-                self.logger.info(f"[{lid}] Audit complete: {relegated_count} relegated to Singularity, {necrotic_count} flagged as Necrosis.")
+                self.logger.info(f"[{lid}] Audit complete: {relegated_count} relegated to unparsable, {necrotic_count} flagged as Necrosis.")
 
-        self.logger.info(f"Anomaly sweep concluded | Stable Orbits Mapped: {len(visible)} | Collapsed to Dark Matter: {len(singularity)}")
-        return visible, singularity
+        self.logger.info(f"Anomaly sweep concluded | Stable Files Mapped: {len(verified_files)} | Collapsed to Unparsable: {len(unparsable_files)}")
+        return verified_files, unparsable_files
 
     def _is_highly_blended(self, star: Dict[str, Any]) -> bool:
         """Determines if a file is a Polyglot where the primary language is < 80% of the mass."""

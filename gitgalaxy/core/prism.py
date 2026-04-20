@@ -106,9 +106,9 @@ class Prism:
             self.logger.debug("Refraction skipped: Empty content buffer.")
             return {"code_stream": "", "comment_stream": "", "coding_loc": 0, "doc_loc": 0}
 
-        # --- THE SINGULARITY BYPASS (Spec 2.3.4.A.1) ---
+        # --- THE UNPARSABLE BYPASS (Spec 2.3.4.A.1) ---
         if primary_lang in ("undeterminable", "unknown"):
-            self.logger.debug(f"Singularity Bypass: '{primary_lang}' signal routed to Active Matter intact.")
+            self.logger.debug(f"Unparsable Bypass: '{primary_lang}' signal routed to Active Matter intact.")
             coding_loc = len([l for l in content.split('\n') if l.strip()])
             return {
                 "code_stream": content,

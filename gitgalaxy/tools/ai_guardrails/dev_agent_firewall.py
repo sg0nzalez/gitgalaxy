@@ -12,17 +12,17 @@ class DevAgentFirewall:
     def __init__(self, parent_logger=None):
         self.logger = parent_logger.getChild("guardrails") if parent_logger else logging.getLogger("guardrails")
 
-    def evaluate_ecosystem(self, stars: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def evaluate_ecosystem(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info("Executing Agentic Firewall & Token Physics Checks...")
         
-        for s in stars:
-            token_mass = s.get("token_mass", 0)
-            network_metrics = s.get("telemetry", {}).get("network_metrics", {})
-            risk_vector = s.get("risk_vector", []) # Assuming standard 0-100 risk scores
+        for file_data in parsed_files:
+            token_mass = file_data.get("token_mass", 0)
+            network_metrics = file_data.get("telemetry", {}).get("network_metrics", {})
+            risk_vector = file_data.get("risk_vector", []) # Assuming standard 0-100 risk scores
             
-            # Extract relevant physics
-            pagerank = network_metrics.get("normalized_blast_radius", 0.0)
-            max_big_o = s.get("max_big_o", 1) # Fallback if not injected yet
+            # Extract relevant physics safely handling None values from Zero-Dependency Mode
+            pagerank = network_metrics.get("normalized_blast_radius") or 0.0
+            max_big_o = file_data.get("max_big_o") or 1
             
             guardrails = {
                 "is_agentic_black_hole": False,
@@ -33,10 +33,10 @@ class DevAgentFirewall:
 
             # 1. The Context Window Shredder (The Black Hole)
             # If it burns > 8k tokens AND has terrible algorithmic complexity, the AI will fail.
-            if token_mass > 8000 and max_big_o >= 3:
+            if token_mass is not None and token_mass > 8000 and max_big_o >= 3:
                 guardrails["is_agentic_black_hole"] = True
                 guardrails["warnings"].append(f"CRITICAL: Black Hole detected. Token mass ({token_mass}) and O(N^{max_big_o}) complexity will shred agent context.")
-
+                
             # 2. The HITL Mandate (Blast Radius + Danger)
             if pagerank > 1.0 and sum(risk_vector) > 200: 
                 guardrails["requires_hitl"] = True
@@ -59,9 +59,9 @@ class DevAgentFirewall:
                 guardrails["silent_mutation_risk"] = True
                 guardrails["warnings"].append(f"CRITICAL: Silent Mutation Risk. Flux ({state_flux}) and Blast Radius ({in_degree} deps) are high, but zero tests exist. AI cannot verify its own fixes.")
 
-            # Inject the firewall report back into the star's telemetry
-            if "telemetry" not in s:
-                s["telemetry"] = {}
-            s["telemetry"]["ai_guardrails"] = guardrails
+            # Inject the firewall report back into the file's telemetry
+            if "telemetry" not in file_data:
+                file_data["telemetry"] = {}
+            file_data["telemetry"]["ai_guardrails"] = guardrails
             
-        return stars
+        return parsed_files
