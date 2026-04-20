@@ -78,6 +78,9 @@ class RecordKeeper:
                 network_cyclic_density REAL,
                 network_avg_path_length REAL,
                 network_articulation_points INTEGER,
+                audit_shadow_apis INTEGER DEFAULT 0,
+                audit_binary_anomalies INTEGER DEFAULT 0,
+                audit_unknown_packages INTEGER DEFAULT 0,
                 {", ".join(hit_cols)},
                 file_composition TEXT,
                 UNIQUE(repo_name, commit_hash)
@@ -483,6 +486,7 @@ class RecordKeeper:
         
         typosquat_count = summary.get("typosquat_hits", summary.get("summary", {}).get("typosquat_hits", 0))
         net_macro = summary.get("network_macro", {})
+        audits = summary.get("ecosystem_audits", {})
         
         repo_row_data = [
             repo_name,
@@ -507,7 +511,10 @@ class RecordKeeper:
             net_macro.get("assortativity", 0.0),
             net_macro.get("cyclic_density", 0.0),
             net_macro.get("avg_path_length", 0.0),
-            net_macro.get("articulation_points", 0)
+            net_macro.get("articulation_points", 0),
+            int(audits.get("api_mapper", {}).get("shadow_count", 0)),
+            int(audits.get("xray", {}).get("anomalies_found", 0)),
+            int(audits.get("firewall", {}).get("imports_unknown", 0))
         ] + agg_hits + [repo_composition_str]
 
         repo_placeholders = ",".join(["?"] * len(repo_row_data))
@@ -518,6 +525,7 @@ class RecordKeeper:
                 typosquat_hits, macro_species, z_score,
                 avg_encapsulation_ratio, avg_imports_per_file,
                 network_modularity, network_assortativity, network_cyclic_density, network_avg_path_length, network_articulation_points,
+                audit_shadow_apis, audit_binary_anomalies, audit_unknown_packages,
                 {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])},
                 file_composition
             ) VALUES ({repo_placeholders})

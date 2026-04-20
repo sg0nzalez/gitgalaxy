@@ -593,6 +593,34 @@ class LLMRecorder:
         if not ai_vuln_found:
             lines.append("*No autonomous AI vulnerabilities detected.*")
         lines.append("")
+        
+        # ======================================================================
+        # 10.8 ECOSYSTEM SECURITY AUDITS
+        # ======================================================================
+        audits = summary.get("ecosystem_audits", {})
+        lines.append("## 10.8 ECOSYSTEM SECURITY AUDITS")
+        lines.append("> **AI CONTEXT:** High-level perimeter defense metrics from the X-Ray, Supply Chain Firewall, and API Network Mapper.")
+        lines.append("")
+        
+        # 1. API Network Mapper
+        api = audits.get("api_mapper", {})
+        if api.get("status") == "success":
+            lines.append("### 📡 API Network Audit (Set Theory)")
+            lines.append(f"- **Shadow APIs (Critical):** `{api.get('shadow_count', 0)}` undocumented endpoints actively listening.")
+            lines.append(f"- **Ghost APIs (Bloat):** `{api.get('ghost_count', 0)}` endpoints documented but missing from code.")
+            if api.get("shadow_apis"):
+                lines.append("- **Known Shadow Routes:** " + ", ".join([f"`{r}`" for r in api.get("shadow_apis")[:5]]))
+            lines.append("")
+            
+        # 2. X-Ray & Firewall
+        xray = audits.get("xray", {})
+        fw = audits.get("firewall", {})
+        
+        lines.append("### ☢️ X-Ray & 🧱 Supply Chain Firewall")
+        lines.append(f"- **Binary Anomalies (X-Ray):** `{xray.get('anomalies_found', 0)}` (High entropy, packed payloads, or magic byte mismatches).")
+        lines.append(f"- **Blacklisted Dependencies:** `{fw.get('imports_blacklisted', 0)}` explicitly banned packages imported.")
+        lines.append(f"- **Unknown Dependencies:** `{fw.get('imports_unknown', 0)}` packages imported that bypass the Zero-Trust whitelist.")
+        lines.append("")
 
         # ==============================================================================
         # --- 11. CUMULATIVE RISK HITLIST (NEW) ---

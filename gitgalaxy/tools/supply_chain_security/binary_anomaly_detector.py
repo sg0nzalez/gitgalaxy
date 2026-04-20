@@ -190,5 +190,45 @@ def main():
             print(f" 💡 NOTE: {anomalies_allowed} known mock/safe files were bypassed via configuration.")
     print("="*75 + "\n")
 
+def run_xray_audit(target_path: Path) -> dict:
+    """Programmatic entry point for GalaxyScope."""
+    filter_engine = ApertureFilter(target_path, LANGUAGE_DEFINITIONS, APERTURE_CONFIG)
+    security = SecurityLens()
+    security.THREAT_SIGNATURES = {
+        "heat_triggers": security.THREAT_SIGNATURES["heat_triggers"],
+        "bitwise_hits": security.THREAT_SIGNATURES["bitwise_hits"]
+    }
+    
+    anomalies_found = 0
+    # Minimal silent scan
+    for root, dirs, files in os.walk(target_path):
+        rel_root = str(Path(root).relative_to(target_path))
+        if rel_root == ".": dirs[:] = [d for d in dirs if filter_engine._check_solar_shield(d)]
+        elif not filter_engine._check_solar_shield(rel_root): dirs[:] = []; continue
+            
+        for file in files:
+            file_path = Path(root) / file
+            rel_path_str = str(file_path.relative_to(target_path)).replace('\\', '/')
+            is_whitelisted = any(a in rel_path_str for a in ALLOWLIST_PATHS) or file_path.suffix.lower() in XRAY_BYPASS_EXTENSIONS or any(b in rel_path_str for b in XRAY_BYPASS_PATHS)
+            if "/test/" in rel_path_str.lower() or "/tests/" in rel_path_str.lower(): is_whitelisted = True
+            
+            if any(fnmatch.fnmatch(file, p) for p in DENYLIST_PATTERNS) and not is_whitelisted:
+                anomalies_found += 1; continue
+                
+            try:
+                with open(file_path, 'rb') as f: head_bytes = f.read(8192)
+                ext = file_path.suffix.lower()
+                bt = security.scan_binary(head_bytes, ext)
+                if bt and not (ext in ['.sh', '.bash', '.zsh'] and "#!/bin/" in bt.get('threat_snippet', '')):
+                    if not is_whitelisted: anomalies_found += 1
+                
+                content = head_bytes.decode('utf-8', errors='ignore')
+                sr = security.scan_content(content, 100)
+                if (sr["counts"].get("entropy", 0) > 0 or sr["counts"].get("bitwise_hits", 0) > 0) and not is_whitelisted:
+                    anomalies_found += 1
+            except Exception: pass
+            
+    return {"anomalies_found": anomalies_found}
+
 if __name__ == "__main__":
     main()

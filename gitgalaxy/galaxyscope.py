@@ -48,6 +48,9 @@ from gitgalaxy.tools.ai_guardrails.ai_appsec_sensor import AIAppSecSensor
 from gitgalaxy.standards.gitgalaxy_config import APERTURE_CONFIG, PRIORITY_WHITELIST, GUIDESTAR_CONFIG, EXACT_FILE_MATCH, STATIC_ARCHETYPES, ORCHESTRATOR_RULES, COMMENT_DEFINITIONS
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS, PROJECT_OVERRIDES
 from gitgalaxy.standards.analysis_lens import ThreatPolicy, PATH_MODIFIERS, PHYSICS_ASSET_MASKS
+from gitgalaxy.tools.network_auditing.full_api_network_map import run_api_audit
+from gitgalaxy.tools.supply_chain_security.binary_anomaly_detector import run_xray_audit
+from gitgalaxy.tools.supply_chain_security.supply_chain_firewall import run_firewall_audit
 
 logger = logging.getLogger("GalaxyScope")
 
@@ -613,6 +616,20 @@ class Orchestrator:
                 is_shadow_patch = self.config.get("SHADOW_PATCH_DETECTED", False)
                 repository_graph = self.model_auditor.audit_galaxy(repository_graph, is_shadow_patch=is_shadow_patch)
             logger.info(f"⏱️ MACRO-CLOCK [Phase 7.8 - ML Auditor]: {time.time() - t_phase:.2f}s")
+
+            # ==========================================================
+            # PHASE 7.9: ECOSYSTEM SECURITY AUDITS
+            # ==========================================================
+            logger.info("Phase 7.9: Executing Ecosystem Security Audits (X-Ray, Firewall, API Mapper)...")
+            
+            ecosystem_audits = {
+                "api_mapper": run_api_audit(self.root),
+                "xray": run_xray_audit(self.root),
+                "firewall": run_firewall_audit(self.root)
+            }
+            
+            # Attach it to the summary payload
+            summary["ecosystem_audits"] = ecosystem_audits
 
             # --- PHASE 7.5: SHARED METADATA LOCKING ---
             # Calculate physical mass before the GPU Recorder destroys the repository_graph list

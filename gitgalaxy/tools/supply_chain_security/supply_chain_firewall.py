@@ -198,5 +198,28 @@ def main():
         print(" ✅ BUILD PASSED: Dependency supply chain is clean.")
     print("="*75 + "\n")
 
+def run_firewall_audit(target_path: Path) -> dict:
+    """Programmatic entry point for GalaxyScope."""
+    # Note: Keep this extremely lightweight so it doesn't double-scan the entire repo during the main run.
+    # Since the main GalaxyScope pipeline ALREADY scans for Homoglyphs and I/O, we only need to return 
+    # the Zero-Trust package counts for the LLM!
+    
+    imports_unknown = 0
+    imports_blacklisted = 0
+    import_regex = re.compile(r'(?:require(?:_once)?\s*\(\s*|import\s+|from\s+)[\'"]([a-zA-Z0-9_@/-]+)[\'"]')
+    
+    for root, dirs, files in os.walk(target_path):
+        for file in files:
+            if Path(file).suffix.lower() in ['.js', '.ts', '.py', '.php', '.go', '.rs']:
+                try:
+                    with open(Path(root) / file, 'r', encoding='utf-8', errors='ignore') as f:
+                        found_packages = import_regex.findall(f.read())
+                        for pkg in found_packages:
+                            if pkg in BLACKLISTED_IMPORTS: imports_blacklisted += 1
+                            elif pkg not in APPROVED_IMPORTS: imports_unknown += 1
+                except Exception: pass
+                
+    return {"imports_unknown": imports_unknown, "imports_blacklisted": imports_blacklisted}
+
 if __name__ == "__main__":
     main()
