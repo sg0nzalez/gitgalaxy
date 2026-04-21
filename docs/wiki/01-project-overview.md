@@ -1,18 +1,24 @@
 ## 1. Foundation & Architecture
 
-### 1.1 Project Overview: The Engine vs. The Layer
+### 1.1 Project Overview: The Deterministic Knowledge Graph
 
-GitGalaxy is, fundamentally, a high-velocity, deterministic knowledge graph generator for planetary-scale codebases. 
+GitGalaxy is, fundamentally, a high-velocity, **deterministic function-level knowledge graph engine** designed for planetary-scale codebases. 
 
-While the project is widely recognized for its interactive 3D WebGL visualizer—which renders repositories as explorable galaxies—this visualizer is ultimately just a presentation layer. The true core of the project is the analysis engine that powers it. 
+While the project is widely recognized for its interactive 3D WebGL visualizer—which renders repositories as explorable galaxies—this visualizer is ultimately just a presentation layer. The true core of the project is the analysis engine that powers next-generation **Retrieval-Augmented Generation (RAG)** pipelines. 
 
-We built GitGalaxy because modern software engineering has outgrown traditional analysis tools. Abstract Syntax Trees (ASTs) are computationally expensive, deeply fragile, and require compilable code—meaning they fail completely when analyzing legacy mainframes or fragmented microservices. On the other end of the spectrum, Large Language Models (LLMs) suffer from severe context window limitations and output probabilistic, hallucination-prone architectural summaries.
+We built GitGalaxy because modern software engineering has outgrown traditional analysis tools. Abstract Syntax Trees (ASTs) are computationally expensive, deeply fragile, and require fully compilable code—meaning they fail completely when analyzing legacy mainframes, incomplete snippets, or fragmented microservices. On the other end of the spectrum, Large Language Models (LLMs) suffer from severe context window limitations and output probabilistic, hallucination-prone architectural summaries.
 
-GitGalaxy solves this by treating code files as raw structural text, scanning for functional anchors and architectural triggers to build a deterministic 3D knowledge graph in seconds. It seamlessly handles mid-file language switching, assesses the architectural ratio of test files to logic, and extracts invaluable project structure data that standard parsers ignore.
+GitGalaxy bridges this gap by generating a **deterministic** graph. Instead of asking an LLM to guess how code connects, GitGalaxy proves it mathematically. It creates a structured, function-level map of the repository that serves as a flawless retrieval foundation for RAG engines, allowing AI agents to surgically inject exact context rather than guessing across thousands of files.
 
 ### 1.2 The blAST Paradigm: Bypassing LLMs & ASTs
 
-To achieve this, GitGalaxy abandons the AST entirely in favor of a novel algorithm: **blAST (Bypassing LLMs and ASTs)**. 
+To achieve this, GitGalaxy abandons the AST entirely in favor of a novel algorithmic approach: **blAST (Bypassing LLMs and ASTs)**. 
+
+The blAST engine works by treating code files as raw structural text, applying high-performance syntactic heuristics (regex) to scan for architectural triggers and functional anchors. It identifies exactly where a function starts (`func_start`), where a class is declared (`class_start`), how many parameters it couples with (`args`), and what state it mutates (`flux`).
+
+By mapping these structural "physics," blAST builds a deterministic, function-level knowledge graph in seconds—without ever needing to compile or execute the code. It seamlessly handles mid-file language switching, assesses the architectural ratio of test files to logic, and extracts invaluable project structure data that standard parsers ignore. 
+
+When integrated into an AI pipeline as a **RAG engine**, GitGalaxy provides the LLM with a pre-computed map of reality. The LLM can retrieve the exact line numbers, structural mass, and dependency edges of a function, bypassing context limits and entirely eliminating architectural hallucinations.
 
 The engine hunts for the universal structural markers of logic across over 50 languages and 250 file extensions. The blAST engine scans source code for regular expression (regex) profiles that indicate specific architectural intent. It parses the software's heuristics to identify:
 * **Structural Purity:** Where does the actual logic live versus the literature and comments?
@@ -69,6 +75,8 @@ gitgalaxy/
     ├── network_auditing/           # API boundary mappers (Shadow API hunting)
     ├── supply_chain_security/      # Quarantines, vault sentinels, and binary X-Rays
     └── terabyte_log_scanning/      # High-velocity PII leak and mainframe SMF telemetry hunters
+
+```
 
 ### 1.6 Measuring Risk Exposure, Not "Code Quality"
 
