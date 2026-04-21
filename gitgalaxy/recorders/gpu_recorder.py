@@ -281,8 +281,11 @@ class GPURecorder:
                     "details": reasons
                 }
 
+        if "unparsable_files" not in summary:
+            summary["unparsable_files"] = {}
+            
         summary["unparsable_files"]["breakdown"] = breakdown
-
+        
         # --- DYNAMIC LORE INJECTION ---
         # Fetch the story registry, defaulting to an empty dict if it doesn't exist
         project_stories = getattr(gitgalaxy_config, "PROJECT_STORIES", {})

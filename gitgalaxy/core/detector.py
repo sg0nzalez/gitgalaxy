@@ -15,7 +15,7 @@ import time
 import bisect
 from typing import Dict, List, Any, TypedDict, Optional, Tuple
 from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS
-from gitgalaxy.standards.language_standards import UNIVERSAL_RULES, LANGUAGE_DEFINITIONS
+from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
 HAS_TIKTOKEN = False
 try:
     import tiktoken
@@ -739,9 +739,6 @@ class LogicSplicer:
         for seg_lang, seg_code, _ in segments:
             # 1. Grab the language-specific rules
             rules = self.languages.get(seg_lang, {}).get('rules', {}).copy()
-            
-            # 2. Seamlessly merge in the Universal Rules!
-            rules.update(UNIVERSAL_RULES)
                 
             seg_len = len(seg_code)
             
@@ -2035,16 +2032,8 @@ class Cartographer:
                 star["pos_y"] = round(sec_y + ly + jit_y, 2)
                 star["pos_z"] = round(sec_z + lz + jit_z, 2)
 
-                if "layout" not in star: star["layout"] = {}
-                star["layout"]["x"], star["layout"]["y"], star["layout"]["z"] = star["pos_x"], star["pos_y"], star["pos_z"]
+            return parsed_files
 
-            prev_radius = sec_radius
-
-        return parsed_files
-
-
-
-    
     def _get_mass(self, star: Dict[str, Any]) -> float:
         """Safely extracts mass regardless of which JSON version the pipeline is using."""
         if "forensics" in star:

@@ -84,67 +84,63 @@ PRISM_CONFIG = {
 # 3. UNIVERSAL DOMAIN SENSORS (Applied to ALL languages)
 # Consumed by: detector.py (LogicSplicer)
 # ------------------------------------------------------------------------------
-UNIVERSAL_RULES = {
-    # ==========================================================================
-    # AI & LLM TOPOLOGY SENSORS
-    # Maps the repository's artificial intelligence footprint and infrastructure.
-    # ==========================================================================
-    # --- NEW: AI & LLM SENSORS ---
-    "llm_api": re.compile(r'\b(openai|anthropic|cohere|mistralai|litellm|google\.generativeai|bedrock)\b', re.I),
-    "llm_orchestrator": re.compile(r'\b(langchain|llama_index|haystack|semantic_kernel|autogen|crewai|smolagents)\b', re.I),
-    "llm_vector_store": re.compile(r'\b(chromadb|pinecone|qdrant|weaviate|milvus|faiss|pgvector|lancedb)\b', re.I),
-    "llm_local_compute": re.compile(r'\b(transformers|huggingface_hub|vllm|llama_cpp|ollama|mlx|safetensors)\b', re.I),
-    
-    # --- NEW: AI AGENT SENSORS (Autonomy & State) ---
-    "ai_tools": re.compile(r'\b(bind_tools|FunctionTool|tools=\[|tool_choice|@tool)\b', re.I),
-    "ai_memory": re.compile(r'\b(CompiledStateGraph|MemorySaver|SqliteSaver|ConversationBufferMemory|ChatMessageHistory)\b', re.I),
-    "ai_logic_loop": re.compile(r'\b(AgentExecutor|create_react_agent|PlanAndExecute|react_agent)\b', re.I),
+# ==============================================================================
+# GLOBAL LOCALIZATION DICTIONARIES (Cross-Cultural Tech Debt)
+# Consumed by: All languages in LANGUAGE_DEFINITIONS
+# ==============================================================================
 
-    # --- NEW: ML VS DL SENSORS (Data Science Hierarchy) ---
-    "ml_traditional": re.compile(r'\b(sklearn|scikit-learn|xgboost|lightgbm|catboost|statsmodels|prophet)\b', re.I),
-    "dl_frameworks": re.compile(r'\b(tensorflow|torch|keras|jax|flax|fastai|pytorch_lightning)\b', re.I),
+# --- 1. PLANNED DEBT (TODOs, WIPs, Promises) ---
+_SPACED_PLANNED = (
+    r"\b("
+    r"TODO|WIP|STUB|IMPLEMENT|@todo|"                        # English
+    r"POR HACER|A IMPLEMENTAR|PENDIENTE|"                    # Spanish
+    r"A FAZER|PENDENTE|TAREFA|"                              # Portuguese
+    r"A FAIRE|A IMPLEMENTER|EN ATTENTE|"                     # French
+    r"ZU ERLEDIGEN|MACHEN|OFFEN|IMPLEMENTIEREN|"             # German
+    r"СДЕЛАТЬ|ДОДЕЛАТЬ|ПЛАН|РЕАЛИЗОВАТЬ|"                     # Russian
+    r"DA FARE|DA IMPLEMENTARE|"                              # Italian
+    r"DO ZROBIENIA|DO POPRAWY|"                              # Polish
+    r"TE DOEN|NOG DOEN|"                                     # Dutch
+    r"HARUS DIBUAT|UNTUK DIBUAT"                             # Indonesian
+    r")\b"
+)
+_DENSE_PLANNED = (
+    r"(?:"
+    r"待办|未完成|将来做|需要优化|暂未实现|"                  # Mandarin
+    r"後でやる|未実装|実装予定|"                              # Japanese
+    r"할일|할 일|미구현|나중에|"                               # Korean
+    r"करना है|बाद में|"                                        # Hindi (Devanagari)
+    r"للقيام به|لاحقا|يجب عمله"                               # Arabic
+    r")"
+)
+GLOBAL_PLANNED_DEBT = re.compile(f"{_SPACED_PLANNED}|{_DENSE_PLANNED}", re.I)
 
-    "core_var_decl": re.compile(r'\b[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=><]'),
 
-    # ==========================================================================
-    # LINGUISTIC & DESIGN SLOP SENSORS
-    # Maps variable naming conventions, styling factions, and readability debt.
-    # ==========================================================================
-    # Baseline variable declarations for ratio math.
-    "core_var_decl": re.compile(r'\b[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=><]'),
-    
-    # Tracking formatting factions (The stylistic 'Civil War' metrics).
-    "design_camel_case": re.compile(r'\b[a-z]+[A-Z][a-zA-Z0-9]*\s*=[^=><]'),
-    "design_snake_case": re.compile(r'\b[a-z]+(?:_[a-z0-9]+)+\s*=[^=><]'),
-    "design_pascal_case": re.compile(r'\b[A-Z][a-z0-9]+[A-Z][a-zA-Z0-9]*\s*=[^=><]'),
-    "design_upper_case": re.compile(r'\b[A-Z]+(?:_[A-Z0-9]+)*\s*=[^=><]'),
-    
-    # Extreme identifier lengths indicating poor encapsulation or cryptic code.
-    "design_short_vars": re.compile(r'\b[a-zA-Z_]{1,2}\s*=[^=><]'),
-    "design_long_vars": re.compile(r'\b[a-zA-Z_]{20,}\s*=[^=><]'),
-
-    # ==========================================================================
-    # CROSS-LANGUAGE DOMAIN INTENT
-    # Identifies universal architectural concepts regardless of the underlying syntax.
-    # ==========================================================================
-    # The Identity Vault: JWT, OAuth, and Role-Based Access Control logic.
-    "auth_middleware": re.compile(r'\b(jwt|oauth|passport|saml|sso|verify_?token|check_?auth|check_?permissions?|rbac|bearer)\b', re.I),
-    
-    # The Distributed Network: Message brokers, pub/sub queues, and gRPC communication.
-    "ipc_rpc_bridges": re.compile(r'\b(grpc|redis|kafka|amqp|rabbitmq|zmq|thrift|pubsub|celery|sidekiq|sqs|sns|eventbridge)\b', re.I),
-    
-    # The Toggle Switch: A/B testing and conditional feature rollout platforms.
-    "feature_flags": re.compile(r'\b(launchdarkly|unleash|is_?enabled|feature_?flag|experiment|ab_?test|flag_?active|optimizely)\b', re.I),
-    
-    # The Data Translator: Marshalling and unmarshaling structured payloads.
-    "serialization_parsing": re.compile(r'\b(json|yaml|xml|protobuf|bson|msgpack|csv)\b', re.I),
-    
-    # The Pattern Matcher: Native regex compilation and string searching.
-    "regex_execution": re.compile(r'\b(re\.compile|re\.search|new\s+RegExp|preg_match|Pattern\.compile|Regex\.Match)\b', re.I),
-    
-    # The Chronometer: Handling dates, intervals, and timezone logic.
-    "time_date_logic": re.compile(r'\b(datetime|timedelta|moment\(|date-fns|java\.time|ZonedDateTime|TimeSpan|Date\.now)\b', re.I)
-}
+# --- 2. FRAGILE DEBT (Hacks, FIXMEs, Code Smells) ---
+_SPACED_FRAGILE = (
+    r"\b("
+    r"HACK|FIXME|XXX|BUG|KLUDGE|UGLY|WTF|"                   # English
+    r"PARCHE|ARREGLAR|TRUCO|FEO|CHAPUZA|"                    # Spanish (Chapuza = Shoddy fix)
+    r"GAMBIARRA|CONSERTAR|REPARAR|FEIO|REMENDO|"             # Portuguese (Gambiarra = Duct-tape hack)
+    r"BIDOUILLE|A CORRIGER|REPARER|MOCHE|"                   # French (Bidouille = Hack)
+    r"KAPUTT|REPARIEREN|PFUSCH|MÜLL|"                        # German (Pfusch = Botch job)
+    r"КОСТЫЛЬ|ИСПРАВИТЬ|УБРАТЬ|ФИКС|ГРЯЗНО|"                  # Russian (Kostyl = Crutch/Workaround)
+    r"SISTEMARE|PEZZA|ORRIBILE|DA FIXARE|"                   # Italian (Pezza = Patch)
+    r"OBEJŚCIE|TYMCZASOWE|NAPRAWIĆ|"                         # Polish (Obejście = Workaround)
+    r"FIXEN|TIJDELIJK|LELIJK|OPLOSSING|"                     # Dutch
+    r"PERBAIKI|SEMENTARA|JELEK"                              # Indonesian
+    r")\b"
+)
+_DENSE_FRAGILE = (
+    r"(?:"
+    r"修复|临时代码|黑客做法|丑陋|坑|写死|硬编码|"            # Mandarin
+    r"修正|ハック|一時的|汚い|やばい|"                        # Japanese
+    r"수정|임시|꼼수|버그|"                                    # Korean
+    r"जुगाड़|ठीक करना|अस्थाई|"                                  # Hindi (Jugaad = Hack/Workaround)
+    r"مؤقت|إصلاح|ترقيع"                                       # Arabic (Tarqie = Patching/Hacking)
+    r")"
+)
+GLOBAL_FRAGILE_DEBT = re.compile(f"{_SPACED_FRAGILE}|{_DENSE_FRAGILE}", re.I)
 
 # ------------------------------------------------------------------------------
 # 4. LANGUAGE DEFINITIONS (The Core Optical Matrix)
@@ -330,11 +326,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(
-                r"\b(HACK|FIXME|XXX|BUG|KLUDGE|UGLY|WTF)\b", re.I
-            ),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -590,9 +584,9 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(r"(?:@author|Created by)\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -849,9 +843,9 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(r"(?:@author|Created by)\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -1078,9 +1072,9 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(r"@author\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -1369,9 +1363,9 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(r"(?:<author>|Author:|Created by)\s*(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -1617,9 +1611,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -1848,9 +1842,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -2158,9 +2152,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -2455,9 +2449,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -2717,9 +2711,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -2974,8 +2968,8 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
             # 30. civil_war (The Indentation Tracker)
@@ -3212,9 +3206,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -3463,9 +3457,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -3692,9 +3686,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -3930,9 +3924,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -4183,9 +4177,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -4448,13 +4442,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(
-                r"<!--\s*(?:TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I
-            ),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(
-                r"<!--\s*(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I
-            ),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -4705,9 +4695,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -5028,18 +5018,11 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
-            # 26. planned_debt (The Promise / Good Debt)
-            # Future work that doesn't necessarily imply current brokenness.
-            "planned_debt": re.compile(
-                r"\b(TODO|WIP|STUB|IMPLEMENT|PENDING|REFACTOR|CLEANUP|REVIEW|UPDATE|@todo)\b",
-                re.I,
-            ),
-            # 27. fragile_debt (The Fracture / Bad Debt)
-            # An explicit admission that the current logic is fragile, dangerous, or ugly.
-            "fragile_debt": re.compile(
-                r"\b(HACK|FIXME|XXX|BUG|WORKAROUND|KLUDGE|OPTIMIZE|HARDCODED|NOQA|IGNORED|WTF|BROKEN|FRAGILE|UGLY|MESSY|BAND-AID|PATCH)\b",
-                re.I,
-            ),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            # 27. fragile_debt (The Fracture)
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
+            
 
             # 29. spec_exposure (The Map vs. Territory)
             # Audit tags establishing traceability of intent back to physics papers or architectural specifications.
@@ -5305,9 +5288,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
             # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -5546,14 +5529,10 @@ LANGUAGE_DEFINITIONS = {
                 re.M | re.I,
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(
-                r"#\s*(TEMPORARY|WIP|STUB|IMPLEMENT|TODO)\b", re.I
-            ),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(
-                r"#\s*(HACK|FIXME|XXX|BOGUS|BUG|TRASH\s+POCKET)\b", re.I
-            ),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             # Linkage to MIT GSOP or mission versions.
@@ -5747,9 +5726,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
@@ -5974,9 +5953,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(
@@ -6189,8 +6168,8 @@ LANGUAGE_DEFINITIONS = {
                 r"--\s*\|?\s*(?:Author|Maintainer|Copyright|License):\s+([^\n]+)", re.I
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             "spec_exposure": re.compile(r"\[(?:spec-[0-9]+|audit|rfc)\]", re.I),
             "civil_war": None,
@@ -6416,12 +6395,10 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I
             ),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(
-                r"\b(HACK|FIXME|XXX|BUG|KLUDGE|UGLY|WTF)\b", re.I
-            ),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -6690,9 +6667,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
@@ -6878,9 +6855,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
@@ -7101,9 +7078,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags and architecture specs.
             "spec_exposure": re.compile(
@@ -7325,9 +7302,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags and architecture specs.
             "spec_exposure": re.compile(
@@ -7556,9 +7533,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags and architecture specs.
             "spec_exposure": re.compile(
@@ -7807,10 +7784,10 @@ LANGUAGE_DEFINITIONS = {
                 re.M | re.I,
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
-            # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -8039,8 +8016,10 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*%[ \t]*(?:Author|Created by|Copyright)[ \t]*:(.*)", re.M | re.I
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
-            "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT)\b", re.I),
-            "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            # 27. fragile_debt (The Fracture)
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
@@ -8267,9 +8246,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
@@ -8459,11 +8438,10 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(r"//[ \t]*SPDX-License-Identifier:|(?:@author|Created by):\s+(.*)", re.I),
             
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
-            # 26. planned_debt: The Promise.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
-            
-            # 27. fragile_debt: The Fracture.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX)\b", re.I),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            # 27. fragile_debt (The Fracture)
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
             
             # 28. private_info: Hardcoded credentials or private keys. Requires assignment.
             "private_info": re.compile(r"\b(private_key|secret|mnemonic|api_key)\b[ \t]*[:=]", re.I),
@@ -8677,8 +8655,8 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:Created by|@author|Author:|Copyright|Tim Berners-Lee)\b", re.I
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL|ENQUIRE)[^\]]*\]|\b(?:WorldWideWeb|HyperText\s+Proposal|NeXTSTEP\s+Docs)\b",
@@ -8883,8 +8861,10 @@ LANGUAGE_DEFINITIONS = {
             # --------------------------------------------------------------------------
             # 4. SPECIALIZED EXTRACTIONS (Sub-Equations and Low-Level/System)
             # --------------------------------------------------------------------------
-            "planned_debt": re.compile(r"\b(?:todo|wip|stub|implement)\b", re.I),
-            "fragile_debt": re.compile(r"\b(?:hack|fixme|xxx|kludge|ugly|wtf)\b", re.I),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            # 27. fragile_debt (The Fracture)
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             "spec_exposure": re.compile(r"\[(?:spec-[0-9]+|audit|spec)\]", re.I),
             # Strict tracking of Indentation structural boundaries. (Make strictly demands Tabs, mapping space usage catches severe fragmentation).
@@ -9090,9 +9070,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt: The Promise. Future work markers.
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure: Map vs. Territory. Audit tags and architecture docs.
             "spec_exposure": re.compile(
@@ -9308,8 +9288,10 @@ LANGUAGE_DEFINITIONS = {
             "ownership": None,
 
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
-            "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT)\b", re.I),
-            "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            # 27. fragile_debt (The Fracture)
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "private_info": re.compile(r"\b(?:password|secret|token|api[_-]?key|client[_-]?secret|private[_-]?key)[ \t]*:[ \t]*[\"'][A-Za-z0-9\-_+/=]{16,}[\"']", re.I),
             "spec_exposure": None,
             "civil_war": None,
@@ -9428,8 +9410,8 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:@author|Author:|Created by:|Copyright)\s+(.*)", re.I
             ),
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS ---
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
@@ -9595,10 +9577,10 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
-            # 26. planned_debt
-            "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
-            # 27. fragile_debt
-            "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            # 27. fragile_debt (The Fracture)
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure
             "spec_exposure": re.compile(
@@ -9806,9 +9788,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt
-            "planned_debt": re.compile(r"\b(TODO|WIP|STUB|IMPLEMENT)\b", re.I),
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             # 29. spec_exposure
             "spec_exposure": re.compile(
@@ -10180,8 +10162,10 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS ---
-            "planned_debt": re.compile(r"\b(?:TODO|WIP|STUB|IMPLEMENT|@todo)\b", re.I),
-            "fragile_debt": re.compile(r"\b(?:HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
+            # 27. fragile_debt (The Fracture)
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
 
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
@@ -10370,12 +10354,10 @@ LANGUAGE_DEFINITIONS = {
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"@author\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
-            "planned_debt": re.compile(
-                r"\b(TODO|WIP|STUB|IMPLEMENT|PENDING|@todo)\b", re.I
-            ),
+                        # 26. planned_debt (The Promise)
+            "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (The Fracture)
-            "fragile_debt": re.compile(r"\b(HACK|FIXME|XXX|KLUDGE|UGLY|WTF)\b", re.I),
+            "fragile_debt": GLOBAL_FRAGILE_DEBT,
  
             # 29. spec_exposure (The Map vs. Territory)
             "spec_exposure": re.compile(
@@ -10567,5 +10549,12 @@ PROJECT_OVERRIDES = {
     "express": {"html": {"extensions": [".html", ".htm", ".ejs", ".tmpl"]}},
     "fieldtrip": {"_shield_": {"exclude_dirs": ["external"]}},
     "jenkins": {"_shield_": {"exclude_paths": ["translation-tool.pl", "core/report-l10n.rb"]}},
-    "redis": {"_shield_": {"exclude_dirs": ["deps/lua", "deps/jemalloc", "deps/hiredis"]}}
+    "redis": {"_shield_": {"exclude_dirs": ["deps/lua", "deps/jemalloc", "deps/hiredis"]}},
+    "Correios-Brasil": {
+        "_shield_": {"unban_directories": ["features"]}
+    },
+    "freebsd-src": {
+        "objective-c": {"extensions": ['.mm', '.h']},
+        "c": {"extensions": ['.c', '.h', '.cl', '.inc', '.y', '.idc', '.cats', '.m', '.dts', '.dtsi']}
+    },
 }

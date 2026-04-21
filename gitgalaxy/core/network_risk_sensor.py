@@ -96,7 +96,14 @@ class NetworkRiskSensor:
             # Note: We limit betweenness to a sample (k=50) if the graph is massive (>5k nodes) to keep it O(N) fast.
             k_val = min(len(G.nodes()), 50) if len(G.nodes()) > 5000 else None
             betweenness = nx.betweenness_centrality(G, k=k_val, weight='weight')
-            closeness = nx.closeness_centrality(G)
+            
+            # Put a hard ceiling on Closeness Centrality to prevent the O(N^2) trap
+            if len(G.nodes()) > 5000:
+                self.logger.warning("Graph too massive for Closeness Centrality. Bypassing.")
+                closeness = {n: 0.0 for n in G.nodes()}
+            else:
+                closeness = nx.closeness_centrality(G)
+                
         except Exception as e:
             self.logger.warning(f"Network math failed to converge, defaulting to 0: {e}")
             pagerank = {n: 0.0 for n in G.nodes()}
@@ -183,8 +190,12 @@ class NetworkRiskSensor:
                 
                 # A. Modularity (Spaghetti vs Microservice)
                 try:
-                    communities = community.greedy_modularity_communities(U)
-                    macro_metrics["modularity"] = round(community.modularity(U, communities), 4)
+                    if len(U) > 5000:
+                        self.logger.warning("Graph too massive for Modularity. Bypassing.")
+                        macro_metrics["modularity"] = 0.0
+                    else:
+                        communities = community.greedy_modularity_communities(U)
+                        macro_metrics["modularity"] = round(community.modularity(U, communities), 4)
                 except Exception: pass
 
                 # B. Assortativity (Resiliency)
@@ -202,9 +213,13 @@ class NetworkRiskSensor:
                 
                 # D. Average Shortest Path (Coupling Distance)
                 try:
-                    largest_cc = max(nx.connected_components(U), key=len)
-                    subgraph = U.subgraph(largest_cc)
-                    macro_metrics["avg_path_length"] = round(nx.average_shortest_path_length(subgraph), 4)
+                    if len(U) > 5000:
+                        self.logger.warning("Graph too massive for Avg Path Length. Bypassing.")
+                        macro_metrics["avg_path_length"] = 0.0
+                    else:
+                        largest_cc = max(nx.connected_components(U), key=len)
+                        subgraph = U.subgraph(largest_cc)
+                        macro_metrics["avg_path_length"] = round(nx.average_shortest_path_length(subgraph), 4)
                 except Exception: pass
                 
                 # E. Articulation Points (Shatter Risk)
