@@ -13,15 +13,15 @@ from pathlib import Path
 from datetime import datetime
 
 # Import the core logic functions directly
-from tools.cobol_to_cobol.cobol_jcl_forge import analyze_cobol_intent, generate_zero_trust_jcl
-from tools.cobol_to_cobol.cobol_dag_architect import extract_lineage
-from tools.cobol_to_cobol.cobol_graveyard_finder import x_ray_dead_code
-from tools.cobol_to_cobol.cobol_schema_forge import forge_schemas
-from tools.cobol_to_cobol.cobol_microservice_slicer import slice_business_logic
-from tools.cobol_to_cobol.cobol_system_limits_reporter import scan_system_limits
-from tools.cobol_to_cobol.cobol_lexical_patcher import patch_lexical_traps
-from tools.cobol_to_cobol.cobol_jcl_auditor import audit_zero_trust_jcls
-from tools.cobol_to_cobol.cobol_agent_task_forge import forge_agent_jobs
+from gitgalaxy.tools.cobol_to_cobol.cobol_jcl_forge import analyze_cobol_intent, generate_zero_trust_jcl
+from gitgalaxy.tools.cobol_to_cobol.cobol_dag_architect import extract_lineage
+from gitgalaxy.tools.cobol_to_cobol.cobol_graveyard_finder import x_ray_dead_code
+from gitgalaxy.tools.cobol_to_cobol.cobol_schema_forge import forge_schemas
+from gitgalaxy.tools.cobol_to_cobol.cobol_microservice_slicer import slice_business_logic
+from gitgalaxy.tools.cobol_to_cobol.cobol_system_limits_reporter import scan_system_limits
+from gitgalaxy.tools.cobol_to_cobol.cobol_lexical_patcher import patch_lexical_traps
+from gitgalaxy.tools.cobol_to_cobol.cobol_jcl_auditor import audit_zero_trust_jcls
+from gitgalaxy.tools.cobol_to_cobol.cobol_agent_task_forge import forge_agent_jobs
 
 # ==============================================================================
 # THE SCALE SENSOR & HYBRID STATE MANAGER
