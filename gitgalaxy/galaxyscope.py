@@ -75,7 +75,6 @@ def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int
     Force-warms pseudo-languages (plaintext/markdown) to kill the 'Plaintext Stutter'.
     This prevents [AUTO-HEAL] log spam and redundant regex compilation.
     """
-    global _worker_state
     
     logging.getLogger().setLevel(log_level)
     worker_logger = logging.getLogger("GalaxyScope.Worker")
@@ -139,7 +138,6 @@ def _init_worker(root_str: str, config: Dict[str, Any], ext_tally: Dict[str, int
 
 def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     """Processes a single file path using the worker's cached hardware modules."""
-    global _worker_state
     
     # ---> START THE CLOCK FOR THE MICRO-PROFILER <---
     t_start = time.time()

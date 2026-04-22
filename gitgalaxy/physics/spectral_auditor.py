@@ -187,7 +187,7 @@ class SpectralAuditor:
         for lid, group in by_lang.items():
             if lid in ("undeterminable", "unknown"):
                 for s in group:
-                    singularity.append(self._format_for_singularity(s, "Already Dark Matter (Pre-Audit)"))
+                    unparsable_files.append(self._format_for_singularity(s, "Already Dark Matter (Pre-Audit)"))
                 self.logger.debug(f"[{lid}] Bypassed {len(group)} artifacts (already Dark Matter).")
                 continue
             
