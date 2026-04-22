@@ -21,7 +21,7 @@ The blAST (Bypassing LLMs and ASTs) engine is a custom-made knowledge graph engi
 
 ### Scanning Apollo-11 with the blAST Engine
 
-![GitGalaxy CLI Scan](assets/apollo11_scan.gif)
+![GitGalaxy CLI Scan](./docs/wiki/assets/apollo11_scan.gif)
 
 By utilizing a custom engine, we retain full control over the search space. We built it to be exceptionally fast, capable of assessing your entire repository without requiring compilable code—a fundamental limitation of standard Abstract Syntax Trees (ASTs). ASTs are great for finding missing commas and memory overflows, but they miss the forest for the trees when generating knowledge graphs. LLMs, on the other hand, suffer from hallucination during large context windows and yield probabilistic, fluctuating answers.
 
