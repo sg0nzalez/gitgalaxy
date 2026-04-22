@@ -81,13 +81,21 @@ def main():
     keyword_patterns = {}
     for kw in search_targets:
         # Example: looking for "PGM=NAME" or "STARTED NAME"
-        pattern_str = fr"(?:PGM=|STARTED\s+){kw}"
+        pattern_str = fr"{kw}"
         keyword_patterns[kw] = re.compile(pattern_str.encode('utf-8'), re.IGNORECASE)
 
     ts_pattern = re.compile(br'(\d{4}-\d{2}-\d{2}[T\s]\d{2}|\b[A-Z][a-z]{2}\s+\d{1,2}\s\d{2})')
     histograms = {kw: defaultdict(int) for kw in search_targets}
 
-    # ... [Keep your existing file path setup and start_time logic here] ...
+    if args.out:
+        out_dir = Path(args.out).resolve()
+        out_dir.mkdir(parents=True, exist_ok=True)
+        results_path = out_dir / f"{target_path.stem}_results.txt"
+    else:
+        results_path = target_path.parent / f"{target_path.stem}_results.txt"
+        
+    start_time = time.time()
+    print(f"🚀 Scanning {target_path.name} for {len(search_targets)} keywords...")
     
     # 2. The Memory Shield
     with open(target_path, 'rb') as f_in, open(results_path, 'w', encoding='utf-8') as f_out:
@@ -103,7 +111,11 @@ def main():
 
     time_elapsed = time.time() - start_time
     
-    # ... [Keep your existing ASCII Histogram and Executive Summary printing here] ...
+    for kw, buckets in histograms.items():
+        draw_ascii_histogram(buckets, kw)
+        
+    print(f"\n✅ Scan completed in {time_elapsed:.2f} seconds.")
+    print(f"📄 Filtered results saved to: {results_path}")
 
     total_counts = {kw: sum(buckets.values()) for kw, buckets in histograms.items()}
 
