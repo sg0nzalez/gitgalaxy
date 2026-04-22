@@ -19,6 +19,10 @@
 
 The blAST (Bypassing LLMs and ASTs) engine is a custom-made knowledge graph engine that resolves repositories at the function level. It scores each function based on 50 unique metrics, rolls that data up to score the file, and finally summarizes the entire repository.
 
+### Scanning Apollo-11 with the blAST Engine
+
+![GitGalaxy CLI Scan](assets/apollo11_scan.gif)
+
 By utilizing a custom engine, we retain full control over the search space. We built it to be exceptionally fast, capable of assessing your entire repository without requiring compilable code—a fundamental limitation of standard Abstract Syntax Trees (ASTs). ASTs are great for finding missing commas and memory overflows, but they miss the forest for the trees when generating knowledge graphs. LLMs, on the other hand, suffer from hallucination during large context windows and yield probabilistic, fluctuating answers.
 
 The blAST engine solves this. Because all programming languages utilize keywords and functions, our engine treats code files as text, scanning for these structural anchors to build a deterministic 3D knowledge graph. It seamlessly handles mid-file language switching, assesses the architectural ratio of test files to logic, and extracts invaluable project structure data that ASTs ignore.
