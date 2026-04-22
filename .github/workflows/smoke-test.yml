@@ -1,0 +1,42 @@
+name: GitGalaxy Smoke Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Smoke Test - Core Engine
+      run: python galaxyscope.py --help
+
+    - name: Smoke Test - Legacy Refractor Controller
+      run: python cobol_refractor_controller.py --help
+
+    - name: Smoke Test - Java Spring Forge Controller
+      run: python cobol_to_java_controller.py --help
+
+    - name: Smoke Test - SBOM Generator
+      run: python tools/compliance/sbom_generator.py --help
+
+    - name: Smoke Test - Supply Chain Firewall
+      run: python tools/supply_chain_security/supply_chain_firewall.py --help
+
+    - name: Smoke Test - API Network Map
+      run: python tools/network_auditing/full_api_network_map.py --help
