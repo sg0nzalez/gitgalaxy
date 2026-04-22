@@ -22,6 +22,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install -e .
         
     - name: Global Syntax Sweep (Flake8)
       run: |
@@ -29,22 +30,23 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
     - name: Smoke Test - Core Engine
-      run: python gitgalaxy/galaxyscope.py --help
+      # Using the -m flag is the safest way to run modules inside a package
+      run: python -m gitgalaxy.galaxyscope --help
 
     - name: Smoke Test - Legacy Refractor Controller
-      run: python gitgalaxy/cobol_refractor_controller.py --help
+      run: python -m gitgalaxy.cobol_refractor_controller --help
 
     - name: Smoke Test - Java Spring Forge Controller
-      run: python gitgalaxy/cobol_to_java_controller.py --help
+      run: python -m gitgalaxy.cobol_to_java_controller --help
 
     - name: Smoke Test - SBOM Generator
-      run: python gitgalaxy/tools/compliance/sbom_generator.py --help
+      run: python -m gitgalaxy.tools.compliance.sbom_generator --help
 
     - name: Smoke Test - Supply Chain Firewall
-      run: python gitgalaxy/tools/supply_chain_security/supply_chain_firewall.py --help
+      run: python -m gitgalaxy.tools.supply_chain_security.supply_chain_firewall --help
 
     - name: Smoke Test - API Network Map
-      run: python gitgalaxy/tools/network_auditing/full_api_network_map.py --help
+      run: python -m gitgalaxy.tools.network_auditing.full_api_network_map --help
 
     - name: Golden Record Integration Test (Pytest)
       run: |
