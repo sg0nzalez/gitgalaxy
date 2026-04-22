@@ -1,45 +1,45 @@
-# GitGalaxy: The Physics & Standards Registry
+# GitGalaxy: Core Heuristics & Standards Registry
 
-[![Core](https://img.shields.io/badge/Core-Immutable_Physics-00BFFF.svg)](#)
+[![Core](https://img.shields.io/badge/Core-Heuristics_Engine-00BFFF.svg)](#)
 [![Coverage](https://img.shields.io/badge/Coverage-50%2B_Languages-00C957.svg)](#)
-[![Architecture](https://img.shields.io/badge/Architecture-AST--Free_Heuristics-8A2BE2.svg)](#)
+[![Architecture](https://img.shields.io/badge/Architecture-AST--Free_Regex-8A2BE2.svg)](#)
 
-Welcome to the brain of the **blAST Engine**. 
+Welcome to the configuration and tuning layer of the **blAST Engine**.
 
-This directory contains the immutable mathematical constants, linguistic dictionaries, and security thresholds that dictate how GitGalaxy maps reality. No active execution or file reading happens here; these files serve as the universal laws of physics consumed by the central `signal_processor.py`.
+This directory contains the immutable mathematical constants, structural regex dictionaries, and security thresholds that dictate how GitGalaxy maps a codebase. No active execution or file reading happens here; these files serve as the universal rulesets and configurations consumed by the central `signal_processor.py`.
 
 If you need to teach GitGalaxy a new language, tune a risk exposure curve, or update the AI AppSec sensors, you do it here.
 
-> **💡 Note:** Adding a new language to the engine typically takes just **1 LLM prompt**. Check out the **[How to Add a Language](HOW_TO_ADD_LANGUAGE.md)** guide to see how to generate the ReDoS-proof physics rules for any new syntax.
+> **💡 Note:** Adding a new language to the engine typically takes just **1 LLM prompt**. Check out the **[How to Add a Language](HOW_TO_ADD_LANGUAGE.md)** guide to see how to generate the ReDoS-proof structural rules for any new syntax.
 
-### 1. The Pre-Flight Shield (`gitgalaxy_config.py`)
-Defines global ingestion rules and zero-trust boundaries before physics processing begins.
+### 1. The Boundary Shield (`gitgalaxy_config.py`)
+Defines global ingestion rules and zero-trust boundaries before static analysis processing begins.
 
 * **Zero-Trust Import Control:** Defines banned supply chain dependencies.
-* **The Aperture Shield:** Defines architectural black holes to skip.
-* **The Secrets Shunt:** Instantly traps hardcoded cryptographic keys.
+* **Directory Exclusion Rules:** Defines architectural black holes and massive build folders to skip.
+* **Hardcoded Secrets Traps:** Instantly traps cryptographic keys and cloud tokens.
 
-### 2. The Linguistic Detector (`language_lens.py`)
-The Bayesian optics engine responsible for converting raw text into high-fidelity identity locks.
+### 2. Language & Identity Heuristics (`language_lens.py`)
+The identification engine responsible for converting raw text into high-fidelity ecosystem locks.
 
 * **Collision Resolution:** Mathematically resolves ambiguous file extensions.
-* **Ecosystem Gravity:** Uses neighborhood files to prove identity.
-* **Deep Space Discovery:** Identifies unknown files via spectral density.
+* **Contextual Ecosystem Resolution:** Uses neighborhood files (like `package.json` or `pom.xml`) to prove identity.
+* **Entropy & Anomaly Detection:** Identifies unknown files or obfuscated malware via spectral density and Shannon entropy.
 
-### 3. The Optical Registry (`language_standards.py`)
-The massive heuristic dictionary mapping the syntax of 50+ languages to standard GitGalaxy physical dimensions.
+### 3. The Structural Syntax Dictionary (`language_standards.py`)
+The massive heuristic dictionary mapping the syntax of 50+ languages to standard GitGalaxy architectural dimensions.
 
-* **Physical Mapping:** Translates text to branch, flux, and mass.
-* **Cross-Domain Sensors:** Universal regex for AI, Auth, and IPC.
-* **Linguistic Slop Tracking:** Detects formatting and capitalization factions.
+* **Complexity Mapping:** Translates text to branch logic, state mutation, and cognitive load.
+* **Behavioral Sensors:** Universal regex for mapping AI boundaries, Authentication routing, and IPC calls.
+* **Technical Debt Tracking:** Detects formatting discrepancies and mixed architectural paradigms.
 
-### 4. The Laws of Physics (`analysis_lens.py`)
+### 4. The Scoring & Risk Engine (`analysis_lens.py`)
 The mathematical core defining how raw structural signals are converted into 0-100% risk exposures.
 
-* **Sigmoid Curve Tuning:** Mathematical clamps for risk exposures.
-* **Path Modifiers:** Contextual dampeners for tests and documentation.
-* **Archetype Violations:** Penalizes code acting alien to its ecosystem.
-* **Machine Learning Inference:** Houses K-means clustering models.
+* **Risk Normalization Curves:** Mathematical sigmoid clamps for tuning risk exposures.
+* **Contextual Dampeners:** Modifiers that reduce risk weight for test files and documentation.
+* **Architectural Anomaly Detection:** Penalizes code acting alien to its ecosystem.
+* **Machine Learning Inference:** Houses K-means clustering models for archetype classification.
 
 ---
 

@@ -6,31 +6,31 @@
 
 Welcome to the **GitGalaxy Terabyte Log Scanning Suite**.
 
-When a catastrophic data breach occurs, standard tools fail. `grep` is too rigid and lacks time-series context. Modern SIEMs (like Splunk or ElasticSearch) are incredibly powerful, but they require you to ingest and index the data first—a process that takes hours or days for a 10GB+ database dump. You need answers immediately.
+During an active incident response or catastrophic data breach, standard tools fail. Basic `grep` is too rigid and lacks time-series context. Modern SIEMs (like Splunk or ElasticSearch) are incredibly powerful, but they require you to ingest and index the data first—a process that takes hours or days for a 10GB+ database dump. You need answers immediately.
 
-This suite provides a tactical, pipeline-ready solution: **ultra-high-velocity, unindexed binary streaming.** Running at over 4 GB per minute (70+ MB/sec) on standard laptop hardware, our custom regex physics engine streams data continuously. It never loads the file into RAM. This makes it perfect for active incident response triage, or as an automated CI/CD pipeline job to sanitize server logs before they are permanently archived.
+This suite provides a tactical, pipeline-ready solution: **ultra-high-velocity, unindexed binary streaming.** Running at over 4 GB per minute (70+ MB/sec) on standard laptop hardware, our custom stream-processing engine reads data continuously. It never loads the massive file into RAM. This makes it perfect for active breach triage, or as an automated CI/CD pipeline job to sanitize server logs before they are permanently archived.
 
 ### 1. The PII Data Leak Hunter (`pii_leak_hunter.py`)
 
 A specialized incident response tool designed to find hemorrhaging Personally Identifiable Information (Credit Cards, SSNs, AWS API Keys) inside massive, raw data dumps.
 
-* **Binary Regex Physics:** Compiles patterns to raw bytes for extreme CPU efficiency.
+* **Binary-Level Regex Evaluation:** Compiles structural patterns to raw bytes for extreme CPU efficiency.
 * **Automated Data Masking:** Redacts toxic payloads before writing to evidence logs.
 * **Exfiltration Histograms:** Generates terminal ASCII charts to pinpoint exact breach minutes.
 * **Pipeline Sanitization:** Runs automatically in CI/CD to block PII log archiving.
 
 ### 2. The Terabyte Log Scanner (`terabyte_log_scanner.py`)
 
-A foundational cartography tool that connects static codebase architecture to physical runtime reality. It parses massive mainframe SMF logs or distributed traces to prove what code is actually executing.
+A runtime execution tracer that connects static codebase architecture to physical runtime reality. It parses massive mainframe SMF logs or distributed traces to prove what code is actually executing.
 
-* **IR State Handshake:** Ingests repository maps to hunt known compiled programs.
-* **Execution Verification:** Proves exact runtime execution frequencies in production.
-* **Zero-Hit Dead Code:** Mathematically proves if compiled code is truly abandoned.
+* **Intermediate Representation (IR) Ingestion:** Ingests static repository maps to hunt known compiled programs in the logs.
+* **Execution Verification:** Proves exact runtime execution frequencies in production environments.
+* **Zero-Hit Dead Code:** Mathematically proves if compiled legacy code is truly abandoned.
 * **Dynamic Telemetry:** Outputs sidecar JSON for 3D WebGPU traffic heatmaps.
 
 ---
 
-### Quickstart: Scanning at Scale
+### 🚀 Quickstart: Scanning at Scale
 
 Because these tools operate via single-pass streaming, they require zero environment setup, database indexing, or heavy JVMs. 
 
@@ -46,9 +46,9 @@ python3 terabyte_log_scanner.py /path/to/production.log --ir ../core/ir_state.js
 
 ---
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
-This tool is a specialized spoke in the larger GitGalaxy ecosystem. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Read the official documentation to see the Bayesian logic that powers our Zero-Trust verification:
+This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is driven by our custom mathematical heuristics engine, capable of processing multi-dimensional data at extreme velocity without requiring rigid ASTs or cloud APIs. Read the official documentation to see the structural methodologies powering this high-speed log analysis:
 
-* 📖 **[SBOM Generator Architecture](../../../docs/wiki/04-02-sbom-generator.md)**
-* 📖 **[The Spectral Auditor (Catching Spoofs)](../../../docs/wiki/02-11-spectral-audit.md)**
-* 📖 **[The Guidestar Protocol (Intent & Evasion)](../../../docs/wiki/02-04-guidestar-protocol.md)**
+* 📖 **[PII Leak Hunter Architecture](../../../docs/wiki/04-06-pii-leak-hunter.md)**
+* 📖 **[Terabyte Log Scanner Mechanics](../../../docs/wiki/04-07-terabyte-log-scanner.md)**
+* 📖 **[Time-Series Execution Histograms](../../../docs/wiki/08-25-execution-histograms.md)**
 * 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

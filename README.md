@@ -15,32 +15,32 @@
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)](https://pypi.org/project/gitgalaxy/)
 [![Airgap Ready](https://img.shields.io/badge/Security-Airgap_Ready-teal.svg)](#)
 
-### **The blAST Engine: A custom heuristics-based AST-free Knowledge Graph Generator**
+### **AST-Free Static Analysis & Knowledge Graph Engine**
 
-The blAST (Bypassing LLMs and ASTs) engine is a custom-made knowledge graph engine that resolves repositories at the function level. It scores each function based on 50 unique metrics, rolls that data up to score the file, and finally summarizes the entire repository. 
+The blAST (Bypassing LLMs and ASTs) engine is a custom-made knowledge graph engine that resolves repositories at the function level. It scores each function based on 50 unique metrics, rolls that data up to score the file, and finally summarizes the entire repository.
 
-By utilizing a custom engine, we retain full control over the search space. We built it to be exceptionally fast, capable of assessing your entire repository without requiring compilable code—a fundamental limitation of standard Abstract Syntax Trees (ASTs). ASTs are great for finding missing commas and memory overflows, but they miss the forest for the trees when generating knowledge graphs. LLMs, on the other hand, suffer from hallucination during large context windows and yield probabilistic, fluctuating answers. 
+By utilizing a custom engine, we retain full control over the search space. We built it to be exceptionally fast, capable of assessing your entire repository without requiring compilable code—a fundamental limitation of standard Abstract Syntax Trees (ASTs). ASTs are great for finding missing commas and memory overflows, but they miss the forest for the trees when generating knowledge graphs. LLMs, on the other hand, suffer from hallucination during large context windows and yield probabilistic, fluctuating answers.
 
-The blAST engine solves this. Because all programming languages utilize keywords and functions, our engine treats code files as text, scanning for these structural anchors to build a deterministic 3D knowledge graph. It seamlessly handles mid-file language switching, assesses the architectural ratio of test files to logic, and extracts invaluable project structure data that ASTs ignore. 
+The blAST engine solves this. Because all programming languages utilize keywords and functions, our engine treats code files as text, scanning for these structural anchors to build a deterministic 3D knowledge graph. It seamlessly handles mid-file language switching, assesses the architectural ratio of test files to logic, and extracts invaluable project structure data that ASTs ignore.
 
 Every assumption our system makes has been abstracted into over 300 tunable variables. Think of GitGalaxy as a highly calibrated telescope. You can query the number of active API network nodes, isolate unique external imports, or highlight functions exhibiting extreme cognitive load—all adjusted via custom whitelists and blacklists to eliminate false-positive fatigue. Field-tested on over 1,000 repositories spanning 50+ languages and 250+ extensions, the engine comes equipped with smart defaults ready for immediate deployment.
 
-**Core Technology**
+**Core Codebase Mapping Technology**
 * Bypasses LLMs and rigid ASTs.
 * Doesn't require code to compile (AST-free).
 * Produces full function-to-function call chains.
 * Deterministically maps code by 60+ keyword regex profiles (Structural markers, I/O intents, state mutations).
-* Regex keyword profiles allow us to classify functions, files, classes, folders and repos. 
+* Regex keyword profiles allow us to classify functions, files, classes, folders and repos.
 * Eliminates LLM architectural hallucinations and context window limits.
 * Scans 50+ languages, 250+ extensions, fully folder-aware. **([How to add a language in 1 minute and 1 prompt](gitgalaxy/standards/HOW_TO_ADD_LANGUAGE.md))**
 
-**Extreme Velocity & Scale**
+**Enterprise Scale & Performance Metrics**
 * 100,000 LOC/sec code analysis.
 * 0.07 GB/sec raw log ingestion.
 * Full-system scans in minutes without data sampling.
 * 100% daily system coverage.
 
-**Scientific Claims & Validation**
+**Methodology & Comparative Benchmarks**
 GitGalaxy is backed by an academic-grade thesis detailing the equations powering the blAST engine.
 
 * **[Optimum Search Strategies Evolve](https://squid-protocol.github.io/gitgalaxy/03-01-claim-1-search-strategies/):** AST-free mapping. Outperforms rigid parsers and LLM context windows.
@@ -51,12 +51,12 @@ GitGalaxy is backed by an academic-grade thesis detailing the equations powering
 * **[Assessing the blAST engines cross-language capbility over 10 different DOOM ports](https://squid-protocol.github.io/gitgalaxy/03-07-claim-7-doom-comparisons/):** Comparative function analysis across 10 distinct DOOM source ports.
 * **Mainframe Proven:** Successful from-scratch translation of legacy COBOL monoliths to compiling Spring Boot architectures.
 
-**Security & Deployment**
+**Data Privacy & On-Premise Deployment**
 * 100% air-gapped execution.
 * On-premise deployment with zero IP exfiltration risk.
 * Zero-trust processing model.
 
-**How to use**
+**Installation & Usage**
 * Python-based: `pip install gitgalaxy`
 * CLI execution
 * Outputs forensic JSONs (optimized for AI-agent summary reports) and a native SQLite3 database for robust querying and storage.
@@ -65,7 +65,7 @@ GitGalaxy is backed by an academic-grade thesis detailing the equations powering
 
 ---
 
-## Quickstart
+## Quickstart Guide
 
 ### 1. Install
 
@@ -84,39 +84,39 @@ galaxyscope /path/to/your/local/repo
 
 ---
 
-### [Project Overview](docs/wiki/01-project-overview.md)
+### [GitGalaxy Core Analysis Engine](docs/wiki/01-project-overview.md)
 The central blAST engine. It bypasses rigid ASTs using mathematical heuristics to map O(N) multi-dimensional relationships across 50+ languages, managing signal processing, spatial layout, and high-speed SQLite telemetry recording.
 
 
 
-## The GitGalaxy Ecosystem
+## Enterprise Codebase Tools & Use Cases
 
-GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations. The following toolsets provide novel heuristic solutions to several open problems in computing. 
+GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations. The following toolsets provide novel heuristic solutions to several open problems in computing.
 
-### [Legacy Modernization: Converting Raw Cobol Repos to Java Spring Boots](gitgalaxy/tools/cobol_to_java/)
+### [Automated Legacy Migration: COBOL to Java Spring Boot](gitgalaxy/tools/cobol_to_java/)
 A deterministic, high-fidelity translation pipeline. It converts legacy COBOL into fully compiling, modern Spring Boot architectures, mapping memory exactly and scaffolding JPA entities, REST controllers, and Maven builds before utilizing AI to translate isolated business logic.
 
-### [Legacy Modernization: Converting Raw Cobol Repos to cleaner Cobol Repos](gitgalaxy/tools/cobol_to_cobol/)
+### [Mainframe Refactoring: COBOL & JCL Optimization](gitgalaxy/tools/cobol_to_cobol/)
 A mathematical x-ray suite for sanitizing mainframe monoliths. It safely neutralizes legacy lexical traps, extracts dead "Graveyard" memory, maps topological DAG execution orders, and generates Zero-Trust JCL configurations for modern cloud deployments.
 
-### [Supply Chain Security](gitgalaxy/tools/supply_chain_security/)
+### [Software Supply Chain Security & Pre-Commit Firewalls](gitgalaxy/tools/supply_chain_security/)
 Extreme-velocity pre-commit firewalls. Instead of trusting manifest files, it scans physical internals to block steganography, sub-atomic XOR decryption loops, homoglyph typosquatting, and exposed cryptographic vaults before they ever enter your CI/CD pipeline.
 
-### [Network Auditing](gitgalaxy/tools/network_auditing/)
+### [API Security & Shadow API Detection](gitgalaxy/tools/network_auditing/)
 A deterministic mapping tool that hunts undocumented vulnerabilities. It uses structural regex to find active physical routing logic (Express, Spring Boot, FastAPI) and applies set theory against official OpenAPI/Swagger documentation to isolate critical Shadow APIs and outdated Ghost APIs.
 
-### [Terabyte Log Scanning](gitgalaxy/tools/terabyte_log_scanning/)
+### [High-Speed PII Detection & Log Analysis](gitgalaxy/tools/terabyte_log_scanning/)
 Unindexed, tactical log analysis operating at 0.07 GB/sec. It streams massive database dumps to deterministically hunt and mask PII (Credit Cards, SSNs, AWS Keys) and uses static architecture maps to prove exact runtime execution frequencies with ASCII time-series histograms.
 
-### [Compliance Operations - SBOM Generators](gitgalaxy/tools/compliance/)
+### [Zero-Trust SBOM Generation & Dependency Auditing](gitgalaxy/tools/compliance/)
 A Zero-Trust Software Bill of Materials (SBOM) generator. It refuses to blindly trust `package.json` or `requirements.txt` files, instead locating the physical dependencies on disk, mathematically verifying their entropy and linguistic identity, and generating strict CycloneDX 1.4 JSON reports.
 
-### [AI Guardrails](gitgalaxy/tools/ai_guardrails/)
+### [AI Agent Guardrails & Codebase Protection](gitgalaxy/tools/ai_guardrails/)
 Specialized keyword sensors protecting both your application and your codebase. The AppSec Sensor detects weaponized LLM features (RCE funnels, exfiltration risks), while the Dev Agent Firewall evaluates token mass and blast radius to restrict autonomous coding agents from modifying dangerous over context token-draining files. Helps identify which files need to be chunked to reduce context overload.
 
-  ## The Web Viewer (Frictionless Dashboards)
+  ## Local Browser-Based 3D Codebase Visualization
 
-If you prefer visual analytics, we've built a non-numerical dashboard where each file represents a star, sized and colored according to specific risk metrics. 
+If you prefer visual analytics, we've built a non-numerical dashboard where each file represents a star, sized and colored according to specific risk metrics.
 
 Simply drag and drop your generated `your_repo_GPU_galaxy.json` file (or a `.zip` of your raw repository) directly into [GitGalaxy.io](https://gitgalaxy.io/). All rendering and scanning happens entirely in your browser's local memory.
 
@@ -124,7 +124,7 @@ Simply drag and drop your generated `your_repo_GPU_galaxy.json` file (or a `.zip
 
 ![GitGalaxy native SQLite3 database schema for AST-free enterprise codebase mapping and cybersecurity auditing](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/sqlite_overview.png)
 
-## Zero-Trust Architecture
+## Zero-Trust Data Security
 
 Your code never leaves your machine. GitGalaxy performs 100% of its scanning and vectorization locally.
 
