@@ -69,7 +69,51 @@ class UniversalManifestSlicer:
                             line = line.strip()
                             if line and not line.startswith('#') and '=' in line:
                                 pkg_name = line.split('=')[0].strip()
+                                pkg_name = line.split('=')[0].strip()
                                 deps[pkg_name] = "latest" # Simplified version extraction
+                                
+            elif filename == "go.mod":
+                ecosystem = "golang"
+                with open(manifest_path, 'r', encoding='utf-8') as f:
+                    in_require_block = False
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith('require ('):
+                            in_require_block = True
+                            continue
+                        if line == ')':
+                            in_require_block = False
+                            continue
+                        if in_require_block and line and not line.startswith('//'):
+                            parts = line.split()
+                            if len(parts) >= 2:
+                                deps[parts[0]] = parts[1]
+                        elif line.startswith('require ') and not in_require_block:
+                            parts = line.split()
+                            if len(parts) >= 3:
+                                deps[parts[1]] = parts[2]
+                                
+            elif filename == "Gemfile":
+                ecosystem = "rubygems"
+                with open(manifest_path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        # Extract: gem 'nokogiri', '~> 1.11'
+                        if line.startswith("gem "):
+                            parts = line.split(',')
+                            pkg_name = parts[0].replace("gem", "").strip(" '\"")
+                            version = parts[1].strip(" '\"") if len(parts) > 1 else "latest"
+                            deps[pkg_name] = version
+
+            elif filename == "pom.xml":
+                ecosystem = "maven"
+                with open(manifest_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    # Extract artifactId and version from XML blocks
+                    deps_raw = re.findall(r'<dependency>.*?<artifactId>([^<]+)</artifactId>(?:.*?<version>([^<]+)</version>)?.*?</dependency>', content, re.DOTALL)
+                    for artifact, version in deps_raw:
+                        deps[artifact] = version if version else "latest"
+
         except Exception:
             pass
             
@@ -99,6 +143,29 @@ class UniversalManifestSlicer:
                             for d in dirs:
                                 if d.lower() == safe_pkg_name or d.lower().startswith(f"{safe_pkg_name}-"):
                                     return Path(root) / d
+                                    
+        elif ecosystem == "golang":
+            # Go packages are often vendored in the project's root 'vendor/' directory
+            target = target_path / 'vendor' / pkg_name
+            return target if target.exists() else None
+            
+        elif ecosystem == "rubygems":
+            # Ruby often vendors gems locally here
+            target = target_path / 'vendor' / 'bundle' 
+            if target.exists():
+                for root, dirs, _ in os.walk(target):
+                    if pkg_name in dirs: return Path(root) / pkg_name
+            return None
+            
+        elif ecosystem == "maven":
+            # Java local dependency pulls usually land here
+            target = target_path / 'target' / 'dependency'
+            if target.exists():
+                # Just verifying the jar/folder exists loosely
+                for file in target.iterdir():
+                    if pkg_name.lower() in file.name.lower(): return file
+            return None
+
         return None
 
 def main():
@@ -124,7 +191,7 @@ def main():
     total_verified = 0
     
     # 1. Harvest Manifests Universally
-    manifest_targets = ["package.json", "composer.json", "requirements.txt", "Cargo.toml"]
+    manifest_targets = ["package.json", "composer.json", "requirements.txt", "Cargo.toml", "go.mod", "Gemfile", "pom.xml"]
     found_manifests = [target_path / m for m in manifest_targets if (target_path / m).exists()]
     
     if not found_manifests:
