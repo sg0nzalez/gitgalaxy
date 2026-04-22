@@ -26,15 +26,22 @@ This suite is built on a modular Hub-and-Spoke architecture. Every Python script
 #### 1. Pre-Processors & Sensors
 * **Lexical Patcher (`cobol_lexical_patcher.py`):** Safely neutralizes legacy compiler traps.
 * **System Limits Reporter (`cobol_system_limits_reporter.py`):** Flags non-deterministic routing logic and system constraint breaches.
+  <br>![System Limits Reporter](../../../docs/wiki/assets/system_limits_reporter.gif)
 
 #### 2. Extractors & Slicers
 * **Graveyard Finder (`cobol_graveyard_finder.py`):** Expands copybooks to calculate dead code bloat.
+  <br>![Graveyard Reaper](../../../docs/wiki/assets/graveyard_reaper.gif)
+* **DAG Architect (`cobol_dag_architect.py`):** Maps data lineage to mathematically calculate zero-trust execution topology.
+  <br>![DAG Architect](../../../docs/wiki/assets/dag_architect.gif)
 * **Microservice Slicer (`cobol_microservice_slicer.py`):** Executes 3-pass recursive variable taint-tracking.
+  <br>![Microservice Slicer](../../../docs/wiki/assets/microservice_slicer.gif)
 * **ETL Unpacker (`cobol_etl_unpacker.py`):** Translates binary EBCDIC and Packed Decimal to CSVs.
 
 #### 3. Cloud & Mainframe Forges
 * **Compiler Forge (`cobol_compiler_forge.py`):** Flattens copybooks and generates era-aware build JCLs.
+  <br>![Compiler Forge](../../../docs/wiki/assets/compiler_forge.gif)
 * **Cloud Schema Forge (`cobol_schema_forge.py`):** Translates `PIC` clauses to strict PostgreSQL DDLs.
+  <br>![Cloud Schema Forge](../../../docs/wiki/assets/cloud_schema_forge.gif)
 * **Zero-Trust JCL Forge (`cobol_jcl_forge.py`):** Extracts `SELECT` mappings to auto-generate strict, least-privilege JCL emulators.
 
 #### 4. The AI Remediation Boundary
@@ -50,6 +57,100 @@ You don't need to run the tools individually. The central orchestrator handles t
 ```bash
 python3 cobol_refractor_controller.py /path/to/legacy/repo
 ```
+![Refractor Controller Pipeline](../../../docs/wiki/assets/refractor_controller.gif)
+
+---
+
+### 🖥️ Real-World Telemetry: CICS Banking Application
+Below is the live console output of the GitGalaxy orchestrator processing a legacy IBM CICS banking application. Notice the engine identifying over 6,700 lines of dead code, warning about macro substitutions, and automatically routing the compiler based on the detected COBOL dialect (74 vs 85).
+
+```text
+=== 1. INITIATING GRAVEYARD REAPER ===
+🪦 GitGalaxy Reaper scanning cics-banking-sample-application-cbsa for dead code...
+[... File Scans Omitted for Brevity ...]
+==========================================================
+ 📉 DEAD CODE ELIMINATION REPORT
+==========================================================
+ Files Flagged for Cleanup : 29
+ Unused Memory Addresses   : 817 orphaned variables
+ Unreachable Logic Blocks  : 590 phantom paragraphs
+ ✂️ Estimated Bloat Removed : ~6717 Lines of Code
+==========================================================
+
+=== 2. INITIATING DAG ARCHITECT ===
+🕸️ GitGalaxy DAG Architect mapping data lineage in: cics-banking-sample-application-cbsa...
+==========================================================
+ ⚡ ZERO-TRUST EXECUTION PIPELINE (TOPOLOGICAL SORT)
+==========================================================
+ STEP 01: Run [BANKDATA]
+          ↳ Reads : None
+          ↳ Writes: VSAM
+----------------------------------------------------------
+
+=== 3. INITIATING SYSTEM LIMITS REPORTER ===
+📠 Scanning directory for System Limits: cics-banking-sample-application-cbsa...
+🔎 GitGalaxy Honesty Protocol scanning 29 files for structural dragons...
+==========================================================================================
+ ⚠️ [XFRFUN.cbl : Line 0128] HIGH LIMIT - Macro substitution detected. AST math may drift from actual compiled execution.
+ ⚠️ [CREACC.cbl : Line 0260] HIGH LIMIT - Macro substitution detected. AST math may drift from actual compiled execution.
+ ⚠️ [INQACC.cbl : Line 0199] HIGH LIMIT - Macro substitution detected. AST math may drift from actual compiled execution.
+ ⚠️ [DELACC.cbl : Line 0200] HIGH LIMIT - Macro substitution detected. AST math may drift from actual compiled execution.
+ ⚠️ [GETSCODE.cbl : Line 0028] HIGH LIMIT - Macro substitution detected. AST math may drift from actual compiled execution.
+==========================================================================================
+ 🚨 WARNING: Found 5 structural anomalies requiring human architectural review.
+==========================================================================================
+
+=== 4. INITIATING CLOUD SCHEMA FORGE ===
+🔨 GitGalaxy Schema Forge striking anvil for: BNK1UAC.cbl...
+==========================================================
+ 🐘 POSTGRESQL DDL (CLOUD DATABASE SCHEMA)
+==========================================================
+CREATE TABLE DFHCOMMAREA (
+    WS_CICS_RESP                   INTEGER,
+    WS_CICS_RESP2                  INTEGER,
+    WS_CICS_FAIL_MSG               VARCHAR(70),
+    WS_COMM_EYE                    VARCHAR(4),
+    WS_COMM_CUSTNO                 VARCHAR(10),
+    WS_COMM_ACCNO                  DECIMAL(8, 0),
+    WS_COMM_AVAIL_BAL              DECIMAL(12, 2),
+    WS_COMM_ACTUAL_BAL             DECIMAL(12, 2)
+    -- [Schema Omitted for Brevity]
+);
+
+=== 5. INITIATING MICROSERVICE SLICER ===
+🔪 GitGalaxy Slicer hunting aliases for [WS-ACCOUNT-BALANCE] in BNK1UAC.cbl...
+==========================================================
+ 🎯 Sliced 0 distinct business rules.
+==========================================================
+
+=== 6. INITIATING COMPILER FORGE ===
+======================================================================
+ 🏗️  GITGALAXY MAINFRAME COMPILER FORGE (PRE-COMPILER ACTIVE)
+======================================================================
+  [+] Forged COBOL-85 Pipeline : BUILD_BNK1UAC.jcl
+  [+] Forged COBOL-85 Pipeline : BUILD_DBCRFUN.jcl
+  [+] Forged COBOL-74 Pipeline : BUILD_GETSCODE.jcl
+  [+] Forged COBOL-85 Pipeline : BUILD_BANKDATA.jcl
+  [+] Forged COBOL-74 Pipeline : BUILD_GETCOMPY.jcl
+======================================================================
+
+=== 7. INITIATING MASTER ORCHESTRATOR (REFRACTOR CONTROLLER) ===
+======================================================================
+ 🚀 COBOL REFRACTOR CONTROLLER (v4.0) ENGAGED
+ Target: cics-banking-sample-application-cbsa
+======================================================================
+🛰️ Scouting repository mass...
+   ↳ Found: 29 executable files (0.83 MB)
+   ↳ OPTIMAL MASS: Engaging High-Speed RAM Dictionary.
+ Forging Context-Aware Artifacts at: cics-banking-sample-application-cbsa_gitgalaxy_clean_20260422_153624
+----------------------------------------------------------------------
+======================================================================
+ 🏁 REFRACTION COMPLETE: Hybrid Pipeline execution successful.
+ 📁 Location: /srv/storage_16tb/projects/gitgalaxy/data/cobol_corpus/cics-banking-sample-application-cbsa_gitgalaxy_clean_20260422_153624
+======================================================================
+```
+
+---
 
 ### 📁 What You Get (The Clean Room)
 The controller generates a timestamped `_gitgalaxy_clean` directory containing:
