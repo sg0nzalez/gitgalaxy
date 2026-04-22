@@ -12,20 +12,27 @@ Standard DevSecOps scanners rely on approved Swagger or OpenAPI files to dictate
 
 ### 🔍 Core Methodology: OpenAPI Drift Detection
 
-We utilize AST-free structural heuristics to bypass theoretical documentation and map physical routing logic.
+We utilize AST-free stoichiometric signatures—calculated metrics derived directly from DNA/regex hits—to bypass theoretical documentation and map physical routing logic at extreme velocity.
 
-* **Map Physical Reality:** Scans raw text for actual execution routes.
+* **Map Physical Reality:** Scans raw text for actual execution routes without needing a compiler or build environment.
 * **Extract Theoretical Truth:** Parses official Swagger or OpenAPI specifications.
 * **Mathematical Resolution:** Applies strict set theory to expose critical security gaps and API drift.
 * **Identify Shadow APIs (Critical Risk):** Exposes undocumented, active endpoints that evade standard WAFs and security audits.
 * **Identify Ghost/Zombie APIs (Audit Bloat):** Highlights documented but non-existent or deprecated endpoints.
 
+### 🛡️ Field-Tested at Scale: The tRPC Audit
+To prove this engine operates at enterprise scale, we field-tested it against **tRPC**, a massive, highly complex TypeScript monorepo. 
+
+Standard tools would choke on the nested monorepo architecture or require complex AST setups. GitGalaxy bypassed the noise, mapped the physical endpoints, and immediately identified an undocumented `GET /` Shadow API living in a `server.ts` file, while simultaneously flagging three documented endpoints that didn't actually exist in the physical code.
+
+![tRPC API Audit Demo](../../../docs/wiki/assets/trpc_api_audit.gif)
+
 ### ⚙️ Supported Frameworks
 
-Our AST-free heuristics deterministically map open APIs without requiring a build environment or compiling code.
+Our AST-free regex signatures deterministically map open APIs across multiple languages natively.
 
 * **Python Routers:** FastAPI and Flask endpoints (`@app.get`).
-* **Node.js Routers:** Express framework routes (`app.post`).
+* **Node.js Routers:** Express, Fastify, and Koa routes (`app.post`).
 * **Java Routers:** Spring Boot mapping annotations (`@GetMapping`).
 * **Golang Routers:** Gorilla Mux and Gin handlers (`.HandleFunc`).
 
