@@ -52,8 +52,7 @@ GitGalaxy is backed by an academic-grade thesis detailing the equations powering
 * **[All languages have keywords that roughly do the same thing, these can be grouped to make cross-language keyword maps](https://squid-protocol.github.io/gitgalaxy/03-03-claim-3-taxonomy-map/):** Standardizes 50+ languages into a single universal physical framework.
 * **[Cross-Language Comparisons of over 1000 repos](https://squid-protocol.github.io/gitgalaxy/03-04-claim-4-comparing-languages/):** Deterministic 1:1 benchmarking of distinct syntax architectures.
 * **[Universal File Archetypes by k-means clustering](https://squid-protocol.github.io/gitgalaxy/03-05-claim-5-file-archetypes/):** ML isolation of files into K-means clusters (e.g., "The God Nodes," "Declarative Glue").
-* **[Assessing the blAST engines cross-language capbility over 10 different DOOM ports](https://squid-protocol.github.io/gitgalaxy/03-07-claim-7-doom-comparisons/):** Comparative function analysis across 10 distinct DOOM source ports.
-* **Mainframe Proven:** Successful from-scratch translation of legacy COBOL monoliths to compiling Spring Boot architectures.
+* **[Mainframe Proven: 100% CI/CD Translation Success Rate](https://github.com/squid-protocol/gitgalaxy/tree/main/examples/ibm_cics_translation):** Flawless architectural translation of 27 distinct legacy COBOL repositories (including IBM CICS benchmark apps) into compiling Java Spring Boot environments.
 
 **Data Privacy & On-Premise Deployment**
 * 100% air-gapped execution.
@@ -95,25 +94,31 @@ The central blAST engine. It bypasses rigid ASTs using mathematical heuristics t
 
 ## Enterprise Codebase Tools & Use Cases
 
-GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations. The following toolsets provide novel heuristic solutions to several open problems in computing.
+GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching physics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations. 
 
 ### [Automated Legacy Migration: COBOL to Java Spring Boot](gitgalaxy/tools/cobol_to_java/)
 A deterministic, high-fidelity translation pipeline. It converts legacy COBOL into fully compiling, modern Spring Boot architectures, mapping memory exactly and scaffolding JPA entities, REST controllers, and Maven builds before utilizing AI to translate isolated business logic.
+* **Proven Metric:** Achieved a perfect 27/27 Maven compile success rate across a batch test of distinct legacy repos.
+* **Verify for Yourself:** [Inspect the raw outputs of the IBM CICS Application Translation here.](examples/ibm_cics_translation/)
+
+![Java Forge & Batch Test](./docs/wiki/assets/java_forge_and_batch_test.gif)
 
 ### [Mainframe Refactoring: COBOL & JCL Optimization](gitgalaxy/tools/cobol_to_cobol/)
 A mathematical x-ray suite for sanitizing mainframe monoliths. It safely neutralizes legacy lexical traps, extracts dead "Graveyard" memory, maps topological DAG execution orders, and generates Zero-Trust JCL configurations for modern cloud deployments.
+* **Proven Metric:** The Graveyard Reaper engine extracted over 6,700 lines of dead execution blocks and orphaned variables from the standard IBM CICS benchmark app in seconds.
 
 ### [Software Supply Chain Security & Pre-Commit Firewalls](gitgalaxy/tools/supply_chain_security/)
 Extreme-velocity pre-commit firewalls. Instead of trusting manifest files, it scans physical internals to block steganography, sub-atomic XOR decryption loops, homoglyph typosquatting, and exposed cryptographic vaults before they ever enter your CI/CD pipeline.
+
+### [Zero-Trust SBOM Generation & Dependency Auditing](gitgalaxy/tools/compliance/)
+A Zero-Trust Software Bill of Materials (SBOM) generator. It refuses to blindly trust `package.json` or `requirements.txt` files, instead locating the physical dependencies on disk, mathematically verifying their entropy and linguistic identity, and generating strict CycloneDX 1.4 JSON reports.
+* **Proven Metric:** Successfully mapped and mathematically verified the physical internals of 170 unique Go modules inside the local Kubernetes repository.
 
 ### [API Security & Shadow API Detection](gitgalaxy/tools/network_auditing/)
 A deterministic mapping tool that hunts undocumented vulnerabilities. It uses structural regex to find active physical routing logic (Express, Spring Boot, FastAPI) and applies set theory against official OpenAPI/Swagger documentation to isolate critical Shadow APIs and outdated Ghost APIs.
 
 ### [High-Speed PII Detection & Log Analysis](gitgalaxy/tools/terabyte_log_scanning/)
 Unindexed, tactical log analysis operating at 0.07 GB/sec. It streams massive database dumps to deterministically hunt and mask PII (Credit Cards, SSNs, AWS Keys) and uses static architecture maps to prove exact runtime execution frequencies with ASCII time-series histograms.
-
-### [Zero-Trust SBOM Generation & Dependency Auditing](gitgalaxy/tools/compliance/)
-A Zero-Trust Software Bill of Materials (SBOM) generator. It refuses to blindly trust `package.json` or `requirements.txt` files, instead locating the physical dependencies on disk, mathematically verifying their entropy and linguistic identity, and generating strict CycloneDX 1.4 JSON reports.
 
 ### [AI Agent Guardrails & Codebase Protection](gitgalaxy/tools/ai_guardrails/)
 Specialized keyword sensors protecting both your application and your codebase. The AppSec Sensor detects weaponized LLM features (RCE funnels, exfiltration risks), while the Dev Agent Firewall evaluates token mass and blast radius to restrict autonomous coding agents from modifying dangerous over context token-draining files. Helps identify which files need to be chunked to reduce context overload.
