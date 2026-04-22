@@ -22,6 +22,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
+    - name: Global Syntax Sweep (Flake8)
+      run: |
+        pip install flake8
+        # This tells flake8 to scan every Python file in the repo for fatal syntax errors ONLY (ignoring spacing/formatting rules)
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
     - name: Smoke Test - Core Engine
       run: python galaxyscope.py --help
