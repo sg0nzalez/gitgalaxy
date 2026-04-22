@@ -14,7 +14,7 @@ Because enterprise mainframes can contain terabytes of source code, the Refracto
 Point the controller at your legacy COBOL directory. You can optionally pass a specific target variable (`--var`) to trigger the Microservice Slicer to recursively taint-track business logic across the AST.
 
 ```bash
-python gitgalaxy/tools/cobol_refractor_controller.py /path/to/legacy_mainframe --var "ACCOUNT-BALANCE"
+python gitgalaxy/cobol_refractor_controller.py /path/to/cics-banking-sample-application-cbsa --var WS-ACCOUNT-BALANCE
 ```
 
 ### 2. Era-Aware Mainframe Compiler Forge
@@ -38,31 +38,35 @@ It outputs a `master_refraction_audit.txt` report proving the exact code bloat r
 
 [1] EXECUTIVE METRICS & NECROSIS REDUCTION
 ----------------------------------------------------------
-  • Files Scanned           : 1,402
+  • Files Scanned           : 29
   • State Manager Mode      : RAM
-  • Unused Memory Addresses : 14,205 orphaned variables
-  • Unreachable Logic Blocks: 3,402 phantom paragraphs
-  ✂️ Estimated Bloat Removed: ~48,225 Lines of Code
+  • Unused Memory Addresses : 817 orphaned variables
+  • Unreachable Logic Blocks: 590 phantom paragraphs
+  ✂️ Estimated Bloat Removed: ~6717 Lines of Code
 
 [2] ZERO-TRUST JCL ARCHITECTURE
 ----------------------------------------------------------
-  • Programs Audited           : 850
-  • Original Legacy LOC        : 125,400 lines
-  • GitGalaxy Zero-Trust LOC   : 77,175 lines
-  📉 Total Code Bloat Removed  : 38.4%
-  🛡️ Over-Permissioned I/O     : 112 physical files secured
+  • Programs Audited           : 29
+  • Original Legacy LOC        : 18,450 lines
+  • GitGalaxy Zero-Trust LOC   : 11,733 lines
+  📉 Total Code Bloat Removed  : 36.4%
+  🛡️ Over-Permissioned I/O     : 14 physical files secured
 
 [3] GENERATED CLOUD SCAFFOLDING
 ----------------------------------------------------------
-  • PostgreSQL DDLs & JSON Schemas Forged : 420
-  • Zero-Trust Emulator JCLs Generated    : 850
-  • Isolated Microservice Slices Extracted: 1 (Target: ACCOUNT-BALANCE)
+  • PostgreSQL DDLs & JSON Schemas Forged : 29
+  • Zero-Trust Emulator JCLs Generated    : 29
+  • Isolated Microservice Slices Extracted: 1 (Target: WS-ACCOUNT-BALANCE)
 
 [4] ⚠️ MANUAL INTERVENTION AUDIT (HONESTY PROTOCOL)
 ----------------------------------------------------------
-  • AI Agent Job Tickets Generated : 2
+  • AI Agent Job Tickets Generated : 5
   The following files contain structural anomalies that require architectural review:
-  [!] [PAYMENT_ROUTER.cbl : Line 0412] CRITICAL LIMIT - Control flow mathematically compromised.
+  [!] [XFRFUN.cbl : Line 0128] HIGH LIMIT - Macro substitution detected. AST math may drift.
+  [!] [CREACC.cbl : Line 0260] HIGH LIMIT - Macro substitution detected. AST math may drift.
+  [!] [INQACC.cbl : Line 0199] HIGH LIMIT - Macro substitution detected. AST math may drift.
+  [!] [DELACC.cbl : Line 0200] HIGH LIMIT - Macro substitution detected. AST math may drift.
+  [!] [GETSCODE.cbl : Line 0028] HIGH LIMIT - Macro substitution detected. AST math may drift.
 ```
 
 ### 4. AI Agent Task Forge & The Honesty Protocol

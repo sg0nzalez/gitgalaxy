@@ -13,12 +13,12 @@ import shutil
 from pathlib import Path
 
 # Current Imports
-from tools.cobol_to_java_spring_forge import generate_java_entity
-from tools.cobol_to_java_api_contract_forge import generate_rest_controller
-from tools.cobol_to_java_agent_forge import generate_java_agent_ticket
-from tools.cobol_to_java_build_forge import generate_pom_xml, generate_application_yml, generate_main_class
-from tools.cobol_to_java_service_forge import generate_service_skeleton
-from tools.cobol_to_java_decoder_forge import generate_decoder_util
+from tools.cobol_to_java.cobol_to_java_spring_forge import generate_java_entity
+from tools.cobol_to_java.cobol_to_java_api_contract_forge import generate_rest_controller
+from tools.cobol_to_java.cobol_to_java_agent_forge import generate_java_agent_ticket
+from tools.cobol_to_java.cobol_to_java_build_forge import generate_pom_xml, generate_application_yml, generate_main_class
+from tools.cobol_to_java.cobol_to_java_service_forge import generate_service_skeleton
+from tools.cobol_to_java.cobol_to_java_decoder_forge import generate_decoder_util
 
 def build_spring_boot_scaffold(output_dir: Path, package_name: str) -> dict:
     """Creates the standard Spring Boot directory architecture."""
