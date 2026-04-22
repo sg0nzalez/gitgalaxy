@@ -21,7 +21,7 @@ Because NVDA relies heavily on bridging Python application logic with low-level 
 
 Crucially, during the import resolution phase, the Air-Gapped Dependency Radar successfully intercepted a structural naming collision (`fstream` vs `sstream`), proving the real-time typosquatting defenses are fully operational, this is likely a false positive, which could be prevented by adding these approved imports to the approve import list, so the system doesn't keep flagging them as unknown. 
 
-![NVDA Processing Demo](../../docs/wiki/assets/nvda_processing.gif)
+![NVDA Processing Demo](../docs/wiki/assets/nvda_processing.gif)
 
 ```text
 [INFO] PASS_1.5: Running Air-Gapped Typosquatting & Dependency Confusion Radar...
