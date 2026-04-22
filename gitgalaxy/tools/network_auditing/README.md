@@ -32,7 +32,7 @@ To prove this engine operates at enterprise scale, we field-tested it against **
 
 Standard tools would choke on the nested monorepo architecture or require complex AST setups. GitGalaxy bypassed the noise, mapped the physical endpoints, and immediately identified an undocumented `GET /` Shadow API living in a `server.ts` file, while simultaneously flagging three documented endpoints that didn't actually exist in the physical code.
 
-![tRPC API Audit Demo](../docs/wiki/assets/trpc_api_audit.gif)
+![tRPC API Audit Demo](../../../docs/wiki/assets/trpc_api_audit.gif)
 
 ### ⚙️ Supported Frameworks
 
@@ -74,7 +74,7 @@ Outputs a deterministic terminal dashboard optimized for CI/CD pipeline integrat
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
 This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Read the official documentation to see how we deterministically map API routes:
 
-* 📖 **[Full API Network Map Architecture](../docs/wiki/04-01-full-api-network-map.md)**
-* 📖 **[The Network Risk Sensor Mechanics](../docs/wiki/02-16-network-risk-sensor.md)**
-* 📖 **[API Exposure Risk Equations](../docs/wiki/08-14-api-exposure.md)**
+* 📖 **[Full API Network Map Architecture](../../../docs/wiki/04-01-full-api-network-map.md)**
+* 📖 **[The Network Risk Sensor Mechanics](../../../docs/wiki/02-16-network-risk-sensor.md)**
+* 📖 **[API Exposure Risk Equations](../../../docs/wiki/08-14-api-exposure.md)**
 * 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**
