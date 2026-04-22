@@ -88,6 +88,16 @@ python3 tools/cobol_to_java/batch_test_harness.py /path/to/corpus_dir
 ```
 
 ---
+
+### 🔍 Verify for Yourself (Real-World Outputs)
+
+Don't just take our word for it. We have published the raw, unedited artifacts generated from the IBM CICS benchmark test directly in this repository so you can inspect the architecture yourself.
+
+📂 **[Browse the CICS Translation Examples](../../../examples/ibm_cics_translation/)**
+* **Phase 1 (The Clean Room):** Inspect the extracted PostgreSQL schemas, Zero-Trust JCLs, and JSON business logic slices.
+* **Phase 2 (Spring Boot Architecture):** Click through the `src/main/java` directories to verify the auto-wired JPA entities, REST controllers, and Maven configurations that achieved the perfect compile score.
+
+---
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
 This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Dive into the official wiki to understand the exact translation mechanics and memory-mapping heuristics:
 
