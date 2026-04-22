@@ -37,14 +37,14 @@ To demonstrate incident response capabilities, we streamed a raw **1.00 GB compr
 
 The resulting time-series histograms immediately exposed two distinct attack patterns: Customer data (VISA/SSNs) was actively exfiltrated at `14:00`, while infrastructure secrets (AWS Keys) were being scraped on an entirely separate cron schedule at `09:00`.
 
-![PII Leak Hunter Demo](../docs/wiki/assets/pii_leak_hunt.gif)
+![PII Leak Hunter Demo](../../../docs/wiki/assets/pii_leak_hunt.gif)
 
 #### Showcase B: Runtime Anomaly Detection
 We ran the Terabyte Log Scanner against a raw **2.1GB production stream log**, hunting for specific error and failure signatures. The engine completed the single-pass scan in **30.07 seconds**. 
 
 The dynamically scaled ASCII time-series histograms instantly exposed a massive, coordinated anomaly: a brute-force attack occurring exactly at `14:00` every day, perfectly isolated from millions of lines of background noise.
 
-![Terabyte Log Scanner Demo](../docs/wiki/assets/mega_log_scan.gif)
+![Terabyte Log Scanner Demo](../../../docs/wiki/assets/mega_log_scan.gif)
 
 ```text
  === TIME-SERIES: ERROR ===
@@ -75,7 +75,7 @@ python3 terabyte_log_scanner.py /path/to/production.log --ir ../core/ir_state.js
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
 This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is driven by our custom mathematical heuristics engine, capable of processing multi-dimensional data at extreme velocity without requiring rigid ASTs or cloud APIs. Read the official documentation to see the structural methodologies powering this high-speed log analysis:
 
-* 📖 **[PII Leak Hunter Architecture](../docs/wiki/04-06-pii-leak-hunter.md)**
-* 📖 **[Terabyte Log Scanner Mechanics](../docs/wiki/04-07-terabyte-log-scanner.md)**
-* 📖 **[Time-Series Execution Histograms](../docs/wiki/08-25-execution-histograms.md)**
+* 📖 **[PII Leak Hunter Architecture](../../../docs/wiki/04-06-pii-leak-hunter.md)**
+* 📖 **[Terabyte Log Scanner Mechanics](../../../docs/wiki/04-07-terabyte-log-scanner.md)**
+* 📖 **[Time-Series Execution Histograms](../../../docs/wiki/08-25-execution-histograms.md)**
 * 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**
