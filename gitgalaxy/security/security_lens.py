@@ -131,10 +131,10 @@ class SecurityLens:
                 r'\b(?:import|from|require|include|require_once|fetch|XMLHttpRequest)\b'
                 r'[^\n]*?(?:[\u0400-\u04FF]|'       
                 r'[\u0370-\u03FF]|'                 
-                r'[\u1D400-\u1D7FF]|'               
+                r'[\U0001D400-\U0001D7FF]|'               
                 r'\u3164)',                         
                 re.I
-            ), 
+            ),
             
             # 10. THE VAULT DOOR (Credential & Secret Leaks)
             "private_info": re.compile(
@@ -371,32 +371,6 @@ class SecurityLens:
             exposures["Agentic RCE Risk (Critical)"] = 100.0 
         elif prompt_inj > 0:
             exposures["Prompt Injection Risk"] = min((prompt_inj / loc_safe) * network_multiplier * 100.0, 100.0)
-
-        return exposures
-
-        # 2. Logic Bomb / Sabotage Risk
-        sabotage_hits = aggregated_hits.get("graveyard", 0) + (aggregated_hits.get("danger", 0) * 1.5)
-        sabotage_density = sabotage_hits / loc_safe
-        if sabotage_density >= self.policy["logic_bomb_threshold"]:
-            exposures["Logic Bomb Risk"] = sabotage_density
-
-        # 3. Data Injection Risk
-        injection_hits = aggregated_hits.get("io", 0) + aggregated_hits.get("danger", 0) + aggregated_hits.get("flux", 0)
-        injection_density = injection_hits / loc_safe
-        if injection_density >= self.policy["injection_surface_threshold"]:
-            exposures["Data Injection Risk"] = injection_density
-
-        # 4. Memory Corruption Risk
-        memory_hits = aggregated_hits.get("memory_corruption", 0)
-        memory_density = memory_hits / loc_safe
-        if memory_density >= self.policy["memory_corruption_threshold"]:
-            exposures["Memory Corruption Risk"] = memory_density
-
-        # 5. Secrets Risk
-        secrets_hits = aggregated_hits.get("private_info", 0)
-        secrets_density = secrets_hits / loc_safe
-        if secrets_density >= self.policy["secrets_risk_threshold"]:
-            exposures["Secrets Leak Risk"] = secrets_density
 
         return exposures
 

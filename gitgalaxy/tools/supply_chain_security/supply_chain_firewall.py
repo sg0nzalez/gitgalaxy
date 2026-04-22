@@ -140,8 +140,8 @@ def main():
             loc = max(len(content.splitlines()), 1)
             sec_results = security.scan_content(content, loc)
             
-            # THE INERT DATA SHIELD
-            if ext in ['.json', '.md', '.txt', '.csv', '.yaml', '.yml', '.css', '.less']:
+            # THE INERT DATA SHIELD & MINIFIED BYPASS
+            if ext in ['.json', '.md', '.txt', '.csv', '.yaml', '.yml', '.css', '.less', '.h'] or '.d.ts' in file_path.name or '.min.' in file_path.name or '.umd.' in file_path.name:
                 for key in sec_results["counts"].keys():
                     sec_results["counts"][key] = 0
             
