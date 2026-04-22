@@ -26,23 +26,27 @@ jobs:
     - name: Global Syntax Sweep (Flake8)
       run: |
         pip install flake8
-        # This tells flake8 to scan every Python file in the repo for fatal syntax errors ONLY (ignoring spacing/formatting rules)
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
     - name: Smoke Test - Core Engine
-      run: python galaxyscope.py --help
+      run: python gitgalaxy/galaxyscope.py --help
 
     - name: Smoke Test - Legacy Refractor Controller
-      run: python cobol_refractor_controller.py --help
+      run: python gitgalaxy/cobol_refractor_controller.py --help
 
     - name: Smoke Test - Java Spring Forge Controller
-      run: python cobol_to_java_controller.py --help
+      run: python gitgalaxy/cobol_to_java_controller.py --help
 
     - name: Smoke Test - SBOM Generator
-      run: python tools/compliance/sbom_generator.py --help
+      run: python gitgalaxy/tools/compliance/sbom_generator.py --help
 
     - name: Smoke Test - Supply Chain Firewall
-      run: python tools/supply_chain_security/supply_chain_firewall.py --help
+      run: python gitgalaxy/tools/supply_chain_security/supply_chain_firewall.py --help
 
     - name: Smoke Test - API Network Map
-      run: python tools/network_auditing/full_api_network_map.py --help
+      run: python gitgalaxy/tools/network_auditing/full_api_network_map.py --help
+
+    - name: Golden Record Integration Test (Pytest)
+      run: |
+        pip install pytest
+        pytest tests/ -v
