@@ -24,6 +24,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    # THIS IS THE FIX: Install OpenMP ONLY on macOS runners
+    - name: Install macOS dependencies (OpenMP for XGBoost)
+      if: runner.os == 'macOS'
+      run: brew install libomp
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
