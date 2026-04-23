@@ -12,8 +12,6 @@ description = "An AST-free, zero-trust static analysis engine for mapping archit
 readme = "README.md"
 requires-python = ">=3.8"
 
-license-files = ["LICENSE"] 
-
 keywords = [
     "static-analysis", 
     "security", 
