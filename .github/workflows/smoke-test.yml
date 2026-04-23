@@ -9,6 +9,8 @@ on:
 jobs:
   smoke-test:
     runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: "1" # <--- FIX 1: Forces Windows to render emojis without crashing
     strategy:
       fail-fast: false
       matrix:
@@ -29,12 +31,12 @@ jobs:
       run: brew install libomp
 
     - name: Install dependencies
-      shell: bash # <--- FIX 1: Forces Windows to understand Linux commands
+      shell: bash
       run: |
-        python -m pip install --upgrade pip setuptools wheel # <--- FIX 2: Upgrades old build tools for Python 3.8
+        python -m pip install --upgrade pip setuptools wheel
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install PyYAML networkx tiktoken pandas xgboost pytest flake8
-        pip install -e .
+        pip install --no-build-isolation -e . # <--- FIX 2: Bypasses the pip build bubble
         
     - name: Global Syntax Sweep (Flake8)
       run: |
