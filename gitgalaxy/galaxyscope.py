@@ -269,12 +269,18 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["processing_time"] = time.time() - t_start
             return observation
 
-# =========================================================================
+        # =========================================================================
         # THE HARDWARE GUILLOTINE (GLOBAL ReDoS Protection)
         # =========================================================================
-        import signal # Explicit local import just in case global import was missed
-        signal.signal(signal.SIGALRM, redos_guillotine)
-        signal.alarm(15) # 15-second fuse for the ENTIRE analysis pipeline
+        import signal
+        import sys
+        
+        # Check if the operating system is not Windows
+        is_posix = sys.platform != "win32"
+        
+        if is_posix:
+            signal.signal(signal.SIGALRM, redos_guillotine)
+            signal.alarm(15) # 15-second fuse for POSIX systems
         
         try:
             # Phase 3: Linguistic Detector
@@ -406,56 +412,9 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             return observation
         finally:
             # IMPORTANT: Defuse the bomb immediately upon success!
-            signal.alarm(0) 
+            if is_posix:
+                signal.alarm(0) 
         # =========================================================================
-        
-        data_payload = {
-            "path": rel_path,
-            "stem": Path(rel_path).stem.lower(), 
-            "lang_id": lang_id, 
-            "is_minified": is_minified,
-            "lock_tier": detection_result.get("lock_tier", 4),
-            "intensity": detection_result.get("intensity", 0.0),
-            "source_proof": detection_result.get("source_proof", "Discovery"),
-            "size_bytes": filter_res.get("size_bytes", 0),
-            "total_loc": filter_res.get("total_loc", 0),
-            "prior_lock": has_prior,
-            "coding_loc": refraction["coding_loc"],
-            "doc_loc": refraction["doc_loc"],
-            "raw_imports": list(raw_imports),          
-            "popularity_hits": popularity_hits,
-            "regex_telemetry": logic_data.pop("regex_telemetry", {}) if is_profiling else {}
-        }
-        
-        data_payload.update(logic_data)
-        data_payload["control_flow_ratio"] = logic_data.get("total_control_flow_ratio", 0.0)
-        data_payload["file_impact"] = logic_data.get("sum_fxn_impact", 0.0)
-
-        observation.update({
-            "status": "success", 
-            "reason": None, 
-            "data": data_payload,
-            "phase_times": phase_times if is_file_profiling else {}
-        })
-
-    except Exception as e:
-        observation["status"] = "anomaly"
-        observation["reason"] = f"Hardware failure: {str(e)}"
-        
-    # ---> RECORD THE FINAL TIME <---
-    total_time = time.time() - t_start
-    observation["processing_time"] = total_time
-
-    # ---> NEW: REAL-TIME SLOW FILE ALERT <---
-    if total_time > 10.0:
-        logger.warning(f"🐌 SLOW PARSE DETECTED: '{rel_path}' took {total_time:.2f} seconds.")
-
-    return observation
-
-# ==============================================================================
-# GitGalaxy Phase 3: Pipeline Orchestrator (The GalaxyScope)
-# Strategy v6.2 Protocol: Bayesian Optics & Singularity Bypasses
-# ==============================================================================
 
 class Orchestrator:
     """Mission Control: The GitGalaxy Central Processing Core."""
