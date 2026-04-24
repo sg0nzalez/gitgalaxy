@@ -6,11 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "gitgalaxy"
 version = "2.0.3"
 authors = [
-  { name="Joseph Michael Esquibel" },
+  { name="Joe Esquibel" },
 ]
 description = "An AST-free, zero-trust static analysis engine for mapping architectural risk, securing CI/CD pipelines, and modernizing legacy monoliths."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 
 keywords = [
     "static-analysis", 
