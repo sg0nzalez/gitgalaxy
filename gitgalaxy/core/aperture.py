@@ -443,7 +443,7 @@ class ApertureFilter:
         
         return True
 
-    def _load_gitignore_patterns(self) -> list[str]:
+    def _load_gitignore_patterns(self) -> List[str]:
         """Reads local .gitignore files to identify Radio Noise."""
         patterns = []
         ignore_file = self.root / ".gitignore"

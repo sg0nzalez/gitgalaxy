@@ -269,12 +269,18 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["processing_time"] = time.time() - t_start
             return observation
 
-# =========================================================================
+        # =========================================================================
         # THE HARDWARE GUILLOTINE (GLOBAL ReDoS Protection)
         # =========================================================================
-        import signal # Explicit local import just in case global import was missed
-        signal.signal(signal.SIGALRM, redos_guillotine)
-        signal.alarm(15) # 15-second fuse for the ENTIRE analysis pipeline
+        import signal
+        import sys
+        
+        # Check if the operating system is not Windows
+        is_posix = sys.platform != "win32"
+        
+        if is_posix:
+            signal.signal(signal.SIGALRM, redos_guillotine)
+            signal.alarm(15) # 15-second fuse for POSIX systems
         
         try:
             # Phase 3: Linguistic Detector
@@ -406,7 +412,8 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             return observation
         finally:
             # IMPORTANT: Defuse the bomb immediately upon success!
-            signal.alarm(0) 
+            if is_posix:
+                signal.alarm(0) 
         # =========================================================================
         
         data_payload = {
@@ -719,8 +726,8 @@ class Orchestrator:
                     logger.info(f"SQLITE: Generating repository-specific database -> {db_output}")
                     
                     self.db_recorder.record_mission(
-                        parsed_files=repository_graph,
-                        unparsable_files=total_unparsable,
+                        parsed_files=list(repository_graph) if repository_graph else [], # <--- PASS A COPY
+                        unparsable_files=list(total_unparsable) if total_unparsable else [], # <--- PASS A COPY
                         summary=summary,
                         session_meta=session_meta,
                         output_path=db_output
@@ -762,7 +769,13 @@ class Orchestrator:
                 
             # --- THE FINAL CALL TO ACTION (CLI BILLBOARD) ---
             print("\n" + "="*75)
-            print(" 🌌 READY FOR VISUALIZATION (100% LOCAL / ZERO UPLOAD)")
+            
+            # Windows command prompts crash on emojis, so we strip it for them
+            if sys.platform == "win32":
+                print(" READY FOR VISUALIZATION (100% LOCAL / ZERO UPLOAD)")
+            else:
+                print(" 🌌 READY FOR VISUALIZATION (100% LOCAL / ZERO UPLOAD)")
+                
             print("="*75)
             print(" 1. Open your browser to: \033[94m\033[4mhttps://gitgalaxy.io/\033[0m")
             print(f" 2. Drag and drop '{output_file}'")

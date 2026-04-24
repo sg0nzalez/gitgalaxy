@@ -12,7 +12,7 @@ import logging
 import statistics
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from gitgalaxy.standards import analysis_lens as config
 
 # ==============================================================================
@@ -45,7 +45,7 @@ class LLMRecorder:
         self.RISK_SCHEMA = schemas.get("RISK_SCHEMA", [])
         self.SIGNAL_SCHEMA = schemas.get("SIGNAL_SCHEMA", [])
 
-    def _parse_threat_score(self, star: Dict) -> tuple[float, str]:
+    def _parse_threat_score(self, star: Dict) -> Tuple[float, str]:
         """Safely extracts and converts the AI threat score string to a float."""
         score_str = star.get("telemetry", {}).get("domain_context", {}).get("AI Threat Score", "0.0%")
         try:

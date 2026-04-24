@@ -8,26 +8,38 @@ on:
 
 jobs:
   smoke-test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: "1" # <--- FIX 1: Forces Windows to render emojis without crashing
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.12
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
-        python-version: "3.12"
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install macOS dependencies (OpenMP for XGBoost)
+      if: runner.os == 'macOS'
+      run: brew install libomp
 
     - name: Install dependencies
+      shell: bash
       run: |
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install PyYAML networkx tiktoken pandas xgboost
-        pip install -e .
+        pip install PyYAML networkx tiktoken pandas xgboost pytest flake8
+        pip install --no-build-isolation -e . # <--- FIX 2: Bypasses the pip build bubble
         
     - name: Global Syntax Sweep (Flake8)
       run: |
-        pip install flake8
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
     - name: Smoke Test - Core Engine
@@ -51,5 +63,4 @@ jobs:
 
     - name: Golden Record Integration Test (Pytest)
       run: |
-        pip install pytest
         pytest tests/ -v
