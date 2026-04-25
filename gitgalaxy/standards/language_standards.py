@@ -4320,8 +4320,8 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": None,
             # Block comment start: Standard SGML/XML literature delimiter.
             "_block_start": re.compile(r"<!--"),
-            # Block comment end: Standard SGML/XML literature delimiter.
-            "_block_end": re.compile(r"-->"),
+            # Block comment end: Accept both --> and permissive HTML parser form --!>.
+            "_block_end": re.compile(r"--!?>"),
             # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
             # 1. branch (The Forks in the Road)
             # User-driven branching and declarative framework conditionals.
