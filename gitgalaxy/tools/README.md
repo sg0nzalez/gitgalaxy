@@ -1,74 +1,63 @@
-# GitGalaxy: Software Supply Chain Security & DevSecOps Automation
+# 🛠️ GitGalaxy Tools (The Spokes)
 
-[![Integration](https://img.shields.io/badge/Integration-CI%2FCD_Ready-00C957.svg)](#)
-[![Accuracy](https://img.shields.io/badge/Accuracy-Internal_File_Scanning-00BFFF.svg)](#)
-[![Defense](https://img.shields.io/badge/Defense-Zero__Trust-FF4500.svg)](#)
+Welcome to the GitGalaxy Tools directory. 
 
-Welcome to the **GitGalaxy Supply Chain Security Suite**.
+If `galaxyscope.py` is the core physics engine (the Hub), the tools in this directory are the "Spokes." These are specialized, standalone execution controllers that leverage GitGalaxy's AST-free, high-speed parsing capabilities to solve specific engineering and security challenges.
 
-Standard security scanners have a massive blind spot: they read your `package.json` or `requirements.txt` manifests and simply check those names against CVE databases. They never look inside the actual downloaded files. 
+Each sub-module is designed to be executed directly from the CLI or wired into CI/CD pipelines.
 
-Modern attackers (like the **XZ-Utils** or **Glassworm** campaigns) exploit this exact gap. They don't announce themselves in a manifest.
+## 📂 Tool Suites Directory
 
-GitGalaxy operates differently. We shift security entirely left by scanning the physical internals of every dependency file at extreme velocities (100k+ LOC/sec) before it enters your system. 
+### 🛡️ [Supply Chain Security](./supply_chain_security/README.md)
+Zero-trust DevSecOps tools designed for pre-commit hooks and CI/CD pipeline blocking.
+* **Supply Chain Firewall:** Scans `node_modules` and vendor directories for malicious typosquatting and unauthorized network I/O.
+* **Vault Sentinel:** Hyper-speed secrets and credential detection.
+* **Binary Anomaly Detector:** Triage engine for finding encrypted payloads and parasitic logic hidden in binary artifacts.
 
-### 🛡️ What We Block
-We provide highly effective, zero-trust defense against structural supply chain threats:
-* **Hidden Executables:** Steganography and XZ-Utils attack patterns.
-* **Malicious Typosquatting:** Unicode homoglyphs tricking developer imports.
-* **Encrypted Payloads:** Obfuscated XOR decryption loops.
-* **Hostile I/O:** Shadow imports establishing covert outbound connections.
-* **Anomalous Logic:** Network sockets hidden inside declarative CSS or JSON files.
+### 📜 [Compliance & Auditing](./compliance/README.md)
+Tools for generating forensic and legal records of software architecture.
+* **Zero-Trust SBOM Generator:** Builds CycloneDX/SPDX manifests verified by structural code analysis, not just package manifests.
 
----
+### 🕵️ [Terabyte Log Scanning](./terabyte_log_scanning/README.md)
+High-throughput engines for processing massive data outputs.
+* **PII Leak Hunter:** Scans terabytes of raw logs for accidentally exposed PII without choking system memory.
+* **Terabyte Log Scanner:** Maps static architecture to dynamic runtime execution logs.
 
-### 🛠️ Shift-Left Security Automation
+### 🕸️ [Network Auditing](./network_auditing/README.md)
+* **API Network Mapper:** Automatically maps the physical outbound and inbound API surface area and compares it against Swagger/OpenAPI docs to find Shadow APIs.
 
-Wired directly into your Git Pre-Commit hooks or CI/CD pipelines, these automation tools act as a physical firewall to fail poisoned builds instantly.
+### 🦕 [Legacy Modernization: COBOL to Java](./cobol_to_java/README.md) & [COBOL to COBOL](./cobol_to_cobol/README.md)
+A complete suite of architectural controllers for modernizing legacy mainframe systems.
+* **COBOL Refractor:** Slices massive monolithic COBOL programs into isolated microservices.
+* **Java Spring Forge:** Translates legacy business logic into compiling Java Spring architectures.
 
-#### 1. The Supply Chain Firewall (`supply_chain_firewall.py`)
-Scans massive `node_modules` or `venv` directories in seconds.
-* **Zero-Trust Verification:** Checks every physical `import` against strict allowlists.
-* **Behavioral Heuristics:** Scans for tainted data injection routines and runtime modifications.
-
-#### 2. Binary Anomaly Inspector (`binary_anomaly_detector.py`)
-Designed to triage binary files and detect encrypted malware hidden in plain sight.
-* **Magic Byte Validation:** Catches executable scripts disguised as harmless images.
-* **Entropy Math:** Flags high-entropy encrypted text payloads.
-* **Parasitic Headers:** Detects executable logic nested inside static data blobs.
-
-#### 3. Secrets Detection Hook (`vault_sentinel.py`)
-A hyper-speed pre-commit hook strictly for credential and secret detection.
-* **Critical Path Blocking:** Instantly blocks sensitive file path commits (e.g., `.env`, `.pem`).
-* **Deep Content Scanning:** Hunts for hardcoded cloud cryptographic keys and AWS tokens.
-* **Dead Code Secrets:** Finds abandoned passwords hidden deep in commented code.
+### 🤖 [AI Guardrails](./ai_guardrails/README.md)
+* **AppSec Sensor & Dev Agent Firewall:** Middleware sensors that prevent LLMs from being wired to RCE vulnerabilities, and block autonomous AI coding agents from mutating highly complex legacy code.
 
 ---
 
-### 🚀 Quickstart: CI/CD & Pre-Commit Integration
+## 🚀 Execution & CI/CD Integration
 
-Because GitGalaxy bypasses slow ASTs, these scripts execute in seconds, making them perfect for synchronous pipeline blockers.
+The GitGalaxy Spoke architecture allows you to run these specialized tools using three distinct methods:
 
-**Run the Supply Chain Firewall against your local dependencies:**
-```bash
-python3 supply_chain_firewall.py ./node_modules/
+### 1. GitHub Actions (The Universal Pipeline)
+You can trigger any of the standalone CLI tools in your CI/CD pipeline using our universal composite action. Simply change the `tool` parameter to the spoke you want to execute:
+
+```yaml
+      - name: Run GitGalaxy Tool
+        uses: squid-protocol/gitgalaxy@main
+        with:
+          tool: 'supply-chain-firewall' # Options: xray-inspector, zero-trust-sbom, api-network-map, etc.
+          target: '.'
 ```
 
-**Run the Binary Anomaly Inspector against an incoming Pull Request:**
+### 2. Global CLI Execution
+If you have GitGalaxy installed via PyPI (`pip install gitgalaxy`), all the standalone tools are registered as global console scripts. You can run them instantly from your terminal:
 ```bash
-python3 binary_anomaly_detector.py ./src/
+vault-sentinel .
+api-network-map ./src
+pii-leak-hunter ./logs/dump.sql
 ```
 
-**Run the Secrets Detection script as a Git pre-commit hook:**
-```bash
-python3 vault_sentinel.py .
-```
-
----
-### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
-This tool is a specialized integration in the larger GitGalaxy ecosystem. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Explore the official documentation to see the structural heuristics used to catch obfuscated malware:
-
-* 📖 **[Supply Chain Firewall Architecture](../../../docs/wiki/04-03-supply-chain-firewall.md)**
-* 📖 **[Binary Anomaly & Entropy Mathematics](../../../docs/wiki/04-05-binary-anomaly-detector.md)**
-* 📖 **[Hardcoded Secrets Exposure Equations](../../../docs/wiki/08-23-hardcoded-secrets-exposure.md)**
-* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**
+### 3. Engine Middleware (AI Guardrails)
+Note that the **AI Guardrails** do not operate as standalone CLI tools. They act as deep-inspection middleware. To utilize them, run the primary `galaxyscope` engine, and the sensors will automatically inject their AppSec findings into the final project telemetry.

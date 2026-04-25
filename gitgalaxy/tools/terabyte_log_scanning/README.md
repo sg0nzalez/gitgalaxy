@@ -10,7 +10,7 @@ During an active incident response or catastrophic data breach, standard tools f
 
 This suite provides a tactical, pipeline-ready solution: **ultra-high-velocity, unindexed binary streaming.** Running at over 2 GB per minute on standard hardware, our custom stream-processing engine reads data continuously without ever loading the massive file into RAM. This makes it perfect for active breach triage, or as an automated CI/CD pipeline job to sanitize server logs before they are permanently archived.
 
-### 1. The PII Data Leak Hunter (`pii_leak_hunter.py`)
+### 1. The PII Data Leak Hunter (`pii-leak-hunter`)
 
 A specialized incident response tool designed to find hemorrhaging Personally Identifiable Information (Credit Cards, SSNs, AWS API Keys) inside massive, raw data dumps.
 
@@ -19,7 +19,7 @@ A specialized incident response tool designed to find hemorrhaging Personally Id
 * **Exfiltration Histograms:** Generates terminal ASCII charts to pinpoint exact breach minutes.
 * **Pipeline Sanitization:** Runs automatically in CI/CD to block PII log archiving.
 
-### 2. The Terabyte Log Scanner (`terabyte_log_scanner.py`)
+### 2. The Terabyte Log Scanner (`terabyte-log-scanner`)
 
 A runtime execution tracer that connects static codebase architecture to physical runtime reality. It parses massive mainframe SMF logs or distributed traces to prove what code is actually executing.
 
@@ -57,18 +57,53 @@ The dynamically scaled ASCII time-series histograms instantly exposed a massive,
 
 ---
 
-### 🚀 Quickstart: Scanning at Scale
+### 🚀 Quickstart: Local CLI & CI/CD Integration
 
-Because these tools operate via single-pass streaming, they require zero environment setup, database indexing, or heavy JVMs. 
+Because these tools operate via single-pass streaming, they require zero environment setup, database indexing, or heavy JVMs. If you have installed GitGalaxy globally via PyPI (`pip install gitgalaxy`), they are ready to run instantly.
+
+#### 1. Local CLI Execution
 
 **Hunt for PII Leaks in a raw database dump:**
 ```bash
-python3 pii_leak_hunter.py /path/to/massive_database_dump.sql
+pii-leak-hunter /path/to/massive_database_dump.sql
 ```
 
 **Stream logs to prove runtime execution of static code:**
 ```bash
-python3 terabyte_log_scanner.py /path/to/production.log --ir ../core/ir_state.json
+terabyte-log-scanner /path/to/production.log --input_state ../core/ir_state.json
+```
+
+#### 2. GitHub Actions CI/CD Integration
+
+You can automate the sanitization of logs or artifacts before they are uploaded or archived. Create a file in your repository at `.github/workflows/pii-audit.yml`:
+
+```yaml
+name: GitGalaxy Log Sanitization
+
+on:
+  workflow_dispatch: # Can be run manually or on a cron schedule
+
+jobs:
+  gitgalaxy-log-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # (Assuming a previous step generated or downloaded the target log file)
+
+      - name: Run PII Leak Hunter
+        uses: squid-protocol/gitgalaxy@main
+        with:
+          tool: 'pii-leak-hunter'
+          target: './logs/production_dump.sql'
+          args: '--out ./sanitized_logs/'
+
+      - name: Archive Safe Evidence Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanitized-evidence-logs
+          path: ./sanitized_logs/*_pii_leak_evidence.log
 ```
 
 ---

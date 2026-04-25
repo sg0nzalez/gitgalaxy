@@ -14,7 +14,7 @@ GitGalaxy maps the architectural reality of your code in seconds. We use AST-fre
 
 ---
 
-### 🛡️ Side 1: The AI AppSec Sensor (`ai_appsec_sensor.py`)
+### 🛡️ Side 1: The AI AppSec Sensor (`AIAppSecSensor`)
 *Protects your application from the AI features you build.*
 
 Standard AST scanners frequently miss "Weaponized AI Architectures." This sensor maps the physical call-path distance between an LLM API execution and your critical system functions.
@@ -25,7 +25,7 @@ Standard AST scanners frequently miss "Weaponized AI Architectures." This sensor
 
 ---
 
-### 🤖 Side 2: The Dev Agent Firewall (`dev_agent_firewall.py`)
+### 🤖 Side 2: The Dev Agent Firewall (`DevAgentFirewall`)
 *Protects your codebase from the autonomous AI tools you use.*
 
 Not all legacy code is safe for an AI coding assistant (like Cursor, Copilot, or Claude) to modify. This firewall evaluates the structural complexity, cognitive load, and entropy of a file to determine if an AI agent will succeed, hallucinate, or silently destroy your system logic.
@@ -37,13 +37,39 @@ Not all legacy code is safe for an AI coding assistant (like Cursor, Copilot, or
 
 ---
 
-### 🚀 The GitGalaxy Advantage
+### 🚀 Quickstart: CI/CD & Pipeline Integration
 
-This is a fundamentally novel approach to AI Attack Surface Management, built for extreme velocity.
+Currently, the AI Guardrails operate as deep-inspection middleware. Instead of running as standalone standalone commands, these sensors inject themselves into the primary `galaxyscope` analysis pipeline to evaluate project telemetry in real-time.
 
-* **Zero Compilation:** Scans raw text instantly. No build environment or cloud API required.
-* **Contextual Reporting:** Explains the exact architectural danger. No useless "Yes/No" alerts.
-* **CI/CD Ready:** Scans at 100k+ LOC/sec. Blocks dangerous AI-generated PRs synchronously in your pipeline.
+#### 1. Local CLI Execution
+Run a standard scan using the global PyPI package. The guardrails will automatically evaluate the ecosystem and report critical Agentic vulnerabilities.
+```bash
+galaxyscope /path/to/source/code
+```
+
+#### 2. GitHub Actions CI/CD Integration
+To block dangerous AI architectures or prevent AI agents from modifying complex code, run the main GalaxyScope engine on your pull requests. Create `.github/workflows/ai-guardrails.yml`:
+
+```yaml
+name: GitGalaxy AI Guardrails
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  gitgalaxy-ai-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run GalaxyScope Engine
+        uses: squid-protocol/gitgalaxy@main
+        with:
+          tool: 'galaxyscope'
+          target: '.'
+```
 
 ---
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)

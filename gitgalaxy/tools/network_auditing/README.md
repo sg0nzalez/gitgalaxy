@@ -49,17 +49,55 @@ Our AST-free regex signatures deterministically map open APIs across multiple la
 
 ---
 
-### 🚀 Quickstart: Continuous Compliance Auditing
+### 🚀 Quickstart: Local CLI & CI/CD Integration
+
+If you have installed GitGalaxy globally via PyPI (`pip install gitgalaxy`), the API mapper is available directly in your terminal. It executes in seconds, making it ideal for both local checks and automated pipelines.
+
+#### 1. Local CLI Execution
 
 Execute the tool directly against your physical source code. The engine will auto-discover your Swagger file and generate an immediate gap analysis:
 
 ```bash
-python3 full_api_network_map.py /path/to/source/code
+api-network-map /path/to/source/code
 ```
 
 *(Optional) Target a specific specification file directly:*
 ```bash
-python3 full_api_network_map.py /path/to/source/code --swagger /path/to/swagger.json
+api-network-map /path/to/source/code --swagger /path/to/swagger.json
+```
+
+*(Optional) Merge all discovered Swagger files in a microservice monorepo:*
+```bash
+api-network-map /path/to/source/code --merge-all
+```
+
+#### 2. GitHub Actions CI/CD Integration
+
+You can automatically audit your API surface area on every Pull Request to ensure developers aren't silently exposing new endpoints without updating the Swagger documentation.
+
+Create `.github/workflows/api-audit.yml`:
+
+```yaml
+name: Shadow API Audit
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  gitgalaxy-api-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Shadow API Hunter
+        uses: squid-protocol/gitgalaxy@main
+        with:
+          tool: 'api-network-map'
+          target: '.'
+          # Optional: Add extra arguments if you have multiple Swagger files
+          # args: '--merge-all'
 ```
 
 ---

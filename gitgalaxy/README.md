@@ -5,11 +5,11 @@ Welcome to the internal source code for the **GitGalaxy blAST Engine**.
 This directory contains the core physics, routing, and mathematical heuristics that power the system. If you are a developer looking to contribute or understand the pipeline, here is the architectural map:
 
 ### 🗺️ The Developer Map
-* **`/core/`**: The optical routing layer. Contains the `aperture.py` and `prism.py` which break down source code into structural signals.
-* **`/physics/`**: The heuristics engine. Contains the `signal_processor.py` and `neural_auditor.py` which apply the GitGalaxy mathematics to score O(N) complexity, blast radius, and state flux.
-* **`/recorders/`**: The export layer. Translates the internal state maps into SQLite databases, AI-agent JSON tickets, and the WebGPU data payloads.
-* **`/security/`**: The zero-trust validation layer. 
-* **`/tools/`**: The enterprise "Spokes". Contains the specific scripts for Legacy Refraction, Supply Chain Firewalls, and AI Guardrails.
+* **`/core/`**: The optical routing layer. Contains `aperture.py` and `prism.py`, which break down source code into structural signals and separate executable logic from ghost mass (comments).
+* **`/physics/`**: The heuristics engine. Contains `signal_processor.py` and `neural_auditor.py`, which apply GitGalaxy mathematics to score O(N) complexity, blast radius, and state flux.
+* **`/recorders/`**: The export layer. Translates the internal state maps into SQLite databases, AI-agent JSON tickets, and WebGPU data payloads.
+* **`/security/`**: The zero-trust validation layer for detecting embedded malware and logic bombs.
+* **`/tools/`**: The enterprise "Spokes". Contains specific automation controllers for CI/CD pipelines, including Supply Chain Firewalls, PII Leak Hunters, and GitHub Actions integrations.
 
 ---
 
@@ -19,7 +19,9 @@ To demonstrate the engine's capability on complex, cross-language system archite
 
 Because NVDA relies heavily on bridging Python application logic with low-level C++ system hooks, it requires advanced dependency mapping. The blAST engine successfully parsed the mixed-language architecture, analyzing **236,754 lines of code** in just **5.59 seconds** (a velocity of 42,357 LOC/sec). 
 
-Crucially, during the import resolution phase, the Air-Gapped Dependency Radar successfully intercepted a structural naming collision (`fstream` vs `sstream`), proving the real-time typosquatting defenses are fully operational, this is likely a false positive, which could be prevented by adding these approved imports to the approve import list, so the system doesn't keep flagging them as unknown. 
+Crucially, during the import resolution phase, the Air-Gapped Dependency Radar successfully intercepted a structural naming collision (`fstream` vs `sstream`), proving the real-time typosquatting defenses are fully operational. 
+
+> **Note on False Positives:** Because `fstream` and `sstream` are both standard C++ libraries, this specific flag is a false positive. To prevent the engine from halting on trusted internal libraries, contributors can whitelist them by adding them to the `approved_imports.json` registry.
 
 ![NVDA Processing Demo](../docs/wiki/assets/nvda_processing.gif)
 
@@ -34,10 +36,23 @@ Crucially, during the import resolution phase, the Air-Gapped Dependency Radar s
 
 ---
 
-### Using the blAST Engine
-You do not need to run these internal files directly. To scan a repository, use the main entry point:
+### 🛠️ Local Development & Testing
+
+If you are modifying the internal physics or optical routing, it is highly recommended to install the package in editable mode so your CLI commands instantly reflect your local code changes.
+
+From the **root directory** of the repository, run:
 ```bash
-python3 galaxyscope.py /path/to/your/repo
+pip install -e .
+```
+
+Once installed, you can trigger the main orchestrator (`galaxyscope.py`) globally from your terminal:
+```bash
+galaxyscope /path/to/test/repo --debug
+```
+
+Before submitting a Pull Request, ensure your changes do not skew the baseline risk equations by running the test suite:
+```bash
+python3 -m unittest discover tests/
 ```
 
 ---
