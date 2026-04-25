@@ -182,7 +182,7 @@ PATH_MODIFIERS = {
         # 7. The Verification Sieve
         # Test files are naturally dense with assertions and mocked data. 
         # Dampen their cognitive load so they don't outweigh actual application logic.
-        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-z]+$|\.test\.[a-z]+$', re.I), 0.50)
+        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-zA-Z]+$|\.test\.[a-zA-Z]+$', re.I), 0.50)
     ],
     'Error & Exception Exposure': [
         # 1. The Sentinel (Core Security & Auth)
@@ -242,7 +242,7 @@ PATH_MODIFIERS = {
         # The Verification Exemption
         # Tests often contain mocked "TODO" strings to test parsers, or deliberate hacks 
         # for negative testing. They do not represent architectural debt.
-        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-z]+$|\.test\.[a-z]+$|.*IT\.java$', re.I), 0.0),
+        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-zA-Z]+$|\.test\.[a-zA-Z]+$|.*IT\.java$', re.I), 0.0),
 
         # ---> NEW: The Documentation/Examples Exemption <---
         # Forgive example code for lacking production-grade tests/safety
@@ -269,7 +269,7 @@ PATH_MODIFIERS = {
         (re.compile(r'\.(?:stories|story|visual)\.', re.I), 0.90),
         # 6. The Verification Exemption
         # Unit tests rarely require formal JSDoc/RDoc blocks. Drop doc risk to 0.
-        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-z]+$|\.test\.[a-z]+$', re.I), 0.0)
+        (re.compile(r'(?:^|/)(?:tests?|specs?|testing)/|_spec\.[a-zA-Z]+$|\.test\.[a-zA-Z]+$', re.I), 0.0)
     ],
     'Testing Exposure': [
         # 1. The Universal Standard: 'test' is safe across all languages
@@ -312,7 +312,7 @@ PATH_MODIFIERS = {
         # Forgive example code for lacking production-grade tests/safety
         (re.compile(r'(?:^|/)examples?/', re.I), 0.0),
         # Catch mainframe 8-char test prefixes (e.g., lgtestp1.cbl)
-        (re.compile(r'(?:^|/)[a-z]{0,2}test[a-z0-9]*\.(?:cbl|cob)$', re.I), 0.0),
+        (re.compile(r'(?:^|/)[a-zA-Z]{0,2}test[a-z0-9]*\.(?:cbl|cob)$', re.I), 0.0),
     ],
     'Dead Code Exposure': [
         # 1. The Template (Expected Dead Code)

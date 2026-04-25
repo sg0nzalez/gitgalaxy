@@ -685,6 +685,7 @@ LANGUAGE_DEFINITIONS = {
             "blueprint_version": "v6.3.1",
             "status": "production",
         },
+        # COMPREHENSIVE SURFACE AREA: Standard modern suffixes, JSX variants, and ambient declaration boundaries.
         "extensions": [
             ".ts",
             ".tsx",
@@ -694,8 +695,6 @@ LANGUAGE_DEFINITIONS = {
             ".d.mts",
             ".d.cts",  # Ambient declarations
         ],
-        # COMPREHENSIVE SURFACE AREA: Standard modern suffixes, JSX variants, and ambient declaration boundaries.
-        "extensions": [".ts", ".tsx", ".mts", ".cts", ".d.ts", ".d.mts", ".d.cts"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": [],
         # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
@@ -7108,7 +7107,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 32. events: Pub/Sub Network. Platform Events and Trigger context.
             "events": re.compile(
-                r"\b(EventBus\.publish|PlatformEvent)\b|trigger\s+[A-z_]\w+\s+on\s+[A-z_]\w+Event__e",
+                r"\b(EventBus\.publish|PlatformEvent)\b|trigger\s+[a-zA-Z_]\w+\s+on\s+[a-zA-Z_]\w+Event__e",
                 re.I,
             ),
             # 33. dependency_injection: Inversion of Control. Mocking and injection frameworks.
@@ -10563,10 +10562,6 @@ PROJECT_OVERRIDES = {
     "jenkins": {"_shield_": {"exclude_paths": ["translation-tool.pl", "core/report-l10n.rb"]}},
     "redis": {"_shield_": {"exclude_dirs": ["deps/lua", "deps/jemalloc", "deps/hiredis"]}},
     "Correios-Brasil": {
-        "_shield_": {"unban_directories": ["features"]}
-    },
-    "freebsd-src": {
-        "objective-c": {"extensions": ['.mm', '.h']},
-        "c": {"extensions": ['.c', '.h', '.cl', '.inc', '.y', '.idc', '.cats', '.m', '.dts', '.dtsi']}
-    },
-}
+            "_shield_": {"unban_directories": ["features"]}
+        }
+    }
