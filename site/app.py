@@ -317,19 +317,22 @@ def capture_enterprise_lead():
         if any(domain in email for domain in generic_domains):
             return jsonify(error="Please provide a valid corporate email address for commercial licensing."), 400
 
-        # Log the massive lead as a CRITICAL event so it stands out in your server logs
-        lead_msg = f"🚨 ENTERPRISE LEAD CAPTURED: {company} | Size: {codebase_size} | Case: {use_case} | Contact: {email}"
-        logger.critical(lead_msg)
+        # SANITIZATION: Prevent CRLF Log Injection
+        safe_company = str(company).replace('\n', ' ').replace('\r', '')
+        safe_size = str(codebase_size).replace('\n', ' ').replace('\r', '')
+        safe_case = str(use_case).replace('\n', ' ').replace('\r', '')
+        safe_email = str(email).replace('\n', ' ').replace('\r', '')
 
-        # TODO: Add logic here to ping your Discord webhook or send an email to joe@gitgalaxy.io
-        # requests.post(os.getenv("DISCORD_WEBHOOK_URL"), json={"content": lead_msg})
+        # Log the massive lead safely
+        lead_msg = f"🚨 ENTERPRISE LEAD CAPTURED: {safe_company} | Size: {safe_size} | Case: {safe_case} | Contact: {safe_email}"
+        logger.critical(lead_msg)
 
         return jsonify({"status": "success", "message": "Lead captured. Our architecture team will be in touch shortly."}), 200
 
     except Exception as e:
-        logger.error(f"Lead Capture Error: {str(e)}")
+        logger.error(f"Lead Capture Error: {str(e).replace('\n', ' ')}")
         return jsonify(error="Failed to submit inquiry. Please email commercial@gitgalaxy.io directly."), 500
-
+    
 if __name__ == '__main__':
     print("\n" + "═"*50)
     print(" 🌌 GITGALAXY VISUALIZER: COMMAND CENTER ACTIVE")
