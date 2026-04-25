@@ -732,6 +732,13 @@ class LogicSplicer:
 
     def coding_analysis(self, segments: List[Tuple[str, str, int]], regex_telemetry: dict = None) -> Tuple[Dict[str, int], Dict[str, int], List[Dict[str, List[int]]], List[str]]: 
         counts: Dict[str, int] = {key: 0 for key in self.UNIVERSAL_METRICS_SCHEMA}
+        
+        # --- THE FIX: INJECT APPSEC SENSORS ---
+        # Force the new Phase 4 sensors into the schema so the LogicSplicer doesn't ignore them
+        for appsec_key in ["memory_scraping", "exfiltration_camouflage", "rce_funnel"]:
+            if appsec_key not in counts:
+                counts[appsec_key] = 0
+                
         mitigations: Dict[str, int] = {"mitigated_danger": 0, "mitigated_memory_allocs": 0, "amplified_rce": 0, "amplified_race_conditions": 0, "amplified_leaks": 0}
         segment_spatial_maps = []
         extracted_parents = []
@@ -802,6 +809,26 @@ class LogicSplicer:
 
             # ---> NEW: SPATIAL CORRELATION (Runs once per segment) <---
             
+            # ==============================================================================
+            # PHASE 4: AI APPSEC & ZERO-TRUST SENSORS (The Checkmarx/Bitwarden Defense)
+            # ==============================================================================
+            # 0a. The Exfiltration Distance Check
+            if "memory_scraping" in spatial_map and "exfiltration_camouflage" in spatial_map:
+                # Measures the physical call-path distance between the memory read and the socket
+                unmitigated, confirmed_exfiltration = self._correlate_signals(
+                    targets=spatial_map["memory_scraping"], 
+                    dampeners=spatial_map["exfiltration_camouflage"], 
+                    max_distance=200 # If they happen within 200 chars of each other, it's a confirmed attack
+                )
+                counts["memory_scraping"] += (confirmed_exfiltration * 100) # Massive penalty multiplier
+                mitigations["amplified_leaks"] += confirmed_exfiltration
+
+            # 0b. The RCE Funnel Amplifier
+            if "rce_funnel" in spatial_map:
+                # RCE funnels inside JS/TS/Python are fatal structural anomalies. Multiply the mass.
+                counts["rce_funnel"] += (len(spatial_map["rce_funnel"]) * 50)
+            # ==============================================================================
+
             # 1. Taint Tracking (RCE Weaponization)
             if "sec_danger" in spatial_map and ("sec_io" in spatial_map or "io" in spatial_map):
                 io_hits = sorted(spatial_map.get("sec_io", []) + spatial_map.get("io", []))
