@@ -401,6 +401,10 @@ LANGUAGE_DEFINITIONS = {
             "regex_execution": re.compile(r'\b(re\.compile|re\.search|re\.match|re\.sub|re\.findall|re\.split)\b'),
             "time_date_logic": re.compile(r'\b(datetime\.datetime|timedelta|time\.sleep|time\.time|calendar)\b'),
             "ipc_rpc_bridges": re.compile(r'\b(multiprocessing|subprocess|xmlrpc|socketserver)\b'),
+            
+            # --- PHASE 4: APPSEC & AI SENSORS (Zero-Trust Pipelines) ---
+            "memory_scraping": re.compile(r"['\"]/proc/['\"]\s*\+\s*(?:str\([^)]*\)|f?['\"]\{[^}]*\})|/proc/\w+/mem"),
+            "exfiltration_camouflage": re.compile(r"\b(requests\.post|urllib\.request|httpx\.post)\s*\([^)]*(?:checkmarx|telemetry|metrics|audit|log)\b", re.I),
         },
     },
     "javascript": {
@@ -668,6 +672,10 @@ LANGUAGE_DEFINITIONS = {
             "regex_execution": re.compile(r'\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\('),
             "time_date_logic": re.compile(r'\b(Date\.now|new\s+Date|setTimeout|setInterval|clearTimeout|clearInterval|performance\.now)\b'),
             "ipc_rpc_bridges": re.compile(r'\b(postMessage|Worker|MessageChannel|child_process|worker_threads|cluster)\b'),
+
+            # --- PHASE 4: APPSEC & AI SENSORS (Zero-Trust Pipelines) ---
+            "rce_funnel": re.compile(r"child_process\.(?:spawn|exec|execSync)\s*\(\s*['\"](?:python|bash|sh|bun|node)\b"),
+            "exfiltration_camouflage": re.compile(r"\b(fetch|axios\.post|https\.request)\s*\([^)]*(?:checkmarx|telemetry|metrics|audit|log)\b", re.I),
         },
     },
     "typescript": {
@@ -924,6 +932,10 @@ LANGUAGE_DEFINITIONS = {
             "regex_execution": re.compile(r'\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\('),
             "time_date_logic": re.compile(r'\b(Date\.now|new\s+Date|setTimeout|setInterval|clearTimeout|clearInterval|performance\.now)\b'),
             "ipc_rpc_bridges": re.compile(r'\b(postMessage|Worker|MessageChannel|child_process|worker_threads|cluster)\b'),
+
+            # --- PHASE 4: APPSEC & AI SENSORS (Zero-Trust Pipelines) ---
+            "rce_funnel": re.compile(r"child_process\.(?:spawn|exec|execSync)\s*\(\s*['\"](?:python|bash|sh|bun|node)\b"),
+            "exfiltration_camouflage": re.compile(r"\b(fetch|axios\.post|https\.request)\s*\([^)]*(?:checkmarx|telemetry|metrics|audit|log)\b", re.I),
         },
     },
     "java": {

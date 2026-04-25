@@ -187,10 +187,11 @@ def create_checkout_session():
         
     except requests.exceptions.RequestException as e:
         logger.error(f"Printify Upload Failed: {str(e)}")
-        return jsonify(error="Image upload to Printify failed. Please try again."), 500
+        return jsonify(error="Image upload failed. Please try again."), 500
     except Exception as e:
+        # Keep the raw error in YOUR logs, but give the user a sanitized message
         logger.error(f"Stripe Session Error: {str(e)}")
-        return jsonify(error=str(e)), 500
+        return jsonify(error="An internal payment processing error occurred. Please contact support."), 500
 
 @app.route('/webhook', methods=['POST'])
 def stripe_webhook():
@@ -230,7 +231,6 @@ def stripe_webhook():
         line_items = stripe.checkout.Session.list_line_items(session.get('id'))
         final_quantity = line_items.data[0].quantity if line_items.data else 1
 
-        printify_item = PRINTIFY_MAP.get(poster_size, PRINTIFY_MAP["5400x3600"])
         printify_item = PRINTIFY_MAP.get(poster_size, PRINTIFY_MAP["5400x3600"])
         master_product_id = printify_item["product_id"]
         target_variant_id = printify_item["variant_id"]
@@ -302,6 +302,33 @@ def stripe_webhook():
     # 4. ALWAYS return 200 to Stripe at the very end so it doesn't pause your webhook
     return jsonify({'status': 'success'}), 200
 
+# --- 5.5 ENTERPRISE LEAD CAPTURE (THE BUSINESS TRAP) ---
+@app.route('/api/enterprise-lead', methods=['POST'])
+def capture_enterprise_lead():
+    try:
+        data = request.json
+        email = data.get('email', '').lower()
+        company = data.get('company', 'Unknown')
+        use_case = data.get('use_case', 'Unknown')
+        codebase_size = data.get('codebase_size', 'Unknown')
+
+        # The Filter: Reject generic emails to ensure high-signal enterprise leads
+        generic_domains = ['@gmail.com', '@yahoo.com', '@hotmail.com', '@outlook.com']
+        if any(domain in email for domain in generic_domains):
+            return jsonify(error="Please provide a valid corporate email address for commercial licensing."), 400
+
+        # Log the massive lead as a CRITICAL event so it stands out in your server logs
+        lead_msg = f"🚨 ENTERPRISE LEAD CAPTURED: {company} | Size: {codebase_size} | Case: {use_case} | Contact: {email}"
+        logger.critical(lead_msg)
+
+        # TODO: Add logic here to ping your Discord webhook or send an email to joe@gitgalaxy.io
+        # requests.post(os.getenv("DISCORD_WEBHOOK_URL"), json={"content": lead_msg})
+
+        return jsonify({"status": "success", "message": "Lead captured. Our architecture team will be in touch shortly."}), 200
+
+    except Exception as e:
+        logger.error(f"Lead Capture Error: {str(e)}")
+        return jsonify(error="Failed to submit inquiry. Please email commercial@gitgalaxy.io directly."), 500
 
 if __name__ == '__main__':
     print("\n" + "═"*50)
@@ -310,4 +337,6 @@ if __name__ == '__main__':
     print(" Access: http://localhost:5000")
     print("═"*50 + "\n")
     
-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
+    # Securely load debug state from environment variables
+    is_debug = os.getenv("FLASK_ENV", "production").lower() == "development"
+    app.run(debug=is_debug, host='0.0.0.0', port=5000, threaded=True)
