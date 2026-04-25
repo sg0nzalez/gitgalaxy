@@ -1,0 +1,61 @@
+name: 'GitGalaxy Scanner'
+description: 'High-velocity, AST-free DevSecOps scanner for zero-trust CI/CD, SBOMs, secret detection, and supply chain security.'
+branding:
+  icon: 'shield'
+  color: 'purple'
+
+inputs:
+  tool:
+    description: >
+      The GitGalaxy command to execute. 
+      Options: galaxyscope, blast, vault-sentinel, supply-chain-firewall, xray-inspector, zero-trust-sbom, pii-leak-hunter, terabyte-log-scanner, api-network-map.
+    required: true
+    default: 'galaxyscope'
+  target:
+    description: 'The directory or file path to scan.'
+    required: true
+    default: '.'
+  args:
+    description: 'Any additional CLI arguments to pass to the tool (e.g., --output json, --paranoid).'
+    required: false
+    default: ''
+  version:
+    description: 'The version of GitGalaxy to install from PyPI. Defaults to latest.'
+    required: false
+    default: 'latest'
+  full_precision:
+    description: 'Opt-in to install heavy physics engines (networkx, tiktoken, xgboost) for Blast Radius and ML Threat Inference.'
+    required: false
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install GitGalaxy
+      shell: bash
+      run: |
+        if [ "${{ inputs.version }}" = "latest" ]; then
+          echo "Installing latest GitGalaxy from PyPI..."
+          pip install gitgalaxy
+        else
+          echo "Installing GitGalaxy version ${{ inputs.version }}..."
+          pip install gitgalaxy==${{ inputs.version }}
+        fi
+        
+        if [ "${{ inputs.full_precision }}" = "true" ]; then
+          echo "Unlocking Full Precision Mode..."
+          pip install networkx tiktoken xgboost pandas numpy
+        else
+          echo "Running in ultra-fast Zero-Dependency Mode."
+        fi
+
+    - name: Execute GitGalaxy Tool
+      shell: bash
+      run: |
+        echo "Running: ${{ inputs.tool }} ${{ inputs.target }} ${{ inputs.args }}"
+        ${{ inputs.tool }} ${{ inputs.target }} ${{ inputs.args }}

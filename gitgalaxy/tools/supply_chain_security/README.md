@@ -26,18 +26,18 @@ We provide highly effective defense against structural threats:
 
 Wired directly into your Git Pre-Commit hooks or CI/CD pipelines, these sentinels act as a physical firewall to fail poisoned builds early.
 
-#### 1. The Supply Chain Firewall (`supply_chain_firewall.py`)
+#### 1. The Supply Chain Firewall (`supply-chain-firewall`)
 Scans massive `node_modules` or `venv` directories in seconds.
 * **Zero-Trust Verification:** Checks every physical `import` against allowlists.
 * **Behavioral Heuristics:** Scans for tainted data injection routines.
 
-#### 2. X-Ray Inspector (`binary_anomaly_detector.py`)
+#### 2. X-Ray Inspector (`xray-inspector`)
 Designed to triage binary files and encrypted malware.
 * **Magic Byte Validation:** Catches executable scripts disguised as images.
 * **Entropy Math:** Flags high-entropy encrypted text payloads.
 * **Parasitic Headers:** Detects executable logic inside static data blobs.
 
-#### 3. Vault Sentinel (`vault_sentinel.py`)
+#### 3. Vault Sentinel (`vault-sentinel`)
 A hyper-speed pre-commit hook strictly for secret detection.
 * **Tier 0 Path Blocking:** Instantly blocks sensitive file path commits.
 * **Deep Content Scanning:** Hunts for hardcoded cloud cryptographic keys.
@@ -122,21 +122,52 @@ The engine parsed 1,834 files at a velocity of **436 files per second**. It succ
 
 ### 🚀 Quickstart: CI/CD & Pre-Commit Integration
 
-Because GitGalaxy bypasses slow ASTs, these scripts execute in seconds, making them perfect for synchronous pipeline blockers.
+If you have installed GitGalaxy globally via PyPI (`pip install gitgalaxy`), you can execute these Sentinels directly from the terminal or wire them into your automation pipelines.
 
-**Run the Supply Chain Firewall against your dependencies:**
+#### 1. Local CLI Execution
 ```bash
-python3 supply_chain_firewall.py ./node_modules/
+supply-chain-firewall ./node_modules/
+xray-inspector ./src/
+vault-sentinel .
 ```
 
-**Run the X-Ray Inspector against an incoming PR:**
-```bash
-python3 binary_anomaly_detector.py ./src/
+#### 2. Local Pre-Commit Hook Integration
+To run the Vault Sentinel automatically before every commit, add this to your `.pre-commit-config.yaml` file:
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: gitgalaxy-vault-sentinel
+        name: GitGalaxy Vault Sentinel
+        entry: vault-sentinel
+        language: system
+        types: [text]
+        pass_filenames: true
 ```
 
-**Run the Vault Sentinel as a Git pre-commit hook:**
-```bash
-python3 vault_sentinel.py .
+#### 3. GitHub Actions CI/CD Integration
+To run the Supply Chain Firewall on every Pull Request, create a `.github/workflows/security.yml` file:
+
+```yaml
+name: GitGalaxy Security Audit
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  gitgalaxy-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Supply Chain Firewall
+        uses: squid-protocol/gitgalaxy@main
+        with:
+          tool: 'supply-chain-firewall'
+          target: '.'
 ```
 
 ---

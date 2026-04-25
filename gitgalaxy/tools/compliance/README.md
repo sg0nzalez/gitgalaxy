@@ -69,10 +69,42 @@ The tool instantly parsed the Go modules, located 170 physical third-party depen
 
 ### 🚀 Quickstart: Generate a Zero-Trust SBOM
 
-Run the Universal SBOM Generator against the root of your project. It will automatically find your manifests, locate the physical dependencies, scan their internals, and output an industry-standard CycloneDX JSON file.
+#### 1. Local CLI Execution
+If you have installed GitGalaxy globally via PyPI (`pip install gitgalaxy`), you can generate a CycloneDX JSON file instantly from your terminal:
 
 ```bash
-python3 sbom_generator.py /path/to/your/project
+zero-trust-sbom /path/to/your/project
+```
+
+#### 2. GitHub Actions CI/CD Integration
+Automate your compliance by generating and saving a mathematically verified SBOM on every release. Create `.github/workflows/generate-sbom.yml`:
+
+```yaml
+name: Generate Zero-Trust SBOM
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build SBOM via GitGalaxy
+        uses: squid-protocol/gitgalaxy@main
+        with:
+          tool: 'zero-trust-sbom'
+          target: '.'
+          args: '--out bom.json'
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclonedx-sbom
+          path: ./*_bom.json
 ```
 
 ---

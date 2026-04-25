@@ -85,6 +85,33 @@ Point the GalaxyScope at any local repository or ZIP archive. The engine runs en
 galaxyscope /path/to/your/local/repo
 ```
 
+### 3. GitHub Actions CI/CD Integration
+
+GitGalaxy can be integrated directly into your GitHub Actions pipeline for automated DevSecOps auditing, Zero-Trust SBOM generation, or Pre-Commit firewalls. 
+
+Create a file in your repository at `.github/workflows/gitgalaxy-scan.yml`:
+
+```yaml
+name: GitGalaxy Security Audit
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  gitgalaxy-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run GitGalaxy Supply Chain Firewall
+        uses: squid-protocol/gitgalaxy@main
+        with:
+          tool: 'supply-chain-firewall' # Options: galaxyscope, zero-trust-sbom, pii-leak-hunter, etc.
+          target: '.'
+```
+
 ---
 
 ### [GitGalaxy Core Analysis Engine](docs/wiki/01-project-overview.md)
