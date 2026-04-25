@@ -43,7 +43,8 @@ This suite is built on a modular Hub-and-Spoke architecture. Every Python script
 * **Cloud Schema Forge (`cobol_schema_forge.py`):** Translates `PIC` clauses to strict PostgreSQL DDLs.
   <br>![Cloud Schema Forge](../../../docs/wiki/assets/cloud_schema_forge.gif)
 * **Zero-Trust JCL Forge (`cobol_jcl_forge.py`):** Extracts `SELECT` mappings to auto-generate strict, least-privilege JCL emulators.
-
+  <br>![Zero-Trust JCL Forge](../../../docs/wiki/assets/jcl_forge_demo.gif)
+  
 #### 4. The AI Remediation Boundary
 * **Anomaly Task Forge (`cobol_agent_task_forge.py`):** Isolates structural anomalies into bounded JSON job tickets for LLM remediation.
 
