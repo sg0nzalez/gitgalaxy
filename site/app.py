@@ -330,7 +330,8 @@ def capture_enterprise_lead():
         return jsonify({"status": "success", "message": "Lead captured. Our architecture team will be in touch shortly."}), 200
 
     except Exception as e:
-        logger.error(f"Lead Capture Error: {str(e).replace('\n', ' ')}")
+        safe_error = str(e).replace('\n', ' ')
+        logger.error(f"Lead Capture Error: {safe_error}")
         return jsonify(error="Failed to submit inquiry. Please email commercial@gitgalaxy.io directly."), 500
     
 if __name__ == '__main__':
