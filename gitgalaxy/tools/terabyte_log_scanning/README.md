@@ -10,22 +10,22 @@ During an active incident response or catastrophic data breach, standard tools f
 
 This suite provides a tactical, pipeline-ready solution: **ultra-high-velocity, unindexed binary streaming.** Running at over 2 GB per minute on standard hardware, our custom stream-processing engine reads data continuously without ever loading the massive file into RAM. This makes it perfect for active breach triage, or as an automated CI/CD pipeline job to sanitize server logs before they are permanently archived.
 
-### 1. The PII Data Leak Hunter (`pii-leak-hunter`)
+### 1. [The PII Data Leak Hunter](https://squid-protocol.github.io/gitgalaxy/04-06-pii-leak-hunter/) (`pii-leak-hunter`)
 
 A specialized incident response tool designed to find hemorrhaging Personally Identifiable Information (Credit Cards, SSNs, AWS API Keys) inside massive, raw data dumps.
 
 * **Binary-Level Regex Evaluation:** Compiles structural patterns to raw bytes for extreme CPU efficiency.
-* **Automated Data Masking:** Redacts toxic payloads before writing to evidence logs.
+* **Automated Data Masking:** Redacts toxic payloads before writing to safe evidence logs.
 * **Exfiltration Histograms:** Generates terminal ASCII charts to pinpoint exact breach minutes.
-* **Pipeline Sanitization:** Runs automatically in CI/CD to block PII log archiving.
+* **Pipeline Sanitization:** Runs automatically in CI/CD to block PII log archiving via our [Hunting PII Leaks Recipe](https://squid-protocol.github.io/gitgalaxy/cookbook/hunt-pii-leaks/).
 
-### 2. The Terabyte Log Scanner (`terabyte-log-scanner`)
+### 2. [The Terabyte Log Scanner](https://squid-protocol.github.io/gitgalaxy/04-07-terabyte-log-scanner/) (`terabyte-log-scanner`)
 
 A runtime execution tracer that connects static codebase architecture to physical runtime reality. It parses massive mainframe SMF logs or distributed traces to prove what code is actually executing.
 
 * **Intermediate Representation (IR) Ingestion:** Ingests static repository maps to hunt known compiled programs in the logs.
 * **Execution Verification:** Proves exact runtime execution frequencies in production environments.
-* **Zero-Hit Dead Code:** Mathematically proves if compiled legacy code is truly abandoned.
+* **Zero-Hit Dead Code:** Mathematically [proves if compiled legacy code is truly abandoned](https://squid-protocol.github.io/gitgalaxy/cookbook/prove-dead-code-logs/).
 * **Dynamic Telemetry:** Outputs sidecar JSON for 3D WebGPU traffic heatmaps.
 
 ---
@@ -110,7 +110,7 @@ jobs:
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
 This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is driven by our custom mathematical heuristics engine, capable of processing multi-dimensional data at extreme velocity without requiring rigid ASTs or cloud APIs. Read the official documentation to see the structural methodologies powering this high-speed log analysis:
 
-* 📖 **[PII Leak Hunter Architecture](../../../docs/wiki/04-06-pii-leak-hunter.md)**
-* 📖 **[Terabyte Log Scanner Mechanics](../../../docs/wiki/04-07-terabyte-log-scanner.md)**
-* 📖 **[Time-Series Execution Histograms](../../../docs/wiki/08-25-execution-histograms.md)**
+* 📖 **[The blAST Paradigm (ASTs vs LLMs)](https://squid-protocol.github.io/gitgalaxy/01-03-the-blast-paradigm/)**
+* 📖 **[PII Leak Hunter Architecture](https://squid-protocol.github.io/gitgalaxy/04-06-pii-leak-hunter/)**
+* 📖 **[Terabyte Log Scanner Mechanics](https://squid-protocol.github.io/gitgalaxy/04-07-terabyte-log-scanner/)**
 * 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

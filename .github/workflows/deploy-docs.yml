@@ -1,0 +1,37 @@
+name: Deploy Museum of Code Docs
+
+on:
+  push:
+    branches:
+      - main # Triggers the action when you push to the main branch
+  workflow_dispatch: # Allows you to manually trigger the build from the GitHub UI
+
+# Grants the action permission to push the built site to the gh-pages branch
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for git info/history (like last updated timestamps)
+
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+
+      - name: Install Dependencies
+        # Installs Material theme and the PyMdown extensions required by your mkdocs.yml
+        run: pip install mkdocs-material pymdown-extensions
+
+      - name: Build and Deploy Docs
+        run: mkdocs gh-deploy --force

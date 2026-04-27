@@ -19,10 +19,10 @@ theme:
 extra:
   social:
     - icon: "fontawesome/solid/globe"
-      link: "[https://gitgalaxy.io/](https://gitgalaxy.io/)"
+      link: "https://gitgalaxy.io/"
       name: "GitGalaxy Visualizer"
     - icon: "fontawesome/brands/github"
-      link: "[https://github.com/squid-protocol/gitgalaxy](https://github.com/squid-protocol/gitgalaxy)"
+      link: "https://github.com/squid-protocol/gitgalaxy"
       name: "GitHub Source Code"
 
 docs_dir: "docs/wiki"
@@ -40,10 +40,10 @@ plugins:
 
 extra_javascript:
   - "javascripts/mathjax.js"
-  - "[https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js](https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js)"
+  - "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"
 
 nav:
-  - '🌌 Open GitGalaxy Visualizer': "[https://gitgalaxy.io/](https://gitgalaxy.io/)"
+  - '🌌 Open GitGalaxy Visualizer': "https://gitgalaxy.io/"
   - 'Home': "index.md"
   - 'Enterprise Cookbook (Use Cases)': 
       - 'Enable 24/7 Delta Monitoring': "cookbook/continuous-delta-monitoring.md"
@@ -61,35 +61,25 @@ nav:
       - 'Detect Architectural Drift & Trojans': "cookbook/detect-architectural-drift.md"
       - 'Map Legacy COBOL Monoliths': "cookbook/map-cobol-monoliths.md"
       - 'Scaffold Java Spring Boot': "cookbook/scaffold-spring-boot.md"
+      - 'Cross-Cultural M&A Due Diligence': "cookbook/Cross-Cultural-M&A-Technical-Due-Diligence.md"
+      - 'COBOL Microservice Slicing': "cookbook/cobol-microservice-slicing.md"
+      - 'COBOL to Java Build System': "cookbook/cobol-to-java-automated-spring-boot-build-system.md"
+      - 'COBOL to Java Serialization': "cookbook/cobol-to-java-mainframe-data-serialization-forge.md"
+      - 'COBOL to Java REST API': "cookbook/cobol-to-java-REST-API-generation.md"
+      - 'COBOL Entity Forge': "cookbook/cobol-to-java-spring-boot-entity-forge.md"
+      - 'COBOL Service Forge': "cookbook/cobol-to-java-spring-boot-service-forge.md"
+      - 'Create DAG from COBOL': "cookbook/creating-dag-from-cobol-files.md"
+      - 'Create JCL from COBOL': "cookbook/creating-jcl-from-cobol-files.md"
+      - 'Create Schema from COBOL': "cookbook/creating-schema-from-cobol-files.md"
+      - 'Identify Dead COBOL Code': "cookbook/identifying-dead-code-in-cobol.md"
+      - 'Unpack ETL from CBL': "cookbook/unpacking-etl-from-cbl-files.md"
   - '🏛️ Museum of Code':
       - 'Welcome to the Museum': 'museum-of-code/index.md'
-      - 'AlphaFold (2018)': 'museum-of-code/teardown-of-alphafold.md'
-      - 'Android': 'museum-of-code/teardown-of-android.md'
-      - 'Apollo 11': 'museum-of-code/teardown-of-apollo-11.md'
-      - 'Bitcoin v0.1.0': 'museum-of-code/teardown-of-bitcoin.md'
-      - 'BLAST': 'museum-of-code/teardown-of-blast.md'
-      - 'DOOM': 'museum-of-code/teardown-of-doom.md'
-      - 'Fineract': 'museum-of-code/teardown-of-fineract.md'
-      - 'FreeBSD': 'museum-of-code/teardown-of-freebsd.md'
-      - 'GnuPG': 'museum-of-code/teardown-of-gnupg.md'
-      - 'Kubernetes': 'museum-of-code/teardown-of-kubernetes.md'
-      - 'Linux': 'museum-of-code/teardown-of-linux.md'
-      - 'MediaWiki': 'museum-of-code/teardown-of-mediawiki.md'
-      - 'NVDA': 'museum-of-code/teardown-of-nvda.md'
-      - 'OpenCV': 'museum-of-code/teardown-of-opencv.md'
-      - 'Pandas': 'museum-of-code/teardown-of-pandas.md'
-      - 'Ruby on Rails': 'museum-of-code/teardown-of-rails.md'
-      - 'ROOT': 'museum-of-code/teardown-of-root.md'
-      - 'SQLite': 'museum-of-code/teardown-of-sqlite.md'
-      - 'TensorFlow': 'museum-of-code/teardown-of-tensorflow.md'
-      - 'WordPress': 'museum-of-code/teardown-of-wordpress.md'
-      - 'WRF-Fortran': 'museum-of-code/teardown-of-wrf-fortran.md'
-  - '1. Foundation & Architecture': 
+  - '1. Foundation & Architecture':
       - 'Project Overview': "01-project-overview.md"
       - 'GalaxyScope CLI Reference': "01-02-galaxyscope-cli-reference.md"
       - 'The blAST Paradigm (ASTs vs LLMs)': "01-03-the-blast-paradigm.md"
-      - 'Installation & Airgap Setup': "01-04-airgap-installation.md"
-      - 'How to Read the Galaxy (Visuals)': "01-05-how-to-read-the-galaxy.md"
+      - 'The Structural RAG Graph': "01-06-the-structural-rag-graph.md"
   - '2. Data Pipeline':
       - 'Pipeline Overview': "02-01-pipeline-overview.md"
       - 'Optical Orchestration': "02-02-optical-orchestration.md"
@@ -122,6 +112,7 @@ nav:
       - 'Claim 7 (Comparing DOOM Ports)': "03-07-claim-7-doom-comparisons.md"
       - 'Future Outlooks': "03-08-future-outlooks.md"
   - '4. Security Tools & Spokes':
+      - 'Competitive Landscape': "04-00-security_landscape.md"
       - 'Full API Network Map': "04-01-full-api-network-map.md"
       - 'SBOM Generator': "04-02-sbom-generator.md"
       - 'Supply Chain Firewall': "04-03-supply-chain-firewall.md"

@@ -1,35 +1,58 @@
-# How to Generate LLM-Optimized Architecture Briefs
+# Recipe: Generate LLM-Optimized Architecture Briefs
 
-Onboarding a new developer—or an AI coding agent—onto a massive, monolithic codebase takes weeks. If you simply dump raw source code into an LLM (like Claude or GPT-4), it will quickly blow out the context window and hallucinate architectural relationships because it lacks global graph visibility.
+Onboarding a new developer—or an AI coding agent (like SWE-agent or Claude)—onto a massive, monolithic codebase takes weeks. 
 
-GitGalaxy solves this using the **LLM Recorder**. It condenses the entire repository's physical constraints, dependency graphs, historical Git churn, and structural risk into a single, highly-optimized Markdown brief (`_llm.md`). 
+If you simply dump raw source code into standard RAG (Retrieval-Augmented Generation), the embedding engine slices the text arbitrarily by token count. It rips functions in half, destroys architectural context, and guarantees the LLM will hallucinate structural relationships. 
 
-This brief acts as a "Rosetta Stone," allowing any standard LLM to instantly understand the ecosystem with the exact same mathematical context as a Principal Systems Architect.
+GitGalaxy solves this using the **LLM Recorder**. It condenses the entire repository's physical constraints, dependency graphs, historical Git churn, and structural risk into a single, highly-optimized Markdown brief (`_llm.md`). This brief acts as a "Rosetta Stone," allowing any standard LLM to instantly understand the ecosystem with the exact same mathematical context as a Principal Systems Architect.
 
-## The AI Translation Layer
+## The Tree-sitter Trap (Why Standard AI Fails)
 
-The LLM Recorder bridges the gap between the raw mathematical output of the GitGalaxy engines (PageRank, Shannon Entropy, Big-O depths) and natural language reasoning.
+The industry standard for feeding code to AI relies on Abstract Syntax Trees (ASTs) like Tree-sitter. ASTs were built to feed compilers, not to generate macroscopic architectural graphs. 
 
-### 1. Execute the Scan
-You can run the full GalaxyScope pipeline, or pass the `--llm-only` flag to exclusively generate the AI artifacts without rendering the 3D WebGPU payload.
+**What an AST physically cannot give an AI:**
+* **Repo-scale perspective:** ASTs get lost in the weeds of syntax.
+* **Simultaneous polyglot analysis:** ASTs require 50 different parsers. We map 50 languages in a single pass.
+* **Compilation-free execution:** ASTs break if a dependency is missing. We don't care if the code compiles.
+* **Human intent:** ASTs throw comments in the trash. We analyze "ghost mass" to capture developer context and documentation risk.
+* **Graceful degradation:** ASTs panic on syntax errors. We map broken and legacy code flawlessly.
+
+## The Solution: The Structural RAG Graph
+
+GitGalaxy rejects arbitrary token slicing and rigid ASTs. By leveraging our AST-free **blAST Engine**, we chunk the codebase biologically. 
+
+We parse the repository at the exact boundaries of its structural logic, extracting over 50 unique mathematical metrics per function, and rolling them up into a **5-Scale Holographic Hierarchy**:
+
+1. **Satellites (Functions/Methods):** The exact geometry, I/O boundaries, and state mutations of every logic block.
+2. **Entities (Classes/Structs):** Satellites roll up into parent entities to measure cognitive load density.
+3. **Stars (Files):** Entities roll up into files to calculate exact Blast Radius and PageRank via our dependency radar.
+4. **Constellations (Folders):** Stars roll up to identify neighborhood-level technical debt.
+5. **The Galaxy (Repository):** A single snapshot of systemic health and ML-inferred security posture.
+
+---
+
+## 1. Execute the Scan
+
+To generate the LLM Architecture Brief, run the GalaxyScope orchestrator and pass the `--llm-only` flag. This instructs the chassis to bypass the heavy SQLite and WebGPU serialization steps, routing the data exclusively to the AI translation layer.
 
 ```bash
 galaxyscope /path/to/target_repository --llm-only
 ```
 
-### 2. Feed the Brief to your AI
-The engine outputs a `<repo>_galaxy_llm.md` file. Upload this file directly into ChatGPT, Claude, or your local autonomous agent framework (like SWE-agent). 
+**Output:** The engine will generate a timestamped `<repo>_galaxy_llm.md` file.
 
-The brief strictly categorizes the codebase into actionable intelligence:
+## 2. Feed the Brief to your AI
+
+Upload the generated Markdown file directly into ChatGPT, Claude, or your local autonomous agent framework. The brief strictly categorizes the codebase into actionable intelligence:
 
 * **The 13-Point Risk Physics:** Summarizes the Min/Max/Mean of every risk vector (Cognitive Load, State Flux, Tech Debt) across the entire repository.
 * **Architectural Choke Points:** Identifies "God Nodes" (highest 'Imported By' / Blast Radius) and "Orchestrators" (highest outbound imports / fragility).
-* **The Hotspot Matrix:** Cross-references historical Git volatility (Churn) against high Cognitive Load to pinpoint the exact files causing the most developer friction.
+* **The Hotspot Matrix:** Cross-references historical Git volatility (Churn) against high Risk to pinpoint the exact files causing the most developer friction.
 * **Systemic Network Bottlenecks:** Uses N-Dimensional physics to flag catastrophic intersections, such as the **"House of Cards"** (files that are deeply embedded in the graph *and* possess extreme Error/Exception exposure).
 * **Key Person Dependencies:** Flags massive, load-bearing files written almost entirely by a single developer (High Silo Risk / Bus Factor).
 
-### 3. The Enforced System Prompt
-To prevent the LLM from outputting sensationalized, useless jargon, GitGalaxy automatically injects a strict System Prompt at the bottom of the brief.
+### The Enforced System Prompt
+To prevent the LLM from outputting sensationalized, useless jargon, GitGalaxy automatically injects a strict System Prompt at the top of the brief, forcing the AI to evaluate risk density rather than subjective "code quality."
 
 ```markdown
 ## AI SYSTEM INSTRUCTIONS (OUTPUT FORMAT)
@@ -41,6 +64,90 @@ To prevent the LLM from outputting sensationalized, useless jargon, GitGalaxy au
 > 5. Recommended Next Steps (Refactoring for Stability)
 ```
 
-By providing the AI with mathematically proven network topology rather than raw text, you guarantee deterministic, actionable refactoring advice.
+---
 
-> **Read the full technical specification:** [LLM Recorder](../02-14-llm-recorder.md)
+## 3. Real-World Payload Example
+
+Below is an actual, unedited architecture brief generated by GitGalaxy for the open-source SAP `abap-cleaner` repository. 
+
+If you paste this exact text into an LLM like Claude 3.5 Sonnet or GPT-4o, it will instantly possess a complete, mathematical understanding of the 118,000-line Java architecture without ever needing to read the source code.
+
+<details>
+<summary><b>👁️ Expand to view the raw `abap-cleaner_galaxy_llm.md` output</b></summary>
+
+```markdown
+# ARCHITECTURAL_BRIEF: abap-cleaner
+> INSTRUCTION: Deterministic Syntactic Physics. Base architectural insights on Mass, DNA, and Risk overlays.
+
+## 0. FORENSIC TRACEABILITY
+| Metadata | Value |
+|---|---|
+| **Engine** | `GitGalaxy Scope v6.2.0 (Delta Mode)` |
+| **Target Path** | `/srv/storage_16tb/projects/gitgalaxy/data/abap-cleaner` |
+| **Scan Duration** | `2.38s` |
+| **Git Branch** | `main` |
+
+## 0.5 AI THREAT AUDIT STATUS
+> **✅ SECURE_NO_MALWARE_DETECTED**
+> XGBoost Structural DNA model found no malicious artifacts.
+
+## 1. SYSTEM ROLE & PHILOSOPHY
+> Code is art. Logic is art. Systems engineering is art.
+> You are analyzing software architecture through the lens of GitGalaxy...
+> [System Prompts Omitted for Brevity]
+
+## 3. MACRO STATE
+| Metric | Value |
+|---|---|
+| Total Artifacts | 731 |
+| Visible Matter (Scanned) | 550 |
+| Dark Matter (Non-scanned) | 362 |
+| Total LOC | 118063 |
+| % Scanned of codebase | 75.2% |
+| Dominant Lang | JAVA |
+
+## 7. ARCHITECTURAL CHOKE POINTS & DEPENDENCIES
+### Top I/O Latency Risks
+- `com.sap.adt.abapcleaner/src/com/sap/adt/abapcleaner/base/FileSystem.java` (Hits: 36)
+- `com.sap.adt.abapcleaner/src/com/sap/adt/abapcleaner/rulehelpers/DdlAnalyzer.java` (Hits: 15)
+
+### Top 5 Orchestrators (Highest 'Imports' / Fragility Index)
+1. **AbapCleanerHandlerBase.java** — 47 outbound dependencies
+2. **RuleTestBase.java** — 40 outbound dependencies
+3. **FrmProfiles.java** — 36 outbound dependencies
+
+## 8.5 ALGORITHMIC & DATABASE BOTTLENECKS
+### Highest Time Complexity (Big-O)
+- `compareTo` (@ `CompareDoc.java`) -> **O(2^N) [Recursive]**
+- `executeOn` (@ `RuleForLogicalExpressions.java`) -> **O(2^N) [Recursive]**
+
+## 11. CUMULATIVE RISK HITLIST (Top Highest Risk Files)
+### 1. `com.sap.adt.abapcleaner/src/com/sap/adt/abapcleaner/parser/Token.java` (JAVA) -> Cumulative Risk: **588.31**
+- **Archetype:** `file_cluster_3` (Distance: 14.588 IQR)
+- **Mass:** 3845.88 | **LOC:** 3949 | **CtrlFlow:** 64.3% | **Silo Risk:** 100.0%
+- **Primary Risk Drivers:** Spec Match (100.0%), Documentation (100.0%), Safety Score (95.27%), Tech Debt (92.93%)
+- **Heaviest Functions:** `determineMemoryAccessType` (Impact: 483.6), `getLastTokenOfLogicalExpression` (Impact: 336.4)
+
+## 13.5 STRATEGIC REFACTORING TARGETS (Volatility & Silos)
+### 🔥 The Hotspot Matrix (High Volatility + High Risk)
+These files are messy, complex, and modified frequently. They are the primary source of developer friction.
+- `Command.java` -> Churn: **73.11%** | Cog Load: 20.60% | Debt: 86.26%
+- `Token.java` -> Churn: **58.4%** | Cog Load: 30.97% | Debt: 92.93%
+
+### 👤 Key Person Dependencies (High Impact + Siloed Knowledge)
+These are massive, load-bearing files written almost entirely by a single developer. They represent severe 'Bus Factor' risk.
+- `Token.java` -> **Jörg-Michael Grassau** (100.0% isolated ownership)
+- `Command.java` -> **Jörg-Michael Grassau** (100.0% isolated ownership)
+```
+</details>
+
+<br><br>
+
+---
+
+### 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, compilation-free heuristic knowledge graph engine.
+
+* 📖 **[Deep Dive: The LLM Recorder Engine](../02-14-llm-recorder.md)**
+* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.

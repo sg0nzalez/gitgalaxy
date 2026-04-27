@@ -8,7 +8,7 @@ Welcome to the **GitGalaxy API Security & Attack Surface Mapping Suite**.
 
 Security documentation is often strictly theoretical, whereas compiled source code represents physical reality. Attackers do not exploit the APIs you have documented; they hunt for the forgotten, undocumented endpoints left exposed in your codebase.
 
-Standard DevSecOps scanners rely on approved Swagger or OpenAPI files to dictate what should be tested. GitGalaxy provides a deterministic source of truth. By scanning the raw codebase at high velocity, we reveal the exact routing logic that is actively exposed to the network, regardless of what the documentation claims.
+Standard DevSecOps scanners ([like Checkmarx, SonarQube, or Semgrep](https://squid-protocol.github.io/gitgalaxy/04-00-security_landscape/)) rely on approved Swagger or OpenAPI files to dictate what should be tested. GitGalaxy provides a deterministic source of truth. By scanning the raw codebase at high velocity, we reveal the exact routing logic that is actively exposed to the network, regardless of what the documentation claims.
 
 ### 🔍 Core Methodology: OpenAPI Drift Detection
 
@@ -16,8 +16,8 @@ We utilize AST-free stoichiometric signatures—calculated metrics derived direc
 
 * **Map Physical Reality:** Scans raw text for actual execution routes without needing a compiler or build environment.
 * **Extract Theoretical Truth:** Parses official Swagger or OpenAPI specifications.
-* **Mathematical Resolution:** Applies strict set theory to expose critical security gaps and API drift.
-* **Identify Shadow APIs (Critical Risk):** Exposes undocumented, active endpoints that evade standard WAFs and security audits.
+* **Mathematical Resolution:** Applies strict set theory to expose critical security gaps and [API drift](https://squid-protocol.github.io/gitgalaxy/04-01-full-api-network-map/).
+* **Identify Shadow APIs (Critical Risk):** Exposes undocumented, active endpoints that evade standard WAFs and security audits, allowing you to seamlessly [hunt Shadow APIs in CI/CD pipelines](https://squid-protocol.github.io/gitgalaxy/cookbook/hunt-shadow-apis/).
 * **Identify Ghost/Zombie APIs (Audit Bloat):** Highlights documented but non-existent or deprecated endpoints.
 
 ### 🧠 Smart Auto-Discovery & Monorepo Support
@@ -112,7 +112,8 @@ Outputs a deterministic terminal dashboard optimized for CI/CD pipeline integrat
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
 This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity. Read the official documentation to see how we deterministically map API routes:
 
-* 📖 **[Full API Network Map Architecture](../../../docs/wiki/04-01-full-api-network-map.md)**
-* 📖 **[The Network Risk Sensor Mechanics](../../../docs/wiki/02-16-network-risk-sensor.md)**
-* 📖 **[API Exposure Risk Equations](../../../docs/wiki/08-14-api-exposure.md)**
+* 📖 **[The blAST Paradigm (ASTs vs LLMs)](https://squid-protocol.github.io/gitgalaxy/01-03-the-blast-paradigm/)**
+* 📖 **[Full API Network Map Architecture](https://squid-protocol.github.io/gitgalaxy/04-01-full-api-network-map/)**
+* 📖 **[The Network Risk Sensor Mechanics](https://squid-protocol.github.io/gitgalaxy/02-16-network-risk-sensor/)**
+* 📖 **[API Exposure Risk Equations](https://squid-protocol.github.io/gitgalaxy/08-14-api-exposure/)**
 * 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**
