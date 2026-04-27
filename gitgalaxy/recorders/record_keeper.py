@@ -215,6 +215,10 @@ class RecordKeeper:
             )
         ''')
 
+        # ---> NEW: INDEXES TO PREVENT CASCADE DELETE HANGS <---
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_class_file_id ON class_data(file_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_function_file_id ON function_data(file_id);")
+
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS dark_matter_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
