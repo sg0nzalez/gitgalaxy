@@ -4,16 +4,16 @@
 [![Architecture](https://img.shields.io/badge/Architecture-Deterministic_Regex-00BFFF.svg)](#)
 [![State Manager](https://img.shields.io/badge/State-Hybrid_RAM%2FSQLite-8A2BE2.svg)](#)
 
-Welcome to the **GitGalaxy Mainframe Modernization Suite**. This is a deterministic, high-speed static analysis suite designed to safely slice, sanitize, and modernize monolithic legacy systems. 
+Welcome to the **GitGalaxy Mainframe Modernization Suite**. This is a deterministic, high-speed static analysis suite designed to safely slice, sanitize, and [map monolithic legacy systems](https://squid-protocol.github.io/gitgalaxy/cookbook/map-cobol-monoliths/). 
 
 **Mainframe Proven:** The outputs of these architectural tools natively compile against raw MVS 3.8j operating systems (1974 Hercules Mainframe), while simultaneously scaffolding modern cloud environments.
 
 ### 🔄 The Modernization Pipeline
 
-You point the Migration Controller at a massive, undocumented COBOL repository. It translates a chaotic folder of `.cbl` files into a deterministic execution pipeline:
+You point the [Legacy Refraction Controller](https://squid-protocol.github.io/gitgalaxy/05-01-legacy-refraction-controller/) at a massive, undocumented COBOL repository. It translates a chaotic folder of `.cbl` files into a deterministic execution pipeline:
 
 * **The Assessment:** Dynamically scales between high-speed RAM and SQLite3.
-* **Dead Code Extraction:** Uses structural heuristics to mathematically map and extract orphaned memory and dead code bloat. *(AST-Free)*
+* **Dead Code Extraction:** Uses structural heuristics to mathematically map and [extract orphaned memory and dead code bloat](https://squid-protocol.github.io/gitgalaxy/cookbook/identifying-dead-code-in-cobol/). *(AST-Free)*
 * **Dependency Mapping:** Maps data lineage to deflect dead dependencies.
 * **Asset Generation:** Generates pristine PostgreSQL schemas, JSON APIs, and compile-ready JCLs.
 
@@ -24,29 +24,29 @@ You point the Migration Controller at a massive, undocumented COBOL repository. 
 This suite is built on a modular Hub-and-Spoke architecture. Every Python script acts as an independent CLI tool or is orchestrated centrally.
 
 #### 1. Pre-Processors & Sensors
-* **Lexical Patcher (`cobol_lexical_patcher.py`):** Safely neutralizes legacy compiler traps.
-* **System Limits Reporter (`cobol_system_limits_reporter.py`):** Flags non-deterministic routing logic and system constraint breaches.
+* **[Lexical Patcher](https://squid-protocol.github.io/gitgalaxy/05-13-lexical-patcher/) (`cobol_lexical_patcher.py`):** Safely neutralizes legacy compiler traps.
+* **[System Limits Reporter](https://squid-protocol.github.io/gitgalaxy/05-17-system-limits-reporter/) (`cobol_system_limits_reporter.py`):** Flags non-deterministic routing logic and system constraint breaches.
   <br>![System Limits Reporter](../../../docs/wiki/assets/system_limits_reporter.gif)
 
 #### 2. Extractors & Slicers
-* **Graveyard Finder (`cobol_graveyard_finder.py`):** Expands copybooks to calculate dead code bloat.
+* **[Graveyard Reaper](https://squid-protocol.github.io/gitgalaxy/05-10-graveyard-reaper/) (`cobol_graveyard_finder.py`):** Expands copybooks to calculate dead code bloat.
   <br>![Graveyard Reaper](../../../docs/wiki/assets/graveyard_reaper.gif)
-* **DAG Architect (`cobol_dag_architect.py`):** Maps data lineage to mathematically calculate zero-trust execution topology.
+* **[DAG Architect](https://squid-protocol.github.io/gitgalaxy/05-08-dag-architect/) (`cobol_dag_architect.py`):** Maps data lineage to [mathematically calculate zero-trust execution topology](https://squid-protocol.github.io/gitgalaxy/cookbook/creating-dag-from-cobol-files/).
   <br>![DAG Architect](../../../docs/wiki/assets/dag_architect.gif)
-* **Microservice Slicer (`cobol_microservice_slicer.py`):** Executes 3-pass recursive variable taint-tracking.
+* **[Microservice Slicer](https://squid-protocol.github.io/gitgalaxy/05-14-microservice-slicer/) (`cobol_microservice_slicer.py`):** Executes 3-pass recursive variable taint-tracking for safe [business logic extraction](https://squid-protocol.github.io/gitgalaxy/cookbook/cobol-microservice-slicing/).
   <br>![Microservice Slicer](../../../docs/wiki/assets/microservice_slicer.gif)
-* **ETL Unpacker (`cobol_etl_unpacker.py`):** Translates binary EBCDIC and Packed Decimal to CSVs.
+* **[ETL Unpacker](https://squid-protocol.github.io/gitgalaxy/05-09-etl-unpacker/) (`cobol_etl_unpacker.py`):** Translates binary EBCDIC and Packed Decimal to CSVs to [unpack hidden ETL flows](https://squid-protocol.github.io/gitgalaxy/cookbook/unpacking-etl-from-cbl-files/).
 
 #### 3. Cloud & Mainframe Forges
-* **Compiler Forge (`cobol_compiler_forge.py`):** Flattens copybooks and generates era-aware build JCLs.
+* **[Compiler Forge](https://squid-protocol.github.io/gitgalaxy/05-07-mainframe-compiler-forge/) (`cobol_compiler_forge.py`):** Flattens copybooks and generates era-aware build JCLs.
   <br>![Compiler Forge](../../../docs/wiki/assets/compiler_forge.gif)
-* **Cloud Schema Forge (`cobol_schema_forge.py`):** Translates `PIC` clauses to strict PostgreSQL DDLs.
+* **[Cloud Schema Forge](https://squid-protocol.github.io/gitgalaxy/05-15-cloud-schema-forge/) (`cobol_schema_forge.py`):** Translates `PIC` clauses to [strict PostgreSQL DDL schemas](https://squid-protocol.github.io/gitgalaxy/cookbook/creating-schema-from-cobol-files/).
   <br>![Cloud Schema Forge](../../../docs/wiki/assets/cloud_schema_forge.gif)
-* **Zero-Trust JCL Forge (`cobol_jcl_forge.py`):** Extracts `SELECT` mappings to auto-generate strict, least-privilege JCL emulators.
+* **[Zero-Trust JCL Forge](https://squid-protocol.github.io/gitgalaxy/05-12-zero-trust-jcl-forge/) (`cobol_jcl_forge.py`):** Extracts `SELECT` mappings to [auto-generate strict, least-privilege JCL emulators](https://squid-protocol.github.io/gitgalaxy/cookbook/creating-jcl-from-cobol-files/).
   <br>![Zero-Trust JCL Forge](../../../docs/wiki/assets/jcl_forge_demo.gif)
   
 #### 4. The AI Remediation Boundary
-* **Anomaly Task Forge (`cobol_agent_task_forge.py`):** Isolates structural anomalies into bounded JSON job tickets for LLM remediation.
+* **[Anomaly Task Forge](https://squid-protocol.github.io/gitgalaxy/05-16-anomaly-agent-task-forge/) (`cobol_agent_task_forge.py`):** Isolates structural anomalies into bounded JSON job tickets for LLM remediation.
 
 ---
 
@@ -166,7 +166,7 @@ The controller generates a timestamped `_gitgalaxy_clean` directory containing:
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
 This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is driven by our custom mathematical heuristics engine, capable of mapping multi-dimensional relationships at extreme velocity without requiring rigid ASTs. Read the official documentation to explore the architecture of the modernization controllers:
 
-* 📖 **[The Legacy Modernization Controller](../../../docs/wiki/05-01-legacy-refraction-controller.md)**
-* 📖 **[Dead Code Extraction Mathematics](../../../docs/wiki/05-10-graveyard-reaper.md)**
-* 📖 **[Zero-Trust JCL Forge Mechanics](../../../docs/wiki/05-12-zero-trust-jcl-forge.md)**
+* 📖 **[The Legacy Refraction Controller](https://squid-protocol.github.io/gitgalaxy/05-01-legacy-refraction-controller/)**
+* 📖 **[Dead Code Extraction Mathematics](https://squid-protocol.github.io/gitgalaxy/05-10-graveyard-reaper/)**
+* 📖 **[Zero-Trust JCL Forge Mechanics](https://squid-protocol.github.io/gitgalaxy/05-12-zero-trust-jcl-forge/)**
 * 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**

@@ -6,7 +6,7 @@ Using the **GitGalaxy blAST engine**, we have stripped away the abstractions of 
 
 ### The Exhibits
 
-* 🧬 **[AlphaFold (2018)](teardown-of-alphafold.md)** - The 5,000-line Python breakthrough that solved protein folding.
+* 🧬 **<a href="alphafold_teardown.html" target="_blank" class="text-blue-500 hover:underline">AlphaFold (2018)</a>** - The 5,000-line Python breakthrough that solved protein folding.
 * 📱 **[Android](teardown-of-android.md)** - The world's most ubiquitous mobile OS.
 * 🚀 **[Apollo 11](teardown-of-apollo-11.md)** - The AGC assembly code that took humanity to the moon.
 * 🪙 **[Bitcoin v0.1.0](teardown-of-bitcoin.md)** - The original, highly coupled C++ prototype of decentralized finance.

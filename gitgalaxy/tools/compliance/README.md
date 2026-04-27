@@ -6,7 +6,7 @@
 
 Welcome to the **GitGalaxy Compliance & SBOM Suite**.
 
-The industry standard for generating a Software Bill of Materials (SBOM) is fundamentally flawed. Standard tools open your `package.json`, `composer.json`, or `requirements.txt`, read the list of dependencies, and blindly export them to a PDF. **They trust the manifest.**
+The industry standard for generating a [Software Bill of Materials (SBOM)](https://squid-protocol.github.io/gitgalaxy/04-02-sbom-generator/) is fundamentally flawed. Standard tools open your `package.json`, `composer.json`, or `requirements.txt`, read the list of dependencies, and blindly export them to a PDF. **They trust the manifest.**
 
 But manifests lie. A supply chain attack doesn't announce itself. A package might claim to be a simple text-formatting utility, but its physical files contain high-entropy encrypted payloads, obfuscated malware, or mismatched languages. 
 
@@ -14,24 +14,24 @@ GitGalaxy takes a **Zero-Trust** approach. We don't just read the manifest; we p
 
 ### 🧠 The Zero-Trust Strategy: Trust Nothing, Verify Everything
 
-When you run our Universal SBOM Generator, it leverages the full weight of the GitGalaxy static analysis engine to audit your dependencies:
+When you run our [Universal SBOM Generator](https://squid-protocol.github.io/gitgalaxy/04-02-sbom-generator/), it leverages the full weight of the GitGalaxy static analysis engine to audit your dependencies:
 
 #### 1. The Universal Manifest Slicer
 It automatically detects your ecosystem (**NPM, PyPI, Composer, Cargo, Go Modules, Maven, and RubyGems**), slices the manifest, and cross-references the declared dependencies against what actually exists on your hard drive. If a dependency is claimed but missing, it is flagged as `UNVERIFIED_MISSING_ON_DISK`.
 
 #### 2. Deep File Inspection & Structural Verification
 For every package found on disk, we open the core source files and run them through our **Structural Profiler** to confirm the file's true identity. 
-* **Identity Spoofing:** If an attacker hides a malicious bash script by naming it `index.js`, the profiler cross-references the extension against the internal file shebangs and structural markers. It triggers an **Identity Crisis** and flags the package as `SPOOF_DETECTED`.
-* **Entropy Auditing:** We calculate the Shannon Entropy of the raw code. If the structural density exceeds standard human programming bounds (e.g., an entropy score > 4.8), we flag it for containing encrypted or packed payloads.
+* **Identity Spoofing:** If an attacker hides a malicious bash script by naming it `index.js`, the profiler cross-references the extension against the internal file shebangs and structural markers. It triggers an [Identity Crisis](https://squid-protocol.github.io/gitgalaxy/02-05-language-lens/) and flags the package as `SPOOF_DETECTED`.
+* **Entropy Auditing:** We calculate the [Shannon Entropy](https://squid-protocol.github.io/gitgalaxy/04-05-binary-anomaly-detector/) of the raw code. If the structural density exceeds standard human programming bounds (e.g., an entropy score > 4.8), we flag it for containing encrypted or packed payloads.
 
 ### 🛡️ The Full GitGalaxy Defense Pipeline
 
 Our compliance auditing isn't just a simple script; it is backed by a multi-tiered, battle-tested heuristic pipeline:
 
-* **Pre-Process Analyzers (Binary Detection):** Acts as the frontline perimeter. It detects embedded hex arrays, opaque binary debris, and machine-generated monoliths before they can overwhelm the system.
-* **Metadata & Evasion Sensors:** Scans your metadata (`.gitattributes`, `Makefile`). Crucially, it hunts for evasion tactics—like an attacker using `.gitignore` to secretly force-include a malicious `.so` binary while hiding it from standard directory scans.
-* **Language Verification Engine:** Bypasses LLM hallucinations by using 60+ strict keyword regex profiles to definitively lock in a file's language family based on structural evidence, not just its extension.
-* **Statistical Outlier Detection:** Applies Z-Score math across the codebase. If a file claims to be a specific language but its structural logic density is a mathematical outlier compared to the rest of the ecosystem, it drops into **Quarantine**. We catch malware trying to disguise itself as inert data dumps.
+* **[Pre-Process Analyzers (Binary Detection)](https://squid-protocol.github.io/gitgalaxy/02-03-aperture-filter/):** Acts as the frontline perimeter. It detects embedded hex arrays, opaque binary debris, and machine-generated monoliths before they can overwhelm the system.
+* **[Metadata & Evasion Sensors](https://squid-protocol.github.io/gitgalaxy/02-06-security-lens/):** Scans your metadata (`.gitattributes`, `Makefile`). Crucially, it hunts for evasion tactics—like an attacker using `.gitignore` to secretly force-include a malicious `.so` binary while hiding it from standard directory scans.
+* **[Language Verification Engine](https://squid-protocol.github.io/gitgalaxy/02-05-language-lens/):** Bypasses LLM hallucinations by using 60+ strict keyword regex profiles to definitively lock in a file's language family based on structural evidence, not just its extension.
+* **[Statistical Outlier Detection](https://squid-protocol.github.io/gitgalaxy/02-09-signal-processing/):** Applies Z-Score math across the codebase. If a file claims to be a specific language but its structural logic density is a mathematical outlier compared to the rest of the ecosystem, it drops into **Quarantine**. We catch malware trying to disguise itself as inert data dumps.
 
 ---
 
@@ -77,7 +77,7 @@ zero-trust-sbom /path/to/your/project
 ```
 
 #### 2. GitHub Actions CI/CD Integration
-Automate your compliance by generating and saving a mathematically verified SBOM on every release. Create `.github/workflows/generate-sbom.yml`:
+Automate your compliance by generating and saving a mathematically verified SBOM on every release (see our [Cookbook Recipe](https://squid-protocol.github.io/gitgalaxy/cookbook/generate-zero-trust-sbom/)). Create `.github/workflows/generate-sbom.yml`:
 
 ```yaml
 name: Generate Zero-Trust SBOM
@@ -109,7 +109,7 @@ jobs:
 
 ---
 ### 🌌 Powered by the blAST Engine
-This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is powered by the **blAST Engine**, an AST-free, mathematical heuristics engine capable of mapping repositories at 100,000 LOC/sec.
+This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is powered by the **[blAST Engine](https://squid-protocol.github.io/gitgalaxy/01-03-the-blast-paradigm/)**, an AST-free, mathematical heuristics engine capable of mapping repositories at 100,000 LOC/sec.
 
-* 📖 **[Read the Official Wiki](https://squid-protocol.github.io/gitgalaxy/)** for deep dives into the engine's static analysis methodologies, architecture blueprints, and the Taxonomical Equivalence Map.
-* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)** to explore other enterprise tools like Supply Chain Firewalls and Terabyte Log Scanners.
+* 📖 **[Read the Official Wiki](https://squid-protocol.github.io/gitgalaxy/)** for deep dives into the engine's static analysis methodologies, architecture blueprints, and the **[Taxonomical Equivalence Map](https://squid-protocol.github.io/gitgalaxy/03-03-claim-3-taxonomy-map/)**.
+* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)** to explore other enterprise tools like **[Supply Chain Firewalls](https://squid-protocol.github.io/gitgalaxy/04-03-supply-chain-firewall/)** and **[Terabyte Log Scanners](https://squid-protocol.github.io/gitgalaxy/04-07-terabyte-log-scanner/)**.
