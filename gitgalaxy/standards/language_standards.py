@@ -1242,7 +1242,7 @@ LANGUAGE_DEFINITIONS = {
             # ONLY executable logic blocks. EXCLUDES types/classes. 
             #
             # =====================================================================
-            # [LLM CONTEXT: C# "IRON WALL" FUNCTION EXTRACTOR & REDOS SHIELD]
+            # [ CONTEXT: C# "IRON WALL" FUNCTION EXTRACTOR & REDOS SHIELD]
             # PURPOSE: Anchors executable logic blocks (methods) in C# up to C# 14.
             # VULNERABILITY: C# allows massive return types (e.g., nested tuples), 
             #   generics, and explicit interface implementations. If spaces are allowed 
@@ -2007,7 +2007,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             "func_start": re.compile(
                 # =====================================================================
-                # [LLM CONTEXT: C++ FUNCTION AST EXTRACTOR & REDOS SHIELD]
+                # [ CONTEXT: C++ FUNCTION AST EXTRACTOR & REDOS SHIELD]
                 # PURPOSE: Anchors executable logic blocks (methods/functions) in C++.
                 # VULNERABILITY: C++ allows multi-line function signatures and complex 
                 #   return types (e.g., `std::vector<int> \n myFunc()`). In files with 
@@ -4857,7 +4857,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 4. func_start (The Satellite Spawner)
             # =====================================================================
-            # [LLM CONTEXT: FORTRAN FUNCTION AST EXTRACTOR & REDOS SHIELD]
+            # [ CONTEXT: FORTRAN FUNCTION AST EXTRACTOR & REDOS SHIELD]
             # PURPOSE: Anchors executable logic blocks (Program, Subroutine, Function, Entry) 
             #   across 60+ years of Fortran dialects (F77 through F2018).
             # VULNERABILITY: Fortran allows extreme signature variability: prefix stacking 
@@ -6535,7 +6535,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 4. func_start: Satellite Spawner. Anchors logic blocks (Paragraphs and Sections).
             # =====================================================================
-            # [LLM CONTEXT: COBOL FUNCTION/PARAGRAPH AST EXTRACTOR & REDOS SHIELD]
+            # [ CONTEXT: COBOL FUNCTION/PARAGRAPH AST EXTRACTOR & REDOS SHIELD]
             # PURPOSE: Anchors executable logic blocks (Paragraphs and Sections) in COBOL.
             # VULNERABILITY: COBOL spans 60 years of formatting rules (Fixed vs Free format).
             #   Without strict column boundaries, standard verbs or data definitions 

@@ -4,47 +4,70 @@
 [![Scale](https://img.shields.io/badge/Tested-10GB%2B_Files-00BFFF.svg)](#)
 [![Architecture](https://img.shields.io/badge/Architecture-Single__Pass_Stream-8A2BE2.svg)](#)
 
-Welcome to the **GitGalaxy Terabyte Log Scanning Suite**.
+During an active incident response or catastrophic data breach, standard tools fail. Basic `grep` lacks time-series context. Modern SIEMs (Splunk, ElasticSearch) require you to ingest and index data first—taking hours or days for massive database dumps.
 
-During an active incident response or catastrophic data breach, standard tools fail. Basic `grep` is too rigid and lacks time-series context. Modern SIEMs (like Splunk or ElasticSearch) are incredibly powerful, but they require you to ingest and index the data first—a process that takes hours or days for a 10GB+ database dump. You need answers immediately.
-
-This suite provides a tactical, pipeline-ready solution: **ultra-high-velocity, unindexed binary streaming.** Running at over 2 GB per minute on standard hardware, our custom stream-processing engine reads data continuously without ever loading the massive file into RAM. This makes it perfect for active breach triage, or as an automated CI/CD pipeline job to sanitize server logs before they are permanently archived.
-
-### 1. [The PII Data Leak Hunter](https://squid-protocol.github.io/gitgalaxy/04-06-pii-leak-hunter/) (`pii-leak-hunter`)
-
-A specialized incident response tool designed to find hemorrhaging Personally Identifiable Information (Credit Cards, SSNs, AWS API Keys) inside massive, raw data dumps.
-
-* **Binary-Level Regex Evaluation:** Compiles structural patterns to raw bytes for extreme CPU efficiency.
-* **Automated Data Masking:** Redacts toxic payloads before writing to safe evidence logs.
-* **Exfiltration Histograms:** Generates terminal ASCII charts to pinpoint exact breach minutes.
-* **Pipeline Sanitization:** Runs automatically in CI/CD to block PII log archiving via our [Hunting PII Leaks Recipe](https://squid-protocol.github.io/gitgalaxy/cookbook/hunt-pii-leaks/).
-
-### 2. [The Terabyte Log Scanner](https://squid-protocol.github.io/gitgalaxy/04-07-terabyte-log-scanner/) (`terabyte-log-scanner`)
-
-A runtime execution tracer that connects static codebase architecture to physical runtime reality. It parses massive mainframe SMF logs or distributed traces to prove what code is actually executing.
-
-* **Intermediate Representation (IR) Ingestion:** Ingests static repository maps to hunt known compiled programs in the logs.
-* **Execution Verification:** Proves exact runtime execution frequencies in production environments.
-* **Zero-Hit Dead Code:** Mathematically [proves if compiled legacy code is truly abandoned](https://squid-protocol.github.io/gitgalaxy/cookbook/prove-dead-code-logs/).
-* **Dynamic Telemetry:** Outputs sidecar JSON for 3D WebGPU traffic heatmaps.
+This suite provides a tactical, pipeline-ready solution: **ultra-high-velocity, unindexed binary streaming.** Running at over 2 GB per minute, our custom stream-processing engine reads data continuously without loading massive files into RAM. Perfect for active breach triage or automated CI/CD pipeline sanitization.
 
 ---
 
-### ⚡ Performance & Anomaly Detection Showcases
+## Part 1: The PII Data Leak Hunter (`pii-leak-hunter`)
+[📖 Official Documentation](https://squid-protocol.github.io/gitgalaxy/04-06-pii-leak-hunter/)
 
-#### Showcase A: PII Exfiltration & Automated Masking
-To demonstrate incident response capabilities, we streamed a raw **1.00 GB compromised log file**. The PII Leak Hunter chewed through the file in **25.72 seconds**, detecting and actively masking over **420,000 sensitive records**.
+A specialized incident response tool. Designed to find hemorrhaging Personally Identifiable Information inside massive, raw data dumps.
 
-The resulting time-series histograms immediately exposed two distinct attack patterns: Customer data (VISA/SSNs) was actively exfiltrated at `14:00`, while infrastructure secrets (AWS Keys) were being scraped on an entirely separate cron schedule at `09:00`.
+**How it works:**
+* **Binary-Level Regex:** Compiles structural patterns to raw bytes. Extreme CPU efficiency.
+* **Automated Masking:** Redacts toxic payloads before writing to safe evidence logs.
+* **Exfiltration Histograms:** Generates ASCII charts. Pinpoints exact breach minutes.
 
-![PII Leak Hunter Demo](../../../docs/wiki/assets/pii_leak_hunt.gif)
+**Performance Showcase:** Streamed a raw **1.00 GB compromised log file**. Completed in **25.72 seconds**. Detected and actively masked over **420,000 sensitive records**. Immediately exposed two distinct attack vectors (Customer data at 14:00, AWS Keys at 09:00).
 
-#### Showcase B: Runtime Anomaly Detection
-We ran the Terabyte Log Scanner against a raw **2.1GB production stream log**, hunting for specific error and failure signatures. The engine completed the single-pass scan in **30.07 seconds**. 
+### Targeted Patterns
+The stream engine currently bypasses standard indexing to hunt and actively mask:
+* **VISA** (Credit Cards)
+* **MASTERCARD** (Credit Cards)
+* **SSN** (US Social Security Numbers)
+* **AWS_KEY** (AKIA, ASIA, AGPA, etc.)
 
-The dynamically scaled ASCII time-series histograms instantly exposed a massive, coordinated anomaly: a brute-force attack occurring exactly at `14:00` every day, perfectly isolated from millions of lines of background noise.
+### Quickstart & Integration
+**Local CLI Execution:**
+By default, the tool saves the masked evidence log in the same directory as the target.
+```bash
+pii-leak-hunter /path/to/massive_database_dump.sql
+```
 
-![Terabyte Log Scanner Demo](../../../docs/wiki/assets/mega_log_scan.gif)
+**Using the `--out` Flag:**
+Route the safe, masked telemetry to a secure directory for analysis. 
+```bash
+pii-leak-hunter /path/to/production.log --out /var/secure_logs/
+```
+
+**GitHub Actions CI/CD Integration:**
+Automate sanitization before archiving logs.
+```yaml
+      - name: Run PII Leak Hunter
+        uses: squid-protocol/gitgalaxy@main
+        with:
+          tool: 'pii-leak-hunter'
+          target: './logs/production_dump.sql'
+          args: '--out ./sanitized_logs/'
+```
+
+---
+
+## Part 2: The Terabyte Log Scanner (`terabyte-log-scanner`)
+[📖 Official Documentation](https://squid-protocol.github.io/gitgalaxy/04-07-terabyte-log-scanner/)
+
+A runtime execution tracer. Connects static codebase architecture to physical runtime reality. Parses massive mainframe SMF logs or distributed traces to prove what code actually executes.
+
+**How it works:**
+* **Single-Pass Streaming:** Never loads the full file into RAM.
+* **Execution Verification:** Proves exact runtime execution frequencies.
+* **Zero-Hit Detection:** Mathematically proves if compiled legacy code is abandoned.
+* **Dynamic Sidecars:** Outputs telemetry JSON for 3D WebGPU traffic heatmaps.
+
+**Performance Showcase:**
+Ran against a raw **2.1GB production stream log**. Completed single-pass scan in **30.07 seconds**. Dynamically scaled ASCII histograms instantly exposed a massive brute-force anomaly isolated from background noise:
 
 ```text
  === TIME-SERIES: ERROR ===
@@ -52,65 +75,35 @@ The dynamically scaled ASCII time-series histograms instantly exposed a massive,
  [2026-04-16 14:00] ███████████████████████████████████████ (5,759 hits)  <-- ANOMALY SPIKE
  [2026-04-27 14:00] ███████████████████████████████████████ (5,753 hits)  <-- ANOMALY SPIKE
  [2026-05-02 14:00] ███████████████████████████████████████ (5,718 hits)  <-- ANOMALY SPIKE
- [2026-05-06 14:00] ███████████████████████████████████████ (5,705 hits)  <-- ANOMALY SPIKE
 ```
 
----
+### Input Methods: Manual vs. Automated
+The tool requires one of two input methods to function. It will not run without a target list.
 
-### 🚀 Quickstart: Local CLI & CI/CD Integration
-
-Because these tools operate via single-pass streaming, they require zero environment setup, database indexing, or heavy JVMs. If you have installed GitGalaxy globally via PyPI (`pip install gitgalaxy`), they are ready to run instantly.
-
-#### 1. Local CLI Execution
-
-**Hunt for PII Leaks in a raw database dump:**
+**1. Manual Mode (`-k` or `--keywords`)**
+Best for quick, grep-style tactical hunts. Supply a space-separated list of targets.
 ```bash
-pii-leak-hunter /path/to/massive_database_dump.sql
+terabyte-log-scanner /path/to/production.log -k ERROR TIMEOUT "DATA EXCEPTION"
 ```
 
-**Stream logs to prove runtime execution of static code:**
+**2. Automated Pipeline Mode (`--input_state`)**
+Best for CI/CD modernization pipelines. Supply a GitGalaxy Intermediate Representation (IR) JSON file. The script will automatically extract the targets from the `known_programs` array to hunt for dead code.
 ```bash
 terabyte-log-scanner /path/to/production.log --input_state ../core/ir_state.json
 ```
 
-#### 2. GitHub Actions CI/CD Integration
-
-You can automate the sanitization of logs or artifacts before they are uploaded or archived. Create a file in your repository at `.github/workflows/pii-audit.yml`:
-
-```yaml
-name: GitGalaxy Log Sanitization
-
-on:
-  workflow_dispatch: # Can be run manually or on a cron schedule
-
-jobs:
-  gitgalaxy-log-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # (Assuming a previous step generated or downloaded the target log file)
-
-      - name: Run PII Leak Hunter
-        uses: squid-protocol/gitgalaxy@main
-        with:
-          tool: 'pii-leak-hunter'
-          target: './logs/production_dump.sql'
-          args: '--out ./sanitized_logs/'
-
-      - name: Archive Safe Evidence Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: sanitized-evidence-logs
-          path: ./sanitized_logs/*_pii_leak_evidence.log
+*Required JSON Schema for Automated Mode:*
+```json
+{
+  "analysis": {
+    "known_programs": ["PROGRAM1", "PROGRAM2"]
+  }
+}
 ```
 
 ---
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
-This tool is a modular enterprise integration within the broader GitGalaxy architecture. It is driven by our custom mathematical heuristics engine, capable of processing multi-dimensional data at extreme velocity without requiring rigid ASTs or cloud APIs. Read the official documentation to see the structural methodologies powering this high-speed log analysis:
+This suite is driven by our custom deterministic heuristics engine. It processes multi-dimensional data at extreme velocity without requiring rigid ASTs or hallucinating LLMs. 
 
 * 📖 **[The blAST Paradigm (ASTs vs LLMs)](https://squid-protocol.github.io/gitgalaxy/01-03-the-blast-paradigm/)**
-* 📖 **[PII Leak Hunter Architecture](https://squid-protocol.github.io/gitgalaxy/04-06-pii-leak-hunter/)**
-* 📖 **[Terabyte Log Scanner Mechanics](https://squid-protocol.github.io/gitgalaxy/04-07-terabyte-log-scanner/)**
 * 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**
