@@ -27,7 +27,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         # If you have specific queries you want to run, you can specify them here.
@@ -35,6 +35,6 @@ jobs:
         queries: security-extended,security-and-quality
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}"
