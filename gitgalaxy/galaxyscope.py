@@ -371,20 +371,38 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             if is_file_profiling: phase_times["5.5_Security_Lens"] = time.perf_counter() - t_security
             # ----------------------------------------------------
             
-            # Phase 6: Raw Imports
+            # Phase 6: Raw Imports & Named Tokens
             t_imports = time.perf_counter()
             raw_imports = set()
+            named_tokens = set() # <--- NEW: Initialize token tracker
+            
             if not is_inert:
+                # 1. Extract raw file dependencies
                 import_regex = lang_defs.get(lang_id, {}).get("rules", {}).get("_dependency_capture")
                 if import_regex:
                     try:
                         for match in import_regex.finditer(content_buffer):
-                            # Grab the first non-empty capture group (the actual dependency name)
                             extracted_path = next((g for g in match.groups() if g), None)
                             if extracted_path:
                                 raw_imports.add(extracted_path)
                     except Exception:
                         pass
+                        
+                # 2. ---> NEW: Extract Named Imports (TS/JS/Python) <---
+                try:
+                    # Captures 'import { a, b }' and 'from x import a, b'
+                    import_blocks = re.findall(r'(?:import\s+\{([^}]+)\}|from\s+[\w.]+\s+import\s+([^({\n]+))', content_buffer)
+                    for block in import_blocks:
+                        for match in block:
+                            if match:
+                                # Split by comma, handle 'as' aliases
+                                for token in match.split(','):
+                                    clean_token = token.split(' as ')[0].strip()
+                                    if clean_token:
+                                        named_tokens.add(clean_token)
+                except Exception:
+                    pass
+                    
             if is_file_profiling: phase_times["6_Import_Regex"] = time.perf_counter() - t_imports
 
             # Phase 7: Tokenization & Census
@@ -429,7 +447,8 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             "prior_lock": has_prior,
             "coding_loc": refraction["coding_loc"],
             "doc_loc": refraction["doc_loc"],
-            "raw_imports": list(raw_imports),          
+            "raw_imports": list(raw_imports),
+            "named_tokens": list(named_tokens), # <--- NEW: Send tokens to Orchestrator
             "popularity_hits": popularity_hits,
             "regex_telemetry": logic_data.pop("regex_telemetry", {}) if is_profiling else {}
         }
@@ -1247,6 +1266,15 @@ class Orchestrator:
         # --- NEW: CALCULATE THE GLOBAL TEST UMBRELLA ---
         total_loc = 0
         test_loc = 0
+        
+        # ==============================================================
+        # ---> NEW: BUILD GLOBAL TOKEN TRACKER <---
+        # ==============================================================
+        self.used_tokens = set()
+        for meta in self.cryolink.values():
+            self.used_tokens.update(meta.get("named_tokens", []))
+        # ==============================================================
+
         for rel_path, meta in self.cryolink.items():
             loc = meta.get("coding_loc", 0)
             total_loc += loc
@@ -1272,6 +1300,25 @@ class Orchestrator:
             # Grab the winning language for this folder (defaulting to the file's own language)
             meta["metadata"]["folder_dominant_lang"] = folder_dominant_langs.get(folder, meta.get("lang_id", "unknown"))
             # -----------------------------------------------------------------
+            
+            # =================================================================
+            # ---> THE NETWORK GRAVITY FIX <---
+            # If the file is imported by the ecosystem, its "orphans" are actually its API.
+            # =================================================================
+            popularity = self.popularity_scores.get(rel_path, 0)
+            if popularity > 0 and "equations" in meta:
+                orphans = meta["equations"].get("design_slop_orphans", 0)
+                if orphans > 0:
+                    # 1. Convert the dead weight into API Exposure
+                    meta["equations"]["api"] = meta["equations"].get("api", 0) + orphans
+                    # 2. Wipe the Technical Debt
+                    meta["equations"]["design_slop_orphans"] = 0
+                    
+                    # 3. Heal the function metadata
+                    for func in meta.get("functions", []):
+                        if func.get("usage_status") == 1:
+                            func["usage_status"] = 0
+            # =================================================================
             
             meta["temporal_telemetry"] = self.chronometer.get_temporal_signals(rel_path)
             meta["authors"] = meta["temporal_telemetry"].get("authors", {})

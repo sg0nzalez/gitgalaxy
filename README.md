@@ -150,15 +150,20 @@ Unindexed, tactical log analysis operating at 0.07 GB/sec. It streams massive da
 ### [AI Agent Guardrails & Codebase Protection](gitgalaxy/tools/ai_guardrails/)
 Specialized keyword sensors protecting both your application and your codebase. The AppSec Sensor detects weaponized LLM features (RCE funnels, exfiltration risks), while the Dev Agent Firewall evaluates token mass and blast radius to restrict autonomous coding agents from modifying dangerous over context token-draining files. Helps identify which files need to be chunked to reduce context overload.
 
-  ## Local Browser-Based 3D Codebase Visualization
+## Local Browser-Based 3D Codebase Visualization
 
 If you prefer visual analytics, we've built a non-numerical dashboard where each file represents a star, sized and colored according to specific risk metrics.
 
 Simply drag and drop your generated `your_repo_GPU_galaxy.json` file (or a `.zip` of your raw repository) directly into [GitGalaxy.io](https://gitgalaxy.io/). All rendering and scanning happens entirely in your browser's local memory.
 
-![GitGalaxy 3D structural mapping of API exposure and state flux risks in the Apollo 11 legacy codebase](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/apollo-11_state_flux.png)
+### 🔭 Watch GitGalaxy in Action
 
-![GitGalaxy native SQLite3 database schema for AST-free enterprise codebase mapping and cybersecurity auditing](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/sqlite_overview.png)
+**Mapping 3.2 Million Lines of C++ in 11 Seconds | OpenCV** [![OpenCV Demo](https://img.youtube.com/vi/3ScQCSUBdZw/maxresdefault.jpg)](https://youtu.be/3ScQCSUBdZw)
+
+**Visualizing Architectural Risk | Ruby on Rails** [![Ruby on Rails Demo](https://img.youtube.com/vi/3ScQCSUBdZw/maxresdefault.jpg)](https://youtu.be/3ScQCSUBdZw) 
+*(Note: Replace the video IDs in this link with your actual Rails video ID)*
+
+![GitGalaxy Meta Visualizer 3D star map rendering complex software repository structures and K-means clustering archetypes in the browser](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/metavisualizer.png)
 
 ## Zero-Trust Data Security
 
@@ -167,10 +172,6 @@ Your code never leaves your machine. GitGalaxy performs 100% of its scanning and
 * **No Data Transmission:** Source code is never transmitted to any API, cloud database, or third-party service.
 * **Ephemeral Memory Processing:** Repositories are unpacked into a volatile memory buffer (RAM) and are automatically purged when the browser tab is closed.
 * **Privacy-by-Design:** Even when using the web-based viewer, the data remains behind the user's firewall at all times.
-
-![GitGalaxy interactive WebGPU data HUD displaying real-time software architecture metrics, forensic analysis, and file-level risk telemetry](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/data_hud.png)
-
-![GitGalaxy Meta Visualizer 3D star map rendering complex software repository structures and K-means clustering archetypes in the browser](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/metavisualizer.png)
 
 ## License & Copyright
 
