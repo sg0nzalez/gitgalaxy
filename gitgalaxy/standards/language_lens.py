@@ -202,6 +202,13 @@ class LanguageDetector:
         
         # We explicitly add .txt and .log to the prose override list
         if ext in {'.md', '.mdx', '.rst', '.rtf', '.txt', '.log'}:
+            # ---> THE FIX: Catch disguised payloads before the early exit! <---
+            shebang_lang = self._tier_2_fingerprint_check(content_sample, ext)
+            if shebang_lang and shebang_lang != "undeterminable":
+                self.logger.warning(f"[{name}] IDENTITY CRISIS: Prose Ext '{ext}' contradicts Shebang '{shebang_lang}'")
+                result["anomaly_flags"].append(f"Identity Masking: Prose Extension ({ext}) vs Shebang ({shebang_lang})")
+                return self._forge_result("undeterminable", 0.0, 5, f"Identity Conflict ({ext} != {shebang_lang})", result, content_sample)
+                
             target_id = "markdown" if ext in {'.md', '.mdx'} else "plaintext"
             return self._forge_result(target_id, self.thresholds.get("PROSE_CONFIDENCE", 0.95), 1, f"Prose Extension ({ext})", result, content_sample)
         
