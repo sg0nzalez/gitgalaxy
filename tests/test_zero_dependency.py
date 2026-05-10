@@ -44,6 +44,42 @@ class TestZeroDependencyMode(unittest.TestCase):
             
         except TypeError as e:
             self.fail(f"Zero-Dependency Mode crashed the Signal Processor! Error: {e}")
+            
+    @patch('gitgalaxy.security.security_auditor.ML_AVAILABLE', False)
+    def test_fallback_does_not_crash_security_auditor(self):
+        """
+        Simulates a user running GalaxyScope without 'xgboost' or 'pandas' installed.
+        Ensures that the ML Threat Inference gracefully bypasses without crashing,
+        while still executing the dependency graph resolution.
+        """
+        # We must import it inside the test or at the top of the file
+        from gitgalaxy.security.security_auditor import SecurityAuditor
+        
+        # 1. Initialize the blinded auditor
+        auditor = SecurityAuditor(model_path="dummy_path.json")
+        
+        # 2. Create a mock star
+        mock_stars = [{
+            "path": "src/safe_file.py",
+            "telemetry": {},
+            "raw_imports": ["src/other_file.py"]
+        }]
+        
+        try:
+            # 3. Force the auditor to process the stars
+            result_stars = auditor.audit_galaxy(mock_stars)
+            
+            # 4. INVARIANT ASSERTIONS
+            self.assertEqual(len(result_stars), 1, "Auditor should return the exact same number of stars.")
+            
+            # Verify the ML threat assessment was safely skipped
+            self.assertFalse(result_stars[0].get("is_ml_threat", False), "Blinded auditor should not flag ML threats.")
+            
+            # Verify the first half of the function (dependency graph mapping) STILL worked!
+            self.assertIn("dependency_network", result_stars[0], "Auditor failed to run the dependency graph resolution fallback.")
+            
+        except Exception as e:
+            self.fail(f"Zero-Dependency Mode crashed the Security Auditor! Error: {e}")
 
 if __name__ == '__main__':
     unittest.main()
