@@ -21,6 +21,7 @@ class TestChronometerTimeout(unittest.TestCase):
             while True:
                 # Yields a valid line so the internal logic has to do work
                 yield "mock_hash|1700000000|TestAuthor\n"
+                yield "src/safe_file.py\n"
                 
         # We attach the generator to a MagicMock so we can assert .close() is called on it later
         mock_stdout = MagicMock()
