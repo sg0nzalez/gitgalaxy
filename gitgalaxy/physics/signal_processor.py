@@ -837,13 +837,13 @@ class SignalProcessor:
             # ---> N-DIMENSIONAL AI NETWORK POSTURE <---
             if ai_files:
                 # Find the most heavily relied-upon AI node in the graph
-                ai_files.sort(key=lambda x: x.get("telemetry", {}).get("network_metrics", {}).get("pagerank_score", 0.0), reverse=True)
+                ai_files.sort(key=lambda x: x.get("telemetry", {}).get("network_metrics", {}).get("pagerank_score") or 0.0, reverse=True)
                 primary_ai_node = ai_files[0]
                 net_mets = primary_ai_node.get("telemetry", {}).get("network_metrics", {})
                 
                 role = net_mets.get("ecosystem_role", "Unknown")
-                pr = net_mets.get("normalized_blast_radius", 0.0)
-                btw = net_mets.get("betweenness_score", 0.0)
+                pr = net_mets.get("normalized_blast_radius") or 0.0
+                btw = net_mets.get("betweenness_score") or 0.0
                 
                 ai_topology["insights"].append(f"Structural Posture: The primary AI integration acts as a '{role}' within the repository.")
                 
@@ -1675,9 +1675,9 @@ class SignalProcessor:
             rv = file_data.get("risk_vector", [])
             p = file_data.get("path", "")
             
-            btw = net.get("betweenness_score", 0.0)
-            close = net.get("closeness_score", 0.0)
-            pr = net.get("normalized_blast_radius", 0.0)
+            btw = net.get("betweenness_score") or 0.0
+            close = net.get("closeness_score") or 0.0
+            pr = net.get("normalized_blast_radius") or 0.0
             
             flux_risk = rv[flux_idx] if flux_idx >= 0 and len(rv) > flux_idx else 0.0
             err_risk = rv[err_idx] if err_idx >= 0 and len(rv) > err_idx else 0.0
