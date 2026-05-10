@@ -34,7 +34,7 @@ class TestZeroDependencyMode(unittest.TestCase):
         
         try:
             # If the bug exists, this will throw a TypeError due to NoneType math
-            summary = processor.summarize_galaxy_metrics(mapped_stars, unparsable_files=[])
+            processor.summarize_galaxy_metrics(mapped_stars, unparsable_files=[])
             processor.generate_forensic_report(mapped_stars)
             
             # 5. Assert the fallback values populated safely as 0.0 floats
