@@ -275,16 +275,16 @@ class NetworkRiskSensor:
             
             if "telemetry" not in s: s["telemetry"] = {}
             s["telemetry"]["network_metrics"] = {
-                "pagerank_score": None,
-                "normalized_blast_radius": None, 
-                "betweenness_score": None,
-                "closeness_score": None,
+                "pagerank_score": 0.0,
+                "normalized_blast_radius": 0.0, 
+                "betweenness_score": 0.0,
+                "closeness_score": 0.0,
                 "in_degree": in_d,
                 "out_degree": out_d,
                 "producer_ratio": round(producer_ratio, 3),
                 "ecosystem_role": ecosystem_role,
-                "systemic_threat_vector": None,
-                "is_algorithmic_bottleneck": None
+                "systemic_threat_vector": [],
+                "is_algorithmic_bottleneck": False
             }
             s["telemetry"]["popularity"] = in_d
             

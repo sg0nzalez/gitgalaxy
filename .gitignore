@@ -71,3 +71,17 @@ site/museum/
 museum/
 updated_results_expanded_story/
 updated_results_2/
+gitgalaxy/README gitgalaxy.md
+gitgalaxy/core/README core.md
+gitgalaxy/physics/README physics.md
+gitgalaxy/recorders/README recorder.md
+gitgalaxy/security/README security.md
+gitgalaxy/standards/README standards.md
+gitgalaxy/tools/README tools.md
+gitgalaxy/tools/ai_guardrails/README ai.md
+gitgalaxy/tools/cobol_to_cobol/README c2c.md
+gitgalaxy/tools/cobol_to_java/README c2j.md
+gitgalaxy/tools/compliance/README sbom.md
+gitgalaxy/tools/network_auditing/README network.md
+gitgalaxy/tools/supply_chain_security/README supply_chain.md
+gitgalaxy/tools/terabyte_log_scanning/README terabyte.md
