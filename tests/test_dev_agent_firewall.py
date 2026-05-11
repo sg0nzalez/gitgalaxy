@@ -1,5 +1,3 @@
-import pytest
-
 # IMPORTANT: Adjust this path to match exactly where your file is located
 from gitgalaxy.tools.ai_guardrails.dev_agent_firewall import DevAgentFirewall
 
