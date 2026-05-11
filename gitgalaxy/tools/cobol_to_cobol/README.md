@@ -12,9 +12,10 @@ Welcome to the **GitGalaxy Mainframe Modernization Suite**. This is a determinis
 
 You point the [Legacy Refraction Controller](https://squid-protocol.github.io/gitgalaxy/05-01-legacy-refraction-controller/) at a massive, undocumented COBOL repository. It translates a chaotic folder of `.cbl` files into a deterministic execution pipeline:
 
-* **The Assessment:** Dynamically scales between high-speed RAM and SQLite3.
+* **The Assessment:** Dynamically scales between high-speed RAM and disk-backed SQLite3 **to provide absolute OOM (Out-of-Memory) crash protection when processing massive, monolithic legacy repositories.**
 * **Dead Code Extraction:** Uses structural heuristics to mathematically map and [extract orphaned memory and dead code bloat](https://squid-protocol.github.io/gitgalaxy/cookbook/identifying-dead-code-in-cobol/). *(AST-Free)*
 * **Dependency Mapping:** Maps data lineage to deflect dead dependencies.
+* **Context-Aware Synergy:** A unified Intermediate Representation (IR) State Manager ensures tools communicate—the Graveyard Reaper's dead-code math prevents the Schema Forge from migrating dead columns to the cloud, and stops the Microservice Slicer from hallucinating business rules out of dead code.
 * **Asset Generation:** Generates pristine PostgreSQL schemas, JSON APIs, and compile-ready JCLs.
 
 ---
@@ -42,7 +43,7 @@ This suite is built on a modular Hub-and-Spoke architecture. Every Python script
   <br>![Compiler Forge](../../../docs/wiki/assets/compiler_forge.gif)
 * **[Cloud Schema Forge](https://squid-protocol.github.io/gitgalaxy/05-15-cloud-schema-forge/) (`cobol_schema_forge.py`):** Translates `PIC` clauses to [strict PostgreSQL DDL schemas](https://squid-protocol.github.io/gitgalaxy/cookbook/creating-schema-from-cobol-files/).
   <br>![Cloud Schema Forge](../../../docs/wiki/assets/cloud_schema_forge.gif)
-* **[Zero-Trust JCL Forge](https://squid-protocol.github.io/gitgalaxy/05-12-zero-trust-jcl-forge/) (`cobol_jcl_forge.py`):** Extracts `SELECT` mappings to [auto-generate strict, least-privilege JCL emulators](https://squid-protocol.github.io/gitgalaxy/cookbook/creating-jcl-from-cobol-files/).
+* **[Zero-Trust JCL Forge](https://squid-protocol.github.io/gitgalaxy/05-12-zero-trust-jcl-forge/) (`cobol_jcl_forge.py`):** Extracts `SELECT` mappings to auto-generate strict, least-privilege JCL emulators—**automatically stripping over-permissioned global access (e.g., `DISP=SHR`) and locking physical dataset provisioning to the exact lineage required.**
   <br>![Zero-Trust JCL Forge](../../../docs/wiki/assets/jcl_forge_demo.gif)
   
 #### 4. The AI Remediation Boundary
