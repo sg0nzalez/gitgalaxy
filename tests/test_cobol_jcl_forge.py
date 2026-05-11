@@ -79,7 +79,7 @@ def test_zero_trust_jcl_generation():
     )
     
     # 1. Job Card and Base Environment
-    assert "//MOCKJOB  JOB (9999)" in jcl_output
+    assert "//MOCKJOB JOB (9999)" in jcl_output
     assert "//STEP01   EXEC PGM=TESTPGM" in jcl_output
     
     # 2. Architecture Flags

@@ -33,7 +33,7 @@ def patch_lexical_traps(filepath: Path) -> bool:
         return False
 
     # Fast check before engaging heavy regex
-    if "NEXT SENTENCE" not in content.upper():
+    if not re.search(r'\bNEXT\s+SENTENCE\b', content, re.IGNORECASE):
         return False
 
     # 1. Sense the Environment

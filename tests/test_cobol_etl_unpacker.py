@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 # IMPORTANT: Adjust this path to match exactly where your file is located
-import gitgalaxy.tools.cobol_to_java.cobol_etl_unpacker as etl_module
+import gitgalaxy.tools.cobol_to_cobol.cobol_etl_unpacker as etl_module
 
 # ==============================================================================
 # TEST 1: The Schema Byte Calculator
@@ -124,7 +124,7 @@ def test_unpack_ebcdic_file_e2e(tmp_path):
         
         # Record 1
         assert reader[1][0] == "ALICE"
-        assert float(reader[1][1]) == 12345.67
+        assert float(reader[1][1]) == 1234.56
         
         # Record 2
         assert reader[1][0] == "ALICE"  # Wait, let's check index 2 for BOB

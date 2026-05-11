@@ -16,7 +16,7 @@ def resolve_copybooks(content: str, source_path: Path) -> str:
     Handles dynamic variable swapping via the REPLACING clause.
     """
     # Matches: COPY NAME. or COPY NAME REPLACING ==A== BY ==B==.
-    copy_pattern = re.compile(r'^[ \t]*COPY\s+[\'"]?([A-Z0-9_\-]+)[\'"]?(?:\s+REPLACING\s+(.+?))?\.?', re.MULTILINE | re.IGNORECASE)
+    copy_pattern = re.compile(r'^[ \t]*COPY\s+[\'"]?([A-Z0-9_\-]+)[\'"]?(?:\s+REPLACING\s+(.+?))?\.', re.MULTILINE | re.IGNORECASE)
     
     def replacer(match):
         copy_name = match.group(1).upper()
@@ -33,8 +33,8 @@ def resolve_copybooks(content: str, source_path: Path) -> str:
                     # Extracts pairs, ignoring the optional == delimiters
                     pairs = re.findall(r'(?:==)?([A-Z0-9_\-]+)(?:==)?\s+BY\s+(?:==)?([A-Z0-9_\-]+)(?:==)?', replacing_clause, re.IGNORECASE)
                     for old_val, new_val in pairs:
-                        # Use word boundaries (\b) so we don't accidentally replace partial words
-                        cpy_content = re.sub(r'\b' + re.escape(old_val) + r'\b', new_val, cpy_content)
+                        # Use negative lookarounds so we don't accidentally replace partial words with hyphens
+                        cpy_content = re.sub(r'(?<![A-Z0-9_\-])' + re.escape(old_val) + r'(?![A-Z0-9_\-])', new_val, cpy_content)
                         
                 return f"*> --- START COPY {copy_name} ---\n{cpy_content}\n*> --- END COPY {copy_name} ---"
         
