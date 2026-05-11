@@ -77,11 +77,12 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
             comp_match = re.search(r'COMPUTE\s+([A-Z0-9\-]+)\s*=', clean_line)
             if comp_match:
                 var1 = comp_match.group(1)
-                if var1 in tainted_vars:
-                    # Taint every variable inside the math equation
-                    vars_in_eq = re.findall(r'([A-Z][A-Z0-9\-]+)', clean_line.split('=')[1])
+                vars_in_eq = re.findall(r'([A-Z][A-Z0-9\-]+)', clean_line.split('=')[1])
+                # Taint forwards and backwards!
+                if var1 in tainted_vars or any(v in tainted_vars for v in vars_in_eq):
+                    tainted_vars.add(var1)
                     tainted_vars.update(vars_in_eq)
-
+                    
     # ==========================================================================
     # PASS 2: Extraction
     # ==========================================================================
