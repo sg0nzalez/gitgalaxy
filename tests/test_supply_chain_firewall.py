@@ -1,6 +1,5 @@
 import pytest
 import sys
-from pathlib import Path
 from unittest.mock import patch
 
 import gitgalaxy.tools.supply_chain_security.supply_chain_firewall as firewall_module
