@@ -74,7 +74,8 @@ def forge_schemas(filepath: Path, ignore_vars: set = None, corporate_header: str
         r'^[ \t]*(?P<level>0[1-9]|[1-4][0-9]|77)[ \t]+'
         r'(?P<name>[A-Z0-9\-]+)'
         r'(?:[ \t]+PIC(?:TURE)?[ \t]+(?P<pic>[A-Z0-9\(\)V\.\-]+))?'
-        r'(?:[ \t]+(?:IS[ \t]+)?(?P<usage>COMP(?:-[1-5])?|BINARY|PACKED-DECIMAL))?',
+        r'(?:[ \t]+(?:IS[ \t]+)?(?P<usage>COMP(?:-[1-5])?|BINARY|PACKED-DECIMAL))?'
+        r'.*$',
         re.MULTILINE
     )
 

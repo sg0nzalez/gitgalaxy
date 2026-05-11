@@ -87,8 +87,19 @@ def generate_build_jcl(source_text: str, prog_name: str, files: set, dialect: st
     jcl.append(f"//            DCB=(RECFM=U,BLKSIZE=32760,DSORG=PO)")
     
     for f in files:
-        clean_f = re.sub(r'[^A-Z0-9]', '', f.upper())
+        clean_f = f.upper().strip()
+        # 1. Strip IBM prefixes first
+        clean_f = re.sub(r'^(?:UT|UR)-S-', '', clean_f)
+        # 2. Strip non-alphanumeric characters
+        clean_f = re.sub(r'[^A-Z0-9]', '', clean_f)
+        # 3. Enforce 8-character Mainframe limit
         if len(clean_f) > 8: clean_f = clean_f[-8:]
+        
+        if clean_f:
+            jcl.append(f"//{clean_f} DD DSN=HERC01.DATA.{clean_f},DISP=(MOD,CATLG,DELETE),")
+            jcl.append(f"//            UNIT=SYSDA,SPACE=(TRK,(10,10),RLSE),")
+            jcl.append(f"//            DCB=(LRECL=80,RECFM=FB,BLKSIZE=800)")
+        
         if clean_f:
             jcl.append(f"//{clean_f} DD DSN=HERC01.DATA.{clean_f},DISP=(MOD,CATLG,DELETE),")
             jcl.append(f"//            UNIT=SYSDA,SPACE=(TRK,(10,10),RLSE),")
