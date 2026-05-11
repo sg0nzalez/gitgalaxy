@@ -1,7 +1,6 @@
 import pytest
 import json
 import sys
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 # IMPORTANT: Adjust this import path depending on where sbom_generator.py lives
