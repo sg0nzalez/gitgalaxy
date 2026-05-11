@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 # Updated import path to match the network_auditing folder
 from gitgalaxy.tools.network_auditing.full_api_network_map import run_api_audit
