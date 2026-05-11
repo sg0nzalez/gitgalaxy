@@ -94,7 +94,7 @@ def test_compiler_forge_e2e(tmp_path):
     
     # A) Verify Infrastructure Provisioning
     assert "EXEC PGM=IEFBR14" in jcl_content
-    assert "//INPUT01  DD DSN=HERC01.DATA.INPUT01" in jcl_content, "Failed to map SELECT ASSIGN to DSN!"
+    assert "//INPUT01 DD DSN=HERC01.DATA.INPUT01" in jcl_content, "Failed to map SELECT ASSIGN to DSN!"
     
     # B) Verify Dialect Routing
     assert "EXEC IGYWCL" in jcl_content, "Failed to dynamically route to modern compiler!"
