@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import gitgalaxy.tools.supply_chain_security.binary_anomaly_detector as xray_module
