@@ -1,7 +1,7 @@
 import pytest
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import gitgalaxy.tools.supply_chain_security.vault_sentinel as sentinel_module
 
