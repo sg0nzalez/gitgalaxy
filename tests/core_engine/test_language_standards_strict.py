@@ -105,7 +105,7 @@ def test_cpp_macro_multiline_spiral():
 # Reference: language_standards.py (Line ~1430 & 1523)
 # ==============================================================================
 def test_c_pointer_ambiguity_overlap():
-    """
+    r"""
     Proves that O(1) alternation `(?:\s*[*&]+\s*|\s+)` successfully prevents 
     exponential evaluation on massive strings of pointer asterisks.
     """
