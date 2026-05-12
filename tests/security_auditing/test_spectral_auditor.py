@@ -57,30 +57,25 @@ def test_auditor_consensus_engine(auditor):
 # TEST 2: THE 50/0 LAW (Data Dump Guard)
 # ==============================================================================
 def test_auditor_50_zero_law(auditor):
-    """Proves that a massive file with 0 structural logic is relegated to Dark Matter."""
+    """
+    Proves that a massive file with 0 structural logic is relegated to Dark Matter,
+    EVEN IF it has a Tier 0 Convergent Lock bypassing the Ecosystem Orphan guard.
+    """
     files = [
-        # The pathological data dump file
         {
             "path": "data_dump.cpp", "name": "data_dump.cpp", "lang_id": "cpp",
             "coding_loc": 150, # > 50
-            "equations": {"branch": 0, "linear": 0}, # 0 signals
-            "telemetry": {"identity_lock_tier": 1}
-        },
-        # Dummy files to establish a healthy C++ ecosystem (preventing the Orphan downgrade)
-        {
-            "path": "valid_1.cpp", "name": "valid_1.cpp", "lang_id": "cpp",
-            "coding_loc": 20, "equations": {"branch": 5, "linear": 5}, "telemetry": {"identity_lock_tier": 4}
-        },
-        {
-            "path": "valid_2.cpp", "name": "valid_2.cpp", "lang_id": "cpp",
-            "coding_loc": 20, "equations": {"branch": 5, "linear": 5}, "telemetry": {"identity_lock_tier": 4}
+            "equations": {"branch": 0, "linear": 0}, # 0 logic signals
+            "telemetry": {
+                "identity_lock_tier": 0, # <-- Tier 0 Bypass for the Orphan Guard!
+                "identity_source_proof": "Absolute Override"
+            }
         }
     ]
 
     verified, unparsable = auditor.audit(files)
 
-    # We now expect the 2 valid dummies to pass, and the 1 data dump to fail
-    assert len(verified) == 2
+    assert len(verified) == 0
     assert len(unparsable) == 1
     assert "50/0 Law" in unparsable[0]["reason"], "Failed to trigger the 50/0 Law!"
 
