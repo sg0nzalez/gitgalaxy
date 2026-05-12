@@ -1,9 +1,4 @@
-import pytest
-from pathlib import Path
-from unittest.mock import patch
-
-# Adjust this import to match your project structure
-from gitgalaxy.core.aperture import ApertureFilter, FilterResult
+from gitgalaxy.core.aperture import ApertureFilter
 
 # ==============================================================================
 # MOCK HARDWARE CALIBRATION

@@ -74,25 +74,6 @@ def test_auditor_50_zero_law(auditor):
     assert len(unparsable) == 1
     assert "50/0 Law" in unparsable[0]["reason"], "Failed to trigger the 50/0 Law!"
 
-# ==============================================================================
-# TEST 2: THE 50/0 LAW (Data Dump Guard)
-# ==============================================================================
-def test_auditor_50_zero_law(auditor):
-    """Proves that a massive file with 0 structural logic is relegated to Dark Matter."""
-    files = [
-        {
-            "path": "data_dump.cpp", "name": "data_dump.cpp", "lang_id": "cpp",
-            "coding_loc": 150,
-            "equations": {"branch": 0, "linear": 0},
-            "telemetry": {"identity_lock_tier": 0} # <--- CHANGE TO 0 (Bypass Orphan Guard)
-        }
-    ]
-    
-    verified, unparsable = auditor.audit(files)
-    
-    assert len(verified) == 0
-    assert len(unparsable) == 1
-    assert "50/0 Law" in unparsable[0]["reason"], "Failed to trigger the 50/0 Law!"
 
 # ==============================================================================
 # TEST 3: THE SUPERNOVA GUARD (Impossible Density)

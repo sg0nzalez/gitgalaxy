@@ -7,8 +7,6 @@ import queue
 import os
 
 # Adjust these imports to match your project structure
-from gitgalaxy.core.detector import LogicSplicer
-from gitgalaxy.core.prism import Prism
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
 
 # ==============================================================================

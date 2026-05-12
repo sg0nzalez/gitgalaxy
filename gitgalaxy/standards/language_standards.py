@@ -1402,7 +1402,7 @@ LANGUAGE_DEFINITIONS = {
                 # [REDOS ARMOR 1]: `(?![ \t]*#)` prevents the engine from crossing into a #region or #if block.
                 # [REDOS ARMOR 2]: The character class `[...]+` STRICTLY FORBIDS spaces/tabs. The `[ \t\n]+` 
                 # follows it outside the group. This mutual exclusivity guarantees O(N) parsing.
-                r"(?:(?![ \t]*#)[a-zA-Z0-9_<>\[\]?,.()?]+[ \t\n]+){0,10}"
+                r"(?:(?![ \t]*#)[a-zA-Z0-9_<>\[\]?,.()]+[ \t\n]+){0,10}"
                 
                 # 4. THE "NOT A FUNCTION" SHIELD
                 # Negative lookahead ensuring we don't accidentally capture control flow, 
@@ -2597,12 +2597,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 12. graveyard (The Necrosis)
             "graveyard": re.compile(r"(?://|/\*)[ \t]*(?:if|for|while|struct|union|enum|void|int|return)\b"),
-            
-            # 13. doc (The Intent) 
-            "_dependency_capture": re.compile(
-                r'^[ \t]*#[ \t\n]*(?:include|embed)[ \t\n]*[<"]([^>"]+)[>"]', 
-                re.M
-            ),
+            # 13. doc (The Intent)
             "doc": re.compile(
                 r"///|/\*\*|@param|@return|@brief|@details|\\param|\\return|\\brief|\\details"
             ),
