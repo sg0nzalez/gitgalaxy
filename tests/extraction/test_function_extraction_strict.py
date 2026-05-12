@@ -1,0 +1,472 @@
+import pytest
+import re
+from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
+
+# ==============================================================================
+# THE UNIVERSAL EXTRACTION GAUNTLET
+# Proves that the `func_start` spawner accurately isolates EXACTLY the function 
+# name ("TargetFunc") across 32 distinct programming languages and architectures.
+# 
+# FORMAT:
+# "lang": {
+#     "valid": [ ("Payload String", "Expected Extracted Name") ],
+#     "invalid": [ "Strings that look like functions but MUST NOT match" ]
+# }
+# ==============================================================================
+# ==============================================================================
+# THE UNIVERSAL EXTRACTION GAUNTLET
+# Proves that the `func_start` spawner accurately isolates EXACTLY the function 
+# name ("TargetFunc") across 32 distinct programming languages and architectures.
+# 
+# FORMAT:
+# "lang": {
+#     "valid": [ ("Payload String", "Expected Extracted Name") ],
+#     "invalid": [ "Strings that look like functions but MUST NOT match" ],
+#     "pathological": [ "Frankenstein formatting designed to break the regex" ]
+# }
+# ==============================================================================
+EXTRACTION_CASES = {
+    "python": {
+        "valid": [
+            ("def TargetFunc():", "TargetFunc"),
+            ("async def TargetFunc(a: int) -> str:", "TargetFunc"),
+            ("    @decorator\n    def TargetFunc():", "TargetFunc"),
+        ],
+        "invalid": ["class TargetFunc:", "TargetFunc = 5", "if TargetFunc():"],
+        "pathological": [
+            # Stacking decorators with arguments, extreme spaces, and vertical newlines
+            ("@route('/api')\n@auth(role='admin')\n    async   def \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "javascript": {
+        "valid": [
+            ("function TargetFunc() {", "TargetFunc"),
+            ("async function TargetFunc (req, res)", "TargetFunc"),
+            ("export const TargetFunc = async () =>", "TargetFunc"),
+            ("TargetFunc: function() {", "TargetFunc"),
+            ("  async TargetFunc() {", "TargetFunc") # ES6 class method
+        ],
+        "invalid": ["class TargetFunc {", "if (TargetFunc) {", "typeof TargetFunc"],
+        "pathological": [
+            # Extreme spacing and asynchronous assignment spanning multiple lines
+            ("export \n const \n TargetFunc \n = \n async \n (req, res) \n =>", "TargetFunc")
+        ]
+    },
+    "typescript": {
+        "valid": [
+            ("public async TargetFunc<T>() {", "TargetFunc"),
+            ("export const TargetFunc = (req): Res =>", "TargetFunc"),
+            ("function TargetFunc<T, U>(", "TargetFunc")
+        ],
+        "invalid": ["class TargetFunc implements Interface", "interface TargetFunc"],
+        "pathological": [
+            # Extreme vertical spacing and generic explosion
+            ("export \n default \n async \n function \n TargetFunc \n < \n T \n , \n U \n > \n (", "TargetFunc")
+        ]
+    },
+    "csharp": {
+        "valid": [
+            ("public async Task<List<string>> TargetFunc()", "TargetFunc"),
+            ("protected override void TargetFunc(int x)", "TargetFunc"),
+            ("internal static readonly Dictionary<int, string> TargetFunc()", "TargetFunc"),
+        ],
+        "invalid": ["public class TargetFunc {", "if (TargetFunc == null)", "new TargetFunc()"],
+        "pathological": [
+            # Vertical stacking, attribute bloat, and massive nested generics
+            ("[Obsolete]\n[Route(\"api/v1\")]\npublic\nasync\nTask<Dictionary<string, List<int>>>\nTargetFunc\n(", "TargetFunc")
+        ]
+    },
+    "cpp": {
+        "valid": [
+            ("int TargetFunc() {", "TargetFunc"),
+            ("std::vector<std::string> TargetFunc(int a, float b) {", "TargetFunc"),
+            ("inline static const char* TargetFunc() {", "TargetFunc"),
+            ("TargetFunc() : a(1) {", "TargetFunc") # Constructor
+        ],
+        "invalid": ["class TargetFunc {", "#define TargetFunc()", "if (TargetFunc()) {"],
+        "pathological": [
+            # =====================================================================
+            # [ THE C++ DEFINITION IGNITION ]
+            # In an AST-free engine, the only way to separate a C++ header declaration (.h)
+            # from a source definition (.cpp) is the opening brace '{'. 
+            # The previous payload lacked it, so the regex accurately rejected it. 
+            # FIX: Added `() \n {` to complete the pathological definition structure.
+            # =====================================================================
+            ("inline \n static \n const \n std::vector<std::string>& \n TargetFunc \n () \n {", "TargetFunc")
+        ]
+    },
+    "c": {
+        "valid": [
+            ("static inline void TargetFunc(int a) {", "TargetFunc"),
+            ("struct MyStruct * TargetFunc() {", "TargetFunc")
+        ],
+        "invalid": ["typedef struct TargetFunc {", "#define TargetFunc", "while(TargetFunc)"],
+        "pathological": [
+            # Macro stacking, compiler attributes, and erratic pointer spacing
+        ("__attribute__((always_inline))\nstatic \n inline \n struct \n MyStruct \n * \n TargetFunc \n () \n {", "TargetFunc")        ]
+    },
+    "java": {
+        "valid": [
+            ("public static void TargetFunc()", "TargetFunc"),
+            ("protected List<String> TargetFunc(int x)", "TargetFunc"),
+            ("@Override\npublic void TargetFunc()", "TargetFunc"),
+        ],
+        "invalid": ["public class TargetFunc {", "new TargetFunc();", "return TargetFunc();"],
+        "pathological": [
+            # Massive generic soup before the return type and annotation stacking
+            ("@Override\n@SuppressWarnings(\"unchecked\")\npublic static final <T, U extends Map<String, V>>\nList<T>\nTargetFunc\n(", "TargetFunc")
+        ]
+    },
+    "go": {
+        "valid": [
+            ("func TargetFunc()", "TargetFunc"),
+            ("func (s *MyStruct) TargetFunc(a int) error {", "TargetFunc"),
+        ],
+        "invalid": ["type TargetFunc struct", "go TargetFunc()", "var TargetFunc ="],
+        "pathological": [
+            # Receivers split across newlines
+            ("func \n ( \n s \n * \n MyStruct \n ) \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "rust": {
+        "valid": [
+            ("fn TargetFunc()", "TargetFunc"),
+            ("pub async fn TargetFunc<T>() -> Result<()> {", "TargetFunc"),
+            ("pub(crate) unsafe fn TargetFunc()", "TargetFunc"),
+        ],
+        "invalid": ["struct TargetFunc", "impl TargetFunc", "let TargetFunc ="],
+        "pathological": [
+            # Macro attributes, lifetimes, and extreme vertical modifiers
+            ("#[inline(always)]\n#[cfg(test)]\npub \n async \n unsafe \n extern \n \"C\" \n fn \n TargetFunc \n < \n 'a \n , \n T \n > \n (", "TargetFunc")
+        ]
+    },
+    "swift": {
+        "valid": [
+            ("func TargetFunc()", "TargetFunc"),
+            ("public mutating func TargetFunc()", "TargetFunc"),
+            ("open override func TargetFunc<T>()", "TargetFunc")
+        ],
+        "invalid": ["class TargetFunc", "let TargetFunc =", "guard let TargetFunc"],
+        "pathological": [
+            # Availability macros and deep modifier stacking
+            ("@available(iOS 14.0, *)\npublic \n mutating \n isolated \n func \n TargetFunc \n < \n T \n > \n (", "TargetFunc")
+        ]
+    },
+    "kotlin": {
+        "valid": [
+            ("fun TargetFunc()", "TargetFunc"),
+            ("suspend fun TargetFunc()", "TargetFunc"),
+            ("internal inline fun TargetFunc()", "TargetFunc")
+        ],
+        "invalid": ["class TargetFunc", "val TargetFunc =", "if (TargetFunc)"],
+        "pathological": [
+            # JVM annotations and extreme generic spacing
+            ("@JvmStatic\n@Throws(Exception::class)\npublic \n suspend \n inline \n fun \n < \n T \n > \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "php": {
+        "valid": [
+            ("function TargetFunc()", "TargetFunc"),
+            ("public static function TargetFunc(", "TargetFunc"),
+            ("final protected function TargetFunc()", "TargetFunc")
+        ],
+        "invalid": ["class TargetFunc", "$var = TargetFunc()", "new TargetFunc()"],
+        "pathological": [
+            # PHP 8 attributes and erratic reference ampersands
+            ("#[\\ReturnTypeWillChange]\nfinal \n public \n static \n function \n & \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "ruby": {
+        "valid": [
+            ("def TargetFunc", "TargetFunc"),
+            ("def self.TargetFunc", "TargetFunc"),
+            ("define_method :TargetFunc do", "TargetFunc")
+        ],
+        "invalid": ["class TargetFunc", "TargetFunc = 5", "module TargetFunc"],
+        "pathological": [
+            # Vertical class-method declaration
+            ("def \n self. \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "shell": {
+        "valid": [
+            ("function TargetFunc {", "TargetFunc"),
+            ("TargetFunc() {", "TargetFunc"),
+        ],
+        "invalid": ["TargetFunc=", "if TargetFunc; then", "alias TargetFunc="],
+        "pathological": [
+            # Extreme spacing on standard definitions
+            ("function \t \n TargetFunc \n {", "TargetFunc")
+        ]
+    },
+    "powershell": {
+        "valid": [
+            ("function TargetFunc {", "TargetFunc"),
+            ("filter TargetFunc {", "TargetFunc"),
+        ],
+        "invalid": ["class TargetFunc", "Invoke-Command", "$TargetFunc ="],
+        "pathological": [
+            ("function \n TargetFunc \n {", "TargetFunc")
+        ]
+    },
+    "cobol": {
+        "valid": [
+            ("       TargetFunc SECTION.", "TargetFunc"),
+            ("       TargetFunc.", "TargetFunc"),
+        ],
+        "invalid": ["       01 TargetFunc.", "           PERFORM TargetFunc.", "       END-TargetFunc."],
+        "pathological": [
+            # Margin hugging and separated section headers
+            ("TargetFunc \n           SECTION.", "TargetFunc")
+        ]
+    },
+    "apex": {
+        "valid": [
+            ("public static void TargetFunc()", "TargetFunc"),
+            ("trigger TargetFunc on Account", "TargetFunc")
+        ],
+        "invalid": ["public class TargetFunc", "delete TargetFunc"],
+        "pathological": [
+            # Future callouts and erratic spacing
+            ("@future(callout=true)\npublic \n static \n void \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "dart": {
+        "valid": [
+            ("void TargetFunc()", "TargetFunc"),
+            ("Future<int> TargetFunc()", "TargetFunc"),
+            ("int get TargetFunc(", "TargetFunc")
+        ],
+        "invalid": ["class TargetFunc", "var TargetFunc =", "if (TargetFunc)"],
+        "pathological": [
+            # Extreme modifier stacking
+            ("@override\nexternal \n static \n final \n Future<List<Map<String, dynamic>>> \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "scala": {
+        "valid": [
+            ("def TargetFunc()", "TargetFunc"),
+            ("override def TargetFunc()", "TargetFunc"),
+            ("transparent inline def TargetFunc", "TargetFunc")
+        ],
+        "invalid": ["class TargetFunc", "val TargetFunc =", "trait TargetFunc"],
+        "pathological": [
+            # Deep Scala 3 modifiers
+            ("@deprecated(\"\", \"\")\noverride \n protected \n inline \n def \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "fortran": {
+        "valid": [
+            ("SUBROUTINE TargetFunc()", "TargetFunc"),
+            ("REAL FUNCTION TargetFunc()", "TargetFunc"),
+            ("PURE RECURSIVE FUNCTION TargetFunc()", "TargetFunc")
+        ],
+        "invalid": ["END SUBROUTINE TargetFunc", "CALL TargetFunc", "TYPE TargetFunc"],
+        "pathological": [
+            # Excessive prefix stacking
+            ("PURE \n RECURSIVE \n DOUBLE \n PRECISION \n FUNCTION \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "matlab": {
+        "valid": [
+            ("function [out] = TargetFunc(in)", "TargetFunc"),
+            ("function TargetFunc()", "TargetFunc")
+        ],
+        "invalid": ["if TargetFunc()", "classdef TargetFunc", "TargetFunc = 5"],
+        "pathological": [
+            # Splitting output arrays across newlines
+            ("function \n [ \n out1 \n , \n out2 \n ] \n = \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "livecode": {
+        "valid": [
+            ("on TargetFunc", "TargetFunc"),
+            ("command TargetFunc", "TargetFunc"),
+            ("private function TargetFunc", "TargetFunc")
+        ],
+        "invalid": ["script TargetFunc", "put TargetFunc", "repeat with TargetFunc"],
+        "pathological": [
+            ("private \n command \n TargetFunc \n ", "TargetFunc")
+        ]
+    },
+    "objective-c": {
+        "valid": [
+            ("- (void)TargetFunc:", "TargetFunc"),
+            ("+ (int)TargetFunc", "TargetFunc"),
+            ("static void TargetFunc()", "TargetFunc")
+        ],
+        "invalid": ["@interface TargetFunc", "TargetFunc()", "TargetFunc ="],
+        "pathological": [
+            # Fragmented return types
+            ("- \n ( \n NSDictionary<NSString *, NSArray<NSNumber *> *> * \n ) \n TargetFunc \n :", "TargetFunc")
+        ]
+    },
+    "sqlite": {
+        "valid": [
+            ("CREATE TRIGGER TargetFunc", "TargetFunc"),
+            ("CREATE VIEW TargetFunc", "TargetFunc"),
+            ("CREATE UNIQUE INDEX TargetFunc", "TargetFunc")
+        ],
+        "invalid": ["CREATE TABLE TargetFunc", "DROP VIEW TargetFunc"],
+        "pathological": [
+            ("CREATE \n TEMPORARY \n TRIGGER \n IF \n NOT \n EXISTS \n TargetFunc \n ", "TargetFunc")
+        ]
+    },
+    "abap": {
+        "valid": [
+            ("METHOD TargetFunc.", "TargetFunc"),
+            ("FORM TargetFunc.", "TargetFunc"),
+            ("FUNCTION TargetFunc.", "TargetFunc")
+        ],
+        "invalid": ["CLASS TargetFunc", "DATA TargetFunc", "CALL FUNCTION TargetFunc"],
+        "pathological": [
+            ("METHOD \n TargetFunc \n .", "TargetFunc")
+        ]
+    },
+    "perl": {
+        "valid": [
+            ("sub TargetFunc {", "TargetFunc"),
+            ("method TargetFunc {", "TargetFunc")
+        ],
+        "invalid": ["package TargetFunc", "my $TargetFunc", "goto TargetFunc"],
+        "pathological": [
+            ("sub \n TargetFunc \n {", "TargetFunc")
+        ]
+    },
+    "haskell": {
+        "valid": [
+            ("TargetFunc :: Int -> Int", "TargetFunc"),
+            ("TargetFunc :: Maybe String", "TargetFunc")
+        ],
+        "invalid": ["data TargetFunc", "class TargetFunc", "newtype TargetFunc"],
+        "pathological": [
+            ("TargetFunc \n :: \n Maybe \n ( \n Int \n -> \n Int \n )", "TargetFunc")
+        ]
+    },
+    "lua": {
+        "valid": [
+            ("function TargetFunc()", "TargetFunc"),
+            ("local function TargetFunc(", "TargetFunc")
+        ],
+        "invalid": ["TargetFunc = function()", "if TargetFunc() then"],
+        "pathological": [
+            ("local \n function \n TargetFunc \n (", "TargetFunc")
+        ]
+    },
+    "scheme": {
+        "valid": [
+            ("(define (TargetFunc x y)", "TargetFunc"),
+            ("(define (TargetFunc)", "TargetFunc")
+        ],
+        "invalid": ["(define-record-type TargetFunc", "(if TargetFunc", "(let ((TargetFunc 1))"],
+        "pathological": [
+            ("( \n define \n ( \n TargetFunc \n x \n )", "TargetFunc")
+        ]
+    },
+    "makefile": {
+        "valid": [
+            ("TargetFunc:", "TargetFunc"),
+            ("TargetFunc::", "TargetFunc")
+        ],
+        "invalid": [".PHONY: TargetFunc", "TargetFunc =", "ifeq TargetFunc"],
+        "pathological": [
+            ("TargetFunc \t :", "TargetFunc")
+        ]
+    },
+    "assembly": {
+        "valid": [
+            ("TargetFunc:", "TargetFunc"),
+            ("_TargetFunc:", "_TargetFunc")
+        ],
+        "invalid": ["jmp TargetFunc", "call TargetFunc", ".data:"],
+        "pathological": [
+            ("_TargetFunc \t :", "_TargetFunc")
+        ]
+    },
+    "dockerfile": {
+        "valid": [
+            ("RUN apt-get update", "RUN"),
+            ("CMD [\"python\"]", "CMD"),
+            ("ENTRYPOINT [\"sh\"]", "ENTRYPOINT")
+        ],
+        "invalid": ["FROM ubuntu", "ENV TargetFunc=1", "COPY . ."],
+        "pathological": [
+            ("RUN \t apt-get \t update", "RUN")
+        ]
+    }
+}
+class TestFunctionExtraction:
+
+    @pytest.mark.parametrize("lang_id", EXTRACTION_CASES.keys())
+    def test_positive_function_extraction(self, lang_id):
+        """
+        Proves that valid function signatures are caught, and the regex 
+        isolates EXACTLY the function name, stripping away all modifiers/return types.
+        Adapts dynamically to languages that use strict Capture Groups vs Full String matches.
+        """
+        cases = EXTRACTION_CASES.get(lang_id, {})
+        if "valid" not in cases:
+            pytest.skip(f"No valid cases defined for {lang_id}")
+            
+        pattern = LANGUAGE_DEFINITIONS[lang_id]["rules"].get("func_start")
+        if not pattern:
+            pytest.skip(f"No func_start pattern defined for {lang_id}")
+        
+        for payload, expected_name in cases["valid"]:
+            match = pattern.search(payload)
+            assert match is not None, f"[{lang_id}] Iron Wall Blocked Valid Function: '{payload}'"
+            
+            # If the regex uses capture groups (like C#, C++, Rust, Swift), verify the exact group.
+            if pattern.groups > 0:
+                captured_groups = [g for g in match.groups() if g is not None]
+                assert len(captured_groups) > 0, f"[{lang_id}] Regex matched but captured nothing!"
+                assert expected_name in captured_groups, f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}' from '{payload}'"
+            
+            # If the regex relies on positive lookaheads without groups (like Python, JS, TS), 
+            # verify the matched substring safely contains the name.
+            else:
+                assert expected_name in match.group(0), f"[{lang_id}] Matched string {match.group(0)} failed to contain target '{expected_name}'"
+
+    @pytest.mark.parametrize("lang_id", EXTRACTION_CASES.keys())
+    def test_negative_function_extraction(self, lang_id):
+        """
+        Proves that structural lookalikes (classes, if-statements, macros, invocations, interfaces)
+        are explicitly ignored by the function spawner across all languages.
+        """
+        cases = EXTRACTION_CASES.get(lang_id, {})
+        if "invalid" not in cases:
+            pytest.skip(f"No invalid cases defined for {lang_id}")
+            
+        pattern = LANGUAGE_DEFINITIONS[lang_id]["rules"].get("func_start")
+        if not pattern:
+            pytest.skip(f"No func_start pattern defined for {lang_id}")
+        
+        for payload in cases["invalid"]:
+            match = pattern.search(payload)
+            assert match is None, f"[{lang_id}] 👻 GHOST SATELLITE HALLUCINATED! Erroneously spawned a function from: '{payload}'"
+            
+    @pytest.mark.parametrize("lang_id", EXTRACTION_CASES.keys())
+    def test_pathological_function_extraction(self, lang_id):
+        """
+        Adversarial Engineering: Proves the regex can survive "Frankenstein" 
+        formatting, including vertical newlines, massive generic blobs, and 
+        decorator stacking, while still cleanly extracting the function name.
+        """
+        cases = EXTRACTION_CASES.get(lang_id, {})
+        if "pathological" not in cases:
+            pytest.skip(f"No pathological cases defined for {lang_id}")
+            
+        pattern = LANGUAGE_DEFINITIONS[lang_id]["rules"].get("func_start")
+        if not pattern:
+            pytest.skip(f"No func_start pattern defined for {lang_id}")
+        
+        for payload, expected_name in cases["pathological"]:
+            match = pattern.search(payload)
+            assert match is not None, f"[{lang_id}] 💥 Engine choked on pathological formatting: '{payload}'"
+            
+            if pattern.groups > 0:
+                captured_groups = [g for g in match.groups() if g is not None]
+                assert len(captured_groups) > 0, f"[{lang_id}] Matched but captured nothing!"
+                assert expected_name in captured_groups, f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}'"
+            else:
+                assert expected_name in match.group(0), f"[{lang_id}] Matched string failed to contain target '{expected_name}'"

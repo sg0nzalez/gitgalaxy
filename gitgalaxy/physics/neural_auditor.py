@@ -57,7 +57,7 @@ class NeuralAuditor:
 
             # 3. Extract Metadata
             metadata = header.get('__metadata__', {})
-            architecture = metadata.get('format', metadata.get('architecture', 'Unknown Transformer'))
+            architecture = metadata.get('architecture', metadata.get('format', 'Unknown Transformer'))
             
             # 4. Calculate Parameters (Sum of the product of all tensor shapes)
             total_params = 0

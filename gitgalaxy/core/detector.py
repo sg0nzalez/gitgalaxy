@@ -348,7 +348,9 @@ class LogicSplicer:
         safe_lines = []
         for line in code_stream.split('\n'):
             if len(line) > 1500:
-                safe_lines.append(' ' * len(line))
+                # Preserve indentation and inject a single safe char so it isn't counted as a blank line
+                indent = len(line) - len(line.lstrip())
+                safe_lines.append(' ' * indent + 'x' + ' ' * (len(line) - indent - 1))
             else:
                 safe_lines.append(line)
         code_stream = '\n'.join(safe_lines)
@@ -478,6 +480,9 @@ class LogicSplicer:
                 result_payload["regex_telemetry"] = regex_telemetry
             return result_payload
 
+        except TimeoutError:
+            # Let the Hardware Guillotine drop cleanly to the Worker thread!
+            raise
         except Exception as e:
             self.logger.error(f"Catastrophic failure during structural splicing: {e}", exc_info=True)
             return {

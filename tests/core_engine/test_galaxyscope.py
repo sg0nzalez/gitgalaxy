@@ -9,11 +9,11 @@ def test_galaxyscope_python_fixture(tmp_path):
     """
     # 1. Dynamically get the absolute path to the GitGalaxy root
     test_dir = Path(__file__).parent
-    project_root = test_dir.parent
+    project_root = test_dir.parent.parent  # <--- Added second .parent
     
     # 2. Build absolute paths for the script and the fixture
     script_path = project_root / "gitgalaxy" / "galaxyscope.py"
-    fixture_path = test_dir / "fixtures" / "iwubi_frankenstein_test"
+    fixture_path = test_dir.parent / "fixtures" / "iwubi_frankenstein_test" # <--- Added .parent
     
     # Force output to a temporary directory
     output_dir = tmp_path / "test_run"

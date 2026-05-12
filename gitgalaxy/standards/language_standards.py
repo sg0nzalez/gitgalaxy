@@ -204,15 +204,25 @@ LANGUAGE_DEFINITIONS = {
         # (docstrings) is handled by the Section 2.3.C.3 Heuristic Pass.
         "lexical_family": "pure_hash",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
-            # Python uses '#' for standard line-level literature.
-            "_line_anchor": re.compile(r"#"),
-            # Inline comments are also triggered by the '#' token.
-            "_inline_comment": re.compile(r"#"),
-            # EXPLICIT: Python lacks native block comment delimiters (e.g. /* */).
-            # Triple-quotes are Strings and protected by the Group 1 Shield.
-            "_block_start": None,
-            "_block_end": None,
+            # =====================================================================
+            # [ CRITICAL ROADMAP: JSONC/JSON5 LEXICAL DELIMITERS & THE RE.COMPILE TRAP ]
+            # 1. THE LEXICAL MAPPING: JSON with comments (.jsonc, .json5) strictly 
+            #    uses C-style comments (// and /* */), NOT Python/Ruby hashes (#). 
+            #    This is why JSON must map to the 'std_c' lexical_family, not 'pure_hash' or 'inert'.
+            # 2. THE RE.COMPILE TRAP: Every rule here MUST be wrapped in re.compile().
+            #    If passed as raw strings, the engine's physics loop will crash with 
+            #    "'str' object has no attribute 'pattern'" during the Ghost Mass extraction.
+            # =====================================================================
+            
+            # JSON has no concept of a "column 1" or line-start-only comment anchor.
+            "_line_anchor": None,
+            
+            # JSONC/JSON5 inline comments use standard C-style slashes.
+            "_inline_comment": re.compile(r"//"),
+            
+            # JSONC/JSON5 multi-line blocks use standard C-style delimiters.
+            "_block_start": re.compile(r"/\*"),
+            "_block_end": re.compile(r"\*/"),
             # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
             # 1. branch (The Forks in the Road)
             # Includes match/case (3.10+) and logical short-circuits. EXCLUDES exceptions.
@@ -305,11 +315,13 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 21. comprehensions (The High-Density Loops)
             "comprehensions": re.compile(
-                r"\[[^\]]*\bfor\b[^\]]*\]|\{[^}]*\bfor\b[^}]*\}|\([^)]*\bfor\b[^)]*\)"
+                r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
             ),
-            "scientific": r'\b(?:import|from)\b.*?(?:tensorflow|torch|keras|numpy|pandas|scipy|sklearn|matplotlib|opencv|cv2|langchain|openai|anthropic|llama_index|chromadb|pinecone)\b',
-            "hardware_bridge": r'\b(?:import|from)\b.*?(?:serial|usb|bluetooth|websockets|socketio|pyserial|pyusb)\b',
-            "cryptography": r'\b(?:import|from)\b.*?(?:cryptography|hashlib|hmac|ssl|tls|jwt|argon2|bcrypt)\b',
+            # Expanded to include LLM orchestration tools for the Agentic Shield
+            "scientific": re.compile(r'\b(?:import|require|from)\b.*?(?:tensorflow|torch|keras|numpy|pandas|scipy|sklearn|matplotlib|opencv|cv2|langchain|openai|anthropic|llama_index|chromadb|pinecone)\b'),
+            "hardware_bridge": re.compile(r'\b(?:import|require|from)\b.*?(?:serialport|usb|bluetooth|socket\.io|websocket|printer|webgl)\b'),
+            "cryptography": re.compile(r'\b(?:import|require|from)\b.*?(?:crypto|bcrypt|x509|tls|ssl|jsonwebtoken|argon2)\b'),
+            
             # 23. heat_triggers (The Thermal Radiation)
             # Metaprogramming and class-level binding.
             "heat_triggers": re.compile(
@@ -471,7 +483,21 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # Parameter blocks. Bounded to prevent ReDoS on massive positional/destructured sets.
             "args": re.compile(
-                r"function\s*\w*\s*\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w$]*)[ \t]*=>|^[ \t]*(?:static[ \t]+)?(?:async[ \t]+)?(?:get\s+|set\s+)?(?:#?[a-zA-Z_$][\w$]*)\s*\([^)]*\)",
+                # =====================================================================
+                # [ THE GHOST ARGS SHIELD (JAVASCRIPT) ]
+                # JS class methods (e.g., `TargetFunc(config) {`) lack the `function` keyword. 
+                # Without an anchor, the engine hallucinated standard invocations as definitions.
+                # FIX 1 (Invocation Shield): Injected `(?=[ \t\n]*\{)` at the end of the class 
+                # method branch, demanding structural proof that the signature opens a logic block.
+                # FIX 2 (Control Flow Shield): `while (i < 10) {` structurally mimics a method.
+                # Injected `(?!(?:if|for|while|switch|catch|return)\b)` to prevent reserve words 
+                # from being mapped as method names.
+                # =====================================================================
+                r"(?:"
+                r"\b(?:async[ \t\n]+)?function[ \t\n]*\w*[ \t\n]*\([^)]*\)|"
+                r"(?:\([^)]*\)|[a-zA-Z_$][\w$]*)[ \t\n]*=>|"
+                r"^[ \t]*(?:static[ \t\n]+)?(?:async[ \t\n]+)?(?:get[ \t\n]+|set[ \t\n]+)?(?!(?:if|for|while|switch|catch|return)\b)(?:#?[a-zA-Z_$][\w$]*)[ \t\n]*\([^)]*\)(?=[ \t\n]*\{)"
+                r")",
                 re.M,
             ),
             # 3. linear (The Smooth Path)
@@ -486,14 +512,21 @@ LANGUAGE_DEFINITIONS = {
 
             "func_start": re.compile(
                 r"(?:"
-                # 1. Standard: `function foo(`
                 r"\b(?:async\s+)?function\s*\*?\s+[a-zA-Z_$][\w$]*(?=\s*\()|"
-                # 2. Namespace/Variable Assignment: `foo.bar = function(` or `const foo = async () =>`
-                r"\b[a-zA-Z_$][\w$]*(?=[ \t]*=[ \t]*(?:async\s*)?(?:function(?:\s*\*)?\b|\([^)]*\)[ \t]*=>|[a-zA-Z_$][\w$]*[ \t]*=>))|"
-                # 3. Object Literal Property: `bar: function(` or `bar: () =>`
-                r"^[ \t]*[a-zA-Z_$][\w$]*(?=[ \t]*:[ \t]*(?:async\s*)?(?:function(?:\s*\*)?\b|\([^)]*\)[ \t]*=>|[a-zA-Z_$][\w$]*[ \t]*=>))|"
-                # 4. ES6 Class/Object Methods: `myMethod() {` (Explicitly blocks control flow keywords)
-                r"^[ \t]*(?:static[ \t]+)?(?:async[ \t]+)?(?:get\s+|set\s+)?(?!(?:if|for|while|switch|catch|return|throw|new|typeof|jQuery|function)\b|\$)#?[a-zA-Z_$][\w$]*(?=\s*\()"
+                
+                # =====================================================================
+                # [ THE VERTICAL ASSIGNMENT SHIELD ] (Hard-learned lesson from Pathological Fuzzer)
+                # PURPOSE: JavaScript developers frequently format complex asynchronous 
+                # fat-arrow functions across multiple lines (e.g., `export const \n foo \n = \n async () =>`).
+                # THE FIX: We replaced horizontal-only spaces `[ \t]*` with `[ \t\n]*` 
+                # around the `=` and `:` assignment operators, as well as the `=>` arrow. 
+                # This allows the lookahead to safely cross vertical line breaks without 
+                # resorting to an unbounded `\s*` which causes ReDoS.
+                # =====================================================================
+                r"\b[a-zA-Z_$][\w$]*(?=[ \t\n]*=[ \t\n]*(?:async\s*)?(?:function(?:\s*\*)?\b|\([^)]*\)[ \t\n]*=>|[a-zA-Z_$][\w$]*[ \t\n]*=>))|"
+                r"^[ \t]*[a-zA-Z_$][\w$]*(?=[ \t\n]*:[ \t\n]*(?:async\s*)?(?:function(?:\s*\*)?\b|\([^)]*\)[ \t\n]*=>|[a-zA-Z_$][\w$]*[ \t\n]*=>))|"
+                
+                r"^[ \t]*(?:static[ \t\n]+)?(?:async[ \t\n]+)?(?:get\s+|set\s+)?(?!(?:if|for|while|switch|catch|return|throw|new|typeof|jQuery|function)\b|\$)#?[a-zA-Z_$][\w$]*(?=\s*\()"
                 r")",
                 re.M,
             ),
@@ -567,9 +600,9 @@ LANGUAGE_DEFINITIONS = {
                 r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
             ),
             # Expanded to include LLM orchestration tools for the Agentic Shield
-            "scientific": r'\b(?:import|require|from)\b.*?(?:tensorflow|torch|keras|numpy|pandas|scipy|sklearn|matplotlib|opencv|cv2|langchain|openai|anthropic|llama_index|chromadb|pinecone)\b',
-            "hardware_bridge": r'\b(?:import|require|from)\b.*?(?:serialport|usb|bluetooth|socket\.io|websocket|printer|webgl)\b',
-            "cryptography": r'\b(?:import|require|from)\b.*?(?:crypto|bcrypt|x509|tls|ssl|jsonwebtoken|argon2)\b',
+            "scientific": re.compile(r'\b(?:import|require|from)\b.*?(?:tensorflow|torch|keras|numpy|pandas|scipy|sklearn|matplotlib|opencv|cv2|langchain|openai|anthropic|llama_index|chromadb|pinecone)\b'),
+            "hardware_bridge": re.compile(r'\b(?:import|require|from)\b.*?(?:serialport|usb|bluetooth|socket\.io|websocket|printer|webgl)\b'),
+            "cryptography": re.compile(r'\b(?:import|require|from)\b.*?(?:crypto|bcrypt|x509|tls|ssl|jsonwebtoken|argon2)\b'),
             
             # 23. heat_triggers (The Thermal Radiation)
             "heat_triggers": re.compile(
@@ -746,21 +779,35 @@ LANGUAGE_DEFINITIONS = {
             # Safely steps over TypeScript Generics <T> and explicit return types in the lookaheads.
             "func_start": re.compile(
                 r"(?:"
-                # 1. Standard: `function foo<T>(`
-                r"\b(?:async\s+)?function\s*\*?\s+[a-zA-Z_$][\w$]*(?=(?:<[^>]*>)?\s*\()|"
-                # 2. Namespace/Variable Assignment: `foo.bar = function<T>(` or `const foo = async (req): Promise<Res> =>`
-                # CRITICAL FIX: `[^=;{]*=>` allows the spawner to successfully step over TypeScript return types.
-                r"\b[a-zA-Z_$][\w$]*(?=[ \t]*=[ \t]*(?:async\s*)?(?:<[^>]*>\s*)?(?:function(?:\s*\*)?\b|\([^)]*\)[^=;{]*=>|[a-zA-Z_$][\w$]*[ \t]*=>))|"
-                # 3. Object Literal Property: `bar: function<T>(` or `bar: (req): Res =>`
-                # CRITICAL FIX: `[^=;{]*=>` allows the spawner to successfully step over TypeScript return types.
-                r"^[ \t]*[a-zA-Z_$][\w$]*(?=[ \t]*:[ \t]*(?:async\s*)?(?:<[^>]*>\s*)?(?:function(?:\s*\*)?\b|\([^)]*\)[^=;{]*=>|[a-zA-Z_$][\w$]*[ \t]*=>))|"
-                # 4. Class/Object Methods: `public async myMethod<T>() {`
-                r"^[ \t]*(?:(?:public|private|protected|static|override|abstract|readonly)[ \t]+){0,4}(?:async[ \t]+)?(?:get\s+|set\s+)?(?!(?:class|interface|type|enum|if|for|while|switch|catch|return|throw|new|typeof|jQuery|function)\b|\$)#?[a-zA-Z_$][\w$]*(?=(?:<[^>]*>)?\s*\()"
+                # =====================================================================
+                # [ THE FLOATING GENERIC SHIELD ] (Hard-learned lesson from Pathological Fuzzer)
+                # PURPOSE: In TypeScript, a function name and its generic type `<T>` 
+                # can be separated by a vertical newline (e.g., `function TargetFunc \n <T>`).
+                # THE FIX: Injected `\s*` immediately before the generic step-over `(?:<[^>]*>)?` 
+                # across all branches. This explicitly permits vertical spacing between 
+                # the isolated function name and the generic parameters.
+                # Note: We also migrated the JS Vertical Assignment fixes here (`[ \t\n]*`).
+                # =====================================================================
+                r"\b(?:async\s+)?function\s*\*?\s+[a-zA-Z_$][\w$]*(?=\s*(?:<[^>]*>)?\s*\()|"
+                r"\b[a-zA-Z_$][\w$]*(?=[ \t\n]*=[ \t\n]*(?:async\s*)?(?:<[^>]*>\s*)?(?:function(?:\s*\*)?\b|\([^)]*\)[^=;{]*=>|[a-zA-Z_$][\w$]*[ \t\n]*=>))|"
+                r"^[ \t]*[a-zA-Z_$][\w$]*(?=[ \t\n]*:[ \t\n]*(?:async\s*)?(?:<[^>]*>\s*)?(?:function(?:\s*\*)?\b|\([^)]*\)[^=;{]*=>|[a-zA-Z_$][\w$]*[ \t\n]*=>))|"
+                r"^[ \t]*(?:(?:public|private|protected|static|override|abstract|readonly)[ \t\n]+){0,4}(?:async[ \t\n]+)?(?:get\s+|set\s+)?(?!(?:class|interface|type|enum|if|for|while|switch|catch|return|throw|new|typeof|jQuery|function)\b|\$)#?[a-zA-Z_$][\w$]*(?=\s*(?:<[^>]*>)?\s*\()"
                 r")",
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            "class_start": re.compile(r"^[ \t]*(?:export[ \t]+)?(?:abstract[ \t]+)?(?:default[ \t]+)?(?:class|enum)\s+([a-zA-Z_$][\w$]*)(?:\s+(?:extends|implements)\s+([a-zA-Z_$][\w_$, \t]*))?", re.M),
+            # =====================================================================
+            # [ THE VERTICAL MODIFIER SHIELD (TYPESCRIPT) ]
+            # TypeScript allows modifiers like `export`, `default`, and `abstract` 
+            # to appear in various orders and across multiple lines.
+            # FIX: Grouped the modifiers into a flexible, bounded set `(?:(?:export|default|abstract|declare)[ \t\n]+){0,4}`.
+            # Upgraded all internal spaces to `[ \t\n]+` to seamlessly leap over vertical gaps.
+            # =====================================================================
+            "class_start": re.compile(
+                r"^[ \t]*(?:(?:export|default|abstract|declare)[ \t\n]+){0,4}(?:class|enum|interface)[ \t\n]+([a-zA-Z_$][\w$]*)(?:[ \t\n]+(?:extends|implements)[ \t\n]+([a-zA-Z_$][\w_$, \t\n]*))?", 
+                re.M
+            ),
+            
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
             # 6. safety (The Defenders)
             "safety": re.compile(
@@ -844,8 +891,17 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             
-            "_dependency_capture": re.compile(r"(?:import(?:\s+type)?|export(?:\s+type)?)\b[^;]*?\bfrom\s*['\"]([^'\"]+)['\"]|\b(?:require|import)\s*\(\s*['\"]([^'\"]+)['\"]", re.M),
-            
+            "_dependency_capture": re.compile(
+                # =====================================================================
+                # [ THE VERTICAL DESTRUCTURING SHIELD (TYPESCRIPT) ]
+                # Safely captures multi-line `import type \n { \n ASTNode \n } \n from`
+                # Anchors strictly to line-start `^[ \t]*` to mathematically prevent 
+                # hallucinating `// import { x }` inside comments.
+                # =====================================================================
+                r"^[ \t]*(?:(?:const|let|var|type)[ \t]+[a-zA-Z_$][\w$]*[ \t]*=[ \t]*(?:await[ \t]+)?)?"
+                r"(?:(?:import(?:[ \t\n]+type)?|export(?:[ \t\n]+type)?)\b[^;]*?\bfrom[ \t\n]*['\"]([^'\"]+)['\"]|(?:require|import)[ \t\n]*\([ \t\n]*['\"]([^'\"]+)['\"])", 
+                re.M
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"(?:@author|Created by)\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
@@ -987,7 +1043,22 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # Captures method/constructor params and lambdas. Bounded to prevent ReDoS.
             "args": re.compile(
-                r"(?:(?:@[\w.]+(?:\([^)]*\))?[ \t]*)*(?:public|protected|private|static|final|abstract|synchronized|native|default|strictfp|<[^>]*>)[ \t]+){0,5}(?:[\w<>\[\]?]+[ \t]+)?\w+\s*\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)\s*->|::",
+                # =====================================================================
+                # [ THE GHOST ARGS SHIELD (JAVA) ]
+                # Same architectural fix as C#. Demands structural proof to separate 
+                # definitions from invocations.
+                # Branch 1: Standard Methods MUST have a return type.
+                # Branch 2: Constructors MUST be anchored to `{` or `throws`.
+                # Branch 3: Standard lambdas and method references `::`.
+                # =====================================================================
+                r"(?:"
+                # 1. Standard Methods
+                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t\n]*){0,5}(?:(?:public|protected|private|static|final|abstract|synchronized|native|default|strictfp|<[^>]*>)[ \t\n]+){0,5}(?:[\w<>\[\]?]+[ \t\n]+)\w+[ \t\n]*\([^)]*\)|"
+                # 2. Constructors
+                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t\n]*){0,5}(?:(?:public|protected|private|static)[ \t\n]+)?[A-Z]\w*[ \t\n]*\([^)]*\)[ \t\n]*(?:throws[ \t\n]+[\w., \t\n]+)?[{]|"
+                # 3. Lambdas & Method Refs
+                r"(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)[ \t\n]*->|::"
+                r")",
                 re.M,
             ),
             # 3. linear (The Smooth Path)
@@ -998,7 +1069,22 @@ LANGUAGE_DEFINITIONS = {
             # 4. func_start (The Satellite Spawner)
             # ONLY executable logic blocks. EXCLUDES classes/interfaces. Steps over annotations.
             "func_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,10}(?:(?:public|protected|private|static|final|abstract|synchronized|native|default|<[^>]*>)[ \t]+){0,5}(?:[a-zA-Z_$][\w<>$\[\]?,]*[ \t]+){0,5}(?!(?:if|for|while|switch|catch|new|return|class|interface|enum|record)\b)([A-Za-z_$][\w_$]*)\s*\(",
+                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,10}"
+                
+                # =====================================================================
+                # [THE EXECUTION SHIELD]: AST-FREE HALLUCINATION PREVENTION
+                # Previously, the "Instantiation Shield" only stopped `new`. However, 
+                # execution verbs like `return TargetFunc();` or `throw TargetFunc();` 
+                # were being blindly swallowed by the return-type matcher, treating 
+                # 'return' as the data type and 'TargetFunc' as the function name!
+                # FIX: Expanded the shield to explicitly abort on ALL control flow and 
+                # execution keywords at the start of the sequence.
+                # =====================================================================
+                r"(?!(?:new|return|throw|if|else|while|for|switch|catch)\b)"
+                
+                r"(?:(?:public|protected|private|static|final|abstract|synchronized|native|default|<[^>]*>)[ \t]+){0,5}"
+                r"(?:[a-zA-Z_$][\w<>$\[\]?,]*[ \t]+){0,5}"
+                r"(?!(?:if|for|while|switch|catch|new|return|class|interface|enum|record)\b)([A-Za-z_$][\w_$]*)\s*\(",
                 re.M,
             ),
             # 5. class_start (The Entity Census)
@@ -1077,8 +1163,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import (The Gravity Links)
             "import": re.compile(r"^[ \t]*import\s+(?:static[ \t]+)?[\w.]+;", re.M),
             
-            "_dependency_capture": re.compile(r"^[ \t]*import\s+(?:static[ \t]+)?([\w.]+);", re.M),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*import[ \t\n]+(?:static[ \t\n]+)?([\w.*]+)[ \t\n]*;", 
+                re.M
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"@author\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
@@ -1228,9 +1316,23 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 2. args (The Coupling Mass)
             # Parameter blocks for methods, primary constructors, and lambdas.
-            # THE FIX: Changed `(?:\[[^\]]*\][ \t]*)*` to `{0,5}` to eliminate a nested unbounded wildcard ReDoS trap.
             "args": re.compile(
-                r"(?:(?:\[[^\]]*\][ \t]*){0,5}(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file|ref|scoped|readonly)[ \t]+){0,5}(?:[\w<>\[\]?]+[ \t]+)?\w+\s*\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)[ \t]*=>",
+                # =====================================================================
+                # [ THE GHOST ARGS SHIELD (C#) ]
+                # To prevent hallucinating standard function invocations, we demand structural proof.
+                # Branch 1: Standard Methods MUST have a return type (e.g., `Task<T> Foo(...)`).
+                # Branch 2: Constructors lack return types, so they MUST be anchored to `:` or `{`.
+                # Branch 3: Standard fat-arrow lambdas.
+                # Upgraded all spaces to `[ \t\n]+` to support Pathological vertical parameters.
+                # =====================================================================
+                r"(?:"
+                # 1. Standard Methods
+                r"^[ \t]*(?:\[[^\]]*\][ \t\n]*){0,5}(?:(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file|ref|scoped|readonly)[ \t\n]+){0,5}(?:[\w<>\[\]?]+[ \t\n]+)\w+[ \t\n]*\([^)]*\)|"
+                # 2. Constructors
+                r"^[ \t]*(?:(?:public|private|protected|internal|static|unsafe)[ \t\n]+)?[A-Z]\w*[ \t\n]*\([^)]*\)[ \t\n]*(?::[ \t\n]*(?:base|this)|[{])|"
+                # 3. Lambdas
+                r"(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)[ \t\n]*=>"
+                r")",
                 re.M,
             ),
             # 3. linear (The Smooth Path)
@@ -1251,26 +1353,56 @@ LANGUAGE_DEFINITIONS = {
             # THE FIX: Strict character exclusion, numeric bounding, and mutual 
             #   exclusivity between word characters and spaces.
             # =====================================================================
+            # 4. func_start (The Satellite Spawner)
+            # ONLY executable logic blocks. EXCLUDES types/classes. 
+            #
+            # =====================================================================
+            # [ CONTEXT: C# "IRON WALL" FUNCTION EXTRACTOR & REDOS SHIELD ]
+            # PURPOSE: Anchors executable logic blocks (methods) in C# up to C# 14.
+            # VULNERABILITY: C# allows massive return types (e.g., nested tuples), 
+            #   generics, and explicit interface implementations. If spaces are allowed 
+            #   freely inside unbounded quantifiers, massive Roslyn test strings cause 
+            #   Catastrophic Backtracking, locking the Python GIL at the C-level.
+            # THE FIX: Strict character exclusion, numeric bounding, and mutual 
+            #   exclusivity between word characters and spaces.
+            #
+            # [ THE VERTICAL IRON WALL UPDATE ] (Hard-learned from Pathological Fuzzer):
+            #   Developers often place attributes, modifiers, return types, and names
+            #   on completely separate lines. We replaced horizontal spaces `[ \t]+` 
+            #   with strictly bounded multi-line spaces `[ \t\n]+`. We EXPLICITLY DO NOT
+            #   use `\s+` because unbounded wildcards with newlines trigger ReDoS.
+            # =====================================================================
             "func_start": re.compile(
                 # 1. THE HORIZONTAL ANCHOR & ATTRIBUTE SHIELD
                 # Anchors to the line start. Steps over C# attributes [Obsolete], [Fact], etc.
                 # [REDOS ARMOR]: `[^\]]{0,250}` prevents a missing closing bracket from spiraling
                 # across the entire file. `{0,5}` caps the max number of stacked attributes.
-                r"^[ \t]*(?:\[[^\]]{0,250}\][ \t]*){0,5}"
+                # [VERTICAL FIX]: `[ \t\n]*` allows attributes to sit on lines above the function.
+                r"^[ \t]*(?:\[[^\]]{0,250}\][ \t\n]*){0,5}"
+                
+                # =====================================================================
+                # [THE INSTANTIATION SHIELD]: AST-FREE HALLUCINATION PREVENTION
+                # If an object instantiation `new TargetFunc()` is poorly indented against 
+                # the left margin, the engine will hallucinate it as a constructor definition 
+                # (because constructors naturally lack return types).
+                # FIX: Forcefully abort matching if the sequence begins with the 'new' keyword 
+                # followed immediately by an identifier and an opening parenthesis.
+                # =====================================================================
+                r"(?!new[ \t\n]+[@A-Za-z_$][\w_$.]*(?:<[^>]{0,100}>)?[ \t\n]*\()"
                 
                 # 2. MODIFIERS (Linkage, Storage, & Access)
                 # Matches `public async`, `protected internal static`, etc.
-                r"(?:(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file|ref|readonly)[ \t]+){0,5}"
+                # [VERTICAL FIX]: `[ \t\n]+` allows modifiers to wrap across newlines.
+                r"(?:(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file|ref|readonly)[ \t\n]+){0,5}"
                 
                 # 3. THE "IRON WALL" RETURN TYPE
                 # Safely captures complex modern C# return types before the function name.
                 # Supports: standard types `int`, arrays `int[]`, generics `List<T>`, 
                 # namespaces `System.Threading.Tasks.Task`, tuples `(int, string)`, and nullables `string?`.
                 # [REDOS ARMOR 1]: `(?![ \t]*#)` prevents the engine from crossing into a #region or #if block.
-                # [REDOS ARMOR 2]: The character class `[...]+` STRICTLY FORBIDS spaces/tabs. The `[ \t]+` 
-                # follows it outside the group. This mutual exclusivity guarantees O(N) parsing and 
-                # makes the overlapping space ReDoS `(Space)+ Space+` mathematically impossible.
-                r"(?:(?![ \t]*#)[a-zA-Z0-9_<>\[\]?,.()?]+[ \t]+){0,10}"
+                # [REDOS ARMOR 2]: The character class `[...]+` STRICTLY FORBIDS spaces/tabs. The `[ \t\n]+` 
+                # follows it outside the group. This mutual exclusivity guarantees O(N) parsing.
+                r"(?:(?![ \t]*#)[a-zA-Z0-9_<>\[\]?,.()]+[ \t\n]+){0,10}"
                 
                 # 4. THE "NOT A FUNCTION" SHIELD
                 # Negative lookahead ensuring we don't accidentally capture control flow, 
@@ -1281,9 +1413,10 @@ LANGUAGE_DEFINITIONS = {
                 # Captures the actual satellite name:
                 # - `[@A-Za-z_$]` supports C# verbatim identifiers (e.g., `@class`).
                 # - `[\w_$.]*` supports explicit interface implementations (e.g., `IMyInterface.DoWork`).
-                # - `(?:<[^>\n]{0,100}>)?` safely steps over method-level generic definitions 
-                #   like `<T, U>` BEFORE hitting the opening parenthesis, without capturing them.
-                r"([@A-Za-z_$][\w_$.]*)(?:<[^>\n]{0,100}>)?[ \t]*\(",
+                # - `(?:[ \t\n]*<[^>]{0,100}>)?` safely steps over method-level generic definitions 
+                #   like `<T, U>` BEFORE hitting the opening parenthesis.
+                # [VERTICAL FIX]: Removed `\n` exclusion from the generic stepper to support multi-line generics.
+                r"([@A-Za-z_$][\w_$.]*)(?:[ \t\n]*<[^>]{0,100}>)?[ \t\n]*\(",
                 
                 re.M,
             ),
@@ -1368,8 +1501,10 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:global[ \t]+)?using\s+(?:static[ \t]+)?[\w.]+;", re.M
             ),
             
-            "_dependency_capture": re.compile(r"^[ \t]*(?:global[ \t]+)?using\s+(?:static[ \t]+)?([\w.]+);", re.M),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:global[ \t\n]+)?using[ \t\n]+(?:static[ \t\n]+)?([\w.]+)[ \t\n]*;", 
+                re.M
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"(?:<author>|Author:|Created by)\s*(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
@@ -1514,13 +1649,27 @@ LANGUAGE_DEFINITIONS = {
             # Bypasses the 'func' keyword, skips optional method receivers (e.g. (s *Server)),
             # and strictly captures the actual identifier name. Ignores anonymous functions.
             "func_start": re.compile(
-                r"^[ \t]*func(?:[ \t]+\([^)]+\))?[ \t]+([A-Za-z_$][\w_$]*)[ \t]*\(",
+                # =====================================================================
+                # [ THE VERTICAL RECEIVER SHIELD ]
+                # Go developers occasionally format complex struct receivers across multiple lines.
+                # FIX: Replaced horizontal spaces `[ \t]+` with `[ \t\n]+` around the `func` 
+                # keyword, receiver block, and function name to safely leap across vertical gaps.
+                # =====================================================================
+                r"^[ \t]*func(?:[ \t\n]+\([^)]+\))?[ \t\n]+([A-Za-z_$][\w_$]*)[ \t\n]*\(",
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            # Go's equivalent to classes: struct/interface type definitions.
+            # =====================================================================
+            # [ THE VERTICAL GENERICS SHIELD (GO) ]
+            # Go 1.18+ introduces generic type parameters `[T any]` which can be 
+            # vertically formatted before the `struct` or `interface` keyword.
+            # FIX: Injected a capture group `([a-zA-Z_]\w*)` for exact entity name 
+            # extraction. Upgraded the `\s+` to explicitly bounded `[ \t\n]+` and 
+            # decoupled the generic stepper `(?:[ \t\n]*\[[^\]]*\])?` to safely 
+            # leap across vertical boundaries.
+            # =====================================================================
             "class_start": re.compile(
-                r"^[ \t]*type\s+[a-zA-Z_]\w*(?:\[[^\]]*\])?\s+(?:struct|interface)",
+                r"^[ \t]*type[ \t\n]+([a-zA-Z_]\w*)(?:[ \t\n]*\[[^\]]*\])?[ \t\n]+(?:struct|interface)",
                 re.M,
             ),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
@@ -1752,7 +1901,16 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # Parameter blocks of functions and closures. Bounded to prevent ReDoS on complex types.
             "args": re.compile(
-                r"\bfn\s+[a-zA-Z_]\w*(?:<[^>]*>)?\s*\([^)]*\)|\|[^|]*\|", re.M
+                # =====================================================================
+                # [ THE VERTICAL NESTING SHIELD (RUST) ]
+                # Rust closures `impl FnOnce(i32)` introduce nested parentheses inside the 
+                # parameter block, instantly breaking `[^)]*`.
+                # FIX: Replaced `[^)]*` with `(?:[^)(]|\([^)]*\))*` to swallow 1-level deep 
+                # closures and strictly removed the `+` to mathematically prevent ReDoS 
+                # on deeply nested Bevy ECS queries.
+                # =====================================================================
+                r"\bfn[ \t\n]+[a-zA-Z_]\w*(?:[ \t\n]*<[^>]*>)?[ \t\n]*\((?:[^)(]|\([^)]*\))*\)|\|[^|]*\|",
+                re.M,
             ),
             # 3. linear (The Smooth Path)
             # Structural boundaries. EXCLUDES: Access modifiers (pub) and Immutability (const/static).
@@ -1762,7 +1920,18 @@ LANGUAGE_DEFINITIONS = {
             # 4. func_start (The Satellite Spawner)
             # ONLY executable logic blocks. EXCLUDES structs/traits to prevent Ghost Satellites.
             "func_start": re.compile(
-                r'^[ \t]*(?:pub(?:\([^)]*\))?[ \t]+){0,3}(?:(?:const|async|unsafe|extern(?:[ \t]+"[^"]*")?)[ \t]+){0,3}fn[ \t]+([a-zA-Z_]\w*)(?:<[^>]*>)?(?=\s*\()',
+                # =====================================================================
+                # [ THE VERTICAL MACRO & GENERICS SHIELD ]
+                # Rust functions can be preceded by multiple attribute macros (#[inline]) 
+                # and have decoupled generics `<T>`.
+                # FIX: Injected the Macro Shield `(?:#\[[^\]]*\][ \t\n]*){0,5}`, upgraded
+                # modifier spaces to `[ \t\n]+`, and detached the generic stepper `(?:[ \t\n]*<[^>]*>)?`
+                # so the parser can trace the name through massive vertical formatting.
+                # =====================================================================
+                r"^[ \t]*(?:#\[[^\]]*\][ \t\n]*){0,5}"
+                r"(?:pub(?:\([^)]*\))?[ \t\n]+){0,3}"
+                r"(?:(?:const|async|unsafe|extern(?:[ \t\n]+\"[^\"]*\")?)[ \t\n]+){0,3}"
+                r"fn[ \t\n]+([a-zA-Z_]\w*)(?:[ \t\n]*<[^>]*>)?[ \t\n]*(?=\()",
                 re.M,
             ),
             # 5. class_start (The Entity Census)
@@ -2029,8 +2198,9 @@ LANGUAGE_DEFINITIONS = {
                 
                 # 4. THE RETURN TYPE (Pointers/references explicitly bound)
                 # [IRON WALL]: Prevents the engine from reading a `#define` on the next line as a return type.
+                # [POINTER AMBIGUITY FIX]: Forces strict O(1) alternation between spaces or asterisks.
                 r"(?:(?:struct|union|enum)[ \t\n]+)?"
-                r"(?:(?![ \t]*#)[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?(?:[ \t\n]+[*&]*[ \t\n]*|[*&]+[ \t\n]*)){0,5}"
+                r"(?:(?![ \t]*#)[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?(?:[ \t\n]*[*&]+[ \t\n]*|[ \t\n]+)){0,5}"
                 
                 # 5. THE "NOT A FUNCTION" SHIELD
                 # Prevents control flow (if, while) and primitive types from being captured as function names.
@@ -2041,31 +2211,39 @@ LANGUAGE_DEFINITIONS = {
                 r"(?![ \t]*#)((?:[a-zA-Z_]\w*::)*[~a-zA-Z_]\w*|operator[ \t]*[^a-zA-Z_\s(]+|operator[ \t]+(?:new|delete)(?:\[\])?)"
                 
                 # 7. THE PARAMETER BLOCK (Supports vertical gap)
-                r"[ \t\n]*(?:ARGS\d+\s*\([^)]*\)|\([^)]*\)|NOARGS)"
+                # [NESTED PARENTHESIS FIX]: Uses 1-Level Nesting Trick to swallow function pointers without ReDoS.
+                r"[ \t\n]*(?:ARGS\d+\s*\([^)]*\)|\((?:[^)(]|\([^)]*\))*\)|NOARGS)"
                 
                 # 8. POST-PARAMETER MODIFIERS & TRAILING RETURN TYPES
-                r"(?:[ \t\n]+(?:const|volatile|noexcept|override|final|&{1,2}|__attribute__\s*\([^)]*\)|\[\[[^\]]*\]\])){0,10}"
+                # [OVERLAP PREVENTION]: Removed ambiguous \s* inside attribute matcher.
+                r"(?:[ \t\n]+(?:const|volatile|noexcept|override|final|&{1,2}|__attribute__\([^)]*\)|\[\[[^\]]*\]\])){0,10}"
                 r"(?:[ \t\n]*->[ \t]*[a-zA-Z_:\w*<>]+)?"
                 
                 # 9. THE K&R C AND C++ CONSTRUCTOR GAP (ReDoS mitigated via Strict Bounding)
                 # Handles C++ initializer lists (e.g., `MyClass() : a(1) {`) and legacy K&R declarations.
                 # [IRON WALL - CATASTROPHIC BACKTRACKING FIX]: 
-                # Previously, this used unbounded wildcards (`[^{;]+` and `[^(){};]*`). 
-                # When parsing massive 50,000-line OS headers with complex macro arrays, 
-                # the regex engine would attempt millions of permutations on failure, 
-                # completely deadlocking the CPU (ReDoS) and causing starvation timeouts.
-                # THE FIX: We enforce strict numeric bounds (`{0,500}` and `{0,100}`) 
-                # instead of `+` or `*`. This caps the permutation tree instantly while 
-                # perfectly accommodating valid constructor lists and K&R types.
+                # We enforce strict numeric bounds (`{0,500}` and `{0,100}`) instead of `+` or `*`. 
+                # This caps the permutation tree instantly.
                 r"(?:[ \t\n]*(?![ \t]*#):[^{;]{0,500}|(?:[ \t\n]+(?![ \t]*#)[a-zA-Z_][^(){};]{0,100};){1,20})?"
                 
                 # 10. THE IGNITION (The opening brace confirming it is a definition, not a declaration)
                 r"[ \t\n]*\{",
                 re.M,
             ),
+            
             # 5. class_start (The Entity Census)
+            # =====================================================================
+            # [ THE C++ ATTRIBUTE & TEMPLATE SHIELD ]
+            # C++ entity declarations can be preceded by massive, multi-line templates 
+            # and C++20 `[[attributes]]` wedged directly before the class name.
+            # FIX 1 (Negative Test): Dropped standard C-style `enum` to avoid hallucinating 
+            # minor constants; restricted to strongly-typed `enum class` / `enum struct`.
+            # FIX 2 (Pathological): Injected `(?:\[\[[^\]]*\]\][ \t\n]*){0,5}` to step 
+            # over attributes, converted `\s*` to `[ \t\n]*` for the template wrapper, 
+            # and added the exact capture group `([a-zA-Z_]\w*)`.
+            # =====================================================================
             "class_start": re.compile(
-                r"^[ \t]*(?:export[ \t]+)?(?:template\s*<[^>]*>\s*)?(?:class|struct|union|enum\s+class|enum)\s+[a-zA-Z_]\w*",
+                r"^[ \t]*(?:export[ \t\n]+)?(?:template[ \t\n]*<[^>]*>[ \t\n]*)?(?:class|struct|union|enum[ \t\n]+class|enum[ \t\n]+struct)[ \t\n]+(?:\[\[[^\]]*\]\][ \t\n]*){0,5}([a-zA-Z_]\w*)",
                 re.M,
             ),
             # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
@@ -2306,7 +2484,15 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # Parameter blocks. Bounded negation [^)]* to prevent ReDoS on massive param lists.
             "args": re.compile(
-                r"(?!(?:if|for|while|switch|return)\b)\b[a-zA-Z_]\w*[ \t*]*\(\s*(?:const\s+|volatile\s+)?(?:int|char|void|float|double|long|short|unsigned|signed|struct|enum)\b[^)]*\)",
+                # =====================================================================
+                # [ THE NESTED POINTER SHIELD (C) ]
+                # Standard parameter capture `[^)]*` fails instantly on function pointers 
+                # like `void (*cb)(int)`. 
+                # FIX: Replaced `[^)]*` with the 1-Level Nesting Trick `(?:[^)(]+|\([^)]*\))*` 
+                # to safely swallow function pointer parameters without triggering ReDoS.
+                # Upgraded horizontal `[ \t*]*` to `[ \t\n*]*` to support vertical signatures.
+                # =====================================================================
+                r"(?!(?:if|for|while|switch|return)\b)\b[a-zA-Z_]\w*[ \t\n*]*\(\s*(?:const\s+|volatile\s+)?(?:int|char|void|float|double|long|short|unsigned|signed|struct|enum)\b(?:[^)(]|\([^)]*\))*\)",
                 re.M,
             ),
             # 3. linear (The Smooth Path)
@@ -2316,22 +2502,29 @@ LANGUAGE_DEFINITIONS = {
             ),
             "func_start": re.compile(
                 # =====================================================================
-                # [CRITICAL ROADMAP FOR FUTURE LLMs & MAINTAINERS: THE REDOS IRON WALL]
-                # PURPOSE: Anchors executable logic blocks (functions) in C/C++.
+                # [ CRITICAL ROADMAP FOR FUTURE LLMs & MAINTAINERS: THE REDOS IRON WALL ]
+                # PURPOSE: Anchors executable logic blocks (functions) in C.
                 #
-                # THE FINAL FIX (THE K&R AMBIGUITY TRAP):
-                # The engine was consuming `BEGIN` as a parameter type (e.g. `BEGIN i;`).
-                # When it failed to find a semicolon, it backtracked through 15 loops of 
-                # whitespace combinations (2^15 = 32,768 permutations = 34 seconds).
+                # 1. THE K&R AMBIGUITY TRAP (The Original Fix):
+                #    The engine was consuming `BEGIN` as a parameter type (e.g. `BEGIN i;`).
+                #    When it failed to find a semicolon, it backtracked through 15 loops of 
+                #    whitespace combinations causing 34-second ReDoS hangs.
+                #    RULE: The K&R gap MUST use `(?!(?:BEGIN...)\b)[a-zA-Z_]` to instantly reject.
+                #    RULE: NO OVERLAPPING WHITESPACE: `\s+` exclusively owns all spaces.
                 #
-                # THE RULES OF THIS REGEX (DO NOT ALTER WITHOUT BENCHMARKING):
-                # 1. DETERMINISTIC FAILURE: The K&R gap MUST use `(?!(?:BEGIN...)\b)[a-zA-Z_]` 
-                #    so it instantly rejects the MS-DOS BEGIN macro without backtracking.
-                # 2. NO OVERLAPPING WHITESPACE: `\s+` exclusively owns all spaces.
+                # 2. [ THE COMPILER ATTRIBUTE SHIELD ] (Hard-learned from Pathological Fuzzer):
+                #    Kernel and embedded C code frequently stack `__attribute__((...))` 
+                #    definitions across multiple vertical lines before the function signature.
+                #    FIX: Injected a dedicated, bounded `__attribute__` scanner `(?:__attribute__\s*\([^)]*\)\s*){0,5}`
+                #    at the start of the pipeline. This explicitly permits multi-line `\s*` traversal
+                #    without triggering Catastrophic Backtracking against the modifiers.
                 # =====================================================================
                 
                 # 1. The Horizontal Anchor
                 r"^[ \t]*"  
+                
+                # [ THE COMPILER ATTRIBUTE SHIELD ]: Safely consumes GCC/Clang attributes across newlines.
+                r"(?:__attribute__\s*\([^)]*\)\s*){0,5}"
                 
                 # 2. Modifiers (Strictly bounded)
                 r"(?:(?:static|inline|extern|_Noreturn|__inline__|__forceinline|constexpr)\s+){0,3}"  
@@ -2404,7 +2597,6 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 12. graveyard (The Necrosis)
             "graveyard": re.compile(r"(?://|/\*)[ \t]*(?:if|for|while|struct|union|enum|void|int|return)\b"),
-            
             # 13. doc (The Intent)
             "doc": re.compile(
                 r"///|/\*\*|@param|@return|@brief|@details|\\param|\\return|\\brief|\\details"
@@ -2452,8 +2644,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import (The Gravity Links)
             "import": re.compile(r'^[ \t]*#[ \t]*(?:include|embed)\s*[<"][^>"]+[>"]', re.M),
                         
-            "_dependency_capture": re.compile(r'^[ \t]*#[ \t]*(?:include|embed)\s*[<"]([^>"]+)[>"]', re.M),
-                                    
+            "_dependency_capture": re.compile(
+                r'^[ \t]*#[ \t\n]*(?:include|embed)[ \t\n]*[<"]([^>"]+)[>"]', 
+                re.M
+            ),                   
             # 25. ownership (The Authorship)
             "ownership": re.compile(
                 r"(?:@author|\\author|Author:|Created by:|Copyright)\s+(.*)", re.I
@@ -2714,8 +2908,11 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             
-            "_dependency_capture": re.compile(r"^[ \t]*use\s+(?:function\s+|const\s+)?([\w\\]+)|\b(?:require|require_once|include|include_once)\s*\(?\s*['\"]([^'\"]+)['\"]", re.M),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*[ \t]*=[ \t]*)?"
+                r"(?:use[ \t\n]+(?:function[ \t\n]+|const[ \t\n]+)?([\w\\]+)|(?:require|require_once|include|include_once)[ \t\n]*\(?[ \t\n]*['\"]([^'\"]+)['\"])", 
+                re.M
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(
                 r"@(?:author|copyright)\s+(.*)|(?:Created by|Maintainer):?\s+(.*)", re.I
@@ -2971,8 +3168,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             
             # --- UPDATED LINE FOR THE ORCHESTRATOR ---
-            "_dependency_capture": re.compile(r"\b(?:Import-Module|using\s+(?:module|namespace|assembly))\s+['\"]?([^'\"\s;]+)['\"]?|(?:^|[ \t])\.\s+['\"]?([^'\"\s;]+\.ps1)['\"]?", re.I | re.M),
-                        
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:Import-Module|using[ \t\n]+(?:module|namespace|assembly))[ \t\n]+['\"]?([^'\"\s;]+)['\"]?|^[ \t]*\.[ \t\n]+['\"]?([^'\"\s;]+\.ps1)['\"]?", 
+                re.I | re.M
+            ),          
             # ownership: Authorship indicators in comments or metadata.
             "ownership": re.compile(
                 r"^[ \t]*#\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)|\.AUTHOR\s+([^\n]+)",
@@ -3117,9 +3316,16 @@ LANGUAGE_DEFINITIONS = {
             ),
             # Anchors executable logic blocks. Captures `function foo` or `foo()`.
             # Handled by Mode D (Semantic Handshake) in detector.py.
-            'func_start': re.compile(
-            r'^[ \t]*(?:function[ \t]+([a-zA-Z_][a-zA-Z0-9_.-]*)|(?!(?:if|while|for|case|until)\b)([a-zA-Z_][a-zA-Z0-9_.-]*)[ \t]*\(\))',
-            re.M
+            "func_start": re.compile(
+                # =====================================================================
+                # [ THE VERTICAL FUNCTION SHIELD (SHELL) ]
+                # Bash/Zsh allow extreme spacing and newlines between the `function` 
+                # keyword and the identifier name.
+                # FIX: Upgraded horizontal spaces `[ \t]+` to `[ \t\n]+` for the 
+                # `function` keyword path, allowing it to easily consume weird formatting.
+                # =====================================================================
+                r'^[ \t]*(?:function[ \t\n]+([a-zA-Z_][a-zA-Z0-9_.-]*)|(?!(?:if|while|for|case|until)\b)([a-zA-Z_][a-zA-Z0-9_.-]*)[ \t\n]*\(\))',
+                re.M
             ),
             # 5. class_start
             # Shell is strictly procedural.
@@ -3365,7 +3571,15 @@ LANGUAGE_DEFINITIONS = {
             # 4. func_start (The Satellite Spawner)
             # ONLY executable logic blocks. EXCLUDES class/module definitions.
             "func_start": re.compile(
-                r'^[ \t]*(?:def\s+(?:self\.)?|define_method\s*\(?\s*[:\'"]?)([a-zA-Z_]\w*[=!?]?)(?=[ \t]*[)\(]|[\'"]?\s*(?:\{|do)|[ \t]*$|[ \t]+)',
+                # =====================================================================
+                # [ THE VERTICAL CLASS-METHOD SHIELD (RUBY) ]
+                # Ruby allows 'def', 'self.', the function name, and the argument list 
+                # to be separated by vertical newlines.
+                # FIX: Replaced `\s+` with `[ \t\n]+` and explicitly allowed `[ \t\n]*` 
+                # after `self.` so the parser doesn't break when tracking singleton methods.
+                # Upgraded the trailing lookahead to safely handle newlines before `(`.
+                # =====================================================================
+                r'^[ \t]*(?:def[ \t\n]+(?:self\.[ \t\n]*)?|define_method[ \t\n]*\(?[ \t\n]*[:\'"]?)([a-zA-Z_]\w*[=!?]?)(?=[ \t\n]*[)\(]|[\'"]?[ \t\n]*(?:\{|do)|[ \t\n]|$)',
                 re.M,
             ),
             # 5. class_start (The Entity Census)
@@ -3586,7 +3800,15 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # Parameter blocks. Bounded negation [^)]* and <[^>]*> to prevent ReDoS.
             "args": re.compile(
-                r"\b(?:func|init\??|subscript)\s*(?:[a-zA-Z_]\w*)?(?:<[^>]*>)?\s*\([^)]*\)|\{\s*(?:\[[^\]]*\]\s*)?(?:\([^)]*\)|[a-zA-Z_]\w*(?:\s*,\s*[a-zA-Z_]\w*){0,10})\s+in\b",
+                # =====================================================================
+                # [ THE ESCAPING CLOSURE SHIELD (SWIFT) ]
+                # Swift functions often take escaping closures `(Result<Void, Error>) -> Void` 
+                # as parameters. The inner `()` breaks the `[^)]*` matcher.
+                # FIX: Upgraded horizontal spaces to `[ \t\n]+` to allow vertical jumps, 
+                # and injected the 1-Level Nesting Trick `(?:[^)(]+|\([^)]*\))*` to safely 
+                # capture the entire parameter block without ReDoS.
+                # =====================================================================
+                r"\b(?:func|init\??|subscript)[ \t\n]*(?:[a-zA-Z_]\w*)?(?:[ \t\n]*<[^>]*>)?[ \t\n]*\((?:[^)(]|\([^)]*\))*\)|\{[ \t\n]*(?:\[[^\]]*\][ \t\n]*)?(?:\([^)]*\)|[a-zA-Z_]\w*(?:[ \t\n]*,[ \t\n]*[a-zA-Z_]\w*){0,50})[ \t\n]+in\b",
                 re.M,
             ),
             # 3. linear (The Smooth Path)
@@ -3597,9 +3819,16 @@ LANGUAGE_DEFINITIONS = {
             # 4. func_start (The Satellite Spawner)
             # ONLY executable logic blocks. EXCLUDES types/classes. Steps over Concurrency modifiers.
             "func_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]*){0,5}"
-                r"(?:(?:public|private|fileprivate|internal|open|package|override|final|static|class|mutating|nonmutating|isolated|nonisolated(?:\(unsafe\))?|distributed|required|convenience)[ \t]+){0,5}"
-                r"(?:func\s+([a-zA-Z_]\w*)|(init\??)|(subscript))(?=\s*\()",
+                # =====================================================================
+                # [ THE VERTICAL ATTRIBUTE & GENERICS SHIELD ]
+                # Swift allows heavy modifier stacking and disconnected generics.
+                # FIX: Upgraded horizontal `[ \t]+` spaces to vertical `[ \t\n]+` across 
+                # decorators and modifiers, and safely detached the generic stepper 
+                # `(?:[ \t\n]*<[^>]*>)?` from the function name capture.
+                # =====================================================================
+                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t\n]*){0,5}"
+                r"(?:(?:public|private|fileprivate|internal|open|package|override|final|static|class|mutating|nonmutating|isolated|nonisolated(?:\(unsafe\))?|distributed|required|convenience)[ \t\n]+){0,5}"
+                r"(?:func[ \t\n]+([a-zA-Z_]\w*)(?:[ \t\n]*<[^>]*>)?|(init\??)|(subscript))(?=[ \t\n]*\()",
                 re.M,
             ),
             # 5. class_start (The Entity Census)
@@ -3659,7 +3888,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 17. closures (The Functional Depth)
             "closures": re.compile(
-                r"completion:[ \t]*\{|\{\s*(?:\[[^\]]*\]\s*)?(?:\([^)]*\)|[a-zA-Z_]\w*(?:\s*,\s*[a-zA-Z_]\w*)*)\s+in\b"
+                r"completion:[ \t]*\{|\{\s*(?:\[[^\]]*\]\s*)?(?:\([^)]*\)|[a-zA-Z_]\w*(?:[ \t\n]*,[ \t\n]*[a-zA-Z_]\w*){0,50})[ \t\n]+in\b"
             ),
             # 18. globals (The Shared Void)
             "globals": re.compile(
@@ -3825,14 +4054,32 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # OPTIMIZED: Removed overlapping whitespace quantifiers to fix Regex Sludge.
             "args": re.compile(
-                r"\b(?:fun|constructor)(?:<[^>\n]{0,100}>)?[ \t]*(?:[a-zA-Z_]\w*\.)?[a-zA-Z_]\w*[ \t]*\([^)\{]{0,500}\)|\{[ \t\n]*[a-zA-Z_][a-zA-Z0-9_ \t\n:<>,.?]{0,150}?->",
-                re.M,
+                # =====================================================================
+                # [ THE LAMBDA PARAMETER SHIELD (KOTLIN) ]
+                # Kotlin default arguments `emptyList()` and lambda parameters `(Result<T>) -> Unit` 
+                # contain parentheses that shatter standard `[^)]*` boundaries.
+                # FIX: Implemented the 1-Level Nesting Trick `(?:[^)(]+|\([^)]*\))*` to 
+                # absorb the inner parentheses. Upgraded spaces to `[ \t\n]*` for vertical layouts.
+                # =====================================================================
+                r"\b(?:fun|constructor)(?:[ \t\n]*<[^>]{0,100}>)?[ \t\n]*(?:[a-zA-Z_]\w*\.)?[a-zA-Z_]\w*[ \t\n]*\((?:[^)(]|\([^)]*\))*\)|\{[ \t\n]*[a-zA-Z_][a-zA-Z0-9_ \t\n:<>,.?]{0,150}?->",                re.M,
             ),
 
             # 4. func_start (The Satellite Spawner)
             # OPTIMIZED: Bound annotation parenthesis scanning to prevent multi-line bleeding.
             "func_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)\{]{0,300}\))?[ \t]+){0,10}(?:(?:public|private|protected|internal|open|override|abstract|final|suspend|inline|tailrec|infix|operator|external|expect|actual)[ \t]+){0,5}(?:context\s*\([^)]*\)\s*)?(?:fun\s+(?:<[^>\n]{0,100}>\s*)?(?:[a-zA-Z_]\w*\.)?([a-zA-Z_]\w*)|(init)|(constructor))(?=[ \t]*[\(\{])",
+                # =====================================================================
+                # [ THE VERTICAL MODIFIER & GENERIC SHIELD (KOTLIN) ]
+                # Kotlin allows annotations, modifiers, the 'fun' keyword, generics, 
+                # and the function name to be split across multiple lines.
+                # FIX: Upgraded `[ \t]+` to `[ \t\n]+` across the decorator and modifier 
+                # stacks. Modified the generic stepper to `(?:<[^>]{0,100}>[ \t\n]*)?` 
+                # (removing the `\n` restriction) and updated the trailing lookahead 
+                # to `[ \t\n]*[\(\{]` so it can safely jump vertical gaps to the parameters.
+                # =====================================================================
+                r"^[ \t]*(?:@[\w.]+(?:\([^)\{]{0,300}\))?[ \t\n]*){0,10}"
+                r"(?:(?:public|private|protected|internal|open|override|abstract|final|suspend|inline|tailrec|infix|operator|external|expect|actual)[ \t\n]+){0,5}"
+                r"(?:context\s*\([^)]*\)\s*)?"
+                r"(?:fun[ \t\n]+(?:<[^>]{0,100}>[ \t\n]*)?(?:[a-zA-Z_]\w*\.)?([a-zA-Z_]\w*)|(init)|(constructor))(?=[ \t\n]*[\(\{])",
                 re.M,
             ),
             
@@ -3926,8 +4173,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import (The Gravity Links)
             "import": re.compile(r"^[ \t]*import\s+(?:static[ \t]+)?[\w.]+;?", re.M),
             
-            "_dependency_capture": re.compile(r"^[ \t]*import\s+(?:static\s+)?([\w.]+)", re.M),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*import[ \t\n]+(?:static[ \t\n]+)?([\w.*]+)", 
+                re.M
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(
                 r"@(?:author|since)\s+(.*)|//\s*(?:Created by|Maintainer|Copyright):\s+(.*)",
@@ -4074,8 +4323,16 @@ LANGUAGE_DEFINITIONS = {
             # 4. func_start (The Satellite Spawner)
             # Executable logic wrappers. EXCLUDES tables to avoid Ghost Satellites.
             "func_start": re.compile(
-                r"^[ \t]*CREATE\s+(?:TEMP|TEMPORARY)?\s*(?:UNIQUE[ \t]+)?(?:TRIGGER|VIEW|INDEX)\s+"
-                r"(?:IF\s+NOT\s+EXISTS[ \t]+)?([a-zA-Z_]\w*)(?=[ \t\(\n;])",
+                # =====================================================================
+                # [ THE VERTICAL MODIFIER SHIELD (SQLITE) ]
+                # SQL developers frequently format DDL statements across multiple lines,
+                # stacking `CREATE`, `TEMPORARY TRIGGER`, and `IF NOT EXISTS` vertically.
+                # FIX: Upgraded the `\s+` and `[ \t]+` modifier bounds to `[ \t\n]+`.
+                # Critically, the `IF NOT EXISTS` block previously failed to capture
+                # the vertical gap, causing the engine to capture `IF` as the target name.
+                # =====================================================================
+                r"^[ \t]*CREATE[ \t\n]+(?:TEMP|TEMPORARY)?[ \t\n]*(?:UNIQUE[ \t\n]+)?(?:TRIGGER|VIEW|INDEX)[ \t\n]+"
+                r"(?:IF[ \t\n]+NOT[ \t\n]+EXISTS[ \t\n]+)?([a-zA-Z_]\w*)(?=[ \t\(\n;]|$)",
                 re.I | re.M,
             ),
             # 5. class_start (The Entity Census)
@@ -4697,8 +4954,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import (The Gravity Links)
             "import": re.compile(r"@import\b", re.I),
             
-            "_dependency_capture": re.compile(r"@import\s+(?:url\(\s*['\"]?|['\"])([^'\"\)]+)", re.I),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*@import[ \t\n]+(?:url\(\s*['\"]?|['\"])([^'\"\)]+)", 
+                re.I | re.M
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(
                 r"/\*\s*(?:@author|Author:|Created by|Maintainer|Copyright):?\s+([^*]*)\*/",
@@ -4866,7 +5125,7 @@ LANGUAGE_DEFINITIONS = {
             #   trailing attributes (RESULT, BIND(C)). Using unbounded `\s+` across these 
             #   permutations causes Catastrophic Backtracking (ReDoS) on large legacy files.
             # THE "IRON WALL" FIX: 
-            #   1. Strict `[ \t]` horizontal bounds prevent vertical newline bleeding.
+            #   1. Strict `[ \t\n]` bounds prevent horizontal/vertical bleeding.
             #   2. Negative lookahead `(?!\bEND\b)` prevents ghosting `END SUBROUTINE FOO`.
             #   3. Clamped quantifiers `{0,5}` on prefixes stop runaway recursion.
             #   4. Added `CLASS` to the base types to support modern Object-Oriented Fortran.
@@ -4878,22 +5137,32 @@ LANGUAGE_DEFINITIONS = {
                 # Stops O(N^2) vertical spirals. Explicitly blocks "END SUBROUTINE FOO" from triggering.
                 r"^[ \t]*(?!\bEND\b)"
                 
+                # =====================================================================
+                # [ THE VERTICAL LEGACY SHIELD ] (Hard-learned from Pathological Fuzzer):
+                # Fortran allows extreme prefix stacking (e.g., `PURE RECURSIVE REAL*8`).
+                # We previously restricted this to `[ \t]+` to avoid newline spirals.
+                # FIX: Fortran developers frequently use line continuations (`&`) or split types. 
+                # We carefully upgraded `[ \t]` to `[ \t\n]` inside the rigidly bounded 
+                # `{0,5}` modifier limits so the engine can safely leap over vertical lines 
+                # without resorting to unbounded `\s+` which triggers ReDoS.
+                # =====================================================================
+                
                 # 2. THE PREFIX STACK
                 # F95/F2008 allows stacking prefixes. Capped at {0,5} to prevent ReDoS.
-                r"(?:(?:PURE|ELEMENTAL|RECURSIVE|IMPURE|MODULE)[ \t]+){0,5}"
+                r"(?:(?:PURE|ELEMENTAL|RECURSIVE|IMPURE|MODULE)[ \t\n]+){0,5}"
                 
                 # 3. THE RETURN TYPE
                 # Optional for Subroutines/Programs, mandatory for explicit Functions.
                 r"(?:"
                     # 3a. Base Types (Primitives + Derived + Classes + Legacy)
-                    r"(?:INTEGER|REAL|COMPLEX|LOGICAL|CHARACTER|TYPE|CLASS|DOUBLE[ \t]+PRECISION)"
+                    r"(?:INTEGER|REAL|COMPLEX|LOGICAL|CHARACTER|TYPE|CLASS|DOUBLE[ \t\n]+PRECISION)"
                     # 3b. Legacy Sizing (*8) or Modern Kinds/Lengths ((KIND=4, LEN=*))
-                    r"(?:[ \t]*(?:\*[ \t]*\d+|\([^)]*\)))?"
-                    r"[ \t]+"
+                    r"(?:[ \t\n]*(?:\*[ \t\n]*\d+|\([^)]*\)))?"
+                    r"[ \t\n]+"
                 r")?"
                 
                 # 4. THE EXECUTION BLOCK KEYWORD
-                r"(?:FUNCTION|SUBROUTINE|PROGRAM|ENTRY)[ \t]+"
+                r"(?:FUNCTION|SUBROUTINE|PROGRAM|ENTRY)[ \t\n]+"
                 
                 # 5. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
                 # Extracts the actual block name.
@@ -4902,7 +5171,7 @@ LANGUAGE_DEFINITIONS = {
                 # 6. THE TRAILING ANCHOR (Lookahead)
                 # Confirms the boundary without consuming it. Handles opening parens `(`, comments `!`, 
                 # line continuations `&`, EOF `$`, or explicit F2003+ modifiers (RESULT, BIND).
-                r"(?=[ \t]*(?:[\(!&\n\r]|$|\bRESULT\b|\bBIND\b))",
+                r"(?=[ \t\n]*(?:[\(!&]|$|\bRESULT\b|\bBIND\b))",
                 
                 re.I | re.M,
             ),
@@ -5020,8 +5289,10 @@ LANGUAGE_DEFINITIONS = {
             # Dependency linkage across Fortran modules and files.
             "import": re.compile(r"\b(USE|INCLUDE|IMPORT)\b", re.I),
             
-            "_dependency_capture": re.compile(r"\bUSE(?:\s*,\s*\w+\s*::)?\s+([a-zA-Z0-9_]+)|\bINCLUDE\s*['\"]([^'\"]+)['\"]", re.I),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:USE(?:\s*,\s*\w+\s*::)?\s+([a-zA-Z0-9_]+)|INCLUDE[ \t\n]*['\"]([^'\"]+)['\"])", 
+                re.I | re.M
+            ),
             # 25. ownership (The Authorship)
             # Identifying the developer, maintainer, or copyright holder natively.
             "ownership": re.compile(
@@ -5532,8 +5803,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import (The Gravity Links)
             "import": re.compile(r"\b(BANK|SETLOC|EBANK=)\b", re.I),
             
-            "_dependency_capture": re.compile(r"\b(?:BANK\s+|SETLOC\s+|EBANK=\s*)([A-Za-z0-9_]+)", re.I),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:BANK[ \t\n]+|SETLOC[ \t\n]+|EBANK=[ \t\n]*)([A-Za-z0-9_]+)", 
+                re.I | re.M
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(
                 r"^#\s*(?:MOD\s+BY|AUTHOR|CREATED\s+BY|MAINTAINER|Contact)\s*[:\-]\s*(.*)",
@@ -5646,7 +5919,15 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 4. func_start: Satellite Spawner. Anchors executable logic blocks (named functions).
             "func_start": re.compile(
-                r"^[ \t]*(?:local[ \t]+)?(?:export[ \t]+)?function\s+([a-zA-Z_][\w.:]*)(?=[ \t]*\()",
+                # =====================================================================
+                # [ THE VERTICAL FUNCTION SHIELD (LUA) ]
+                # Lua developers frequently split the `local`, `function`, and identifier 
+                # across newlines.
+                # FIX: Upgraded horizontal `[ \t]+` bounds to `[ \t\n]+` across the 
+                # modifier stack, and securely allowed `[ \t\n]*` in the positive 
+                # lookahead for the parenthesis.
+                # =====================================================================
+                r"^[ \t]*(?:local[ \t\n]+)?(?:export[ \t\n]+)?function[ \t\n]+([a-zA-Z_][\w.:]*)(?=[ \t\n]*\()",
                 re.M,
             ),
             # 5. class_start: Entity Census. Captures proto-tables or EmmyLua class definitions.
@@ -5728,8 +6009,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import: Gravity Links. Dependency resolution.
             "import": re.compile(r"\b(require|dofile)\b"),
             
-            "_dependency_capture": re.compile(r"\b(?:require|dofile)\s*\(?\s*['\"]([^'\"]+)['\"]", re.M),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:local[ \t]+[a-zA-Z0-9_, \t]*=[ \t]*)?(?:require|dofile)[ \t\n]*\(?[ \t\n]*['\"]([^'\"]+)['\"]", 
+                re.M
+            ),            
             # 25. ownership: Authorship metadata in comments.
             "ownership": re.compile(
                 r"--\s*(?:Author|Copyright|License|Maintainer):\s+([^\n]+)|---\s*@author\s+([^\n]+)",
@@ -5870,7 +6153,15 @@ LANGUAGE_DEFINITIONS = {
             #    - `\{` : Matches standard immediate block openings `sub foo {`.
             #    - `\n|$`: Handles K&R style newline brace placements.
             "func_start": re.compile(
-                r"^[ \t]*(?:sub|method)\s+" r"([a-zA-Z_]\w*)" r"(?=[ \t]*[:\(\{]|\n|$)",
+                # =====================================================================
+                # [ THE VERTICAL SUBROUTINE SHIELD (PERL) ]
+                # Perl 5 (and modern Corinna OOP) allows newlines between the `sub`/`method` 
+                # keyword and the function name.
+                # FIX: Exchanged `\s+` (which triggers ReDoS if unbounded) with a strictly 
+                # controlled `[ \t\n]+` to allow vertical jumps. Upgraded the trailing 
+                # lookahead to safely handle vertical gaps before the opening `{` or `(`.
+                # =====================================================================
+                r"^[ \t]*(?:sub|method)[ \t\n]+" r"([a-zA-Z_]\w*)" r"(?=[ \t\n]*[:\(\{]|$)",
                 re.M,
             ),
             # 5. class_start: Entity Census. Defines object-oriented and structural boundaries.
@@ -6085,10 +6376,18 @@ LANGUAGE_DEFINITIONS = {
             "linear": re.compile(
                 r"\b(module|data|type|newtype|class|instance|let|in|where|do|mdo|deriving|family|pattern)\b|%1\s*->|⊸"
             ),
-            # func_start: Satellite Spawner. Anchors executable logic (Type Signatures).
+            # 4. func_start: Satellite Spawner. Anchors executable logic (Type Signatures).
             # EXCLUDES data/type/class declarations to fix Ghost Satellites.
             "func_start": re.compile(
-                r"^[ \t]*(?!(?:data|type|newtype|class|instance)\b)([a-z_][a-zA-Z0-9_\']*)(?=\s*::)",
+                # =====================================================================
+                # THE HASKELL UPPERCASE TRAP:
+                # While Haskell idiomatic convention strongly enforces lowercase `[a-z_]` 
+                # for function names, enforcing this strictly at the regex level caused 
+                # the engine to miss valid (but non-standard) functions or FFI exports.
+                # FIX: Opened the leading character class to `[a-zA-Z_]`. The negative 
+                # lookahead `(?!(?:data|type...))` already prevents collisions with types.
+                # =====================================================================
+                r"^[ \t]*(?!(?:data|type|newtype|class|instance)\b)([a-zA-Z_][a-zA-Z0-9_\']*)(?=\s*::)",
                 re.M,
             ),
             # class_start: Entity Census. Defines structural entities and typeclass boundaries.
@@ -6544,21 +6843,38 @@ LANGUAGE_DEFINITIONS = {
             #   comprehensive negative lookaheads to explicitly ban COBOL reserved words, 
             #   data structures, and Division headers.
             # =====================================================================
+            # 4. func_start: Satellite Spawner. Anchors logic blocks (Paragraphs and Sections).
             "func_start": re.compile(
-                
+                # =====================================================================
+                # [ CONTEXT: COBOL FUNCTION/PARAGRAPH AST EXTRACTOR & REDOS SHIELD ]
+                # PURPOSE: Anchors executable logic blocks (Paragraphs and Sections) in COBOL.
+                #
+                # [ THE GREEDY MARGIN TRAP ] (Hard-learned from Pathological Fuzzer):
+                # Legacy COBOL uses a 6-character sequence area. Our regex optionally 
+                # eats these 6 characters: `(?:[0-9a-zA-Z \t]{6}[ \-]?)?`. 
+                # If a free-format developer writes a paragraph flush against the left 
+                # margin (e.g., `TargetFunc.`), the regex greedily eats the first 6 
+                # characters (`Target`) as the sequence number, and captures `Func` as 
+                # the paragraph name!
+                # THE FIX: We injected a strict word boundary `\b` right before the 
+                # identifier capture group. If the margin-eater chops a word in half, 
+                # the `\b` fails, forcing the regex engine to backtrack, skip the 
+                # optional margin-eater, and correctly capture the full word `TargetFunc`.
+                # =====================================================================
+
                 # 1. THE HORIZONTAL ANCHOR & FORMAT SHIELD
-                # Safely handles both strict 80-column punched card formats (6-char sequence + indicator)
-                # and modern free-format code. Strictly bounded `{6}` to prevent O(N^2) ReDoS margin scanning.
-                r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*"
+                # Safely handles strict 80-column punched card formats (6-char sequence)
+                # and modern free-format code. Upgraded to `[ \t\n]*` to allow vertical gaps.
+                r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t\n]*"
                 
                 # 2. THE DATA DIVISION SHIELD
                 # Explicitly bans data level indicators (01 through 88). 
-                # Prevents massive "01 POLICY." data structures from being hallucinated as executable paragraphs.
+                # Prevents massive "01 POLICY." data structures from being hallucinated as paragraphs.
                 r"(?!(?:01|02|03|04|05|10|15|20|66|77|88)\s+)"
                 
                 # 3. THE RESERVED VERB & SCOPE TERMINATOR SHIELD
                 # Explicitly bans standard COBOL execution verbs, divisions, and scope terminators (`END-*`).
-                # Prevents rogue commands like "PERFORM." or "END-IF." from spawning ghost satellites if poorly indented.
+                # Prevents rogue commands like "PERFORM." from spawning ghost satellites.
                 r"(?!(?:WORKING-STORAGE|DATA|ENVIRONMENT|IDENTIFICATION|ID|LINKAGE|FILE|DECLARATIVES|"
                 r"AUTHOR|DATE-WRITTEN|DATE-COMPILED|INSTALLATION|REMARKS|SECURITY|"
                 r"INPUT-OUTPUT|CONFIGURATION|DISPLAY|CALL|MOVE|COMPUTE|PERFORM|ADD|SUBTRACT|MULTIPLY|"
@@ -6566,21 +6882,20 @@ LANGUAGE_DEFINITIONS = {
                 r"DELETE|OPEN|CLOSE|PROGRAM-ID|CLASS-ID|END-[A-Za-z0-9_-]+)\b)"
                 
                 # 4. THE DIVISION/SECTION HEADER SHIELD
-                # Bans any word followed immediately by DIVISION (e.g., "PROCEDURE DIVISION") 
-                # to prevent massive structural ghosting.
-                r"(?![A-Za-z0-9_-]+\s+DIVISION\b)"
+                # Bans any word followed immediately by DIVISION (e.g., "PROCEDURE DIVISION").
+                # Upgraded to `[ \t\n]+` to prevent vertical ghosting.
+                r"(?![A-Za-z0-9_-]+[ \t\n]+DIVISION\b)"
                 
                 # 5. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
-                # Safely extracts the actual paragraph or section name using standard COBOL character sets.
-                r"([A-Za-z0-9_-]+)"
+                # [ THE GREEDY MARGIN SHIELD ]: The `\b` forces the engine to evaluate the whole word,
+                # preventing the 6-character margin-eater from splitting flush-left identifiers.
+                r"\b([A-Za-z0-9_-]+)"
                 
                 # 6. THE IGNITION & TRAILING ANCHOR (Lookahead)
-                # Confirms this is a paragraph/section declaration by looking ahead for an optional 
-                # "SECTION" keyword, immediately followed by the mandatory COBOL period ".".
-                # THE "SQL GHOST" FIX: Added `(?:\s|$)` to ensure the period is followed by 
-                # whitespace or EOF. This explicitly blocks SQL qualifiers (e.g., "POLICY.CUSTOMERNUMBER")
-                # from being hallucinated as paragraphs when heavily indented into Area B.
-                r"(?=(?:\s+SECTION)?[ \t]*\.(?:\s|$))",
+                # Confirms paragraph/section by looking for an optional "SECTION", then a mandatory ".".
+                # Upgraded to `[ \t\n]+` to allow vertical separation between the name and SECTION.
+                # THE "SQL GHOST" FIX: `(?:\s|$)` blocks SQL qualifiers (e.g., "POLICY.CUSTOMERNUMBER").
+                r"(?=(?:[ \t\n]+SECTION)?[ \t]*\.(?:[ \t\n]|$))",
                 
                 re.I | re.M,
             ),
@@ -6667,11 +6982,10 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(REDEFINES|RENAMES|OCCURS\s+DEPENDING\s+ON|EVALUATE\s+TRUE|EXEC\s+CICS|EXEC\s+SQL)\b",
                 re.I,
             ),
-            # 24. import: Gravity Links. Copybooks and inclusions.
-            "import": re.compile(r"\b(?:COPY|INCLUDE)\s+[A-Za-z0-9_-]+", re.I),
-            
-            "_dependency_capture": re.compile(r"\b(?:COPY|INCLUDE)\s+['\"]?([A-Za-z0-9_-]+)['\"]?", re.I),
-            
+            "_dependency_capture": re.compile(
+                r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*(?:COPY|INCLUDE)[ \t\n]+['\"]?([A-Za-z0-9_-]+)['\"]?", 
+                re.I | re.M
+            ),           
             # 25. ownership: Authorship indicators.
             "ownership": re.compile(
                 r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*AUTHOR\.\s+([^\n]+)", re.I | re.M
@@ -6858,7 +7172,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import: Gravity Links. Module and C-header bridges.
             "import": re.compile(r"\b(@import|@cImport|@cInclude)\b"),
             
-            "_dependency_capture": re.compile(r"\b(?:@import|@cInclude)\s*\(\s*['\"]([^'\"]+)['\"]", re.M),
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:const[ \t]+[a-zA-Z_]\w*[ \t]*=[ \t]*)?(?:@import|@cInclude)[ \t\n]*\([ \t\n]*['\"]([^'\"]+)['\"]", 
+                re.M
+            ),
             
             # 25. ownership: Authorship indicators in comments.
             "ownership": re.compile(
@@ -7200,10 +7517,20 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(if|else|switch|case|default|for|while|do|try|catch|finally|break|continue|when)\b|&&|\|\||\?|\?\?",
                 re.I,
             ),
-            # 2. args: Coupling Mass. Captures parameters in function, method, and lambda signatures.
+            # 2. args (The Coupling Mass)
+            # Captures parameters in function, method, and lambda signatures.
             "args": re.compile(
-                r"\b[A-Za-z_$][\w$]*(?:<[^>]*>)?\s*\([^)]*\)|\([^)]*\)\s*(?:=>|\{)",
-                re.I,
+                # =====================================================================
+                # [ THE GHOST ARGS & STRICT NESTING SHIELD (DART) ]
+                # Dart functions can take inline typed callbacks like `void Function(int)`.
+                # FIX 1 (Catastrophic Backtracking): Used strictly linear nesting `[^()]*(?:\([^()]*\)[^()]*)*`.
+                # FIX 2 (Ghost Args): `if (a > b) {` matched the anonymous block lambda branch.
+                # Because block lambdas `(a) {` are structurally identical to `while (a) {`, 
+                # we restrict the lambda branch EXCLUSIVELY to arrow functions `=>` to 
+                # mathematically prevent Ghost Args and ReDoS spirals.
+                # =====================================================================
+                r"(?!(?:if|for|while|switch|catch)\b)\b[A-Za-z_$][\w$]*(?:[ \t\n]*<[^>]*>)?[ \t\n]*\([^()]*(?:\([^()]*\)[^()]*)*\)(?=[ \t\n]*(?:\{|=>|:|async|sync))|\([^()]*(?:\([^()]*\)[^()]*)*\)[ \t\n]*=>",
+                re.I | re.M,
             ),
             # 3. linear: Smooth Path. Structural boundaries. EXCLUDES access modifiers and const/final.
             "linear": re.compile(
@@ -7220,11 +7547,19 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 5. class_start (The Entity Census)
-            # ReDoS clamped. Strict capture group and positive lookahead applied.
+            # =====================================================================
+            # [ THE VERTICAL MODIFIER & INHERITANCE SHIELD (DART) ]
+            # Dart allows modifiers to stack (e.g., `abstract base mixin class`) 
+            # and extends/implements declarations that broke the rigid trailing lookahead.
+            # FIX: Grouped the class modifiers into a bounded set `(?:(?:abstract|sealed|base|interface|final|macro)[ \t\n]+){0,5}`.
+            # Upgraded all internal spaces to `[ \t\n]+` to jump vertical gaps, and 
+            # swapped the rigid lookahead for an optional non-capturing inheritance 
+            # group `(?:[ \t\n]+(?:extends|implements|with).*?)?` to handle inheritance paths.
+            # =====================================================================
             "class_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}"
-                r"(?:abstract[ \t]+)?(?:sealed[ \t]+)?(?:base[ \t]+)?(?:interface[ \t]+)?(?:final[ \t]+)?(?:macro[ \t]+)?"
-                r"(?:class|mixin|enum|extension\s+type|extension)\s+([A-Z]\w*)(?=[ \t]*[{<]|\n|$)",
+                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t\n]*){0,5}"
+                r"(?:(?:abstract|sealed|base|interface|final|macro)[ \t\n]+){0,5}"
+                r"(?:class|mixin|enum|extension[ \t\n]+type|extension)[ \t\n]+([A-Z_]\w*)(?:[ \t\n]+(?:extends|implements|with)[ \t\n]+[A-Za-z_$][\w_<>, \t\n]*)?",
                 re.M,
             ),
             # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
@@ -7305,8 +7640,10 @@ LANGUAGE_DEFINITIONS = {
                 r'^[ \t]*(?:import|export|part|part\s+of)\b\s*[\'"][^\'"]+[\'"]', re.M
             ),
             
-            "_dependency_capture": re.compile(r"^[ \t]*(?:import|export|part(?:[ \t]+of)?)\b[ \t]*['\"]([^'\"]+)['\"]", re.M),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:import|export|part(?:[ \t\n]+of)?)\b[ \t\n]*['\"]([^'\"]+)['\"]", 
+                re.M
+            ),
             # 25. ownership: Authorship indicators.
             "ownership": re.compile(
                 r"//\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)", re.I
@@ -7450,9 +7787,17 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 4. func_start: Satellite Spawner. Anchors executable logic. EXCLUDES structural headers.
             "func_start": re.compile(
-                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}"
-                r"(?:(?:override|private|protected|final|implicit|inline|transparent|open|lazy)[ \t]+){0,3}"
-                r"def\s+([a-zA-Z_]\w*)(?=[ \t]*[\[(:=]|\n|$)",
+                # =====================================================================
+                # [ THE VERTICAL MODIFIER SHIELD (SCALA) ]
+                # Scala 3 developers frequently stack modifiers (inline, transparent) 
+                # and annotations across multiple lines before the `def` keyword.
+                # FIX: Upgraded horizontal spaces `[ \t]+` to vertical spaces `[ \t\n]+` 
+                # across the attribute stepper and modifier capture, explicitly allowing 
+                # the engine to wrap lines without triggering ReDoS.
+                # =====================================================================
+                r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t\n]*){0,5}"
+                r"(?:(?:override|private|protected|final|implicit|inline|transparent|open|lazy)[ \t\n]+){0,3}"
+                r"def[ \t\n]+([a-zA-Z_]\w*)(?=[ \t\n]*[\[(:=]|$)",
                 re.M,
             ),
             # 5. class_start: Entity Census. Defines structural entities and OO boundaries.
@@ -7933,7 +8278,16 @@ LANGUAGE_DEFINITIONS = {
             # func_start: Spawns satellites. Exactly anchors executable blocks.
             # Negative lookahead explicitly prevents control flow or OOP structures from generating ghost satellites.
             "func_start": re.compile(
-                r"^[ \t]*(?!(?:if|for|while|switch|catch|classdef)\b)function[ \t]+(?:\[[^\]]*\][ \t]*=[ \t]*|[a-zA-Z_]\w*[ \t]*=[ \t]*)?([a-zA-Z_]\w*)(?=[ \t]*\(|\n|$)",
+                # =====================================================================
+                # [ THE VERTICAL OUTPUT ARRAY SHIELD (MATLAB) ]
+                # MATLAB functions define their return types *before* the function name 
+                # (e.g., `function [out1, out2] = myFunc()`). Developers will frequently 
+                # wrap these output arrays across multiple vertical lines.
+                # FIX: Exchanged horizontal `[ \t]*` constraints with `[ \t\n]*` inside 
+                # the optional `(?:\[[^\]]*\]...)?` output array matcher, allowing the 
+                # regex to crawl down to the assignment operator `=` and map the name.
+                # =====================================================================
+                r"^[ \t]*(?!(?:if|for|while|switch|catch|classdef)\b)function[ \t\n]+(?:\[[^\]]*\][ \t\n]*=[ \t\n]*|[a-zA-Z_]\w*[ \t\n]*=[ \t\n]*)?([a-zA-Z_]\w*)(?=[ \t\n]*\(|$)",
                 re.M,
             ),
             # class_start: Defines an object-oriented boundary.
@@ -8020,8 +8374,10 @@ LANGUAGE_DEFINITIONS = {
             # import: Namespace/Class loading.
             "import": re.compile(r"^[ \t]*import[ \t]+[a-zA-Z0-9_.*]+", re.M),
             
-            "_dependency_capture": re.compile(r"^[ \t]*import[ \t]+([a-zA-Z0-9_.*]+)", re.M),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*import[ \t\n]+([a-zA-Z0-9_.*]+)", 
+                re.M
+            ),
             # ownership: Standard MATLAB comment authorship signatures.
             "ownership": re.compile(
                 r"^[ \t]*%[ \t]*(?:Author|Created by|Copyright)[ \t]*:(.*)", re.M | re.I
@@ -8248,8 +8604,10 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(start\s+using\s+(?:stack|behavior)|require|include|module)\b", re.I
             ),
             
-            "_dependency_capture": re.compile(r"\b(?:start\s+using\s+(?:stack\s+|behavior\s+)?|require\s+|include\s+|module\s+)(?:['\"]([^'\"]+)['\"]|([^'\"\s]+))", re.I),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:start[ \t\n]+using[ \t\n]+(?:stack[ \t\n]+|behavior[ \t\n]+)?|require[ \t\n]+|include[ \t\n]+|module[ \t\n]+)(?:['\"]([^'\"]+)['\"]|([^'\"\s]+))", 
+                re.I | re.M
+            ),
             # 25. ownership: Authorship metadata in comments.
             "ownership": re.compile(
                 r"^[ \t]*(?:--|//|#)\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)",
@@ -8572,7 +8930,14 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 2. args: Coupling Mass. Captures method parameters (colons), C-style args, and Blocks (^).
             "args": re.compile(
-                r":\s*\([^)]+\)\s*[a-zA-Z_]\w*|\^[ \t]*(?:[a-zA-Z_]\w*\s*)?\([^)]*\)|\b[a-zA-Z_]\w*\s*\([^)]*\)\s*(?:\{|;)"
+                # =====================================================================
+                # [ THE GHOST ARGS & BLOCK SHIELD (OBJECTIVE-C) ]
+                # Objective-C functions look like standard C functions. The previous regex 
+                # `\b[a-zA-Z_]\w*\s*\([^)]*\)\s*(?:\{|;)` hallucinated `if (a) {` as a function.
+                # FIX: Injected `(?!(?:if|for|while|switch|catch|return)\b)` to block control flow.
+                # =====================================================================
+                r":\s*\([^)]+\)\s*[a-zA-Z_]\w*|\^[ \t]*(?:[a-zA-Z_]\w*\s*)?\([^)]*\)|(?!(?:if|for|while|switch|catch|return)\b)\b[a-zA-Z_]\w*[ \t\n]*\([^)]*\)[ \t\n]*(?:\{|;)",
+                re.M,
             ),
             # 3. linear: Smooth Path. Structural boundaries defining interface, implementation, and memory types.
             "linear": re.compile(
@@ -8581,8 +8946,17 @@ LANGUAGE_DEFINITIONS = {
             # 4. func_start: Satellite Spawner. Anchors executable logic.
             # The Critical Fix: Compiled with re.M and optional return types for TBL / NeXTSTEP syntax
             "func_start": re.compile(
-                r"^[ \t]*[-+]\s*(?:\([^)]+\))?\s*([a-zA-Z_]\w*)(?=[ \t]*[:\{;]|\n|$)|"
-                r"^[ \t]*(?:static\s+|inline[ \t]+)?(?:[a-zA-Z_]\w*(?:\s*\*+)?\s+)+([a-zA-Z_]\w*)(?=\s*\()",
+                # =====================================================================
+                # [ THE VERTICAL RETURN TYPE SHIELD (OBJECTIVE-C) ]
+                # Objective-C developers (and macros) can fragment the method sign `-`, 
+                # the return type `(NSDictionary *)`, the name, and the colon `:` 
+                # across multiple lines.
+                # FIX: `\s*` already covers newlines in the prefix, but the trailing 
+                # positive lookahead `(?=[ \t]*[:\{;])` blocked newlines before the colon.
+                # Upgraded the lookahead to `(?=[ \t\n]*[:\{;]|$)` to clear the vertical gap.
+                # =====================================================================
+                r"^[ \t]*[-+][ \t\n]*(?:\([^)]+\))?[ \t\n]*([a-zA-Z_]\w*)(?=[ \t\n]*[:\{;]|$)|"
+                r"^[ \t]*(?:static[ \t\n]+|inline[ \t\n]+)?(?:[a-zA-Z_]\w*(?:[ \t\n]*\*+)?[ \t\n]+)+([a-zA-Z_]\w*)(?=[ \t\n]*\()",
                 re.M,
             ),
             # 5. class_start: Entity Census. Defines OO boundaries.
@@ -8862,8 +9236,10 @@ LANGUAGE_DEFINITIONS = {
             # Linking isolated segments of the graph execution via modular file resolution.
             "import": re.compile(r"^[ \t]*-?(?:include|sinclude)[ \t]+[^ \t\n]+", re.M),
             
-            "_dependency_capture": re.compile(r"^[ \t]*-?(?:include|sinclude)[ \t]+([^\s#]+)", re.M),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*-?(?:include|sinclude)[ \t\n]+([^\s#]+)", 
+                re.M
+            ),
             # Metadata anchoring authorship and structural domain owners.
             "ownership": re.compile(
                 r"^[ \t]*#[ \t]*(?:@author\b|author:|maintainer:|created by:)",
@@ -9072,8 +9448,10 @@ LANGUAGE_DEFINITIONS = {
             # 24. import: Gravity Links. Includes and type pools.
             "import": re.compile(r"\b(INCLUDE|TYPE-POOLS)\b", re.I),
             
-            "_dependency_capture": re.compile(r"\b(?:INCLUDE|TYPE-POOLS)\s+([A-Za-z0-9_/]+)", re.I),
-            
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:INCLUDE|TYPE-POOLS)[ \t\n]+([A-Za-z0-9_/]+)", 
+                re.I | re.M
+            ),
             # 25. ownership: Authorship indicators.
             "ownership": re.compile(
                 r"(?:AUTHOR|CREATED\s+BY|MAINTAINER|Tim Berners-Lee):\s+([^\n]+)",
@@ -9295,7 +9673,10 @@ LANGUAGE_DEFINITIONS = {
             
             # The Gravity Links: External dependencies
             "import": re.compile(r"^[ \t]*(?:-?[ \t]*uses:|image:)[ \t]+([a-zA-Z0-9_./@:-]+)", re.M | re.I),
-            "_dependency_capture": re.compile(r"^[ \t]*(?:-?[ \t]*uses:|image:)[ \t]+([a-zA-Z0-9_./@:-]+)", re.M | re.I),
+            "_dependency_capture": re.compile(
+                r"^[ \t]*(?:-?[ \t]*uses:|image:)[ \t\n]+([a-zA-Z0-9_./@:-]+)", 
+                re.M | re.I
+            ),
             "ownership": None,
 
             # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
@@ -9688,7 +10069,17 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 2. args (The Coupling Mass)
             # Captures the parameter list inside a standard function definition: (define (func arg1 arg2) ...)
-            "args": re.compile(r"^[ \t]*\([ \t]*define\s+\([^ \t]+\s+([^)]*)\)", re.M),
+            "args": re.compile(
+                # =====================================================================
+                # [ THE S-EXPRESSION ARGS SHIELD (SCHEME) ]
+                # Scheme arguments are inside the same parenthesis as the function name.
+                # FIX 1 (Pathological): Upgraded horizontal spaces to `[ \t\n]*` for vertical layouts. 
+                # FIX 2 (Positive): The previous regex strictly required a space and arguments. 
+                # Made the argument capture group `(?:[ \t\n]+[^)]*)?` optional so 
+                # parameter-less functions like `(define (func))` cleanly pass.
+                # =====================================================================
+                r"^[ \t\n]*\([ \t\n]*define[ \t\n]+\([ \t\n]*[^ \t\n()]+(?:[ \t\n]+[^)]*)?[ \t\n]*\)", re.M
+            ),
             # 3. linear (The Smooth Path)
             # Structural boundaries defining scope and sequential execution.
             "linear": re.compile(
@@ -9697,7 +10088,15 @@ LANGUAGE_DEFINITIONS = {
             # 4. func_start (The Satellite Spawner)
             # Anchors logic blocks. Captures the function name immediately following the parenthesis.
             "func_start": re.compile(
-                r"^[ \t]*\([ \t]*define\s+\(\s*([a-zA-Z0-9_!?-]+)(?=[ \t)\]\n\r])", re.M
+                # =====================================================================
+                # [ THE S-EXPRESSION SHIELD (SCHEME/LISP) ]
+                # S-expressions format heavily around parentheses, often pushing the 
+                # `define`, the inner parenthesis `(`, and the identifier onto separate lines.
+                # FIX: Replaced `\s+` and `\s*` with `[ \t\n]+` and `[ \t\n]*` inside 
+                # the S-expression structure to ensure the parser can track the 
+                # identifier no matter how deeply it is vertically nested.
+                # =====================================================================
+                r"^[ \t\n]*\([ \t\n]*define[ \t\n]+\([ \t\n]*([a-zA-Z0-9_!?-]+)(?=[ \t\n)\]\r])", re.M
             ),
             # 5. class_start (The Entity Census)
             # Scheme lacks traditional objects; SRFI-9 Records serve as structural entities.
@@ -10071,7 +10470,13 @@ LANGUAGE_DEFINITIONS = {
             # 2. args (The Coupling Mass)
             # Safely captures the parameter list `{...}` immediately following a proc name.
             "args": re.compile(
-                r"^[ \t]*proc[ \t]+[a-zA-Z0-9_:]+[ \t]+\{([^}]*)\}", re.M
+                # =====================================================================
+                # [ THE VERTICAL PROC SHIELD (TCL) ]
+                # Tcl developers can break the `proc`, name, and argument brace `{}` 
+                # across newlines.
+                # FIX: Upgraded horizontal `[ \t]+` constraints to vertical `[ \t\n]+`.
+                # =====================================================================
+                r"^[ \t]*proc[ \t\n]+[a-zA-Z0-9_:]+[ \t\n]+\{([^}]*)\}", re.M
             ),
             # 3. linear (The Smooth Path)
             # Structural boundaries. EXCLUDES: global/upvar (globals/heat).
@@ -10455,11 +10860,25 @@ LANGUAGE_DEFINITIONS = {
         # THE FIX: JSON with comments relies on C-style comment structures, not Python/Ruby hashes.
         "lexical_family": "std_c", 
         "rules": {
-            # Provide the engine with the actual delimiters for .jsonc/.json5
+            # =====================================================================
+            # [ CRITICAL ROADMAP: JSONC/JSON5 LEXICAL DELIMITERS & THE RE.COMPILE TRAP ]
+            # 1. THE LEXICAL MAPPING: JSON with comments (.jsonc, .json5) strictly 
+            #    uses C-style comments (// and /* */), NOT Python/Ruby hashes (#). 
+            #    This is why JSON must map to the 'std_c' lexical_family, not 'pure_hash' or 'inert'.
+            # 2. THE RE.COMPILE TRAP: Every rule here MUST be wrapped in re.compile().
+            #    If passed as raw strings, the engine's physics loop will crash with 
+            #    "'str' object has no attribute 'pattern'" during the Ghost Mass extraction.
+            # =====================================================================
+            
+            # JSON has no concept of a "column 1" or line-start-only comment anchor.
             "_line_anchor": None,
-            "_inline_comment": r"//",
-            "_block_start": r"/\*",
-            "_block_end": r"\*/",
+            
+            # JSONC/JSON5 inline comments use standard C-style slashes.
+            "_inline_comment": re.compile(r"//"),
+            
+            # JSONC/JSON5 multi-line blocks use standard C-style delimiters.
+            "_block_start": re.compile(r"/\*"),
+            "_block_end": re.compile(r"\*/"),
         },
     },
     "glsl": {
@@ -10561,7 +10980,4 @@ PROJECT_OVERRIDES = {
     "fieldtrip": {"_shield_": {"exclude_dirs": ["external"]}},
     "jenkins": {"_shield_": {"exclude_paths": ["translation-tool.pl", "core/report-l10n.rb"]}},
     "redis": {"_shield_": {"exclude_dirs": ["deps/lua", "deps/jemalloc", "deps/hiredis"]}},
-    "Correios-Brasil": {
-            "_shield_": {"unban_directories": ["features"]}
-        }
     }

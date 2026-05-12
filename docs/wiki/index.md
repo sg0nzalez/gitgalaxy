@@ -2,34 +2,51 @@
 
 **Code is art. Logic is art. Systems engineering is art.**
 
-GitGalaxy is a two-part ecosystem connected by a universal JSON contract. It is designed to extract the structural heuristics of massive software repositories and render their non-visual architecture into measurable, explorable 3D galaxies based on a deterministic relational knowledge graph.
+GitGalaxy is a high-velocity, deterministic function-level knowledge graph engine designed for planetary-scale codebases. 
+
+While the project is widely recognized for its interactive 3D WebGL visualizer—which renders repositories as explorable galaxies—this visualizer is ultimately just a presentation layer. The true core of the project is the **blAST Engine** (Bypassing LLMs and ASTs): a polyglot structural physics engine that extracts the architectural heuristics of 50+ languages simultaneously without requiring compilation.
 
 ---
 
 ## 🧭 Where should I start?
 
-### For Enterprise Architects & DevSecOps
-If you are looking to solve immediate, multi-million-dollar infrastructure problems, start with our **Enterprise Cookbook**. It provides copy-paste GitGalaxy recipes for:
-* 🛡️ [Enforcing a Zero-Trust Supply Chain Firewall](cookbook/enforce-supply-chain-firewall.md)
-* 🤖 [Sandboxing Autonomous AI Coding Agents](cookbook/sandbox-autonomous-agents.md)
-* 🏦 [Refactoring Legacy COBOL into Spring Boot](cookbook/map-cobol-monoliths.md)
-* 🕵️ [Hunting PII Leaks in Terabyte Logs](cookbook/hunt-pii-leaks.md)
+GitGalaxy is a massive ecosystem. Choose your entry point based on your operational domain:
 
-### For Systems Engineers & Developers
-If you want to understand the mathematics and physics driving the GitGalaxy engine, dive into the core architecture:
-* 🔭 [The Optical Pipeline & Aperture Filter](02-01-pipeline-overview.md)
+### 🛡️ For Enterprise Architects & DevSecOps
+If you are looking to secure supply chains, audit AI agents, and generate compliance artifacts, start here:
+* 📜 [The SHBOM Standard (Structural Health Bill of Materials)](01-07-the-shbom-standard.md)
+* 🤖 [Autonomous AI Guardrails (Dev Agent Firewall)](01-08-autonomous-ai-guardrails.md)
+* ⏱️ [The Continuous Delta Paradigm (CI/CD Integration)](01-09-the-continuous-delta-paradigm.md)
+* 🗄️ [Cookbook: Enforce a Zero-Trust Supply Chain Firewall](cookbook/enforce-supply-chain-firewall.md)
+
+### 🏦 For Legacy Modernization Teams
+If you are tasked with breaking apart 40-year-old IBM monoliths without using an emulator:
+* 🌉 [The Legacy Bridge (Mainframe Modernization Philosophy)](01-04-the-legacy-bridge.md)
+* 🕸️ [The DAG Architect (Topological Execution Mapping)](05-08-dag-architect.md)
+* ☕ [Cookbook: Refactoring COBOL into Spring Boot](cookbook/map-cobol-monoliths.md)
+
+### ⚙️ For Systems Engineers (The Physics & Proofs)
+If you want to understand the mathematics driving the engine and the empirical proofs that validate our AST-free approach:
+* 🔬 [The blAST Paradigm (Heuristics vs. ASTs vs. LLMs)](01-03-the-blast-paradigm.md)
+* ⚖️ [Claim 10: The Heuristic vs. AST Paradigm](03-10-claim-10-ast-vs-heuristic-parsing.md)
+* 🛡️ [Claim 8: Empirical Validation of AST-Free Parsing (The Gauntlets)](03-08-claim-8-empirical-validation-of-ast-free-parsing.md)
 * 📐 [The 13-Point Risk Exposure Equations](08-01-methodology.md)
-* 🧠 [The Neural Auditor (K-Means Clustering)](02-19-neural-auditor.md)
 
 ---
 
-## ⚙️ The Core Ecosystem
+## ⚙️ The Hub and Spoke Ecosystem
 
-### 1. The blAST Engine - The GalaxyScope (Backend)
+### 1. The Hub: The blAST Engine (GalaxyScope)
 A hyper-scale, language-agnostic static analysis CLI. Bypassing traditional ASTs, it parses code at ~100,000 LOC/second using deterministic regular expressions and a multi-phase Physics Engine. It outputs rich JSON telemetry, SQLite databases, and low-token Markdown briefs optimized for AI-agent workflows.
 
-### 2. The Observatory (Frontend)
-Drop your `_galaxy.json` into the free viewer at [GitGalaxy.io](https://gitgalaxy.io) or use the repo's `airgap_observatory`, a standalone, zero-telemetry WebGPU visualizer. Both visualizers read the JSON contract and render the entire codebase as a procedural 3D galaxy where files are stars, allowing humans to visually map scale and risk exposure instantly.
+### 2. The Spokes: Enterprise Operations
+The core engine powers a massive ecosystem of specialized tools:
+* **Legacy Modernization:** Automated pipelines to map, slice, and refactor legacy COBOL into modern Java microservices.
+* **Security & Auditing:** Zero-trust firewalls that verify physical dependencies, hunt Shadow APIs, and perform Binary X-Rays.
+* **AI Governance:** Threat sensors designed to hunt RCE Funnels, God-Mode Agents, and Context Window Shredders.
+
+### 3. The Presentation: The Observatory
+Drop your `_galaxy.json` into the free viewer at [GitGalaxy.io](https://gitgalaxy.io) or use the repo's `airgap_observatory`, a standalone WebGPU visualizer. Both visualizers read the JSON contract and render the entire codebase as a procedural 3D galaxy where files are stars, allowing humans to visually map scale and risk exposure instantly.
 
 ---
 
@@ -53,19 +70,13 @@ GitGalaxy offers two ways to visualize your 3D architecture, both built on a str
 
 ---
 
-## 🔭 The blAST Paradigm: Deterministic Structural Heuristics
+## 🔒 Zero-Trust Architecture
 
-Traditional computer science treats software like a rigid blueprint, using slow, language-specific Abstract Syntax Trees (ASTs) to analyze code. GitGalaxy treats code files as raw structural text using **blAST (Bypassing LLMs and ASTs)**.
+Whether you are running the command-line engine or the WebGL visualizer, GitGalaxy operates on a strict Zero-Trust Privacy Model: **Your code never leaves your computer.**
 
-By hunting for the universal structural markers of logic across ~50 languages and ~250 file extensions, blAST identifies the architectural intent of a file. We translate this heuristic telemetry into measurable Risk Exposures.
-
-### Zero-Trust Architecture
-Your code never leaves your machine. GitGalaxy performs 100% of its scanning and vectorization locally.
-* **No Data Transmission:** Source code is never transmitted to any API, cloud database, or third-party service.
-* **Ephemeral Memory Processing:** Repositories are unpacked into a volatile memory buffer (RAM) and are automatically purged when the browser tab is closed or the CLI completes.
-
-### The Biaxial Security Lens
-Traditional security scanners rely on rigid, outdated signatures or easily confused LLMs. blAST acts as an autonomous AppSec firewall, hunting for the structural heuristics of a threat. By analyzing the density of I/O hits, execution triggers, and security bypasses—and comparing them against local language physics—blAST is perfectly engineered to detect logic bombs, obscured payloads, and injection surfaces.
+* **No Data Transmission:** Source code is never transmitted to any API, cloud database, or third-party LLM service.
+* **Air-Gap Ready:** The entire suite of tools is designed to run in highly secure, internet-disconnected environments.
+* **Ephemeral Memory Processing:** Repositories are unpacked into a volatile memory buffer and are automatically purged when the operation completes.
 
 <br><br>
 

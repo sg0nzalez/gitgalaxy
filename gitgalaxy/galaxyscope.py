@@ -679,11 +679,11 @@ class Orchestrator:
                 "zero_dependency_mode": (not HAS_NETWORKX or not HAS_TIKTOKEN or not ML_AVAILABLE)
             }
             
-            if "singularity" not in summary: 
-                summary["singularity"] = {}
+            if "unparsable_files" not in summary: 
+                summary["unparsable_files"] = {}
                 
             # Pass the array into the function, and merge the results directly
-            summary["singularity"].update(self._summarize_anomalies(total_unparsable))
+            summary["unparsable_files"].update(self._summarize_anomalies(total_unparsable))
 
             # --- PURE OUTPUT ROUTER ---
             # Respect the exact path provided, just ensure the parent folder exists

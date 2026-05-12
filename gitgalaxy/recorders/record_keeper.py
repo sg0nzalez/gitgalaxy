@@ -44,6 +44,9 @@ class RecordKeeper:
         self.logger.debug(f"Record Keeper: Forging native SQLite database -> {db_file.name}")
 
         conn = sqlite3.connect(db_file)
+        # ---> THE SPEED FIX: Write-Ahead Logging & Relaxed Disk Sync
+        conn.execute("PRAGMA journal_mode = WAL;")
+        conn.execute("PRAGMA synchronous = NORMAL;")
         # Enforce foreign keys so cascading deletes work perfectly
         conn.execute("PRAGMA foreign_keys = ON;")
         cursor = conn.cursor()
@@ -248,6 +251,9 @@ class RecordKeeper:
         agg_build_files = 0
         agg_config_files = 0
         agg_test_files = 0
+        
+        # ---> THE SPEED FIX: Global array for all functions in the repo
+        all_func_rows = []
 
         for file_data in parsed_files:
             tel = file_data.get("telemetry", {})
@@ -437,8 +443,7 @@ class RecordKeeper:
                 ))
                 class_id_map[cls.get("name")] = cursor.lastrowid
 
-            # ---> UPDATED: 2. Extract and Insert the Functions <---
-            func_rows = []
+            # ---> UPDATED: 2. Extract and Accumulate the Functions <---
             for func in functions:
                 raw_hv = func.get("hit_vector", {})
                 func_hits = [int(raw_hv.get(h, 0)) for h in self.SIGNAL_SCHEMA]
@@ -446,7 +451,7 @@ class RecordKeeper:
                 parent_class_name = func.get("parent_class_name")
                 parent_class_id = class_id_map.get(parent_class_name) if parent_class_name else None
                 
-                func_row_data = [
+                all_func_rows.append([
                     file_id, 
                     parent_class_id,
                     str(func.get("name", "unknown_function"))[:255],
@@ -463,17 +468,16 @@ class RecordKeeper:
                     str(func.get("docstring", ""))[:2000],
                     json.dumps(func.get("calls_out_to", [])),
                     int(func.get("token_mass")) if func.get("token_mass") is not None else None
-                ] + func_hits
-                
-                func_rows.append(func_row_data)
+                ] + func_hits)
 
-            if func_rows:
-                func_placeholders = ",".join(["?"] * len(func_rows[0]))
-                cursor.executemany(f'''
-                    INSERT INTO function_data 
-                    (file_id, parent_class_id, func_name, complexity, loc, args, usage_status, keyword_density, func_archetype, func_z_score, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to, token_mass, {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])})
-                    VALUES ({func_placeholders})
-                ''', func_rows)
+        # ---> THE SPEED FIX: Push all functions to SQLite at once (OUTSIDE THE FILE LOOP) <---
+        if all_func_rows:
+            func_placeholders = ",".join(["?"] * len(all_func_rows[0]))
+            cursor.executemany(f'''
+                INSERT INTO function_data 
+                (file_id, parent_class_id, func_name, complexity, loc, args, usage_status, keyword_density, func_archetype, func_z_score, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to, token_mass, {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])})
+                VALUES ({func_placeholders})
+            ''', all_func_rows)
 
         # 3. REPO DATA INSERTION
         class_start_idx = self.SIGNAL_SCHEMA.index("class_start") if "class_start" in self.SIGNAL_SCHEMA else -1
