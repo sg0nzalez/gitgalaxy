@@ -208,10 +208,14 @@ nav:
           - 'iwubi': 'agents/iwubi_agents.md'
           - 'nvda': 'agents/nvda_agents.md'
   - '1. Foundation & Architecture':
-      - 'Project Overview': "01-project-overview.md"
+      - 'Project Overview': "01-01-project-overview.md"
       - 'GalaxyScope CLI Reference': "01-02-galaxyscope-cli-reference.md"
       - 'The blAST Paradigm (ASTs vs LLMs)': "01-03-the-blast-paradigm.md"
+      - 'The Legacy Bridge': "01-04-the-legacy-bridge.md"
       - 'The Structural RAG Graph': "01-06-the-structural-rag-graph.md"
+      - 'The SHBOM Standard': "01-07-the-shbom-standard.md"
+      - 'Autonomous AI Guardrails': "01-08-autonomous-ai-guardrails.md"
+      - 'The Continuous Delta Paradigm': "01-09-the-continuous-delta-paradigm.md"
   - '2. Data Pipeline':
       - 'Pipeline Overview': "02-01-pipeline-overview.md"
       - 'Optical Orchestration': "02-02-optical-orchestration.md"
@@ -242,7 +246,10 @@ nav:
       - 'Claim 5 (File Archetypes)': "03-05-claim-5-file-archetypes.md"
       - 'Claim 6 (Keyword Fingerprinting)': "03-06-claim-6-keyword-fingerprinting.md"
       - 'Claim 7 (Comparing DOOM Ports)': "03-07-claim-7-doom-comparisons.md"
-      - 'Future Outlooks': "03-08-future-outlooks.md"
+      - 'Claim 8 (AST-Free Empirical Validation)': "03-08-claim-8-empirical-validation-of-ast-free-parsing.md"
+      - 'Claim 9 (Universal Logic Extraction)': "03-09-claim-9-universal-logic-extraction.md"
+      - 'Claim 10 (AST vs Heuristic Paradigm)': "03-10-claim-10-ast-vs-heuristic-parsing.md"
+      - 'Future Outlooks': "03-20-future-outlooks.md"
   - '4. Security Tools & Spokes':
       - 'Competitive Landscape': "04-00-security_landscape.md"
       - 'Full API Network Map': "04-01-full-api-network-map.md"
