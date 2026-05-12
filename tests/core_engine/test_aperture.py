@@ -1,3 +1,4 @@
+import pytest
 from gitgalaxy.core.aperture import ApertureFilter
 
 # ==============================================================================
