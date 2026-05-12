@@ -13,7 +13,7 @@ def test_galaxyscope_python_fixture(tmp_path):
     
     # 2. Build absolute paths for the script and the fixture
     script_path = project_root / "gitgalaxy" / "galaxyscope.py"
-    fixture_path = test_dir / "fixtures" / "iwubi_frankenstein_test"
+    fixture_path = test_dir.parent / "fixtures" / "iwubi_frankenstein_test" # <--- Added .parent
     
     # Force output to a temporary directory
     output_dir = tmp_path / "test_run"
