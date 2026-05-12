@@ -88,8 +88,8 @@ class LLMRecorder:
 
 
         from collections import defaultdict
-        inbound_set_map = collections.defaultdict(set)
-        outbound_set_map = collections.defaultdict(set)
+        inbound_set_map = defaultdict(set)
+        outbound_set_map = defaultdict(set)
         
         for s in parsed_files:
             curr = s.get("path", "")
