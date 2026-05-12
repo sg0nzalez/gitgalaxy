@@ -16,7 +16,7 @@ from typing import Dict, Any, Set, Optional, TypedDict, Union, List, Tuple
 
 # ==============================================================================
 # GitGalaxy Phase 0.1: Ingestion & Filtering (The Solar Shield)
-# Strategy: v6.3.0 (Heuristic Optics, Intent Overrides & Stateful Caching)
+# Strategy: v6.3.1 (Monolith Ceilings, Array Shields & Intent Overrides)
 # Architecture: Lead Shield -> Path Gate -> Intent Gate -> Content Gate
 # ==============================================================================
 
@@ -148,11 +148,6 @@ class ApertureFilter:
         if path_obj.name in self.config.get("SECRETS_EXACT", set()) or \
            ext.lower() in self.config.get("SECRETS_EXTENSIONS", set()):
             reason = f"CRITICAL LEAK (Exposed Secret: '{path_obj.name}')"
-            
-            # Muted logger to prevent UI overlap; spokes now handle their own alerts
-            # self.logger.critical(f"🛡️ SECURITY BREACH: {reason} at {relative_path}")
-            
-            # THE FIX: Return False so it drops into Dark Matter for the Supernova Injection
             return False, size_bytes, reason
 
         # --- TIER 0.2: THE NEURAL AUDITOR SHUNT (Model Weights) ---
@@ -160,7 +155,6 @@ class ApertureFilter:
         if ext.lower() in AI_MODEL_EXTS:
             reason = f"AI MODEL WEIGHTS (Bypassing Standard Logic: '{ext}')"
             self.logger.info(f"🧠 NEURAL AUDITOR SHUNT: Routing {path_obj.name} away from regex engines.")
-            # Return False to drop into Dark Matter, bypassing the memory-crashing I/O read
             return False, size_bytes, reason
 
         # --- TIER 0.5: THE ABSOLUTE EXTENSION SHIELD ---
@@ -235,8 +229,6 @@ class ApertureFilter:
                 return result
 
             # --- THE SHUNT: Content Bypass for Secrets ---
-            # If the path gate tagged this as a secret, skip the hex/binary 
-            # content checks so it doesn't accidentally get dropped.
             if reason and "CRITICAL LEAK" in reason:
                 result.update({
                     "is_in_scope": True,
@@ -269,7 +261,7 @@ class ApertureFilter:
 
     def _check_artifact_integrity(self, content: str, rel_path: str, has_intent: bool = False) -> Dict[str, Any]:
         """
-        Deep-scans the content buffer for corruption, binary data, 
+        Deep-scans the content buffer for corruption, binary data, arrays,
         or documentation generator signatures.
         """
         report = {"valid": True, "band": self.bands.get("VISIBLE", "source_code"), "reason": None, "loc": 0}
@@ -284,6 +276,17 @@ class ApertureFilter:
                 "valid": False, 
                 "band": self.bands.get("MICROWAVE", "binary_debris"), 
                 "reason": "Blocked (Binary Format Detected)"
+            })
+            return report
+            
+        # --- TIER 3.1: THE MONOLITH AMALGAMATION SHIELD ---
+        # 30,000+ lines in a single file is an amalgamation (e.g. sqlite3.c) or massive test array.
+        # It will saturate and choke the standard regex engine. Override Intent.
+        if report["loc"] > 30000:
+            report.update({
+                "valid": False, 
+                "band": self.bands.get("INFRARED", "saturated"), 
+                "reason": f"Blocked (Monolithic Amalgamation: {report['loc']} LOC exceeds safe regex boundaries)"
             })
             return report
 
@@ -305,9 +308,6 @@ class ApertureFilter:
                 return report
 
         # --- TIER 3.6: THE MACHINE-GENERATED SOURCE SHIELD ---
-        # THE FIX: We now evaluate the machine-gen shield for ALL files. 
-        # If a file has a VIP pass (has_intent) but is an unreadable monolith (>1000 lines), 
-        # we strip its VIP status and banish it to Dark Matter as procedural debris.
         head_sample = "\n".join(lines_list[:100])
         if self.machine_gen_shield.search(head_sample):
             if not has_intent or report["loc"] > 1000:
@@ -319,8 +319,6 @@ class ApertureFilter:
                 return report
 
         # --- TIER 3.7: THE LEXICAL MONOTONY SHIELD (Generated Code) ---
-        # Detects massive generated boilerplate by checking structural entropy
-        # EXEMPTION: COBOL Data Divisions and Copybooks are naturally highly repetitive.
         if report["loc"] > 2000 and not has_intent and not low_path.endswith(('.cpy', '.cbl', '.cob')):
             sample_lines = lines_list[:500]
             meaningful_lines = [l for l in sample_lines if l.strip()]
@@ -340,50 +338,52 @@ class ApertureFilter:
                     })
                     return report
 
-        # --- TIER 3.8: THE DECLARATIVE DATA SHIELD ---
-        if low_path.endswith(('.yml', '.yaml', '.json', '.xml')):
-            if report["loc"] > 1000 and not has_intent:
+        # --- TIER 3.8: THE DECLARATIVE & VECTOR DATA SHIELD ---
+        if low_path.endswith(('.yml', '.yaml', '.json', '.xml', '.svg', '.sql', '.csv', '.tsv')):
+            # If the file is massive, absolutely drop it. Even if Git tracks it.
+            if report["loc"] > 2500:
                 report.update({
                     "valid": False, 
                     "band": self.bands.get("RADIO", "radio_noise"), 
-                    "reason": f"Blocked (Declarative Data Blob: {report['loc']} lines exceed 1000-line logic threshold)"
+                    "reason": f"Blocked (Massive Declarative/Vector Blob: {report['loc']} LOC)"
+                })
+                return report
+            elif not has_intent and report["loc"] > 1000:
+                report.update({
+                    "valid": False, 
+                    "band": self.bands.get("RADIO", "radio_noise"), 
+                    "reason": f"Blocked (Declarative Data Blob without Intent: {report['loc']} LOC)"
                 })
                 return report
 
-        # --- TIER 3.9: THE EMBEDDED DATA / HEX ARRAY SHIELD ---
-        # Drops massive test vectors, crypto keys, or images compiled into C headers.
-        # THE FIX: Removed 'has_intent'. Absolute structural density overrides VIP folder status.
-        if report["loc"] > 250:
+        # --- TIER 3.9: THE TEST DATA & ARRAY SHIELD ---
+        # Drops massive test vectors, crypto keys, or arrays compiled into headers/tests.
+        if report["loc"] > 500:
+            # Check 1: Hex Arrays
             hex_count = content.count('0x') + content.count('0X')
-            
-            # Scenario A: High Absolute Hex Density. 
-            # Catches files where hex values are densely packed on single lines, 
-            # even if interleaved with verbose C-struct initializations.
             if hex_count > report["loc"]:
                 report.update({
                     "valid": False, 
                     "band": self.bands.get("MICROWAVE", "binary_debris"), 
-                    "reason": f"Blocked (Embedded Data Payload: {hex_count} hex tokens in {report['loc']} LOC)"
+                    "reason": f"Blocked (Embedded Hex Payload: {hex_count} hex tokens in {report['loc']} LOC)"
                 })
                 return report
                 
-            # Scenario B: Vertical Array formatting.
-            # Catches files where hex values are spread out 1-per-line.
-            if hex_count > (report["loc"] * 0.2):
-                hex_lines = sum(1 for l in lines_list if ('0x' in l or '0X' in l) and ',' in l)
-                if (hex_lines / report["loc"]) > 0.25:
-                    report.update({
-                        "valid": False, 
-                        "band": self.bands.get("MICROWAVE", "binary_debris"), 
-                        "reason": f"Blocked (Embedded Data Payload: >25% of {report['loc']} LOC is hex arrays)"
-                    })
-                    return report
+            # Check 2: Massive Data Arrays (Comma Density)
+            # If there are more than 3 commas per line on average in a massive file, it's a data array/matrix.
+            comma_count = content.count(',')
+            if comma_count > (report["loc"] * 3):
+                report.update({
+                    "valid": False, 
+                    "band": self.bands.get("MICROWAVE", "binary_debris"), 
+                    "reason": f"Blocked (Embedded Array/Matrix Payload: {comma_count} commas in {report['loc']} LOC)"
+                })
+                return report
 
         # --- TIER 4: INFRARED GATE (Minification & Saturation) ---
         max_line = self.config.get("MAX_LINE_LENGTH", 500)
         
-        # Prose and documentation often have long unbroken strings (URLs, paragraphs)
-        is_prose = low_path.endswith(('.md', '.markdown', '.txt', '.json', '.csv', '.rst'))
+        is_prose = low_path.endswith(('.md', '.markdown', '.txt', '.json', '.csv', '.rst', '.sql', '.svg'))
 
         for i, line in enumerate(lines_list[:100]): 
             if len(line) > max_line and not is_prose:
@@ -432,7 +432,6 @@ class ApertureFilter:
                 return False
         
         # 4. Standard Iterative Gitignore Logic (The Fix)
-        # Bypasses the massive OR Regex bottleneck 
         for pattern in self.ignore_patterns:
             if pattern.endswith('/'):
                 if any(fnmatch.fnmatch(p + '/', pattern) for p in parts):
@@ -453,11 +452,9 @@ class ApertureFilter:
                 with ignore_file.open('r', encoding='utf-8') as f:
                     for line in f:
                         l = line.strip()
-                        # Ignore comments and empty lines
                         if l and not l.startswith('#'):
                             patterns.append(l)
             except Exception as e: 
                 self.logger.warning(f"Failed to parse .gitignore: {e}")
                 
         return patterns
-      

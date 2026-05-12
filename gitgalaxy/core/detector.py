@@ -480,6 +480,9 @@ class LogicSplicer:
                 result_payload["regex_telemetry"] = regex_telemetry
             return result_payload
 
+        except TimeoutError:
+            # Let the Hardware Guillotine drop cleanly to the Worker thread!
+            raise
         except Exception as e:
             self.logger.error(f"Catastrophic failure during structural splicing: {e}", exc_info=True)
             return {

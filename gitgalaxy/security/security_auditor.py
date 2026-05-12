@@ -5,7 +5,7 @@
 import logging
 import math
 from pathlib import Path
-from collections import Counter
+from collections import Counter, deque
 
 try:
     import numpy as np
@@ -14,6 +14,12 @@ try:
     ML_AVAILABLE = True
 except ImportError:
     ML_AVAILABLE = False
+
+try:
+    import networkx as nx
+    HAS_NETWORKX = True
+except ImportError:
+    HAS_NETWORKX = False
 
 from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS, AI_THREAT_THRESHOLD
 
@@ -117,7 +123,6 @@ class SecurityAuditor:
                 ml_score = round(float(probs_row[predicted_class]) * 100.0, 2)
                 
                 # ---> THE SHADOW PATCH OVERRIDE <---
-                # If this flag is true, AND the file has any executable mass, peg it as a Tier 1 Threat
                 if is_shadow_patch and star.get("structural_mass", 0.0) > 0.5:
                     predicted_class = 2 # Force it to "Stealer / Trojan"
                     ml_score = 100.0
@@ -127,7 +132,6 @@ class SecurityAuditor:
 
                 is_threat = (predicted_class > 0 and ml_score >= self.ai_threshold)
                 
-                # Inject into the domain context so the UI and JSON recorders pick it up automatically
                 if "domain_context" not in star["telemetry"]:
                     star["telemetry"]["domain_context"] = {}
                     
@@ -149,7 +153,7 @@ class SecurityAuditor:
         return stars
 
     def _resolve_dependency_graph(self, stars):
-        """Resolves transitive fragility and blast radius with BFS limits."""
+        """Resolves transitive fragility and blast radius using C-optimized traversals if available."""
         resolution_map = {}
         for s in stars:
             p = s.get("path", "")
@@ -159,6 +163,47 @@ class SecurityAuditor:
             if name: resolution_map[name] = p
             if stem: resolution_map[stem] = p
 
+        total_repo_files = max(len(stars), 1)
+
+        # =========================================================
+        # FAST PATH: NetworkX (C-Backend)
+        # =========================================================
+        if HAS_NETWORKX:
+            G = nx.DiGraph()
+            for s in stars:
+                curr = s.get("path", "")
+                G.add_node(curr)
+                for imp in s.get("raw_imports", []):
+                    if imp in resolution_map:
+                        target = resolution_map[imp]
+                        if target != curr:
+                            G.add_edge(curr, target)
+
+            for s in stars:
+                path = s.get("path", "")
+                dir_up = len(s.get("raw_imports", []))
+                dir_down = s.get("telemetry", {}).get("popularity", 0)
+                
+                if path in G:
+                    # Cap depth at 500 to prevent OOM/Stalls on massive circular monoliths
+                    tot_up = min(len(nx.descendants(G, path)), 500)
+                    tot_down = min(len(nx.ancestors(G, path)), 500)
+                else:
+                    tot_up, tot_down = 0, 0
+                
+                s["dependency_network"] = {
+                    "direct_upstream": dir_up,
+                    "direct_downstream": dir_down,
+                    "total_upstream": tot_up,
+                    "total_downstream": tot_down,
+                    "upstream_ratio": round(tot_up / total_repo_files, 4),
+                    "downstream_ratio": round(tot_down / total_repo_files, 4)
+                }
+            return stars
+
+        # =========================================================
+        # FALLBACK PATH: Pure Python (Deque Optimized)
+        # =========================================================
         outbound_graph = {s.get("path", ""): [] for s in stars}
         inbound_graph = {s.get("path", ""): [] for s in stars}
 
@@ -171,36 +216,36 @@ class SecurityAuditor:
                         if target not in outbound_graph[curr]: outbound_graph[curr].append(target)
                         if curr not in inbound_graph[target]: inbound_graph[target].append(curr)
 
-        def get_nth_degree(start, graph, max_nodes=10000):
-            """BFS with a hardcap to prevent memory bombs on circular architectures."""
+        def get_nth_degree(start, graph, max_nodes=500):
+            """BFS using collections.deque for O(1) popping."""
             visited = set()
-            queue = [start]
+            queue = deque([start]) # <--- THE O(1) MEMORY FIX
             while queue and len(visited) < max_nodes:
-                node = queue.pop(0)
+                node = queue.popleft() # <--- No more O(N) array shifts!
                 for neighbor in graph.get(node, []):
                     if neighbor not in visited:
                         visited.add(neighbor)
                         queue.append(neighbor)
             return len(visited)
 
-        # ---> NEW: Calculate the repository total for the ratios
-        total_repo_files = max(len(stars), 1)
-
         for s in stars:
             path = s.get("path", "")
             dir_up = len(s.get("raw_imports", []))
             dir_down = s.get("telemetry", {}).get("popularity", 0)
-            tot_up = get_nth_degree(path, outbound_graph)
-            tot_down = get_nth_degree(path, inbound_graph)
+            
+            # Reduced max_nodes to 500 to match NetworkX ceiling
+            tot_up = get_nth_degree(path, outbound_graph, max_nodes=500)
+            tot_down = get_nth_degree(path, inbound_graph, max_nodes=500)
             
             s["dependency_network"] = {
                 "direct_upstream": dir_up,
                 "direct_downstream": dir_down,
                 "total_upstream": tot_up,
                 "total_downstream": tot_down,
-                "upstream_ratio": round(tot_up / total_repo_files, 4),    # <--- NEW: ML-ready feature
-                "downstream_ratio": round(tot_down / total_repo_files, 4) # <--- NEW: ML-ready feature
+                "upstream_ratio": round(tot_up / total_repo_files, 4),
+                "downstream_ratio": round(tot_down / total_repo_files, 4)
             }
+            
         return stars
 
     def _construct_feature_matrix(self, stars):
@@ -254,7 +299,6 @@ class SecurityAuditor:
                     "log_avg_func_args": np.log1p(np.maximum(avg_func_args, 0)),
                     "func_complexity_gini": float(tel.get("func_complexity_gini", 0.0)),
                     
-                    # ---> NEW: INJECT DENSITY & SLOP FOR XGBOOST <---
                     "func_internal_density": float(tel.get("func_internal_density", 0.0)),
                     "design_slop_orphans": float(hit_dict.get("design_slop_orphans", 0)),
                     "design_slop_duplicates": float(hit_dict.get("design_slop_duplicates", 0)),
@@ -282,7 +326,6 @@ class SecurityAuditor:
                     raw_density = (val / safe_denom) * 100.0
                     row[f"log_density_{col_name}"] = np.log1p(np.maximum(raw_density, 0))
 
-                # Inject the live repo-level context already calculated by the Signal Processor
                 row["assigned_macro_species"] = tel.get("repo_macro_species", 0)
                 row["primary_z_score"] = float(tel.get("repo_z_score", 0.0))
                 for i in range(11):
@@ -292,7 +335,6 @@ class SecurityAuditor:
                 
             except Exception as e:
                 self.logger.error(f"Feature extraction failed for '{s.get('path', 'Unknown')}': {e}. Injecting safe fallback vector.")
-                # Guarantee index alignment by pushing a safe empty row
                 rows.append({"language": "unknown", "structural_mass": 0.0})
 
         df = pd.DataFrame(rows)

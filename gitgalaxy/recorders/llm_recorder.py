@@ -86,8 +86,9 @@ class LLMRecorder:
             if name: resolution_map[name] = path
             if stem: resolution_map[stem] = path
 
-        inbound_map = {s.get("path", ""): [] for s in parsed_files}
-        outbound_map = {s.get("path", ""): [] for s in parsed_files}
+        import collections
+        inbound_set_map = collections.defaultdict(set)
+        outbound_set_map = collections.defaultdict(set)
         
         for s in parsed_files:
             curr = s.get("path", "")
@@ -95,8 +96,12 @@ class LLMRecorder:
                 if imp in resolution_map:
                     target_path = resolution_map[imp]
                     if target_path != curr:
-                        if curr not in inbound_map[target_path]: inbound_map[target_path].append(curr)
-                        if target_path not in outbound_map[curr]: outbound_map[curr].append(target_path)
+                        inbound_set_map[target_path].add(curr)
+                        outbound_set_map[curr].add(target_path)
+                        
+        # Cast back to standard dictionaries of lists for downstream compatibility
+        inbound_map = {k: list(v) for k, v in inbound_set_map.items()}
+        outbound_map = {k: list(v) for k, v in outbound_set_map.items()}
 
         # 1. Build the Relational Knowledge Graph
         self._generate_sqlite_graph(parsed_files, unparsable_files, summary, session_meta, output_path_db, inbound_map)
@@ -128,8 +133,7 @@ class LLMRecorder:
         comp = summary.get("composition", {})
         git_audit = session_meta.get("git_audit", {})
         
-        bypassed_count = summary.get("unparsable_files", {}).get("ambig_file_count", 0)
-        total_excluded = len(unparsable_files) + bypassed_count
+        total_excluded = len(unparsable_files)
         visible_count = sum_data.get("verified_files", len(parsed_files))
         
         lines = []
@@ -403,22 +407,24 @@ class LLMRecorder:
             lines.append(f"{rank}. **{name}** (`{path}`) — {count} outbound dependencies")
         lines.append("")
 
+        import heapq
         # --- 8. GOD FUNCTIONS (THE FUNCTIONS) ---
         lines.append("## 8. FUNCTION HITLIST (Heaviest Functions)")
         lines.append("> *Note: The 'Impact' metric below represents Structural Magnitude (complexity, arguments, and length), NOT operational risk. These are the load-bearing pillars of the logic.*\n")
         
-        # Flatten all functions to sort them globally
+        # Flatten without deep-copying memory using a lightweight Tuple 
         all_sats = []
         for s in parsed_files:
+            file_path = s.get("path", "Unknown")
             for sat in s.get("functions", []):
-                sat_copy = sat.copy()
-                sat_copy["file"] = s.get("path", "Unknown")
-                all_sats.append(sat_copy)
+                all_sats.append((sat, file_path))
                 
-        sorted_by_impact = sorted(all_sats, key=lambda x: x.get("impact", 0), reverse=True)
-        if sorted_by_impact:
-            for f in sorted_by_impact[:10]:
-                lines.append(f"- `{f.get('name')}` (@ `{f.get('file')}`) -> Impact: **{f.get('impact')}** | LOC: {f.get('loc')}")
+        # O(N) extraction of the Top 10 (Faster than sorting the entire array)
+        top_impact = heapq.nlargest(10, all_sats, key=lambda x: x[0].get("impact", 0))
+        
+        if top_impact:
+            for f, file_path in top_impact:
+                lines.append(f"- `{f.get('name')}` (@ `{file_path}`) -> Impact: **{f.get('impact')}** | LOC: {f.get('loc')}")
                 doc = f.get('docstring', '').strip()
                 if doc:
                     clean_doc = " ".join(doc.split())[:150] + ("..." if len(doc) > 150 else "")
@@ -431,28 +437,28 @@ class LLMRecorder:
         lines.append("## 8.5 ALGORITHMIC & DATABASE BOTTLENECKS")
         lines.append("> Highlights the most computationally expensive and database-heavy functions across the repository.\n")
         
-        # Sort by recursion first, then big-o depth
-        sorted_by_big_o = sorted(all_sats, key=lambda x: (x.get("is_recursive", False), x.get("big_o_depth", 1)), reverse=True)
-        complex_sats = [s for s in sorted_by_big_o if s.get("is_recursive", False) or s.get("big_o_depth", 1) > 2]
+        # THE FIX: x[0] accesses the dictionary inside the new (sat, file_path) tuple
+        sorted_by_big_o = sorted(all_sats, key=lambda x: (x[0].get("is_recursive", False), x[0].get("big_o_depth", 1)), reverse=True)
+        complex_sats = [s for s in sorted_by_big_o if s[0].get("is_recursive", False) or s[0].get("big_o_depth", 1) > 2]
         
         if complex_sats:
             lines.append("### Highest Time Complexity (Big-O)")
-            for f in complex_sats[:10]:
+            for f, file_path in complex_sats[:10]:
                 o_str = "O(2^N) [Recursive]" if f.get("is_recursive", False) else f"O(N^{f.get('big_o_depth', 1)})"
-                lines.append(f"- `{f.get('name')}` (@ `{f.get('file')}`) -> **{o_str}**")
+                lines.append(f"- `{f.get('name')}` (@ `{file_path}`) -> **{o_str}**")
                 doc = f.get('docstring', '').strip()
                 if doc:
                     clean_doc = " ".join(doc.split())[:150] + ("..." if len(doc) > 150 else "")
                     lines.append(f"  * *Intent:* {clean_doc}")
             lines.append("")
             
-        sorted_by_db = sorted(all_sats, key=lambda x: x.get("db_complexity", 0), reverse=True)
-        db_sats = [s for s in sorted_by_db if s.get("db_complexity", 0) > 0]
+        sorted_by_db = sorted(all_sats, key=lambda x: x[0].get("db_complexity", 0), reverse=True)
+        db_sats = [s for s in sorted_by_db if s[0].get("db_complexity", 0) > 0]
         
         if db_sats:
             lines.append("### Highest Data Gravity (Database Complexity)")
-            for f in db_sats[:10]:
-                lines.append(f"- `{f.get('name')}` (@ `{f.get('file')}`) -> DB Complexity: **{f.get('db_complexity', 0)}**")
+            for f, file_path in db_sats[:10]:
+                lines.append(f"- `{f.get('name')}` (@ `{file_path}`) -> DB Complexity: **{f.get('db_complexity', 0)}**")
                 doc = f.get('docstring', '').strip()
                 if doc:
                     clean_doc = " ".join(doc.split())[:150] + ("..." if len(doc) > 150 else "")
@@ -1115,6 +1121,13 @@ class LLMRecorder:
                     exps.get("verification", 0.0)
                 ))
 
+            # Master arrays for batching child records (Massive speed boost)
+            all_dna_data = []
+            all_satellites = []
+            all_outbound = []
+            all_inbound = []
+            
+            import json
             for file_data in parsed_files:
                 p = file_data.get("path")
                 c_name = file_data.get("directory_group", "__monolith__")
@@ -1123,13 +1136,11 @@ class LLMRecorder:
                 rv = file_data.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
                 pop_count = len(inbound_map.get(p, []))
                 
-                # Extract repo-level metadata (can be injected via ML pass)
                 repo_macro = tel.get("repo_macro_species", "Unknown")
                 repo_z = tel.get("repo_z_score", 0.0)
-                
-                # --- INJECT ALL RAW DNA METRICS ---
                 parent_entity = tel.get("domain_context", {}).get("parent_entity", "")
                 
+                # 1. Insert star individually to safely retrieve its exact database ID (sid)
                 cursor.execute(f'''
                     INSERT INTO stars (
                         path, filename, parent_entity, constellation, language, lock_tier, 
@@ -1153,30 +1164,32 @@ class LLMRecorder:
                 
                 sid = cursor.lastrowid
                 
-                # Dynamic Hit Insertion (Automatically includes all sec_ signatures)
+                # 2. Accumulate DNA Hits
                 hv = file_data.get("hit_vector", [])
-                dna_data = [(sid, self.SIGNAL_SCHEMA[i], hv[i]) for i in range(len(hv)) if hv[i] > 0]
-                cursor.executemany('INSERT INTO dna_hits VALUES (?, ?, ?)', dna_data)
+                all_dna_data.extend([(sid, self.SIGNAL_SCHEMA[i], hv[i]) for i in range(len(hv)) if hv[i] > 0])
                 
-                import json
+                # 3. Accumulate Satellites
                 for func in file_data.get("functions", []):
                     calls_json = json.dumps(func.get("calls_out_to", []))
-                    cursor.execute('INSERT INTO satellites (star_id, name, type_id, loc, impact, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+                    all_satellites.append((
                         sid, func.get("name"), func.get("type_id"), func.get("loc"), func.get("impact"),
                         func.get("big_o_depth", 1), func.get("is_recursive", False), func.get("db_complexity", 0), func.get("docstring", ""), calls_json
                     ))
 
-                raw_imports = file_data.get("raw_imports", [])
-
+                # 4. Accumulate Dependencies
                 raw_imports = file_data.get("raw_imports", [])
                 if raw_imports:
-                    out_data = [(sid, imp) for imp in raw_imports]
-                    cursor.executemany('INSERT INTO outbound_dependencies VALUES (?, ?)', out_data)
+                    all_outbound.extend([(sid, imp) for imp in raw_imports])
 
                 inbound = inbound_map.get(p, [])
                 if inbound:
-                    in_data = [(sid, imp_by) for imp_by in inbound]
-                    cursor.executemany('INSERT INTO inbound_dependencies VALUES (?, ?)', in_data)
+                    all_inbound.extend([(sid, imp_by) for imp_by in inbound])
+
+            # 5. Push all accumulated child records to C-backend SQLite at once
+            cursor.executemany('INSERT INTO dna_hits VALUES (?, ?, ?)', all_dna_data)
+            cursor.executemany('INSERT INTO satellites (star_id, name, type_id, loc, impact, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', all_satellites)
+            cursor.executemany('INSERT INTO outbound_dependencies VALUES (?, ?)', all_outbound)
+            cursor.executemany('INSERT INTO inbound_dependencies VALUES (?, ?)', all_inbound)
 
             conn.commit()
             conn.close()

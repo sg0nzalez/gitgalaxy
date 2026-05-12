@@ -92,14 +92,16 @@ class NetworkRiskSensor:
         # PageRank determines the absolute "Load-Bearing" gravity of a file
         try:
             pagerank = nx.pagerank(G, weight='weight')
-            # NEW: Calculate Choke Points (Betweenness) and Ripple Effect (Closeness)
-            # Note: We limit betweenness to a sample (k=50) if the graph is massive (>5k nodes) to keep it O(N) fast.
-            k_val = min(len(G.nodes()), 50) if len(G.nodes()) > 5000 else None
+            
+            # THE FIX: Drop the exact threshold from 5000 down to 500. 
+            # Force a maximum sample size of 100 nodes for anything larger.
+            k_val = min(len(G.nodes()), 100) if len(G.nodes()) > 500 else None
             betweenness = nx.betweenness_centrality(G, k=k_val, weight='weight')
             
-            # Put a hard ceiling on Closeness Centrality to prevent the O(N^2) trap
-            if len(G.nodes()) > 5000:
-                self.logger.warning("Graph too massive for Closeness Centrality. Bypassing.")
+            # THE FIX: Closeness Centrality has no built-in sampling. 
+            # Drop the bypass threshold from 5000 to 1500 to prevent minute-long hangs.
+            if len(G.nodes()) > 1500:
+                self.logger.warning("Graph too massive for exact Closeness Centrality. Bypassing.")
                 closeness = {n: 0.0 for n in G.nodes()}
             else:
                 closeness = nx.closeness_centrality(G)
@@ -194,7 +196,12 @@ class NetworkRiskSensor:
                         self.logger.warning("Graph too massive for Modularity. Bypassing.")
                         macro_metrics["modularity"] = 0.0
                     else:
-                        communities = community.greedy_modularity_communities(U)
+                        # THE FIX: Attempt Louvain (blazing fast), fallback to Greedy (slow)
+                        try:
+                            communities = community.louvain_communities(U)
+                        except AttributeError:
+                            communities = community.greedy_modularity_communities(U)
+                            
                         macro_metrics["modularity"] = round(community.modularity(U, communities), 4)
                 except Exception: pass
 
