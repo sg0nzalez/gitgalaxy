@@ -59,21 +59,30 @@ def test_auditor_consensus_engine(auditor):
 def test_auditor_50_zero_law(auditor):
     """Proves that a massive file with 0 structural logic is relegated to Dark Matter."""
     files = [
-        # Give it a strong lock tier so it bypasses Consensus and hits the Audit phase
+        # The pathological data dump file
         {
             "path": "data_dump.cpp", "name": "data_dump.cpp", "lang_id": "cpp",
             "coding_loc": 150, # > 50
             "equations": {"branch": 0, "linear": 0}, # 0 signals
             "telemetry": {"identity_lock_tier": 1}
+        },
+        # Dummy files to establish a healthy C++ ecosystem (preventing the Orphan downgrade)
+        {
+            "path": "valid_1.cpp", "name": "valid_1.cpp", "lang_id": "cpp",
+            "coding_loc": 20, "equations": {"branch": 5, "linear": 5}, "telemetry": {"identity_lock_tier": 4}
+        },
+        {
+            "path": "valid_2.cpp", "name": "valid_2.cpp", "lang_id": "cpp",
+            "coding_loc": 20, "equations": {"branch": 5, "linear": 5}, "telemetry": {"identity_lock_tier": 4}
         }
     ]
-    
+
     verified, unparsable = auditor.audit(files)
-    
-    assert len(verified) == 0
+
+    # We now expect the 2 valid dummies to pass, and the 1 data dump to fail
+    assert len(verified) == 2
     assert len(unparsable) == 1
     assert "50/0 Law" in unparsable[0]["reason"], "Failed to trigger the 50/0 Law!"
-
 
 # ==============================================================================
 # TEST 3: THE SUPERNOVA GUARD (Impossible Density)
