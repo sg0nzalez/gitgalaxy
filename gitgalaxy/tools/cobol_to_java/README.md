@@ -93,9 +93,10 @@ python3 tools/cobol_to_java/batch_test_harness.py /path/to/corpus_dir
 
 Don't just take our word for it. We have published the raw, unedited artifacts generated from the IBM CICS benchmark test directly in this repository so you can inspect the architecture yourself.
 
-📂 **[Browse the CICS Translation Examples](../../../examples/ibm_cics_translation/)**
-* **Phase 1 (The Clean Room):** Inspect the extracted PostgreSQL schemas, Zero-Trust JCLs, and JSON business logic slices.
-* **Phase 2 (Spring Boot Architecture):** Click through the `src/main/java` directories to verify the auto-wired JPA entities, REST controllers, and Maven configurations that achieved the perfect compile score.
+📂 **[Browse the Live Translation Examples](https://github.com/squid-protocol/cobol_to_java_examples)**
+* **The Corpus:** Explore 10 distinct, auto-generated architectures—ranging from standard IBM CICS benchmarks to heavyweight compilers and edge-case testing code.
+* **The Proof (Spring Boot Architecture):** Click through the `src/main/java` directories to verify the deterministic extraction of JPA entities, auto-wired REST controllers, and complete Maven build systems (`pom.xml` & `application.yml`). 
+* **Zero-Touch Compilation:** Every single example in this repository compiles out-of-the-box (`mvn clean compile`), proving structural integrity before any AI logic is injected.
 
 ---
 ### 🌌 Powered by the blAST Engine (Bypassing LLMs and ASTs)
