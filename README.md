@@ -32,7 +32,7 @@ Every assumption our system makes has been abstracted into over 300 tunable vari
 **Core Codebase Mapping Technology**
 * Bypasses LLMs and rigid ASTs.
 * Doesn't require code to compile (AST-free).
-* Produces full function-to-function call chains.
+* Produces full network mapping via imports with generlized function calls per file.
 * Deterministically maps code by 60+ keyword regex profiles (Structural markers, I/O intents, state mutations).
 * Regex keyword profiles allow us to classify functions, files, classes, folders and repos.
 * Eliminates LLM architectural hallucinations and context window limits.
