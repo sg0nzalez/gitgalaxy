@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Tuple, Optional, Dict, List, Any, TypedDict, Union
 from gitgalaxy.standards.gitgalaxy_config import EXACT_FILE_MATCH
 from gitgalaxy.standards.language_standards import LENS_CONFIG
+from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS  # noqa: F401
 
 # ==============================================================================
 # GitGalaxy Phase 1: The Entity Census (The Linguistic Detector Chip)
