@@ -1,6 +1,8 @@
 import subprocess
 import json
 from pathlib import Path
+import os
+
 
 
 def test_galaxyscope_python_fixture(tmp_path):
@@ -19,11 +21,16 @@ def test_galaxyscope_python_fixture(tmp_path):
     # Force output to a temporary directory
     output_dir = tmp_path / "test_run"
 
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(project_root)
+
     # 3. Pass the absolute paths to the subprocess
     result = subprocess.run(
         ["python", str(script_path), str(fixture_path), "--output", str(output_dir)],
         capture_output=True,
         text=True,
+        env=env,
+        cwd=str(project_root)
     )
 
     # INVARIANT 1: CLI Exit Code & Billboard Output
