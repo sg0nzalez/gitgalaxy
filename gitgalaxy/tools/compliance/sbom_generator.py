@@ -177,6 +177,10 @@ class UniversalManifestSlicer:
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Universal Zero-Trust SBOM Generator")
+
     parser = argparse.ArgumentParser(description="Universal Zero-Trust SBOM Generator")
     parser.add_argument("target", help="Root directory of the project")
     parser.add_argument(

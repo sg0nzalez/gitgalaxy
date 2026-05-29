@@ -12,8 +12,8 @@
 gitgalaxy_config.py
 Phase 0 & 1: Repository Ingestion, Filtering, and Pre-Flight Context.
 
-This file serves as the core configuration payload. It defines the global 
-security exceptions and the lightweight ingestion rules used to filter 
+This file serves as the core configuration payload. It defines the global
+security exceptions and the lightweight ingestion rules used to filter
 out noise before the heavy physics engines are loaded into memory.
 """
 

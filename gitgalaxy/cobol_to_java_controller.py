@@ -99,6 +99,10 @@ public class {camel_name}Service {{
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("COBOL-to-Java Translator (The Legacy Forge)")
+
     parser = argparse.ArgumentParser(description="GitGalaxy COBOL to Java Controller")
     parser.add_argument("clean_room", help="Path to the generated gitgalaxy_clean_[TIMESTAMP] directory")
     parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")

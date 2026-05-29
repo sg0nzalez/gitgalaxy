@@ -38,6 +38,10 @@ except ImportError:
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Supply Chain Firewall")
+
     parser = argparse.ArgumentParser(description="Supply Chain Firewall")
     parser.add_argument("target", help="Directory (e.g., node_modules/ or venv/) to scan")
     args = parser.parse_args()

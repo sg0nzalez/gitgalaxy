@@ -225,6 +225,10 @@ def generate_java_entity(schema_json: dict, package_name: str) -> str:
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Java Entity Forge (The Legacy Forge)")
+
     parser = argparse.ArgumentParser(description="GitGalaxy Java Entity Forge")
     parser.add_argument("schema_file", help="Path to the GitGalaxy _schema.json file")
     parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")

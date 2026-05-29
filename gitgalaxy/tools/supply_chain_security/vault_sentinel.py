@@ -31,6 +31,10 @@ except ImportError:
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Vault Sentinel")
+
     parser = argparse.ArgumentParser(description="Vault Sentinel: High-Speed Secrets Scanner")
     parser.add_argument("target", help="Directory or file to scan")
     args = parser.parse_args()

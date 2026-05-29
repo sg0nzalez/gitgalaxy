@@ -148,6 +148,9 @@ def generate_build_jcl(source_text: str, prog_name: str, files: set, dialect: st
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+    enforce_licensing_guard("MVS 3.8j COBOL Compiler Forge")
+
     parser = argparse.ArgumentParser(description="GitGalaxy COBOL Compiler Forge")
     parser.add_argument("source_dir", help="Path to the original COBOL source files")
     parser.add_argument("out_dir", help="Path to save the generated Compiler JCLs")
