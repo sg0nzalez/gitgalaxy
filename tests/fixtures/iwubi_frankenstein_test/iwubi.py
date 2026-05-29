@@ -535,8 +535,8 @@ class IbusWubiEngine(IBus.Engine):
 class IMApp:
     def __init__(self, exec_by_ibus):
         if not exec_by_ibus:
-            global debug_on
-            debug_on = True
+            global _unused_debug_on
+            _unused_debug_on = True
         self.mainloop = GLib.MainLoop()
         self.bus = IBus.Bus()
         self.bus.connect("disconnected", self.bus_disconnected_cb)
