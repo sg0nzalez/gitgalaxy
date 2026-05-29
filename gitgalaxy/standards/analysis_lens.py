@@ -619,7 +619,7 @@ PATH_MODIFIERS = {
         # declarative mappings of state, not complex, human-maintained execution paths.
         (
             re.compile(
-                r"(?:^|/)(?:migrations?|schema)/.*\.(?:sql|ts|js|rb|py)$|(?:\d{10,}_[a-z0-9_]+\.(?:ts|js|rb|py|sql))$",
+                r"(?:(?:^|/)(?:migrations?|schema)/.*|(?:\d{10,}_[a-z0-9_]+))\.(?:sql|ts|js|rb|py)$",
                 re.I,
             ),
             0.05,
