@@ -6,9 +6,7 @@ _init = False
 dict_config = {
     "version": 1,
     "formatters": {
-        "simple": {
-            "format": "%(asctime)s - %(filename)s:%(lineno)3s %(funcName)20s - %(levelname)s - %(message)s"
-        }
+        "simple": {"format": "%(asctime)s - %(filename)s:%(lineno)3s %(funcName)20s - %(levelname)s - %(message)s"}
     },
     "handlers": {
         "console": {
