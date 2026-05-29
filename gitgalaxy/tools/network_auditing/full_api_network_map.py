@@ -160,6 +160,10 @@ def map_physical_codebase(target_dir: Path) -> tuple:
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Full API Network Map")
+
     parser = argparse.ArgumentParser(description="GitGalaxy Full API Network Map")
     parser.add_argument("source", help="Directory containing the application source code")
     parser.add_argument(

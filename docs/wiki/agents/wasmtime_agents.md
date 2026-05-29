@@ -32,3 +32,8 @@ To stabilize the architecture and mitigate single-point-of-failure risks, priori
 1. **De-Silo the ISLE and WASI Layers:** Address the 100% Key Person Dependency in the Cranelift parser/semantic analyzer (`sema.rs`, `parser.rs`) and the `wasi/src/p1.rs` implementation. Distribute domain knowledge through architectural documentation and pairing to lower the Bus Factor.
 2. **Mitigate Blind Bottlenecks in Memory Tests:** Document the implicit contracts and invariants tested within `tests/all/memory.rs` and `crates/wiggle/tests/variant.rs`. Because they serve as structural pillars with near 100% Doc Risk, explicit comments detailing the memory model assumptions will prevent regressions during future Wasm spec updates.
 3. **Stabilize JIT Configuration:** `crates/wasmtime/src/config.rs` exhibits dangerous volatility. Consider decoupling this configuration hub into smaller, domain-specific configuration structs (e.g., separating Cranelift tuning from WASI capabilities) to isolate churn and reduce merge conflicts.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

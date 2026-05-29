@@ -28,3 +28,8 @@ To stabilize the architecture and reduce developer friction, prioritize the foll
 1.  **Decompose the God Class Orchestrators:** Refactor `Security.java`, `MachineLearning.java`, and `ActionModule.java`. Invert their dependencies by utilizing an event-driven or strict registry pattern to reduce their extreme outbound coupling (>400 dependencies each) and mitigate their fragility.
 2.  **Mitigate Core Knowledge Silos:** Immediately distribute architectural knowledge regarding the sharding layer and entitlement instrumentation. Mandate cross-team code reviews and pair programming for any modifications to `IndexShard.java` and `FileInstrumentation.java` to break single-developer ownership constraints.
 3.  **Refactor Test Cluster Provisioning:** Address the extreme cognitive load and structural mass in `ElasticsearchNode.java`. Extract specific node lifecycle phases (e.g., configuration generation, logging, teardown) into isolated, compositional utility classes to improve test infrastructure maintainability.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

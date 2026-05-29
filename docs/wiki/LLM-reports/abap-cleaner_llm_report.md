@@ -28,3 +28,8 @@ To stabilize the architecture and mitigate the high friction of the current pars
 1.  **Decouple the Parser God Nodes:** `parser/Token.java` and `parser/Command.java` violate the Single Responsibility Principle and are major bottlenecks. Refactor these classes by extracting token classification logic, operator matching, and string processing into isolated, discrete strategy classes. 
 2.  **Mitigate Key Person Silos:** Immediately distribute architectural knowledge regarding the parser and GUI integrations. Mandate paired programming or strict cross-team code reviews for any further modifications to the top 5 heaviest files to break the 100% ownership isolation held by Jörg-Michael Grassau.
 3.  **Thin the View Layer:** Address the heavy state mutation in the Eclipse UI. Refactor `FrmMain.java` and `FrmProfiles.java` by moving configuration loading and profile resolution into headless service layers, ensuring the GUI only handles event delegation and presentation.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

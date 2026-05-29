@@ -67,6 +67,10 @@ class {class_name}ControllerTest {{
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Java Test Forge (The Legacy Forge)")
+
     parser = argparse.ArgumentParser(description="GitGalaxy Java Test Forge")
     parser.add_argument("ir_file", help="Path to the GitGalaxy _ir.json state dump")
     parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")

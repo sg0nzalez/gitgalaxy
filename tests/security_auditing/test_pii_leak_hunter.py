@@ -29,9 +29,7 @@ def test_pii_masking_engine():
 
     # 5. The Combo Test (Multiple leaks in a single log line)
     combo_log = "User AKIAIOSFODNN7EXAMPLE charged 4123456789012345"
-    assert (
-        pii_module.mask_pii(combo_log) == "User AKIA-XXXX-MPLE charged VISA-MASKED-2345"
-    )
+    assert pii_module.mask_pii(combo_log) == "User AKIA-XXXX-MPLE charged VISA-MASKED-2345"
 
 
 # ==============================================================================
@@ -64,9 +62,7 @@ def test_pii_leak_hunter_e2e(tmp_path):
 
     # 3. Verify the Evidence Log
     evidence_file = log_dir / "production_dump_pii_leak_evidence.log"
-    assert (
-        evidence_file.exists()
-    ), "The hunter failed to generate the safe evidence log!"
+    assert evidence_file.exists(), "The hunter failed to generate the safe evidence log!"
 
     content = evidence_file.read_text(encoding="utf-8")
 
@@ -79,10 +75,6 @@ def test_pii_leak_hunter_e2e(tmp_path):
     assert "XXX-XX-9999" in content
 
     # C) ZERO-TRUST GUARANTEE: Ensure the raw PII was completely obliterated
-    assert (
-        "4111111111111111" not in content
-    ), "CRITICAL LEAK: Raw VISA card written to disk!"
-    assert (
-        "AKIAIOSFODNN7EXAMPLE" not in content
-    ), "CRITICAL LEAK: Raw AWS Key written to disk!"
+    assert "4111111111111111" not in content, "CRITICAL LEAK: Raw VISA card written to disk!"
+    assert "AKIAIOSFODNN7EXAMPLE" not in content, "CRITICAL LEAK: Raw AWS Key written to disk!"
     assert "999-99-9999" not in content, "CRITICAL LEAK: Raw SSN written to disk!"

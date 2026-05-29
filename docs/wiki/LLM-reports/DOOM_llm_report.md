@@ -28,3 +28,8 @@ To stabilize the engine architecture and reduce maintenance friction, prioritize
 1.  **Prune the AI Design Slop:** Execute a targeted cleanup of the 49 orphaned functions in `linuxdoom-1.10/p_enemy.c` and the 24 in `linuxdoom-1.10/p_pspr.c`. Removing this dead code will clarify the active AI behaviors and weapon state logic, lowering the repository's baseline technical debt.
 2.  **Illuminate the God Headers:** Mandate comprehensive documentation (e.g., standard C block comments) for `sndserv/sounds.h` and `linuxdoom-1.10/p_local.h`. Because these headers act as critical load-bearers for the sound server and physics engine, reducing their high Documentation Risk is essential for safe modification.
 3.  **Decompose the Game Orchestrator:** Address the 91.7% Cognitive Load in `linuxdoom-1.10/g_game.c`. Refactor the massive state-handling switches inside `G_Ticker` into smaller, discrete handler functions. This will reduce the physical footprint of the file and mitigate the risk of unintended side-effects during game tick evaluation.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

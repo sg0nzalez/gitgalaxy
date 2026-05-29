@@ -1,42 +1,53 @@
-# GitGalaxy: How to Add a New Language
+# 🌌 Architecting a New Language (Extending the blAST Engine)
 
-GitGalaxy uses an AST-free, mathematical heuristics engine to build a comparative lexical taxonomical map across all programming languages. Instead of writing complex parsers, we teach the engine the "physics" of a language using high-speed, ReDoS-proof regular expressions.
+GitGalaxy does not use brittle Abstract Syntax Trees (ASTs) or traditional compiler toolchains. Instead, we map planetary-scale codebases using the **blAST Engine** (Bypassing LLMs and ASTs): a polyglot structural physics engine. 
 
-To add a new language, you will use an LLM (like Claude 3.5 Sonnet, GPT-4o, or Gemini 1.5 Pro) to generate the structural dictionary.
+Instead of writing a custom parser that breaks the moment a repository fails to compile, we teach the engine the "physics" of a new language using high-speed, mathematically bounded, ReDoS-proof regular expressions. This allows GitGalaxy to build a universal, comparative lexical taxonomy across entirely different computing eras (from 1980s COBOL to modern Rust).
 
-### Step 1: Provide Context to the LLM
-Before asking the LLM to generate the new language, upload the `gitgalaxy/standards/language_standards.py` file to the chat. Tell the LLM: 
-> *"Read this file to understand how the GitGalaxy physics engine uses bounded regex to prevent ReDoS. Pay close attention to how C++ and Python are mapped."*
+For the mathematical proofs backing this architecture, review:
+* 🔬 [The blAST Paradigm](../../docs/wiki/01-03-the-blast-paradigm.md)
+* ⚖️ [Claim 10: The Heuristic vs. AST Paradigm](../../docs/wiki/03-10-claim-10-ast-vs-heuristic-parsing.md)
+* 🛡️ [Claim 8: Empirical Validation of AST-Free Parsing](../../docs/wiki/03-08-claim-8-empirical-validation-of-ast-free-parsing.md)
 
-### Step 2: Generate the Ruleset
-Copy the **Master Prompt** below and paste it into the LLM. Replace `[TARGET LANGUAGE]` with the language you want to add.
-
-### Step 3: Install the Language
-1. Open `gitgalaxy/standards/language_standards.py`.
-2. Locate the `LANGUAGE_DEFINITIONS` dictionary.
-3. Paste the generated Python dictionary directly into this registry.
+To add a new language to the [Language Lens](../../docs/wiki/02-05-language-lens.md), you will use an advanced LLM (like Claude 3.5 Sonnet, GPT-4o, or Gemini 1.5 Pro) to generate the structural dictionary.
 
 ---
 
-## The LLM Master Prompt
-*Copy everything below this line and feed it to the LLM.*
+### Step 1: Initialize the LLM Context
+Before asking the LLM to generate the new language, upload the `gitgalaxy/standards/language_standards.py` file to the chat window. Issue this exact command:
+> *"Read this file to understand how the GitGalaxy physics engine uses bounded regex to guarantee ReDoS immunity. Pay close attention to how C++ and Python are mapped to prevent Catastrophic Backtracking."*
+
+### Step 2: Inject the Master Calibration Prompt
+Copy the **Master Prompt** below and paste it into the LLM. Replace `[TARGET LANGUAGE]` with the exact language you want to map.
+
+### Step 3: Calibrate the Engine
+1. Open `gitgalaxy/standards/language_standards.py`.
+2. Locate the `LANGUAGE_DEFINITIONS` matrix.
+3. Paste the generated Python dictionary directly into the registry to instantly grant the engine native support for the new architecture.
+
+<br><br>
+
+---
+
+## ⚙️ The Master Calibration Prompt
+*Copy everything below this line and feed it directly to the LLM.*
 
 **Prompt:**
-You are an expert compiler engineer and static analysis specialist. Please generate a GitGalaxy REGISTRY regex dictionary for **[TARGET LANGUAGE]** using the framework defined below. 
+You are an expert compiler engineer and static analysis specialist. Please generate a GitGalaxy REGISTRY regex dictionary for **[TARGET LANGUAGE]** using the strict Zero-Trust framework defined below. 
 
-This dictionary will be used to create a system of consistent 1:1 cross-language comparisons (a comparative lexical taxonomical map), taking into account implicit and explicit language aspects. The engine uses `re.M` (Multiline) to scan 50,000+ line enterprise files at extreme velocity.
+This dictionary will be used by an AST-free physics engine to create a system of consistent 1:1 cross-language comparisons (a comparative lexical taxonomical map), calculating risk exposures across implicit and explicit language behaviors. The engine uses `re.M` (Multiline) to scan 50,000+ line enterprise files at extreme velocity.
 
 ### 🚨 CRITICAL ENGINE RULES
-1. **The Physical Reality Rule (Implicit vs. Explicit):** Do not just hunt for explicit keywords. Capture the physical reality. If defining API Exposure (Key 10), determine if the language is implicitly public (e.g., Python, Fortran). If so, the regex must capture standard function/subroutine definitions, not just the rare use of an explicit public or export tag.
+1. **The Physical Reality Rule (Implicit vs. Explicit):** Do not just hunt for explicit keywords; capture the physical reality. If defining API Exposure (Key 10), determine if the language is implicitly public (e.g., Python, Fortran). If so, the regex must capture standard function/subroutine definitions, not just the rare use of an explicit public or export tag.
 2. **The Paradigm Forgiveness Rule (No "Trust Me" Taxes):** Do not punish a language for operating within its standard paradigm. Example: Standard C-style pointer casting is standard operating procedure, not a structural fracture. It must be routed to Phase 5 (Thermodynamic Balance) as friction, NOT placed in Phase 2 `safety_neg` where it will trigger the Breach Cap.
 3. **The "Ghost Logic" Rule (Contextual Debt):** When assessing Tech Debt or Danger, isolate human commentary from execution flow. Example: `TODO` and `FIXME` are planned debt. They must NEVER be placed in execution-blocking keys like `danger`, otherwise a file with high developer documentation will be falsely penalized as a volatile execution risk.
 4. **The Comparative Map Rule (Use `None`):** If a dimension does not exist natively in the target language (e.g., pointers in JavaScript, decorators in C), you MUST explicitly set its key to `None`. Do not force a fit.
-5. **No Catastrophic Backtracking (ReDoS):** Bound all wildcards. Never use `.*` inside brackets. Always use negation (e.g., `<[^>]*>`). In `re.M` mode, `\s` matches newlines (`\n`). 
+5. **Absolute ReDoS Immunity (No Catastrophic Backtracking):** Bound all wildcards. Never use `.*` inside brackets. Always use negation (e.g., `<[^>]*>`). In `re.M` mode, `\s` matches newlines (`\n`). 
     * ❌ NEVER use `^\s*`. ✅ ALWAYS use `^[ \t]*`.
     * ❌ NEVER use `\s*$`. ✅ ALWAYS use `[ \t]*$`.
     * ❌ NEVER use `\s*=`. ✅ ALWAYS use `[ \t]*=`.
     * ❌ NEVER nest unbounded quantifiers like `(?:[ \t]*\*+)*` or `(?:(?:public|private)\s+)*`. ✅ ALWAYS use strict numeric clamps like `(?:[ \t*&]+){0,10}` or `(?:(?:public|static)[ \t]+){0,3}`.
-6. **The Geometry Inflator Bug:** Do NOT put access modifiers (e.g., public, private, static) in the `linear` array. This artificially inflates the math and turns all files into smooth spheres, destroying visual complexity.
+6. **The Geometry Inflator Bug:** Do NOT put access modifiers (e.g., public, private, static) in the `linear` array. This artificially inflates the math and turns all files into smooth spheres, destroying visual 3D complexity.
 7. **Ghost Satellites:** `func_start` must ONLY match executable logic blocks (methods/functions/constructors). Do NOT match interfaces, types, or classes here.
 8. **Thermodynamic Balance (Yin & Yang):** Pay special attention to Phase 5. Ensure that chaos (e.g., concurrency, events, flux) and order (e.g., sync_locks, listeners, freeze_hits) are cleanly separated into their specific regex keys so the physics engine can balance them.
 

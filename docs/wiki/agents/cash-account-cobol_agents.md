@@ -23,3 +23,8 @@ When deploying autonomous agents or planning engineering cycles, prioritize the 
 1. **Mitigate the Blind Bottleneck:** Mandate the generation of comprehensive, inline documentation for `COBOL/CASH00.cbl`. Explain the input/output expectations for each major paragraph (`CASH-ACCT-ADD`, `CASH-ACCT-UPDATE`) to reduce the 100% Documentation Risk.
 2. **Decompose the Orchestrator:** To reduce the extreme cognitive load and algorithmic density in `CASH00.cbl`, evaluate extracting distinct operations (e.g., database read/write logic vs. business validation) into separate subprograms or clearly delineated, isolated paragraphs.
 3. **Prune Dead Logic:** Investigate and safely remove the 6 orphaned functions identified within `CASH00.cbl`. Eliminating this design slop will immediately reduce the file's state flux and technical debt exposure.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

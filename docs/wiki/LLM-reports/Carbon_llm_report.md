@@ -28,3 +28,8 @@ To stabilize the architecture and mitigate the friction caused by excessive trai
 1.  **Decompose the Localization Engine:** `src/Carbon/Traits/Localization.php` is collapsing under high churn and technical debt. Extract the localization resolution and catalog mapping logic into dedicated, immutable strategy classes rather than mixing it directly into the base Carbon objects.
 2.  **Illuminate the Reflection Bottlenecks:** Mandate comprehensive docstrings and structural documentation for `Callback.php` and `MacroMethodReflection.php`. Because these files handle dynamic method resolution and PHPStan integrations, reducing their 100% Documentation Risk is critical to preventing silent API breaks for downstream consumers.
 3.  **Distribute Core Knowledge Silos:** Break the 100% ownership isolation held by 'kylekatarnls' on foundational traits (`Options.php`, `Test.php`, `Localization.php`). Enforce cross-team code reviews and assign secondary maintainers to these high-impact files to mitigate Key Person risk.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

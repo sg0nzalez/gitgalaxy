@@ -28,3 +28,8 @@ To stabilize the architecture and mitigate systemic risks, prioritize the follow
 1.  **Decompose the File Type & Check Data Monoliths:** `ft_filetype.m` and `ft_checkdata.m` are collapsing under high cognitive load and immense parameter complexity. Refactor these monolithic conditional structures into a dynamic registry or strategy pattern, isolating individual format parsers and validation rules to reduce O(2^N) branching.
 2.  **Mitigate Core Knowledge Silos:** Break the 100% ownership isolation held by single contributors on the foundational data validation files (`ft_checkdata.m`, `ft_selectdata.m`, `ft_senstype.m`). Mandate cross-team code reviews and assign secondary maintainers to these critical files to distribute domain knowledge.
 3.  **Illuminate the Real-Time Buffer API:** The core `buffer.h` file carries a high Blast Radius with an 87% Documentation Risk. Enforce strict Doxygen-style documentation on this interface and simultaneously prune the surrounding orphaned functions in the acquisition drivers to stabilize the C/C++ real-time streaming contract.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

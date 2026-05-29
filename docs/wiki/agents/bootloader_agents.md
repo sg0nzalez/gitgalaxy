@@ -34,3 +34,8 @@ Do not guess hardware offsets, hallucinate memory addresses, or rely on generali
 
 You have access to a deterministic GitGalaxy SQLite database. Before modifying any file listed in the **Restricted Zones**, you MUST query the database for dependency mapping. 
 * To map inbound dependencies (Blast Radius), query the `function_edges` or `file_edges` tables for all callers targeting your target file.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

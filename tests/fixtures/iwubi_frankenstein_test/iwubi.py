@@ -188,16 +188,12 @@ class IWubi(object):
                 WHERE pinyin LIKE '{}%'
                     AND freq>0
                     AND substr(pinyin, 1, {}) = '{}'
-                ORDER BY freq DESC LIMIT {}""".format(
-                preedit_string, len(preedit_string), preedit_string, pinyin_size
-            )
+                ORDER BY freq DESC LIMIT {}""".format(preedit_string, len(preedit_string), preedit_string, pinyin_size)
             pinyin_list = list(c.execute(query))
             for phrase in pinyin_list:
                 phrase = phrase[0]
                 # Add Wubi tabkeys if exists
-                query = """SELECT tabkeys FROM phrases WHERE phrase = '{}'""".format(
-                    phrase
-                )
+                query = """SELECT tabkeys FROM phrases WHERE phrase = '{}'""".format(phrase)
                 c.execute(query)
                 tabkeys = c.fetchone()
                 if tabkeys:
@@ -342,10 +338,7 @@ class IbusWubiEngine(IBus.Engine):
 
         # ASCII letter
         if IBus.a <= keyval <= IBus.z or IBus.A <= keyval <= IBus.Z:
-            if (
-                state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK)
-                == 0
-            ):
+            if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
                 if self._input_mode == 0:
                     # Do not use `commit_string(keyval)` to commit ASCII letter, `commit_string` may run too long time.
                     # This can lead to hotkey mistake detection error.
@@ -480,9 +473,7 @@ class IbusWubiEngine(IBus.Engine):
         self.candidates = []
 
         if preedit_len > 0:
-            iwubi_results, len_wubi_list = self.iwubi.find_characters(
-                self.preedit_string
-            )
+            iwubi_results, len_wubi_list = self.iwubi.find_characters(self.preedit_string)
             self._last_wubi_list_len = len_wubi_list
             for char_sequence, display_str in iwubi_results:
                 candidate = IBus.Text.new_from_string(display_str)
@@ -491,11 +482,7 @@ class IbusWubiEngine(IBus.Engine):
 
         # Do not show auxiliary bar. Keep UI clean.
 
-        attrs.append(
-            IBus.Attribute.new(
-                IBus.AttrType.UNDERLINE, IBus.AttrUnderline.SINGLE, 0, preedit_len
-            )
-        )
+        attrs.append(IBus.Attribute.new(IBus.AttrType.UNDERLINE, IBus.AttrUnderline.SINGLE, 0, preedit_len))
         text = IBus.Text.new_from_string(self.preedit_string)
         text.set_attributes(attrs)
         # update_preedit_text: Update the pre-edit buffer.
@@ -548,8 +535,8 @@ class IbusWubiEngine(IBus.Engine):
 class IMApp:
     def __init__(self, exec_by_ibus):
         if not exec_by_ibus:
-            global debug_on
-            debug_on = True
+            global _unused_debug_on
+            _unused_debug_on = True
         self.mainloop = GLib.MainLoop()
         self.bus = IBus.Bus()
         self.bus.connect("disconnected", self.bus_disconnected_cb)
@@ -562,9 +549,7 @@ class IMApp:
             if os.path.exists(xml_path):
                 component = IBus.Component.new_from_file(xml_path)
             else:
-                xml_path = os.path.join(
-                    os.path.dirname(__base_dir__), "ibus", "component", "iwubi.xml"
-                )
+                xml_path = os.path.join(os.path.dirname(__base_dir__), "ibus", "component", "iwubi.xml")
                 component = IBus.Component.new_from_file(xml_path)
             self.bus.register_component(component)
 

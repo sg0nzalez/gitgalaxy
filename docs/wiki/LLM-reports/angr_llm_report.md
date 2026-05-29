@@ -27,3 +27,8 @@ To stabilize the symbolic execution engine and reduce developer friction, priori
 1.  **Decompose the CFG Orchestrators:** `angr/analyses/cfg/cfg_fast.py` and `cfg_base.py` violate the Single Responsibility Principle. Extract the highly complex, recursive jump-resolution logic (`_arm_thumb_filter_jump_successors`) into isolated, architecture-specific strategy classes to reduce their massive cognitive load (19.6%) and physical footprint.
 2.  **Mitigate Key Person Risk:** Immediately distribute architectural knowledge regarding the CFG generation and storage subsystems. Mandate paired programming or strict cross-team code reviews for any further modifications to `cfg_fast.py` and `cfg_base.py` to break the ownership isolation held by Fish.
 3.  **Fortify the Logging Pillar:** Address the "Blind Bottleneck" in `angr/concretization_strategies/logging.py`. Because it sits at the base of the dependency tree, it must be comprehensively documented with JSDoc-style intent to prevent silent failures from cascading across the analyses pipelines.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

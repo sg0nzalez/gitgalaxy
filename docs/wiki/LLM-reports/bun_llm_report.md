@@ -28,3 +28,8 @@ To stabilize the runtime architecture and reduce developer friction at the FFI b
 1.  **Decompose the Bindings Monolith:** `src/bun.js/bindings/bindings.cpp` violates the Single Responsibility Principle and is collapsing under technical debt. Extract specific JS-to-Native translation domains (e.g., deep equality checks, special object matching) into isolated, domain-specific translation units to reduce the file's extreme churn rate and physical mass (10,015).
 2.  **Prune the FFI Graveyard:** Execute a targeted cleanup of the 231 orphaned functions in `bindings.cpp` and the 120 in `ZigGlobalObject.h`. Removing this dead design slop will lower technical debt, reduce compilation times, and clarify the active contract between Zig and JSC.
 3.  **Illuminate the God Nodes:** Immediately mandate comprehensive docstrings and structural documentation for `src/bun.js/bindings/root.h` and `ZigGlobalObject.h`. Because they act as the foundational load-bearers for the entire JavaScript runtime bridging, reducing their high Documentation Risk is critical to preventing silent regressions during memory mapping or type coercion.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

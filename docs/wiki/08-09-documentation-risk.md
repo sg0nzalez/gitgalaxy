@@ -96,3 +96,8 @@ This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
 * 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
 
+
+
+---
+
+**[⬅️ Back to Master Index](index.md)**

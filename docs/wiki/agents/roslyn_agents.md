@@ -31,3 +31,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Document Blind Bottlenecks in the Syntax Factory:** Address the 100% documentation risk in `src/Compilers/CSharp/Portable/Syntax/SyntaxFactory.cs`. As this is a critical "God Node" with a massive blast radius, ensuring all node generation APIs are fully documented will reduce the "House of Cards" error risk for downstream diagnostic analyzers.
 2. **De-Silo the Language Server Protocol (LSP) Implementation:** Given the extreme volatility and cognitive load in `LanguageServerProjectSystem.cs` and `AbstractLanguageServerProtocolTests.cs`, distribute domain knowledge regarding workspace synchronization to reduce the reliance on single contributors.
 3. **Modularize the Semantic Binder:** `Binder_Expressions.cs` is a monolithic orchestrator containing nearly 12k LOC. While rewriting the binder is unfeasible, establish stricter logical boundaries within the partial class for discrete expression types to lower the cognitive load required during semantic analysis debugging.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

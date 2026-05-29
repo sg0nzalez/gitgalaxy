@@ -34,6 +34,10 @@ except ImportError:
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("X-Ray Inspector")
+
     parser = argparse.ArgumentParser(description="X-Ray Inspector: Binary & Obfuscation Scanner")
     parser.add_argument("target", help="Directory to scan")
     args = parser.parse_args()

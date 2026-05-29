@@ -43,6 +43,8 @@ Dedicated tests for the Mainframe/Z-System modernization toolchain.
 * `test_cobol_jcl_auditor.py` & `test_cobol_jcl_forge.py` - Validates the auditing and zero-trust generation of JCL scripts.
 * `test_cobol_compiler_forge.py` & `test_cobol_agent_task_forge.py` - Validates copybook flattening and AI agent ticket creation.
 * `test_cobol_graveyard_finder.py` - Validates AST dead-code math and orphaned variable detection.
+* `test_cobol_refractor_controller.py` - Validates the Hybrid State Manager (OOM protection via SQLite toggling).
+* `test_cobol_schema_forge.py` & `test_cobol_system_limits_reporter.py` - Validates PIC clause extraction and system limitation scanning.
 
 ### 5. `/tools_recorders` (Telemetry & Output Generation)
 Validates the telemetry translation layer and continuous integration harnesses.

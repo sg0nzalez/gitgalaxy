@@ -28,3 +28,8 @@ To stabilize the compilation pipeline and reduce developer friction, prioritize 
 1.  **Decompose the Compilation Files Manager:** `compilation_files.rs` is collapsing under high churn and technical debt. Extract the fingerprinting/hashing logic and the metadata output calculation into isolated, pure-function strategy structs to reduce the file's cognitive load and stabilize the build-runner pipeline.
 2.  **Mitigate Cache Tracker Silos:** Immediately distribute architectural knowledge regarding the `global_cache_tracker.rs` and `toml_mut` modules. Mandate strict cross-team code reviews for any further modifications to these files to break the ownership isolation held by Ed Page.
 3.  **Prune the Test Graveyards:** Execute a targeted cleanup of the orphaned functions across the `tests/testsuite/` directory. Removing this dead code (e.g., in `bad_config.rs` and `workspaces.rs`) will lower the repository's baseline technical debt and clarify the active test coverage matrix.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

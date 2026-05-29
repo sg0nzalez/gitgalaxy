@@ -235,6 +235,10 @@ def process_payload(filepath: Path, state_manager: IRStateManager, target_var: s
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("COBOL Refractor (The Legacy Forge)")
+
     parser = argparse.ArgumentParser(description="GitGalaxy COBOL Refractor Controller (v4)")
     parser.add_argument("target", help="The legacy repository or directory to scan")
     parser.add_argument(

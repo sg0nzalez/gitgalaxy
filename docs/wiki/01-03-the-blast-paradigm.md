@@ -51,3 +51,7 @@ Instead of trying to understand *what* a variable is named, the blAST engine loo
 * Is the text dense, lacking whitespace, with extreme Shannon Entropy? It is a **Weaponized Binary or Obscured Payload**.
 
 By stripping away the compiler rules and focusing strictly on the physical footprint of the text, GitGalaxy scales infinitely, runs locally on a laptop, and maps the cross-language topology of the largest systems on Earth in seconds.
+
+---
+
+**[⬅️ Back to Master Index](index.md)**

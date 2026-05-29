@@ -28,3 +28,8 @@ To stabilize the architecture and reduce developer friction, prioritize the foll
 1.  **Decompose the Platform Orchestrators:** Refactor the massive `updateWindow` and `appActivate` routines within `mac.zig` and `gtk.zig`. Isolate the OS-specific window lifecycle events from the internal Ghostty configuration and surface state logic to reduce their 100% churn rates and extreme cognitive load.
 2.  **Mitigate Core Knowledge Silos:** Immediately distribute architectural knowledge regarding the terminal state machine (`Terminal.zig`) and the main application orchestrator (`App.zig`). Mandate paired programming or strict cross-team code reviews to break the 100% ownership isolation currently held by Mitchell Hashimoto.
 3.  **Prune the VT Parser Graveyard:** Execute a targeted cleanup of the 132 combined orphaned functions within `src/vt/Parser.zig` and `src/term/Terminal.zig`. Removing this dead code will significantly lower the repository's baseline technical debt and clarify the active state transitions for the virtual terminal emulator.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

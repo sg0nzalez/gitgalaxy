@@ -31,3 +31,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Document the Releaser Blind Bottleneck:** Address the 100% documentation risk in `tools/releaser/lib/releaser.rb`. Adding comprehensive YARD documentation detailing the release phases and environmental prerequisites will significantly reduce the risk of catastrophic deployment failures.
 2. **Mitigate ActionMailbox Silos:** Distribute domain knowledge regarding the ActionMailbox ingress controllers (Mailgun, Mandrill) to reduce the reliance on single contributors. Ensuring multiple maintainers understand the MIME parsing logic will improve security auditing.
 3. **Refactor Volatile Rakefiles:** `railties/Rakefile` and `actioncable/Rakefile` suffer from high churn, high tech debt, and injection risks. Decompose these monolithic Rakefiles by moving complex build or test orchestration logic into dedicated, testable Ruby classes within a `lib/tasks/` or `tools/` directory.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

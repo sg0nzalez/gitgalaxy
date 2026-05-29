@@ -28,3 +28,8 @@ To stabilize the toolchain and distribute architectural knowledge, prioritize th
 1.  **Illuminate the God Headers:** Immediately mandate Doxygen-style documentation for foundational headers, specifically `libc/str/str.h`, `libc/math.h`, and `libc/dce.h`. Because they act as the structural bridge for every portable executable, reducing their 100% Documentation Risk is critical to preventing silent API misuse by contributors.
 2.  **Decompose the Toolchain Orchestrator:** The `cosmocross` bash script is collapsing under high churn and cognitive load. Extract the specific OS/Arch compilation stages into discrete, modular scripts or migrate the logic to a safer, declarative build system (e.g., Bazel/Make) to reduce the shell script's monolithic fragility.
 3.  **Distribute Core Libc Knowledge:** Break the 100% ownership isolation held by Justine Tunney on the foundational C implementations (`fmt.c`, `x86.c`, `demangle.c`). Enforce cross-team code reviews and assign secondary maintainers to these critical files to mitigate severe Key Person risk.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

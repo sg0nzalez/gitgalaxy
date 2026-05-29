@@ -27,3 +27,8 @@ To stabilize the architecture and reduce the blast radius of central networking 
 1.  **Decompose Request Serialization:** `AFURLRequestSerialization.m` violates the Single Responsibility Principle. Extract the query string parameterization, multipart form boundary construction, and HTTP header management into isolated, testable utility classes to reduce the O(2^N) complexity bottlenecks and cognitive load.
 2.  **Fortify 'House of Cards' Interfaces:** Add strict nullability annotations, defensive assertions, and robust JSDoc-style docstrings to `AFURLResponseSerialization.h` and `AFURLSessionManager.h`. Because these files are deeply embedded, reducing their Error Risk exposure prevents systemic crashes.
 3.  **Prune Design Slop:** Execute a targeted cleanup of the graveyard code. Remove the 29 orphaned functions in `AFHTTPSessionManagerTests.m`, 27 in `AFURLSessionManager.m`, and 25 in `AFURLRequestSerialization.m` to eliminate visual clutter and lower the repository's baseline technical debt.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

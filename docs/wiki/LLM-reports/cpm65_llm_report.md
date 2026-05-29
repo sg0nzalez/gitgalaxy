@@ -27,3 +27,8 @@ To stabilize the OS architecture and distribute operational knowledge, prioritiz
 1.  **Illuminate the God Nodes:** Mandate immediate, structured documentation (e.g., standard block comments) for `include/cpm65.inc` and `config.py`. As these files are the root load-bearers for the build system and assembly macros, mitigating their 100% Documentation Risk is essential to lower the barrier to entry for new contributors.
 2.  **Decompose the Terminal State Machine:** Refactor `apps/ansiterm.c`. The `ansi_parse` and `vt52_parse` functions should be broken down into discrete dispatch tables or isolated helper functions for specific escape codes. This will reduce the extreme cognitive load and Database Complexity currently housed in single functions.
 3.  **Distribute Core Domain Knowledge:** Address the 100% ownership isolation currently held by David Given on core OS subsystems (`src/bdos/filesystem.S`, `apps/asm.c`). Encourage secondary maintainers to review and document these dense assembly and C modules to distribute critical knowledge regarding the BDOS and filesystem implementation.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

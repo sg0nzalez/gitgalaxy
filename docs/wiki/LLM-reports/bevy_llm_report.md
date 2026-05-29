@@ -26,3 +26,8 @@ To stabilize the core engine and reduce developer friction, prioritize the follo
 1.  **Decompose the ECS Query Iterators:** The `iter.rs` module in `bevy_ecs` is collapsing under cognitive load and extreme O(2^N) recursion. Decompose `fold_over_storage_range` by extracting the memory-aliasing checks and storage chunking logic into isolated, testable helper traits to reduce the massive structural impact (1851) and improve maintainability.
 2.  **Mitigate Core Infrastructure Silos:** Immediately distribute architectural knowledge regarding the `bevy_gizmos` primitives and `bevy_reflect` serialization logic. Mandate paired programming or strict cross-team code reviews for any further modifications to `dim3.rs` and `deserializer.rs` to break the ownership isolation.
 3.  **Prune ECS Graveyards:** Execute a targeted cleanup of the 59 orphaned functions in `crates/bevy_ecs/src/system/mod.rs` and the 35 in `clone_entities.rs`. Removing this design slop will lower technical debt, reduce visual noise, and clarify the active public API for the ECS orchestrator.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

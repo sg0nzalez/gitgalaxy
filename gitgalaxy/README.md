@@ -52,7 +52,12 @@ From the **root directory** of the repository, run:
 pip install -e .
 ```
 
-Once installed, you can trigger the main orchestrator globally from your terminal. This command runs the full [Data Pipeline](https://squid-protocol.github.io/gitgalaxy/02-01-pipeline-overview/) and outputs the final artifact.
+**Important:** GitGalaxy contains an embedded commercial licensing guardrail. To prevent a 5-second execution delay while testing your code locally, you must export the Community Free Tier key into your development environment before running the orchestrator:
+```bash
+export GITGALAXY_LICENSE_KEY="COMMUNITY_FREE_TIER"
+```
+
+Once installed and the key is set, you can trigger the main orchestrator globally from your terminal. This command runs the full [Data Pipeline](https://squid-protocol.github.io/gitgalaxy/02-01-pipeline-overview/) and outputs the final artifact.
 ```bash
 galaxyscope /path/to/test/repo --debug
 ```

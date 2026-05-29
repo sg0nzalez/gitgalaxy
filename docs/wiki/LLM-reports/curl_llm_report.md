@@ -28,3 +28,8 @@ To stabilize the core execution engine and distribute architectural knowledge, p
 1.  **Decompose the Connection Orchestrator:** `lib/url.c` is a monolithic 'God Node' collapsing under cognitive load. Extract specific sub-routines (e.g., proxy resolution, connection reuse logic) from `create_conn` into isolated, testable modules to reduce its extreme Data Gravity and O(2^N) complexity.
 2.  **Mitigate Core Knowledge Silos:** Immediately distribute domain knowledge regarding `lib/multi.c` and `lib/url.c`. Mandate cross-team code reviews and assign secondary maintainers to these critical files to break the 100% ownership isolation held by Daniel Stenberg.
 3.  **Illuminate the State Definitions:** Enforce comprehensive Doxygen-style documentation on `lib/urldata.h`. Because it acts as the primary structural bridge for every component interacting with the `Curl_easy` handle, reducing its 100% Documentation Risk is essential to preventing silent state corruption by new contributors.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

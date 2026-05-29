@@ -65,3 +65,7 @@ Every Shadow API represents a critical security risk. Because the tool outputs t
 2. Officially document the endpoint in the Swagger file so it falls under the jurisdiction of the Web Application Firewall (WAF) and authentication middleware.
 
 > **Read the full technical specification:** [Full API Network Map](../04-01-full-api-network-map.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

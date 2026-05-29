@@ -26,3 +26,8 @@ To stabilize the compilation pipeline and reduce developer friction, prioritize 
 1.  **Decompose the Compiler Engine:** `src/compiler.zig` violates the Single Responsibility Principle and is collapsing under technical debt. Extract the heavy AST evaluation and bytecode emission steps out of the massive `compile` function into isolated, modular visitor structs to reduce the file's massive Database Complexity (104) and high churn rate.
 2.  **Mitigate Core Knowledge Silos:** Break the 100% ownership isolation held by 'fubark' on the parser, compiler, and VM modules. Enforce paired programming or strict cross-team code reviews for any further modifications to `src/vm.zig` and `src/compiler.zig` to distribute domain knowledge.
 3.  **Illuminate the API Boundaries:** Immediately mandate comprehensive docstrings (e.g., zigdoc) for `src/cyber.zig` and `src/ast.zig`. Because they act as the foundational load-bearers for the entire abstract syntax tree, reducing their 100% Documentation Risk is critical to preventing silent API regressions during refactoring.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

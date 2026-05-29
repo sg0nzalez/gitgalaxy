@@ -28,3 +28,8 @@ To stabilize the compilation pipeline and reduce cognitive load, prioritize the 
 1.  **Decompose the Compiler God Node:** `src/compiler.ts` violates the Single Responsibility Principle and is collapsing under its own mass. Extract specific compilation strategies (e.g., binary expression compilation, unary operations, class exports) into isolated, testable visitor classes to reduce the file's O(2^N) bottlenecks and lower its extreme churn rate.
 2.  **Fortify the Browser Shims:** Add strict assertions and comprehensive JSDoc-style documentation to `util/browser/path.js` and `util/browser/url.js`. As deeply embedded 'Blind Bottlenecks', clarifying their intent and reducing their Error Risk exposure prevents systemic compilation failures in browser environments.
 3.  **Clean Up Module Graveyards:** Execute a targeted cleanup of the 172 orphaned functions in `src/module.ts` and the 89 in `src/ast.ts`. Removing this dead code will lower technical debt, reduce visual noise, and clarify the active pathways for abstract syntax tree traversal.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

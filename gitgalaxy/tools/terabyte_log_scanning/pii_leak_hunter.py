@@ -78,6 +78,10 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("PII Data Leak Hunter")
+
     # -------------------------------------------------------------------------
     # 1. CLI ARGUMENT PARSING & DOCUMENTATION
     # -------------------------------------------------------------------------

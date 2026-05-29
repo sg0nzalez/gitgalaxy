@@ -27,9 +27,7 @@ def test_rce_funnel_detection():
     appsec_report = result[0]["telemetry"]["ai_appsec"]
 
     assert appsec_report["is_rce_funnel"] is True, "Failed to detect the RCE Funnel!"
-    assert any(
-        "RCE Funnel" in warning for warning in appsec_report["critical_warnings"]
-    )
+    assert any("RCE Funnel" in warning for warning in appsec_report["critical_warnings"])
 
 
 # ==============================================================================
@@ -55,12 +53,8 @@ def test_god_mode_agent_detection():
     result = sensor.hunt_threats(mock_files)
     appsec_report = result[0]["telemetry"]["ai_appsec"]
 
-    assert (
-        appsec_report["over_permissioned_agent"] is True
-    ), "Failed to detect the God-Mode Agent!"
-    assert any(
-        "God-Mode Agent" in warning for warning in appsec_report["critical_warnings"]
-    )
+    assert appsec_report["over_permissioned_agent"] is True, "Failed to detect the God-Mode Agent!"
+    assert any("God-Mode Agent" in warning for warning in appsec_report["critical_warnings"])
 
 
 # ==============================================================================
@@ -86,13 +80,8 @@ def test_exfiltration_vector_detection():
     result = sensor.hunt_threats(mock_files)
     appsec_report = result[0]["telemetry"]["ai_appsec"]
 
-    assert (
-        appsec_report["agentic_exfiltration_risk"] is True
-    ), "Failed to detect the Exfiltration Vector!"
-    assert any(
-        "Exfiltration Vector" in warning
-        for warning in appsec_report["critical_warnings"]
-    )
+    assert appsec_report["agentic_exfiltration_risk"] is True, "Failed to detect the Exfiltration Vector!"
+    assert any("Exfiltration Vector" in warning for warning in appsec_report["critical_warnings"])
 
 
 # ==============================================================================
@@ -125,6 +114,4 @@ def test_safe_baseline():
     assert appsec_report["is_rce_funnel"] is False
     assert appsec_report["over_permissioned_agent"] is False
     assert appsec_report["agentic_exfiltration_risk"] is False
-    assert (
-        len(appsec_report["critical_warnings"]) == 0
-    ), "False positive triggered on a safe file!"
+    assert len(appsec_report["critical_warnings"]) == 0, "False positive triggered on a safe file!"

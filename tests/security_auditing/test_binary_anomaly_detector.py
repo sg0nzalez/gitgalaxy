@@ -12,9 +12,7 @@ import gitgalaxy.tools.supply_chain_security.binary_anomaly_detector as xray_mod
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.ApertureFilter")
-def test_xray_routing_matrix(
-    mock_aperture_class, mock_security_class, tmp_path, monkeypatch
-):
+def test_xray_routing_matrix(mock_aperture_class, mock_security_class, tmp_path, monkeypatch):
     monkeypatch.setattr(xray_module, "DENYLIST_PATTERNS", ["*.key", "*.pem", "id_rsa*"])
     monkeypatch.setattr(xray_module, "XRAY_BYPASS_EXTENSIONS", [".gz", ".zip"])
     monkeypatch.setattr(xray_module, "ALLOWLIST_PATHS", ["approved_keys/"])
@@ -23,9 +21,7 @@ def test_xray_routing_matrix(
     mock_aperture._check_solar_shield.return_value = True
 
     mock_security = mock_security_class.return_value
-    mock_security.scan_content.return_value = {
-        "counts": {"entropy": 6.5, "bitwise_hits": 0}
-    }
+    mock_security.scan_content.return_value = {"counts": {"entropy": 6.5, "bitwise_hits": 0}}
     mock_security.scan_binary.return_value = {}
 
     repo_dir = tmp_path / "routing_repo"
@@ -47,14 +43,10 @@ def test_xray_routing_matrix(
     src_dir.mkdir()
     test_dir = src_dir / "tests"
     test_dir.mkdir()
-    (test_dir / "mock_payload.dat").write_text(
-        "FAKE_HIGH_ENTROPY_DATA", encoding="utf-8"
-    )
+    (test_dir / "mock_payload.dat").write_text("FAKE_HIGH_ENTROPY_DATA", encoding="utf-8")
 
     result = xray_module.run_xray_audit(repo_dir)
-    assert (
-        result["anomalies_found"] == 1
-    ), "The routing matrix failed! Check Denylist/Allowlist math."
+    assert result["anomalies_found"] == 1, "The routing matrix failed! Check Denylist/Allowlist math."
 
 
 # ==============================================================================
@@ -79,9 +71,7 @@ def test_xray_deep_scan_threats(mock_aperture_class, mock_security_class, tmp_pa
 
     def mock_scan_binary(head_bytes, ext):
         if ext == ".jpg":
-            return {
-                "threat_snippet": "Magic Byte Mismatch: Expected JPEG, got PE32 Executable"
-            }
+            return {"threat_snippet": "Magic Byte Mismatch: Expected JPEG, got PE32 Executable"}
         return {}
 
     def mock_scan_content(content, limit):
@@ -93,9 +83,7 @@ def test_xray_deep_scan_threats(mock_aperture_class, mock_security_class, tmp_pa
     mock_security.scan_content.side_effect = mock_scan_content
 
     result = xray_module.run_xray_audit(repo_dir)
-    assert (
-        result["anomalies_found"] == 1
-    ), "Failed to flag magic byte mismatch or high entropy!"
+    assert result["anomalies_found"] == 1, "Failed to flag magic byte mismatch or high entropy!"
 
 
 # ==============================================================================
@@ -114,12 +102,8 @@ def test_xray_shebang_shield(mock_aperture_class, mock_security_class, tmp_path)
     sh_file.write_text("#!/bin/bash\necho 'Deploying...'", encoding="utf-8")
 
     mock_security = mock_security_class.return_value
-    mock_security.scan_content.return_value = {
-        "counts": {"entropy": 0, "bitwise_hits": 0}
-    }
-    mock_security.scan_binary.return_value = {
-        "threat_snippet": "Suspicious execution header: #!/bin/bash"
-    }
+    mock_security.scan_content.return_value = {"counts": {"entropy": 0, "bitwise_hits": 0}}
+    mock_security.scan_binary.return_value = {"threat_snippet": "Suspicious execution header: #!/bin/bash"}
 
     result = xray_module.run_xray_audit(repo_dir)
     assert result["anomalies_found"] == 0, "The Shebang Shield failed!"
@@ -141,9 +125,7 @@ def test_xray_run_audit_exception(mock_aperture_class, mock_security_class, tmp_
     with patch("builtins.open", side_effect=PermissionError("Locked")):
         result = xray_module.run_xray_audit(repo_dir)
 
-    assert (
-        result["anomalies_found"] == 0
-    ), "Failed to gracefully catch exception in run_xray_audit!"
+    assert result["anomalies_found"] == 0, "Failed to gracefully catch exception in run_xray_audit!"
 
 
 # ==============================================================================
@@ -165,9 +147,7 @@ def test_main_missing_target(capsys):
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.ApertureFilter")
-def test_main_clean_run(
-    mock_aperture_class, mock_security_class, tmp_path, monkeypatch, capsys
-):
+def test_main_clean_run(mock_aperture_class, mock_security_class, tmp_path, monkeypatch, capsys):
     """Proves a clean repository successfully logs completion without raising SystemExit."""
     monkeypatch.setattr(xray_module, "ALLOWLIST_PATHS", ["approved/"])
     mock_aperture = mock_aperture_class.return_value
@@ -197,9 +177,7 @@ def test_main_clean_run(
         xray_module.main()
 
     captured = capsys.readouterr()
-    assert (
-        "ALL CLEAR: No encrypted payloads or binary anomalies detected." in captured.out
-    )
+    assert "ALL CLEAR: No encrypted payloads or binary anomalies detected." in captured.out
     assert "known mock/safe files were bypassed via configuration." in captured.out
 
 
@@ -208,9 +186,7 @@ def test_main_clean_run(
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.ApertureFilter")
-def test_main_anomaly_detected(
-    mock_aperture_class, mock_security_class, tmp_path, monkeypatch, capsys
-):
+def test_main_anomaly_detected(mock_aperture_class, mock_security_class, tmp_path, monkeypatch, capsys):
     """Proves the CLI detects active anomalies, blocks the commit, and logs the triage alert."""
     monkeypatch.setattr(xray_module, "DENYLIST_PATTERNS", ["*.forbidden"])
     mock_aperture = mock_aperture_class.return_value
@@ -225,9 +201,7 @@ def test_main_anomaly_detected(
     mock_security = mock_security_class.return_value
     mock_security.scan_binary.return_value = {}
     mock_security.scan_content.side_effect = lambda content, limit: (
-        {"counts": {"entropy": 5.0, "bitwise_hits": 1}}
-        if "HIGH ENTROPY" in content
-        else {"counts": {}}
+        {"counts": {"entropy": 5.0, "bitwise_hits": 1}} if "HIGH ENTROPY" in content else {"counts": {}}
     )
 
     with patch("sys.argv", ["xray", str(repo_dir)]):
@@ -276,12 +250,8 @@ def test_xray_import_fallback():
     # Force a reload to trigger the ImportError bypass block (Lines 24-29)
     importlib.reload(xray_module)
 
-    assert (
-        xray_module.ALLOWLIST_PATHS == []
-    ), "Fallback failed to initialize empty Allowlist!"
-    assert (
-        xray_module.DENYLIST_PATTERNS == []
-    ), "Fallback failed to initialize empty Denylist!"
+    assert xray_module.ALLOWLIST_PATHS == [], "Fallback failed to initialize empty Allowlist!"
+    assert xray_module.DENYLIST_PATTERNS == [], "Fallback failed to initialize empty Denylist!"
 
     # Restore reality
     if original_config:

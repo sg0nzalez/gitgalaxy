@@ -19,3 +19,8 @@ To stabilize the utility pipelines and reduce the structural risk of the reposit
 
 1.  **Formalize Python Utilities:** Add baseline unit tests and standard docstrings to `add_import_names.py` to mitigate the extreme verification and specification risks. Utilities handling I/O operations must be validated.
 2.  **Resolve Shell Script Tech Debt:** Audit and refactor `update-submodules.sh` to remove the flagged orphaned functions. Addressing the 100% Tech Debt exposure ensures the submodule synchronization pipeline remains deterministic and maintainable.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

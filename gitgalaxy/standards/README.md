@@ -10,7 +10,7 @@ This directory contains the immutable mathematical constants, structural regex d
 
 If you need to teach GitGalaxy a new language, tune a risk exposure curve, or update the AI AppSec sensors, you do it here.
 
-> **💡 Note:** Adding a new language to the engine typically takes just **1 LLM prompt**. Check out the **[How to Add a Language](HOW_TO_ADD_LANGUAGE.md)** guide to see how to generate the ReDoS-proof structural rules for any new syntax.
+> **💡 Note:** Extending the blAST engine to support a new language does not require writing a brittle AST parser. You simply need to calibrate the thermodynamic physics of the target language using our strict LLM Master Prompt to generate ReDoS-proof, mathematically bounded regular expressions. Review the integration protocol here: **[Architecting a New Language](how_to_add_a_language.md)**.
 
 ### 1. The Boundary Shield (`gitgalaxy_config.py`)
 Defines global ingestion rules and zero-trust boundaries before static analysis processing begins.

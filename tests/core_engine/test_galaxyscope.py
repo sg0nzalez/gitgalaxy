@@ -1,6 +1,8 @@
 import subprocess
 import json
 from pathlib import Path
+import os
+
 
 
 def test_galaxyscope_python_fixture(tmp_path):
@@ -14,25 +16,26 @@ def test_galaxyscope_python_fixture(tmp_path):
 
     # 2. Build absolute paths for the script and the fixture
     script_path = project_root / "gitgalaxy" / "galaxyscope.py"
-    fixture_path = (
-        test_dir.parent / "fixtures" / "iwubi_frankenstein_test"
-    )  # <--- Added .parent
+    fixture_path = test_dir.parent / "fixtures" / "iwubi_frankenstein_test"  # <--- Added .parent
 
     # Force output to a temporary directory
     output_dir = tmp_path / "test_run"
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(project_root)
 
     # 3. Pass the absolute paths to the subprocess
     result = subprocess.run(
         ["python", str(script_path), str(fixture_path), "--output", str(output_dir)],
         capture_output=True,
         text=True,
+        env=env,
+        cwd=str(project_root)
     )
 
     # INVARIANT 1: CLI Exit Code & Billboard Output
     assert result.returncode == 0, f"GalaxyScope crashed! Stderr: {result.stderr}"
-    assert (
-        "MISSION_SUCCESS" in result.stdout
-    ), "CLI did not print the success billboard."
+    assert "MISSION_SUCCESS" in result.stdout, "CLI did not print the success billboard."
 
     # The engine uses the target folder name to build the filenames automatically
     target_name = "iwubi_frankenstein_test"

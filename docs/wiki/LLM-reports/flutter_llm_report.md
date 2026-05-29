@@ -28,3 +28,8 @@ To stabilize the engine architecture and reduce technical debt, prioritize the f
 1.  **Decompose the Engine Test Monoliths:** Refactor `dl_rendering_unittests.cc` and `FlutterTextInputPlugin.mm`. Extract the dense, O(2^N) recursive validation logic and mock object setups into distinct, isolated fixture classes. This will reduce their massive cognitive load (93% and 82%, respectively) and lower the barrier to entry for engine contributors.
 2.  **Mitigate Core Knowledge Silos:** Break the 100% ownership isolation held by single contributors on the DisplayList and Impeller C++ pipelines. Mandate paired programming and cross-team code reviews for `dl_builder.cc` and `dl_rendering_unittests.cc` to distribute critical rendering domain knowledge.
 3.  **Prune the Impeller Graveyard:** Execute a targeted cleanup of the 444 combined orphaned functions within `impeller.cc`, `color.h`, and `impeller.hpp`. Removing this design slop will lower the C++ engine's baseline technical debt and clarify the active API surface for the Impeller graphics backend.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

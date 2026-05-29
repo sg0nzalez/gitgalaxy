@@ -160,6 +160,10 @@ def unpack_ebcdic_file(binary_filepath: Path, schema_filepath: Path, output_file
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("ETL Unpacker (The Data Bridge)")
+
     parser = argparse.ArgumentParser(description="GitGalaxy ETL Unpacker (EBCDIC to CSV)")
     parser.add_argument("binary_file", help="The raw EBCDIC binary file from the mainframe")
     parser.add_argument("schema_file", help="The GitGalaxy generated _schema.json file")

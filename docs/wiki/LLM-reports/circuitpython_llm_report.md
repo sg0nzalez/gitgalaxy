@@ -27,3 +27,8 @@ To stabilize the interpreter core and distribute architectural knowledge, priori
 1.  **Decompose the String Formatting Engine:** The `mp_obj_str_format_helper` function in `py/objstr.c` is collapsing under recursive complexity. Extract the specific formatting routines (e.g., integer vs. float vs. string substitution) into isolated, inlineable helper functions to reduce the O(2^N) algorithmic bottleneck and lower the file's 83% Cognitive Load.
 2.  **Illuminate the God Headers:** Immediately mandate comprehensive Doxygen-style documentation for foundational headers, specifically `py/obj.h` and `py/misc.h`. Because they act as the structural bridge for all C-extensions and ports, reducing their high Documentation Risk is critical to preventing silent memory corruption during FFI integration.
 3.  **Distribute Core Interpreter Knowledge:** Break the 100% ownership isolation held by Scott Shawcroft and Dan Halbert on the core parsing (`py/parse.c`) and compilation (`py/compile.c`) pipelines. Enforce cross-team code reviews and assign secondary maintainers to these critical files to mitigate severe Bus Factor risk.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

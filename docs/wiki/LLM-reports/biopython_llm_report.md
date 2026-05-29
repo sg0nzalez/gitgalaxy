@@ -28,3 +28,8 @@ To stabilize the analytical pipelines and reduce developer friction, prioritize 
 1.  **Decompose the PDB Coordinate Engine:** `Bio/PDB/internal_coords.py` violates the Single Responsibility Principle and is collapsing under its own mass. Extract the specific parsing strategies (`_write_SCAD`) and geometric calculations into isolated, testable utility modules to reduce its massive physical footprint and cognitive load.
 2.  **Prune the Parsing Graveyards:** Execute a targeted cleanup of the 170 orphaned functions in `Bio/Blast/_parser.py` and the 166 in `Tests/test_SeqIO.py`. Removing this dead code will lower technical debt, reduce visual noise, and clarify the active pathways for sequence and alignment parsing.
 3.  **Distribute C-Extension Knowledge:** Break the 100% ownership isolation held by `mdehoon` on the `_pairwisealigner.c` and `cluster.c` engines. Ensure secondary maintainers are trained on these C-extensions, as they form the high-performance backbone of the library and currently pose a significant systemic risk if abandoned.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

@@ -28,3 +28,8 @@ To stabilize the core execution pipeline and reduce developer friction, prioriti
 1.  **Decompose the Project God Node:** `packages/yarnpkg-core/sources/Project.ts` violates the Single Responsibility Principle and is collapsing under cognitive load. Extract the lockfile generation (`makeLockfileChecksum`) and peer-dependency resolution logic into isolated, testable service classes to reduce the file's O(2^N) bottlenecks and lower its extreme churn rate.
 2.  **Illuminate the CLI & I/O Pillars:** Immediately mandate comprehensive JSDoc-style docstrings and structural documentation for `clipanion.ts` and `utils/fs.ts`. Because they act as the primary infrastructure bridges, reducing their near-100% Documentation Risk is critical to preventing silent regressions across the plugin architecture.
 3.  **Distribute Virtual FS Knowledge:** Break the 100% ownership isolation held by Maël Nison on the virtual file system implementations (`ZipFS.ts`, `NodeModulesFS.ts`). Enforce cross-team code reviews and assign secondary maintainers to these critical I/O modules to mitigate Key Person risk.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

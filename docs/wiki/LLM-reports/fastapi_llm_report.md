@@ -28,3 +28,8 @@ To stabilize the framework's internal architecture and reduce technical debt, pr
 1.  **Decompose the Routing Orchestrator:** `fastapi/routing.py` is collapsing under technical debt and high churn. Extract the dense request parsing and dependency resolution logic currently housed in `get_request_handler` into isolated, testable utility functions to reduce the file's cognitive load and lower its 100% debt exposure.
 2.  **Mitigate Core Knowledge Silos:** Immediately distribute architectural knowledge regarding the OpenAPI generator (`fastapi/openapi/utils.py`) and the application router. Mandate cross-team code reviews and assign secondary maintainers to these critical files to break the absolute ownership isolation held by Sebastián Ramírez.
 3.  **Illuminate the Parameter Definitions:** Enforce comprehensive docstrings on the foundational types inside `fastapi/params.py`. As the primary load-bearer for the dependency injection engine, reducing its Documentation Risk will prevent silent regressions for downstream contributors modifying the framework's core API.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

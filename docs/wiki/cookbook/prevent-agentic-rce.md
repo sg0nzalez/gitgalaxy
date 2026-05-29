@@ -28,3 +28,7 @@ Once the high-risk files are identified, deploy the GitGalaxy Dev Agent Firewall
 This script evaluates the token mass and blast radius of the target file. If a file is flagged as an RCE Funnel, the firewall restricts autonomous coding agents from modifying it, requiring a "Human in the Loop" (HITL) override.
 
 > **Read the full technical specification for the AppSec Sensor:** [AI AppSec Sensor](../02-17-ai-appsec-sensor.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

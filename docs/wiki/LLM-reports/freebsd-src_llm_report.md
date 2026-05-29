@@ -28,3 +28,8 @@ To stabilize the architecture and reduce maintenance friction across this massiv
 1.  **Mitigate Core Knowledge Silos:** Break the severe ownership isolation on critical networking and file system components. Mandate cross-team code reviews and assign secondary maintainers to files like `sys/fs/nfs/nfs_commonsubs.c`, `sys/cam/ctl/ctl.c`, and `sys/netinet/tcp_stacks/bbr.c` to distribute essential domain knowledge.
 2.  **Illuminate Foundational Blind Bottlenecks:** Enforce strict documentation standards on deeply embedded headers like `EXTERNAL_HEADERS/stdint.h` and `sys/sys/errno.h`. Reducing their high Documentation Risk is critical to safely onboarding new contributors who must interact with the system's lowest abstraction layers.
 3.  **Decompose TCP Stack & Driver Monoliths:** Investigate the massive state machines within `sys/netinet/tcp_stacks/rack.c` and `sys/dev/pms/RefTisa/tisa/sassata/host/sat.c`. Extracting isolated sub-routines and utilizing table-driven logic where possible will reduce their extreme cognitive load and lower the O(2^N) algorithmic complexity currently choking these components.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

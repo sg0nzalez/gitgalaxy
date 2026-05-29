@@ -30,3 +30,8 @@ To stabilize the repository architecture and reduce maintenance friction, priori
 1. **Document the CI/CD Pipeline (Blind Bottleneck):** Address the high documentation risk in `scripts/build_directory_md.py` and `scripts/close_pull_requests_*.sh`. Add explicit inline comments explaining the regex patterns and GitHub Actions flow to ensure contributors do not inadvertently break the automated documentation generation.
 2. **De-Silo Core Data Structures:** Mitigate the extreme Key Person Dependency on Christian Clauss. Encourage peer review and shared maintenance for fundamental implementations like `matrix/matrix_class.py` and `radix_tree.py` to distribute domain knowledge.
 3. **Isolate Web Crawlers:** Given the 100% churn rate of `web_programming/instagram_crawler.py`, consider isolating or deprecating brittle web-scraping scripts that rely on highly volatile third-party DOM structures. Such scripts incur disproportionate technical debt compared to stable mathematical algorithms.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

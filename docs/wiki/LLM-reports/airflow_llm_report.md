@@ -28,3 +28,8 @@ To stabilize the orchestration engine and reduce systemic fragility, prioritize 
 1.  **Illuminate the JSON Bottleneck:** Immediately mandate comprehensive docstrings, type hinting, and strict ownership metadata for `airflow/utils/json.py`. Because it sits at the base of the dependency tree, stabilizing this blind bottleneck is the highest-ROI architectural defense.
 2.  **Decouple TaskInstance and DAG Hotspots:** The extreme volatility in `taskinstance.py` indicates a violation of the Single Responsibility Principle. Extract the heavy O(2^N) state-resolution and dependency-checking logic into isolated, independently tested state-machine classes to reduce the cognitive load and churn on the primary data model.
 3.  **Distribute Provider Knowledge Silos:** Break the 100% ownership isolation in the provider network (`ssh_remote_job.py`, `dataplex.py`, `cloud_sql.py`). Enforce mandatory cross-team code reviews and assign secondary maintainers to these massive files to mitigate Key Person risk.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

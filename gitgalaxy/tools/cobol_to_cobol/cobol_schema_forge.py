@@ -151,6 +151,10 @@ def forge_schemas(filepath: Path, ignore_vars: set = None, corporate_header: str
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Cloud Schema Forge (The Legacy Forge)")
+
     parser = argparse.ArgumentParser(description="GitGalaxy Cloud Schema Forge")
     parser.add_argument("target", help="Path to a .cbl or .cpy file to translate")
     parser.add_argument(

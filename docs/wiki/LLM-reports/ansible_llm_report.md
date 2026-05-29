@@ -28,3 +28,8 @@ To stabilize the core execution utilities and reduce systemic friction, prioriti
 1.  **Decompose the Collection Loader Hotspot:** `_collection_finder.py` violates the Single Responsibility Principle and is collapsing under technical debt. Extract the custom Python import machinery and path resolution logic into isolated, independently tested strategy classes to reduce its massive cognitive load and extreme churn.
 2.  **Fortify the YAML Parser:** Add strict nullability assertions, defensive `try/catch` blocks, and robust JSDoc-style docstrings to `lib/ansible/parsing/utils/yaml.py`. As a 'House of Cards', reducing its 78.3% Error Risk is critical to preventing malformed playbooks from causing silent cascading failures across the Ansible engine.
 3.  **Distribute Key Person Knowledge:** Break the 100% ownership isolation held by Matt Clay on the packaging and release infrastructure (`packaging/release.py`). Enforce cross-team code reviews and assign secondary maintainers to these critical pipeline files to mitigate the knowledge silo.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

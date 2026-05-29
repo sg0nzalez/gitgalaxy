@@ -28,3 +28,8 @@ To stabilize the Rust backend and mitigate developer friction, prioritize the fo
 1.  **Decompose the Database Editor:** `database_editor.rs` violates the Single Responsibility Principle and is collapsing under cognitive load. Extract the asynchronous cell-loading (`async_load_rows`) and row duplication logic into isolated, testable service classes to reduce the file's massive concurrency exposure and O(2^N) bottlenecks.
 2.  **Mitigate Core Infrastructure Silos:** Immediately distribute architectural knowledge regarding the workspace and storage managers. Mandate paired programming or strict cross-team code reviews for any further modifications to `manager_user_workspace.rs` and `flowy-storage/src/manager.rs` to break the ownership isolation held by 'Nathan'.
 3.  **Prune FFI Event Graveyards:** Execute a targeted cleanup of the dead code in the `event_handler.rs` files across the `database2`, `user`, and `folder` modules. Removing the 170+ combined orphaned functions will eliminate visual clutter, reduce technical debt, and clarify the active FFI contract between Rust and Flutter.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

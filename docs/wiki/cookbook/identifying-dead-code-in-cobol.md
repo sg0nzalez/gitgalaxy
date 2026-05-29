@@ -72,3 +72,7 @@ This documentation is part of the GitGalaxy Ecosystem, an AST-free, LLM-free heu
 
 🪐 Explore the GitHub Repository for code, tools, and updates.
 🔭 Visualize your own repository at GitGalaxy.io using our interactive 3D WebGPU dashboard.
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

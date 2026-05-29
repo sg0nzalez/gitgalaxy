@@ -28,3 +28,8 @@ To stabilize the CLI orchestration pipeline and reduce developer friction, prior
 1.  **Decompose the Configuration Orchestrator:** Refactor `workspaces/config/lib/index.js`. The monolithic `hasOwnProperty` implementation and object-merging logic should be extracted into isolated, pure validation schemas. This will mitigate the O(2^N) complexity and reduce the file's extreme churn rate.
 2.  **Optimize Signature Verification:** Refactor `sortAlphabetically` in `lib/utils/verify-signatures.js`. Replace the O(2^N) recursive implementation with a standard, linear or O(N log N) sorting strategy to prevent computational latency spikes when validating large package manifests.
 3.  **Distribute Arborist Domain Knowledge:** Break the 100% ownership isolation held by single contributors on core dependency resolution logic. Mandate cross-team code reviews and assign secondary maintainers to `workspaces/arborist/lib/arborist/index.js` to mitigate Key Person risk for npm's most critical subsystem.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

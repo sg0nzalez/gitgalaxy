@@ -22,3 +22,8 @@ To stabilize the rendering pipeline and distribute architectural knowledge, prio
 1.  **Decompose the Legend Plugin and Scale Core:** `src/plugins/plugin.legend.js` and `src/core/core.scale.js` are collapsing under cognitive load and recursive complexity. Extract the deep equality checks (`itemsEqual`) and label computation (`_computeLabelItems`) into isolated, memoized utility functions to eliminate the O(2^N) bottlenecks and lower their extreme Database Complexity.
 2.  **Mitigate Controller Knowledge Silos:** Break the 100% ownership isolation held by single contributors on critical files like `core.scale.js`, `controller.bar.js`, and `controller.doughnut.js`. Mandate cross-team code reviews and assign secondary maintainers to these components to eliminate severe Key Person risk.
 3.  **Prune Design Slop and Document Blind Bottlenecks:** Execute a targeted cleanup of the 19 orphaned functions in `src/core/core.datasetController.js` and the 17 in `src/core/core.scale.js`. Concurrently, enforce JSDoc standards on undocumented architectural pillars like `core.animations.defaults.js` to ensure the transition to TypeScript does not suffer from implicit state assumptions.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

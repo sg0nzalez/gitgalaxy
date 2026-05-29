@@ -61,3 +61,7 @@ scope.execute_delta_mission(
 By shifting from O(N) full scans to O(1) delta updates, a single central GitGalaxy server can monitor thousands of active enterprise repositories simultaneously with zero pipeline latency.
 
 > **Read the full technical specification:** [State Rehydrator](../02-22-state-rehydrator.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

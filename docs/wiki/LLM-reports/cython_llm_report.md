@@ -28,3 +28,8 @@ To stabilize the compilation pipeline and reduce developer friction, prioritize 
 1.  **Decompose the AST Monoliths:** `Cython/Compiler/Nodes.py` and `ExprNodes.py` are collapsing under cognitive load and technical debt. Refactor the heavy `generate_function_definitions` and `generate_assignment_code` methods by extracting specific node generation logic into isolated, compositional visitor classes to reduce O(2^N) traversal bottlenecks.
 2.  **Prune the Compiler Graveyard:** Execute a targeted cleanup of the 155 combined orphaned functions in `Optimize.py` and `CodeWriter.py`. Removing this dead logic will lower the repository's baseline technical debt and clarify the active optimization paths for the AST.
 3.  **Modernize the CI Orchestrator:** Break down `Tools/ci-run.sh`. The monolithic bash script is a high-risk bottleneck for integration testing. Transition the complex matrix logic and setup steps into discrete, documented YAML configurations or modular Python scripts to improve maintainability and lower the 100% Documentation Risk.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

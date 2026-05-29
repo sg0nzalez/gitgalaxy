@@ -32,3 +32,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Decouple and Document Engine Headers:** Address the 100% documentation risk in `foundation-auto.h`, `foundation-span.h`, and `object.h`. Add explicit architectural documentation outlining the memory ownership models and macro contracts to stabilize the core C++ interface layer.
 2. **Decompose LiveCode Monoliths:** The massive LiveCode scripts (`revliburl.livecodescript`, `revsaveasstandalone.livecodescript`, `package_compiler.livecodescript`) are immense single points of failure. Refactor these into smaller, single-responsibility domain libraries to reduce their structural mass and limit testing exposure.
 3. **Audit Execution Interface Bindings:** The `exec-interface-*.cpp` files have severe "Design Slop" metrics due to orphaned functions. Audit the build system's macro expansion or code generation to ensure these API bridges are actually necessary, removing truly dead bindings to lower compilation overhead.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

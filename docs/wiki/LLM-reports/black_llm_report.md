@@ -28,3 +28,8 @@ To stabilize the compilation pipeline and reduce cognitive load, prioritize the 
 1.  **Decompose the Transformation Hotspots:** `src/black/linegen.py` and `src/black/trans.py` violate the Single Responsibility Principle. Extract specific line-generation and tree-matching strategies (e.g., string formatting, bracket tracking, comment manipulation) into isolated, testable visitor classes to reduce the O(2^N) bottlenecks and lower their extreme churn rates.
 2.  **Mitigate Core Silos:** Immediately distribute architectural knowledge regarding the bracket matching and output generation subsystems. Mandate paired programming or strict cross-team code reviews for any further modifications to `src/black/brackets.py` and `src/black/output.py` to break the ownership isolation held by Hugo van Kemenade.
 3.  **Prune the Test Graveyards:** Execute a targeted cleanup of the 89 orphaned functions in `tests/test_black.py` and 36 in `tests/test_ipynb.py`. Removing this dead code will lower technical debt, reduce visual noise, and clarify the active test coverage for the formatting rules.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

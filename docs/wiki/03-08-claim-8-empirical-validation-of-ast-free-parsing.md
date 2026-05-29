@@ -60,3 +60,7 @@ If any rule takes longer than a 0.25-second kill-switch, it fails the build.
 
 ### The Conclusion
 The GitGalaxy test architecture is not just a safety net; it is a mathematical specification. By subjecting our engine to these strict, adversarial gauntlets, we provide empirical proof that AST-free structural parsing is not only possible, but it is highly accurate, memory-safe, and infinitely scalable across the entire spectrum of programming languages.
+
+---
+
+**[⬅️ Back to Master Index](index.md)**

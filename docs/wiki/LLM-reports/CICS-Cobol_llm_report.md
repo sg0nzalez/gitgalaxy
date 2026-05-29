@@ -27,3 +27,8 @@ As this is an educational/reference repository, traditional refactoring for prod
 1.  **Modernize Control Flow:** Where applicable, refactor demonstrations relying on `GO TO` statements (like `CBL0605v01GotoStatement.cbl`) to use structured `PERFORM ... UNTIL` loops. This aligns the examples with modern COBOL 85/2002 standards and eliminates the O(2^N) recursive complexity signatures.
 2.  **Prune Design Slop:** Audit the `PARAGRAPHS` within files like `CBL1001v01ManejoCICS.cbl`. Ensure that all defined paragraphs are reachable via the main execution flow, or remove them to prevent confusion for developers referencing the code.
 3.  **Formalize Documentation:** Adopt a consistent, structured comment block header for each `.cbl` file. At a minimum, this should define the Program ID, Author, Date, Purpose, and expected inputs/outputs, mitigating the 100% Documentation Risk currently present across the repository.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

@@ -48,6 +48,10 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Mega Log Parser")
+
     # -------------------------------------------------------------------------
     # 1. CLI ARGUMENT PARSING & DOCUMENTATION
     # -------------------------------------------------------------------------

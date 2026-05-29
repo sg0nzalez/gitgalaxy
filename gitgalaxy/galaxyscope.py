@@ -1976,6 +1976,10 @@ class Orchestrator:
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("GalaxyScope v6.2.0")
+
     import argparse
     import copy
     import os  # <-- Added for the hard memory eviction

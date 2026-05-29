@@ -25,3 +25,8 @@ Given the anomalous telemetry, the immediate next steps are strictly operational
 1. **Diagnose Scanner Configuration:** Investigate the GitGalaxy data extraction pipeline targeting `/srv/storage_16tb/projects/gitgalaxy/data/rust`. Verify file permissions, `.gitignore` or `.gitattributes` exclusions, and ensure the engine has correct read access to the source tree. 
 2. **Audit Binary Artifacts:** Prioritize a manual or secondary tool review of the 63 flagged binary anomalies. Since source-level static analysis is currently disabled, binary vetting is the primary line of defense against injected payloads.
 3. **Verify Supply Chain Whitelist:** Reconcile the 101 unknown dependencies against the official Rust compiler (rustc) and Cargo bootstrap requirements to ensure a secure build environment.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

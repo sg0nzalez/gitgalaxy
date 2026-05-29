@@ -122,6 +122,10 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
 
 
 def main():
+    from gitgalaxy.licensing import enforce_licensing_guard
+
+    enforce_licensing_guard("Microservice Slicer (The Legacy Forge)")
+
     parser = argparse.ArgumentParser(description="GitGalaxy Microservice Slicer v3")
     parser.add_argument("target", help="Path to a .cbl file to slice")
     parser.add_argument("--var", required=True, help="The target variable to track")

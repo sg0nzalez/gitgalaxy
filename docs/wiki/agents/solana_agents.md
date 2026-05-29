@@ -31,3 +31,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Decouple Shell Orchestration:** The extreme Cumulative Risk and Data Gravity residing in `net/net.sh` and `net/gce.sh` represent a brittle deployment infrastructure. Transition these monolithic shell scripts toward declarative Infrastructure-as-Code (IaC) solutions or modularize the bash logic to reduce cognitive load and isolate failure domains.
 2. **Prune Design Slop in the Ledger and RPC:** `ledger/src/blockstore.rs` and `rpc-client/src/nonblocking/rpc_client.rs` hold significant "Design Slop" (70+ orphaned functions each). Audit these massive files to determine if the functions are genuinely dead code or dynamically invoked. If dead, prune them to reduce the AST size and compilation overhead.
 3. **Document Blind Bottlenecks:** Address the 100% Documentation Risk in `net/common.sh` and `scripts/read-cargo-variable.sh`. Establishing explicit, written contracts inside these scripts will mitigate the "House of Cards" error risk for downstream CI/CD dependent processes.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

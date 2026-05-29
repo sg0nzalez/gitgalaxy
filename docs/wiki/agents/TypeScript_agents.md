@@ -31,3 +31,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Document Blind Bottlenecks in the Compiler Pipeline:** Address the severe documentation risk in `src/compiler/transformers/module/module.ts` and `src/compiler/path.ts`. Adding comprehensive TSDoc comments detailing the AST transformation lifecycle and path normalization edge cases will mitigate the risk of regressions in module resolution.
 2. **Isolate and Modularize Test Runner Configuration:** The test harnesses (`src/testRunner/unittests/helpers/virtualFileSystemWithWatch.ts`, `src/harness/harnessLanguageService.ts`) exhibit extreme cumulative risk and high cognitive load. Refactor the Virtual File System (VFS) mocks into smaller, single-responsibility modules to reduce test fragility and compilation overhead.
 3. **Formalize `checker.ts` Sub-Domains:** While rewriting `src/compiler/checker.ts` is unfeasible, establish stricter logical boundaries within the file (or via partial classes/mixins if the build step permits) for discrete tasks like JSX resolution, control flow analysis, and generic instantiation. This will lower the cognitive load required to navigate the 54k LOC monolith.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

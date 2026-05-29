@@ -26,3 +26,8 @@ To modernize the research code into a stable, maintainable pipeline, prioritize 
 
 1.  **Refactor the Configuration Layer:** `config_dict.py` exhibits 99.9% Tech Debt Exposure and uses highly recursive item overrides. Deprecate this custom implementation in favor of standard Python `dataclasses` or modern configuration managers (like Hydra or OmegaConf) to enforce strict types and reduce cognitive load.
 2.  **Illuminate the ML Blind Bottlenecks:** Mandate comprehensive docstrings and structural documentation for `contacts_experiment.py` and `contacts_network.py`. Given their 100% Documentation Risk and critical role in defining the TensorFlow graph, explicit architectural intent must be recorded to prevent silent logic drift.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

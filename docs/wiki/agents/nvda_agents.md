@@ -30,3 +30,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Decompose `globalCommands.py`:** Address the extreme tech debt and churn in `source/globalCommands.py`. Extract domain-specific command sets (e.g., braille commands, review cursor commands) into isolated command handler mixins or classes. This will mitigate the 92% churn rate and reduce merge conflicts.
 2. **Mitigate Key Person Dependencies on Browser/Java Interfaces:** The MSHTML, Gecko, and Java Access Bridge (JAB) integrations represent severe single-points-of-failure regarding domain knowledge. Initiate pairing or architectural documentation for `MSHTML.py`, `JABHandler.py`, and the corresponding C++ backends to distribute maintenance capabilities.
 3. **Document Foundational Blind Bottlenecks:** Address the severe documentation risk in `source/winUser.py` and `source/logHandler.py`. Adding rigorous docstrings and architectural contracts to these load-bearing files will prevent cascading failures across the hundreds of modules that rely on them for OS interaction and telemetry.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

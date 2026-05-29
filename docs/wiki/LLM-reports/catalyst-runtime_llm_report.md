@@ -27,3 +27,8 @@ To stabilize the test architecture and reduce developer friction, prioritize the
 1.  **Decompose the UTF-8 Integration Tests:** `t/utf_incoming.t` is collapsing under cognitive load and recursive complexity. Extract the specific payload generation and assertion logic into isolated, data-driven test providers rather than monolithic sequential blocks. This will lower the extreme O(2^N) bottleneck.
 2.  **Illuminate the Blind Test Bottlenecks:** Immediately mandate descriptive POD or standard Perl documentation headers for critical regression tests (e.g., `abort-chain-*.t`, `accept_context_regression.t`). Because these files prevent critical dispatch failures, reducing their 100% Documentation Risk is essential to ensure future maintainers understand the constraints of the MVC engine.
 3.  **Decouple the Chained Action Tests:** The files testing chained controller actions (e.g., `live_component_controller_action_chained.t`) are highly fragile orchestrators with excessive branching. Refactor these to utilize smaller, discrete mocked contexts rather than spinning up the entire live Catalyst engine for every state mutation check.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

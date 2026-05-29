@@ -28,3 +28,8 @@ To stabilize the core execution pipeline and reduce developer friction, prioriti
 1.  **Prune the API Design Slop:** Execute a targeted cleanup of the 359 combined orphaned functions in `blast_options_cxx.cpp` and `blast_options_local_priv.hpp`. Removing this dead code will lower technical debt, reduce compilation times, and clarify the active public API for the BLAST options parser.
 2.  **Illuminate the Statistical Blind Bottlenecks:** Mandate comprehensive JSDoc/Doxygen-style docstrings for the `gumbel_params` headers, specifically `sls_alp_data.hpp` and `sls_alp_regression.hpp`. Because these files act as the mathematical foundation for the alignment scores, reducing their 100% Documentation Risk is critical to preventing silent algorithmic regressions.
 3.  **Distribute Core Algorithmic Knowledge:** Break the 100% ownership isolation held by Christiam Camacho and Grzegorz Boratyn on massive, foundational files like `blast_stat.c` (4950 Mass) and `hspfilter_mapper.c` (5271 Mass). Enforce strict cross-team code reviews and assign secondary maintainers to these files to mitigate severe Key Person risk in the `core` engine.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

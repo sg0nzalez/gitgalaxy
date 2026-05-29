@@ -28,3 +28,8 @@ To stabilize the monolith and reduce developer friction in the core financial do
 1.  **Decompose the Loan Orchestrators:** Extract specific financial operations (e.g., charge-offs, disbursements) from the massive `LoanWritePlatformServiceJpaRepositoryImpl.java` and `AdvancedPaymentScheduleTransactionProcessor.java` into isolated, domain-specific service classes. This will reduce their extreme outbound coupling and lower the O(2^N) complexity found in schedule processing.
 2.  **Prune the Domain Graveyard:** Execute a targeted cleanup of the 363 combined orphaned functions within `CommandWrapperBuilder.java` and `Loan.java`. Removing this dead logic will significantly lower the repository's baseline technical debt and clarify the active API surface of the core financial entities.
 3.  **Mitigate Key Person Silos:** Immediately distribute architectural knowledge regarding the Savings account persistence layer. Mandate cross-team code reviews and assign secondary maintainers to `SavingsAccountWritePlatformServiceJpaRepositoryImpl.java` to break the 100% ownership isolation currently held by a single contributor.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**
