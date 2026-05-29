@@ -6,7 +6,7 @@ import gi
 
 import logconfig
 
-gi.require_version('IBus', '1.0')
+gi.require_version("IBus", "1.0")
 from gi.repository import IBus
 from gi.repository import GLib
 from gi.repository import GObject
@@ -24,13 +24,13 @@ __base_dir__ = os.path.dirname(__file__)
 num_keys = []
 for n in range(1, 10):
     num_keys.append(getattr(IBus, str(n)))
-num_keys.append(getattr(IBus, '0'))
+num_keys.append(getattr(IBus, "0"))
 del n
 
 numpad_keys = []
 for n in range(1, 10):
-    numpad_keys.append(getattr(IBus, 'KP_' + str(n)))
-numpad_keys.append(getattr(IBus, 'KP_0'))
+    numpad_keys.append(getattr(IBus, "KP_" + str(n)))
+numpad_keys.append(getattr(IBus, "KP_0"))
 del n
 
 # sqlite3
@@ -41,9 +41,41 @@ c = None
 def gen_punctuation_map():
     # import string
     # punctuation_en = string.punctuation
-    punctuation_en = '''!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~'''
-    punctuation_cn = ['！', '“', '＃', '￥', '％', '＆', '‘', '（', '）', '＊', '＋', '，', '－', '。', '／', '：', '；', '《', '＝',
-                      '》', '？', '＠', '「', '、', '」', '……', '——', '｀', '『', '｜', '』', '～']
+    punctuation_en = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+    punctuation_cn = [
+        "！",
+        "“",
+        "＃",
+        "￥",
+        "％",
+        "＆",
+        "‘",
+        "（",
+        "）",
+        "＊",
+        "＋",
+        "，",
+        "－",
+        "。",
+        "／",
+        "：",
+        "；",
+        "《",
+        "＝",
+        "》",
+        "？",
+        "＠",
+        "「",
+        "、",
+        "」",
+        "……",
+        "——",
+        "｀",
+        "『",
+        "｜",
+        "』",
+        "～",
+    ]
     return dict(zip(punctuation_en, punctuation_cn))
 
 
@@ -51,9 +83,9 @@ punctuation_map = gen_punctuation_map()
 
 
 class KeyEvent:
-    '''Key event class used to make the checking of details of the key
+    """Key event class used to make the checking of details of the key
     event easy
-    '''
+    """
 
     def __init__(self, keyval, keycode, state):
         self.val = keyval
@@ -82,25 +114,25 @@ class KeyEvent:
         self.modifier = self.state & IBus.ModifierType.MODIFIER_MASK != 0
 
     def __str__(self):
-        return (
-                "val=%s code=%s state=0x%08x name='%s' unicode='%s' "
-                % (self.val,
-                   self.code,
-                   self.state,
-                   self.name,
-                   self.unicode)
-                + "shift=%s control=%s mod1=%s mod5=%s release=%s"
-                % (self.shift,
-                   self.control,
-                   self.mod1,
-                   self.mod5,
-                   self.release))
+        return "val=%s code=%s state=0x%08x name='%s' unicode='%s' " % (
+            self.val,
+            self.code,
+            self.state,
+            self.name,
+            self.unicode,
+        ) + "shift=%s control=%s mod1=%s mod5=%s release=%s" % (
+            self.shift,
+            self.control,
+            self.mod1,
+            self.mod5,
+            self.release,
+        )
 
 
 # the engine
 class IWubi(object):
     def find_characters(self, preedit_string):
-        logger.debug('preedit_string {}'.format(preedit_string))
+        logger.debug("preedit_string {}".format(preedit_string))
         # return [[preedit_string, '五笔']]
         output = []
         # CREATE TABLE pinyin
@@ -135,11 +167,16 @@ class IWubi(object):
                 AND tabkeys != '{}'
                 AND freq > 0
             ORDER BY freq DESC
-            LIMIT {}""".format(preedit_string, len(preedit_string), preedit_string, preedit_string,
-                               table_size - len(wubi_dict))
+            LIMIT {}""".format(
+            preedit_string,
+            len(preedit_string),
+            preedit_string,
+            preedit_string,
+            table_size - len(wubi_dict),
+        )
         wubi_list = list(c.execute(query))
         for row in wubi_list:
-            wubi_dict[row[1]] = row[1] + row[0][len(preedit_string):]
+            wubi_dict[row[1]] = row[1] + row[0][len(preedit_string) :]
         output.extend(wubi_dict.items())
         len_wubi_list = len(output)
 
@@ -151,12 +188,16 @@ class IWubi(object):
                 WHERE pinyin LIKE '{}%'
                     AND freq>0
                     AND substr(pinyin, 1, {}) = '{}'
-                ORDER BY freq DESC LIMIT {}""".format(preedit_string, len(preedit_string), preedit_string, pinyin_size)
+                ORDER BY freq DESC LIMIT {}""".format(
+                preedit_string, len(preedit_string), preedit_string, pinyin_size
+            )
             pinyin_list = list(c.execute(query))
             for phrase in pinyin_list:
                 phrase = phrase[0]
                 # Add Wubi tabkeys if exists
-                query = """SELECT tabkeys FROM phrases WHERE phrase = '{}'""".format(phrase)
+                query = """SELECT tabkeys FROM phrases WHERE phrase = '{}'""".format(
+                    phrase
+                )
                 c.execute(query)
                 tabkeys = c.fetchone()
                 if tabkeys:
@@ -165,19 +206,19 @@ class IWubi(object):
                     phrase_display = phrase
                 output.append([phrase, phrase_display])
 
-        logger.debug('output {}'.format(output))
+        logger.debug("output {}".format(output))
         return output, len_wubi_list
 
 
 class IbusWubiEngine(IBus.Engine):
-    __gtype_name__ = 'IbusWubiEngine'
+    __gtype_name__ = "IbusWubiEngine"
 
     def __init__(self):
         super(IbusWubiEngine, self).__init__()
         self.candidates = []
         self.iwubi = IWubi()
         self.is_invalidate = False
-        self.preedit_string = ''
+        self.preedit_string = ""
         # new(page_size:int, cursor_pos:int, cursor_visible:bool, round:bool)
         self.lookup_table = IBus.LookupTable.new(5, 0, True, True)
         self.prop_list = IBus.PropList()
@@ -187,15 +228,14 @@ class IbusWubiEngine(IBus.Engine):
         logger.info("Create iwubi engine OK")
 
     def set_lookup_table_cursor_pos_in_current_page(self, index):
-        '''Sets the cursor in the lookup table to index in the current page
+        """Sets the cursor in the lookup table to index in the current page
 
         Returns True if successful, False if not.
-        '''
+        """
         page_size = self.lookup_table.get_page_size()
         if index > page_size:
             return False
-        page, pos_in_page = divmod(self.lookup_table.get_cursor_pos(),
-                                   page_size)
+        page, pos_in_page = divmod(self.lookup_table.get_cursor_pos(), page_size)
         new_pos = page * page_size + index
         if new_pos > self.lookup_table.get_number_of_candidates():
             return False
@@ -214,15 +254,15 @@ class IbusWubiEngine(IBus.Engine):
         :return:
         """
         self._input_mode = mode
-        logger.debug('input_mode {}'.format(mode))
+        logger.debug("input_mode {}".format(mode))
 
     def _is_shift_hotkey(self, key):
-        '''Check whether “key” matches the Shift hotkey.
+        """Check whether “key” matches the Shift hotkey.
         Returns True if there is a match, False if not.
         :param key: The key typed
         :type key: KeyEvent object
         :rtype: Boolean
-        '''
+        """
         # Match only when keys are released
         if key.val == IBus.KEY_Shift_L and key.release:
             # If it is a key release event, the previous key
@@ -248,7 +288,7 @@ class IbusWubiEngine(IBus.Engine):
         keyval, keycode, state = key.val, key.code, key.state
 
         # ignore key release events
-        is_press = ((state & IBus.ModifierType.RELEASE_MASK) == 0)
+        is_press = (state & IBus.ModifierType.RELEASE_MASK) == 0
         if not is_press:
             return False
 
@@ -263,7 +303,7 @@ class IbusWubiEngine(IBus.Engine):
                 self.commit_string(self.preedit_string)
                 return True
             elif keyval == IBus.Escape:
-                self.preedit_string = ''
+                self.preedit_string = ""
                 self.update_candidates()
                 return True
             elif keyval == IBus.BackSpace:
@@ -285,7 +325,12 @@ class IbusWubiEngine(IBus.Engine):
             elif keyval in (IBus.Page_Up, IBus.KP_Page_Up, IBus.Left, IBus.KP_Left):
                 self.page_up()
                 return True
-            elif keyval in (IBus.Page_Down, IBus.KP_Page_Down, IBus.Right, IBus.KP_Right):
+            elif keyval in (
+                IBus.Page_Down,
+                IBus.KP_Page_Down,
+                IBus.Right,
+                IBus.KP_Right,
+            ):
                 self.page_down()
                 return True
             elif keyval in (IBus.Up, IBus.KP_Up):
@@ -296,9 +341,11 @@ class IbusWubiEngine(IBus.Engine):
                 return True
 
         # ASCII letter
-        if IBus.a <= keyval <= IBus.z or \
-                IBus.A <= keyval <= IBus.Z:
-            if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
+        if IBus.a <= keyval <= IBus.z or IBus.A <= keyval <= IBus.Z:
+            if (
+                state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK)
+                == 0
+            ):
                 if self._input_mode == 0:
                     # Do not use `commit_string(keyval)` to commit ASCII letter, `commit_string` may run too long time.
                     # This can lead to hotkey mistake detection error.
@@ -334,14 +381,14 @@ class IbusWubiEngine(IBus.Engine):
         return False
 
     def do_process_key_event(self, keyval, keycode, state):
-        """ do_process_key_event = gi.VFuncInfo(process_key_event)
+        """do_process_key_event = gi.VFuncInfo(process_key_event)
         :param keyval:
         :param keycode:
         :param state: Key modifier flags.
         :return:
         """
         key = KeyEvent(keyval, keycode, state)
-        logger.debug('{}'.format(key))
+        logger.debug("{}".format(key))
         result = self._process_key_event(key)
         # Fix me. If the last `self._process_key_event` take too long time.
         # Maybe the new `do_process_key_event` will called before last `self._prev_key = key` is done.
@@ -355,7 +402,7 @@ class IbusWubiEngine(IBus.Engine):
         return result
 
     def _match_hotkey(self, key, keyval, state):
-        '''Check whether “key” matches a “hotkey” specified by “keyval” and
+        """Check whether “key” matches a “hotkey” specified by “keyval” and
         “state”.
 
         Returns True if there is a match, False if not.
@@ -367,15 +414,14 @@ class IbusWubiEngine(IBus.Engine):
         :param state: The state of the modifier keys to match against.
         :type state: Integer
         :rtype: Boolean
-        '''
+        """
         # Match only when keys are released
         # IBus.ModifierType.RELEASE_MASK = 1073741824 (hex: 0x40000000)
         state = state | IBus.ModifierType.RELEASE_MASK  # state is Shift+Release
         if key.val == keyval and (key.state & state) == state:
             # If it is a key release event, the previous key
             # must have been the same key pressed down.
-            if (self._prev_key
-                    and key.val == self._prev_key.val):
+            if self._prev_key and key.val == self._prev_key.val:
                 return True
 
         return False
@@ -416,7 +462,7 @@ class IbusWubiEngine(IBus.Engine):
 
     def commit_string(self, text):
         self.commit_text(IBus.Text.new_from_string(text))
-        self.preedit_string = ''
+        self.preedit_string = ""
         self.update_candidates()
 
     def commit_candidate(self):
@@ -434,7 +480,9 @@ class IbusWubiEngine(IBus.Engine):
         self.candidates = []
 
         if preedit_len > 0:
-            iwubi_results, len_wubi_list = self.iwubi.find_characters(self.preedit_string)
+            iwubi_results, len_wubi_list = self.iwubi.find_characters(
+                self.preedit_string
+            )
             self._last_wubi_list_len = len_wubi_list
             for char_sequence, display_str in iwubi_results:
                 candidate = IBus.Text.new_from_string(display_str)
@@ -443,8 +491,11 @@ class IbusWubiEngine(IBus.Engine):
 
         # Do not show auxiliary bar. Keep UI clean.
 
-        attrs.append(IBus.Attribute.new(IBus.AttrType.UNDERLINE,
-                                        IBus.AttrUnderline.SINGLE, 0, preedit_len))
+        attrs.append(
+            IBus.Attribute.new(
+                IBus.AttrType.UNDERLINE, IBus.AttrUnderline.SINGLE, 0, preedit_len
+            )
+        )
         text = IBus.Text.new_from_string(self.preedit_string)
         text.set_attributes(attrs)
         # update_preedit_text: Update the pre-edit buffer.
@@ -475,7 +526,7 @@ class IbusWubiEngine(IBus.Engine):
         # 2. do_reset
         # 3. do_focus_in
         logger.debug("reset")
-        self.preedit_string = ''
+        self.preedit_string = ""
 
     def do_property_activate(self, prop_name):
         logger.info("PropertyActivate(%s)" % prop_name)
@@ -507,18 +558,19 @@ class IMApp:
         if exec_by_ibus:
             self.bus.request_name("com.github.honghe.iwubi", 0)
         else:
-            xml_path = os.path.join(__base_dir__, 'iwubi.xml')
+            xml_path = os.path.join(__base_dir__, "iwubi.xml")
             if os.path.exists(xml_path):
                 component = IBus.Component.new_from_file(xml_path)
             else:
-                xml_path = os.path.join(os.path.dirname(__base_dir__),
-                                        'ibus', 'component', 'iwubi.xml')
+                xml_path = os.path.join(
+                    os.path.dirname(__base_dir__), "ibus", "component", "iwubi.xml"
+                )
                 component = IBus.Component.new_from_file(xml_path)
             self.bus.register_component(component)
 
     def run(self):
         # open sqlite3
-        db_file = os.path.join(__base_dir__, 'wubi-jidian86.db')
+        db_file = os.path.join(__base_dir__, "wubi-jidian86.db")
         global conn
         conn = sqlite3.connect(db_file)
         global c
@@ -526,7 +578,7 @@ class IMApp:
         self.mainloop.run()
 
     def bus_disconnected_cb(self, bus):
-        logger.debug('bus {}'.format(bus))
+        logger.debug("bus {}".format(bus))
         self.mainloop.quit()
         # close sqlite3
         if conn:
@@ -581,5 +633,5 @@ def main():
 
 
 if __name__ == "__main__":
-    logger.info('iwubi main.')
+    logger.info("iwubi main.")
     main()

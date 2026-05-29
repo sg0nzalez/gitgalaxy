@@ -1,4 +1,6 @@
 import pytest
+from pathlib import Path
+from unittest.mock import patch
 from gitgalaxy.core.aperture import ApertureFilter
 
 # ==============================================================================
@@ -10,56 +12,61 @@ MOCK_REGISTRY = {
     "c": {"extensions": [".c", ".h"], "exact_matches": []},
     "javascript": {"extensions": [".js"], "exact_matches": []},
     "html": {"extensions": [".html"], "exact_matches": []},
-    "markdown": {"extensions": [".md"], "exact_matches": ["README.md"]} # <--- ADD THIS
+    "markdown": {"extensions": [".md"], "exact_matches": ["README.md"]},
+    "json": {"extensions": [".json"], "exact_matches": []},
 }
 
 MOCK_CONFIG = {
     "BANDS": {
-        "RADIO": "radio_noise", 
-        "MICROWAVE": "binary_debris", 
-        "INFRARED": "saturated", 
-        "VISIBLE": "source_code"
+        "RADIO": "radio_noise",
+        "MICROWAVE": "binary_debris",
+        "INFRARED": "saturated",
+        "VISIBLE": "source_code",
     },
     "SECRETS_EXACT": {"id_rsa", ".env"},
     "SECRETS_EXTENSIONS": {".pem", ".key"},
     "MAX_FILE_SIZE_MB": 10,
     "MAX_LINE_LENGTH": 500,
     "BLACK_HOLES": {"node_modules", ".git"},
-    "BLACK_HOLE_EXTENSIONS": {".exe", ".dll"}
+    "BLACK_HOLE_EXTENSIONS": {".exe", ".dll"},
+    "CONTRABAND_PATTERNS": ["*-min.js", "*.bundle.js"],
 }
+
 
 @pytest.fixture
 def filter_engine(tmp_path):
     """Initializes the Aperture Filter with a temporary directory."""
     return ApertureFilter(
-        root_dir=tmp_path, 
-        language_definitions=MOCK_REGISTRY, 
-        aperture_config=MOCK_CONFIG
+        root_dir=tmp_path,
+        language_definitions=MOCK_REGISTRY,
+        aperture_config=MOCK_CONFIG,
     )
+
 
 # ==============================================================================
 # TEST 1: THE LEAD SHIELD (Secrets & AI Weights)
 # ==============================================================================
 def test_aperture_lead_shield(filter_engine, tmp_path):
     """
-    Proves that critical leaks and AI model weights bypass standard optical 
+    Proves that critical leaks and AI model weights bypass standard optical
     logic and are immediately shunted to dark matter/alert status.
     """
     # 1. Exposed Secret
     secret_file = tmp_path / "private_key.pem"
     secret_file.write_text("-----BEGIN RSA PRIVATE KEY-----", encoding="utf-8")
-    
+
     is_valid, _, reason = filter_engine.evaluate_path_integrity(secret_file)
     assert is_valid is False
     assert "CRITICAL LEAK" in reason
 
     # 2. Massive Neural Weights (Should drop out before reading the file)
     weights_file = tmp_path / "model.safetensors"
-    weights_file.write_bytes(b'\x00' * 10) # Mock binary
-    
+    weights_file.write_bytes(b"\x00" * 10)  # Mock binary
+
     is_valid, _, reason = filter_engine.evaluate_path_integrity(weights_file)
     assert is_valid is False
     assert "AI MODEL WEIGHTS" in reason
+
 
 # ==============================================================================
 # TEST 2: THE SEMANTIC PATH GATE & INTENT LOCK
@@ -73,72 +80,84 @@ def test_aperture_semantic_path_and_intent(filter_engine, tmp_path):
     vendor_dir.mkdir(parents=True)
     vendor_file = vendor_dir / "library.py"
     vendor_file.write_text("def run(): pass", encoding="utf-8")
-    
+
     # 1. Default Behavior: Blocked by infra_path_shield
-    is_valid, _, reason = filter_engine.evaluate_path_integrity(vendor_file, has_intent=False)
+    is_valid, _, reason = filter_engine.evaluate_path_integrity(
+        vendor_file, has_intent=False
+    )
     assert is_valid is False
     assert "Blocked" in reason
-    
+
     # 2. GuideStar Intent Lock: Bypassed!
-    is_valid, _, reason = filter_engine.evaluate_path_integrity(vendor_file, has_intent=True)
+    is_valid, _, reason = filter_engine.evaluate_path_integrity(
+        vendor_file, has_intent=True
+    )
     assert is_valid is True
     assert "GuideStar Intent Lock" in reason
+
 
 # ==============================================================================
 # TEST 3: THE AUTO-GEN SHIELD & DYNAMIC INFECTION
 # ==============================================================================
 def test_aperture_auto_gen_shield(filter_engine, tmp_path):
     """
-    Proves the engine detects machine-generated signatures and dynamically 
+    Proves the engine detects machine-generated signatures and dynamically
     infects the parent directory to save future I/O reads.
     """
-    # Changed from "docs" to "public_web" to bypass the infra Path Gate
-    doc_dir = tmp_path / "public_web" / "html" 
+    doc_dir = tmp_path / "public_web" / "html"
     doc_dir.mkdir(parents=True)
-    
+
     # 1. Evaluate the first auto-generated file
     doc_file_1 = doc_dir / "index.html"
-    doc_file_1.write_text('<html>\n<head>\n<meta name="generator" content="Doxygen 1.9.1">\n</head>\n</html>', encoding="utf-8")
-    
+    doc_file_1.write_text(
+        '<html>\n<head>\n<meta name="generator" content="Doxygen 1.9.1">\n</head>\n</html>',
+        encoding="utf-8",
+    )
+
     result1 = filter_engine.is_in_scope(doc_file_1, content=doc_file_1.read_text())
     assert result1["is_in_scope"] is False
     assert result1["band"] == "radio_noise"
-    
+
     # Prove the directory was dynamically infected!
     rel_parent = str(doc_dir.relative_to(tmp_path))
     assert rel_parent in filter_engine.dynamic_black_holes
-    
+
     # 2. Evaluate a second, clean file in the same infected directory
     doc_file_2 = doc_dir / "clean.html"
     doc_file_2.write_text("<html>Clean file</html>", encoding="utf-8")
-    
+
     # It should fail at the path gate before ever reading the content
     is_valid, _, reason = filter_engine.evaluate_path_integrity(doc_file_2)
     assert is_valid is False
     assert "Dynamic Black Hole" in reason
 
+
 # ==============================================================================
 # TEST 4: THE EMBEDDED HEX ARRAY SHIELD
 # ==============================================================================
-@pytest.mark.xfail(reason="Engine currently allows hex arrays if has_intent=True. Pending engine patch.")
+@pytest.mark.xfail(
+    reason="Engine currently allows hex arrays if has_intent=True. Pending engine patch."
+)
 def test_aperture_embedded_hex_shield(filter_engine, tmp_path):
     """
     Proves that massive C-header data payloads (hex arrays) are dropped to protect
     the regex engine, EVEN IF the file has a VIP intent lock.
     """
-    # Create a file > 250 lines loaded with hex strings
-    hex_lines = ["const int data[] = {"] + ["    0x00, 0x01, 0x02, 0x03, 0x04," for _ in range(300)] + ["};"]
+    hex_lines = (
+        ["const int data[] = {"]
+        + ["    0x00, 0x01, 0x02, 0x03, 0x04," for _ in range(300)]
+        + ["};"]
+    )
     hex_content = "\n".join(hex_lines)
-    
+
     c_file = tmp_path / "data_payload.c"
     c_file.write_text(hex_content, encoding="utf-8")
-    
-    # We pass has_intent=True to prove the Content Gate overrides the VIP pass
+
     result = filter_engine.is_in_scope(c_file, content=hex_content, has_intent=True)
-    
     assert result["is_in_scope"] is False
     assert result["band"] == "binary_debris"
     assert "Embedded Data Payload" in result["reason"]
+
 
 # ==============================================================================
 # TEST 5: THE INFRARED GATE (Minification Saturation)
@@ -150,16 +169,175 @@ def test_aperture_infrared_saturation_gate(filter_engine, tmp_path):
     """
     # 1. Minified JS (Should be blocked)
     js_file = tmp_path / "app.js"
-    massive_line = "var a=1;" * 200 # 1600 characters
+    massive_line = "var a=1;" * 200  # 1600 characters
     js_file.write_text(massive_line, encoding="utf-8")
-    
+
     result_js = filter_engine.is_in_scope(js_file, content=massive_line)
     assert result_js["is_in_scope"] is False
     assert result_js["band"] == "saturated"
-    
+
     # 2. Prose Exemption (Should pass)
     md_file = tmp_path / "README.md"
     md_file.write_text(massive_line, encoding="utf-8")
-    
+
     result_md = filter_engine.is_in_scope(md_file, content=massive_line)
     assert result_md["is_in_scope"] is True
+
+
+# ==============================================================================
+# TEST 6: EXTREME MATTERS (Missing Files, Protocol Violations & Massive Sizes)
+# ==============================================================================
+def test_aperture_system_guardrails(filter_engine, tmp_path):
+    """
+    Tests edge cases regarding OS-level errors and protocol violations.
+    """
+    # 1. Missing File
+    ghost_file = tmp_path / "nonexistent.py"
+    result = filter_engine.is_in_scope(ghost_file, content="def foo(): pass")
+    assert result["is_in_scope"] is False
+    assert "Internal Exception: Artifact missing" in result["reason"]
+
+    # 2. Missing Content Buffer
+    real_file = tmp_path / "real.py"
+    real_file.write_text("def foo(): pass")
+    result = filter_engine.is_in_scope(real_file, content=None)
+    assert result["is_in_scope"] is False
+    assert "Protocol Violation: Missing content buffer" in result["reason"]
+
+    # 3. Size Cap Exceeded (Mocking stat to simulate an 11MB file)
+    big_file = tmp_path / "huge.py"
+    big_file.write_text("x")
+
+    with patch("pathlib.Path.stat") as mock_stat:
+        mock_stat.return_value.st_size = 15 * 1024 * 1024  # 15MB
+        result = filter_engine.is_in_scope(big_file, content="x")
+
+        assert result["is_in_scope"] is False
+        assert result["band"] == "saturated"
+        assert "File size exceeds 10MB limit" in result["reason"]
+
+
+# ==============================================================================
+# TEST 7: BINARY DEBRIS & MONOLITHS
+# ==============================================================================
+def test_aperture_binary_and_monolith_shields(filter_engine, tmp_path):
+    """
+    Ensures opaque binaries (null bytes) and >30,000 LOC monoliths are blocked.
+    """
+    # 1. Opaque Binary Detected
+    bin_file = tmp_path / "script.py"
+    content = "print('hello')\x00\x00"
+    bin_file.write_text(content, encoding="utf-8")
+
+    result = filter_engine.is_in_scope(bin_file, content=content)
+    assert result["is_in_scope"] is False
+    assert "Binary Format Detected" in result["reason"]
+
+    # 2. Monolith Amalgamation Shield
+    mono_file = tmp_path / "sqlite3.c"
+    mono_content = "int main() {\n" + "    return 0;\n" * 30005 + "}"
+    mono_file.write_text(mono_content, encoding="utf-8")
+
+    result = filter_engine.is_in_scope(mono_file, content=mono_content)
+    assert result["is_in_scope"] is False
+    assert result["band"] == "saturated"
+    assert "Monolithic Amalgamation" in result["reason"]
+
+
+# ==============================================================================
+# TEST 8: MACHINE GENERATED SOURCE & LEXICAL MONOTONY
+# ==============================================================================
+def test_aperture_machine_gen_and_monotony(filter_engine, tmp_path):
+    """
+    Tests the engine's ability to identify machine-generated files via headers
+    and extreme lexical repetition (unrolled loops, generated arrays).
+    """
+    # 1. Standard Auto-Generated Header
+    gen_file = tmp_path / "proto.py"
+    gen_content = "# <auto-generated>\n# Protoc payload\n" + "x = 1\n" * 50
+    gen_file.write_text(gen_content, encoding="utf-8")
+
+    result = filter_engine.is_in_scope(gen_file, content=gen_content)
+    assert result["is_in_scope"] is False
+    assert "Machine-Generated Source Code Signature" in result["reason"]
+
+    # 2. Lexical Monotony Shield
+    rep_file = tmp_path / "unrolled.js"
+    rep_content = "function loop() {\n" + "    var a = 1;\n" * 2500 + "}"
+    rep_file.write_text(rep_content, encoding="utf-8")
+
+    result = filter_engine.is_in_scope(rep_file, content=rep_content)
+    assert result["is_in_scope"] is False
+    assert "Lexical Monotony" in result["reason"]
+
+
+# ==============================================================================
+# TEST 9: DECLARATIVE BLOB SHIELD (JSON/YAML)
+# ==============================================================================
+def test_aperture_declarative_blob_shield(filter_engine, tmp_path):
+    """
+    Ensures massive vector or declarative files are suppressed unless they
+    have an explicit Intent Lock (and even then, hard capped at 2500 LOC).
+    """
+    json_file = tmp_path / "data.json"
+
+    # 1. Over 1000 LOC, No Intent -> Blocked
+    content_1500 = "{\n" + '  "key": "value",\n' * 1500 + "}"
+    json_file.write_text(content_1500, encoding="utf-8")
+
+    res1 = filter_engine.is_in_scope(json_file, content=content_1500, has_intent=False)
+    assert res1["is_in_scope"] is False
+    assert "Declarative Data Blob without Intent" in res1["reason"]
+
+    # 2. Over 2500 LOC, WITH Intent -> Still Blocked (Absolute Cap)
+    content_3000 = "{\n" + '  "key": "value",\n' * 3000 + "}"
+    json_file.write_text(content_3000, encoding="utf-8")
+
+    res2 = filter_engine.is_in_scope(json_file, content=content_3000, has_intent=True)
+    assert res2["is_in_scope"] is False
+    assert "Massive Declarative/Vector Blob" in res2["reason"]
+
+
+# ==============================================================================
+# TEST 10: TEST DATA ARRAY SHIELD (COMMA DENSITY)
+# ==============================================================================
+def test_aperture_comma_density_shield(filter_engine, tmp_path):
+    """
+    Proves that massive data arrays compiled into source code are detected
+    by extremely high comma density per LOC.
+    """
+    matrix_file = tmp_path / "matrix.c"
+    # > 500 lines, > 3 commas per line
+    content = "int data[] = {\n" + "    1, 2, 3, 4, 5,\n" * 600 + "};\n"
+    matrix_file.write_text(content, encoding="utf-8")
+
+    result = filter_engine.is_in_scope(matrix_file, content=content)
+    assert result["is_in_scope"] is False
+    assert "Embedded Array/Matrix Payload" in result["reason"]
+
+
+# ==============================================================================
+# TEST 11: GITIGNORE AND CONTRABAND SHIELDS
+# ==============================================================================
+def test_aperture_gitignore_and_contraband(tmp_path):
+    """
+    Proves that the engine correctly loads .gitignore patterns at runtime and
+    blocks files matching contraband vendor patterns.
+    """
+    # 1. Create a dynamic .gitignore in the root
+    ignore_file = tmp_path / ".gitignore"
+    ignore_file.write_text("ignored_folder/\n*.log\n", encoding="utf-8")
+
+    # 2. Re-instantiate the filter so it loads the new .gitignore
+    engine = ApertureFilter(tmp_path, MOCK_REGISTRY, MOCK_CONFIG)
+
+    # Verify .gitignore blocks
+    assert engine._check_solar_shield("ignored_folder/file.py") is False
+    assert engine._check_solar_shield("src/app.log") is False
+
+    # Verify Contraband Patterns (from MOCK_CONFIG)
+    assert engine._check_solar_shield("src/react-min.js") is False
+    assert engine._check_solar_shield("src/vendor.bundle.js") is False
+
+    # Verify standard files pass
+    assert engine._check_solar_shield("src/valid.py") is True

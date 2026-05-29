@@ -3,20 +3,31 @@ import logging.config
 
 _init = False
 
-dict_config = {'version': 1,
-               'formatters': {'simple': {
-                   'format': '%(asctime)s - %(filename)s:%(lineno)3s %(funcName)20s - %(levelname)s - %(message)s'}},
-               'handlers': {'console': {'class': 'logging.StreamHandler',
-                                        'level': 'DEBUG',
-                                        'formatter': 'simple',
-                                        'stream': 'ext://sys.stdout'},
-                            'file': {'class': 'logging.handlers.RotatingFileHandler',
-                                     'level': 'DEBUG',
-                                     'formatter': 'simple',
-                                     'filename': '/tmp/iwubi.log',
-                                     'maxBytes': 1048576,
-                                     'backupCount': 3}},
-               'root': {'level': 'DEBUG', 'handlers': ['console', 'file']}}
+dict_config = {
+    "version": 1,
+    "formatters": {
+        "simple": {
+            "format": "%(asctime)s - %(filename)s:%(lineno)3s %(funcName)20s - %(levelname)s - %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "formatter": "simple",
+            "stream": "ext://sys.stdout",
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "DEBUG",
+            "formatter": "simple",
+            "filename": "/tmp/iwubi.log",
+            "maxBytes": 1048576,
+            "backupCount": 3,
+        },
+    },
+    "root": {"level": "DEBUG", "handlers": ["console", "file"]},
+}
 
 
 def get_logger():

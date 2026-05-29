@@ -1,101 +1,259 @@
 import pytest
 import json
 import sys
-from unittest.mock import patch, MagicMock
+import os
+from pathlib import Path
+from unittest.mock import patch
 
-# IMPORTANT: Adjust this import path depending on where sbom_generator.py lives
 from gitgalaxy.tools.compliance.sbom_generator import UniversalManifestSlicer, main
 
+
 # ==============================================================================
-# TEST 1: The Multi-Ecosystem Slicer Guard
+# TEST 1: The Multi-Ecosystem Slicer Guard (Full Ecosystem Matrix)
 # ==============================================================================
-def test_universal_manifest_slicer(tmp_path):
-    """
-    Proves that the regex and JSON parsing can perfectly extract dependencies
-    across diverse language ecosystems without dropping packages.
-    """
+def test_universal_manifest_slicer_all_ecosystems(tmp_path):
+    """Proves regex and parsing logic flawlessly extracts dependencies across all 7 supported ecosystems."""
     slicer = UniversalManifestSlicer()
-    
-    # 1. Test NPM (JSON Parsing)
+
+    # 1. NPM
     pkg_json = tmp_path / "package.json"
-    pkg_json.write_text('{"dependencies": {"express": "^4.17.1"}, "devDependencies": {"jest": "27.0.0"}}', encoding='utf-8')
-    eco1, deps1 = slicer.slice_manifest(pkg_json)
-    
-    assert eco1 == "npm"
-    assert deps1["express"] == "^4.17.1"
-    assert deps1["jest"] == "27.0.0"
+    pkg_json.write_text(
+        '{"dependencies": {"express": "^4.17.1"}, "devDependencies": {"jest": "27.0.0"}}',
+        encoding="utf-8",
+    )
+    assert slicer.slice_manifest(pkg_json) == (
+        "npm",
+        {"express": "^4.17.1", "jest": "27.0.0"},
+    )
 
-    # 2. Test PyPI (Text / Operator Regex)
+    # 2. PyPI
     req_txt = tmp_path / "requirements.txt"
-    req_txt.write_text("requests==2.26.0\n# comment ignored\nurllib3>=1.26.0", encoding='utf-8')
-    eco2, deps2 = slicer.slice_manifest(req_txt)
-    
-    assert eco2 == "pypi"
-    assert deps2["requests"] == "2.26.0"
-    assert deps2["urllib3"] == "latest" # The slicer defaults to 'latest' for non '==' operators
+    req_txt.write_text("requests==2.26.0\n# comment\nurllib3>=1.26.0", encoding="utf-8")
+    assert slicer.slice_manifest(req_txt) == (
+        "pypi",
+        {"requests": "2.26.0", "urllib3": "latest"},
+    )
 
-    # 3. Test Rust / Cargo (Toml Block Regex)
+    # 3. Cargo (Rust)
     cargo_toml = tmp_path / "Cargo.toml"
-    cargo_toml.write_text("[package]\nname=\"test\"\n\n[dependencies]\ntokio = \"1.0\"\nserde = \"1.0\"", encoding='utf-8')
-    eco3, deps3 = slicer.slice_manifest(cargo_toml)
-    
-    assert eco3 == "cargo"
-    assert deps3["tokio"] == "latest"
-    assert deps3["serde"] == "latest"
+    cargo_toml.write_text(
+        '[package]\nname="test"\n[dependencies]\ntokio = "1.0"\nserde = "1.0"',
+        encoding="utf-8",
+    )
+    assert slicer.slice_manifest(cargo_toml) == (
+        "cargo",
+        {"tokio": "latest", "serde": "latest"},
+    )
+
+    # 4. Packagist (PHP Composer)
+    composer_json = tmp_path / "composer.json"
+    composer_json.write_text(
+        '{"require": {"monolog/monolog": "2.0", "php": "^7.4"}, "require-dev": {"phpunit/phpunit": "9.0"}}',
+        encoding="utf-8",
+    )
+    eco_php, deps_php = slicer.slice_manifest(composer_json)
+    assert eco_php == "packagist"
+    assert "php" not in deps_php  # Proves the PHP version stripped
+    assert deps_php["monolog/monolog"] == "2.0"
+
+    # 5. Golang
+    go_mod = tmp_path / "go.mod"
+    go_mod.write_text(
+        "module test\nrequire (\ngin v1.0\n// comment\n)\nrequire sql v2.0",
+        encoding="utf-8",
+    )
+    assert slicer.slice_manifest(go_mod) == ("golang", {"gin": "v1.0", "sql": "v2.0"})
+
+    # 6. RubyGems
+    gemfile = tmp_path / "Gemfile"
+    gemfile.write_text("gem 'rails', '~> 6.1'\ngem \"nokogiri\"", encoding="utf-8")
+    assert slicer.slice_manifest(gemfile) == (
+        "rubygems",
+        {"rails": "~> 6.1", "nokogiri": "latest"},
+    )
+
+    # 7. Maven (Java)
+    pom_xml = tmp_path / "pom.xml"
+    pom_xml.write_text(
+        "<project><dependencies><dependency><artifactId>spring-boot</artifactId><version>2.5.0</version></dependency><dependency><artifactId>guava</artifactId></dependency></dependencies></project>",
+        encoding="utf-8",
+    )
+    assert slicer.slice_manifest(pom_xml) == (
+        "maven",
+        {"spring-boot": "2.5.0", "guava": "latest"},
+    )
+
+    # 8. Exception Handling Fallback
+    bad_file = tmp_path / "package.json"
+    bad_file.write_text("THIS IS NOT VALID JSON")
+    # The slicer identifies the ecosystem by filename before the JSON parsing fails
+    assert slicer.slice_manifest(bad_file) == ("npm", {})
+
 
 # ==============================================================================
-# TEST 2: The Zero-Trust CycloneDX Matrix
+# TEST 2: The Physical Locator Trap (Coverage for Directory Walkers)
+# ==============================================================================
+def test_locate_physical_package(tmp_path):
+    """Proves the physical cartography logic accurately hunts down packages based on ecosystem norms."""
+    slicer = UniversalManifestSlicer()
+
+    # 1. NPM (node_modules)
+    (tmp_path / "node_modules" / "express").mkdir(parents=True)
+    assert slicer.locate_physical_package(tmp_path, "express", "npm") is not None
+    assert slicer.locate_physical_package(tmp_path, "ghost", "npm") is None
+
+    # 2. Packagist (vendor)
+    (tmp_path / "vendor" / "monolog").mkdir(parents=True)
+    assert slicer.locate_physical_package(tmp_path, "monolog", "packagist") is not None
+
+    # 3. Golang (vendor)
+    (tmp_path / "vendor" / "gin").mkdir(parents=True)
+    assert slicer.locate_physical_package(tmp_path, "gin", "golang") is not None
+
+    # 4. PyPI (venv/lib/pythonX.X/site-packages)
+    site_packages = tmp_path / "venv" / "lib" / "python3.10" / "site-packages"
+    (site_packages / "requests").mkdir(parents=True)
+    assert slicer.locate_physical_package(tmp_path, "requests", "pypi") is not None
+    assert slicer.locate_physical_package(tmp_path, "ghost", "pypi") is None
+
+    # 5. RubyGems (vendor/bundle)
+    (tmp_path / "vendor" / "bundle" / "ruby" / "3.0.0" / "rails").mkdir(parents=True)
+    assert slicer.locate_physical_package(tmp_path, "rails", "rubygems") is not None
+    assert slicer.locate_physical_package(tmp_path, "ghost", "rubygems") is None
+
+    # 6. Maven (target/dependency)
+    dep_dir = tmp_path / "target" / "dependency"
+    dep_dir.mkdir(parents=True)
+    (dep_dir / "spring-boot-2.5.0.jar").touch()
+    assert slicer.locate_physical_package(tmp_path, "spring-boot", "maven") is not None
+    assert slicer.locate_physical_package(tmp_path, "ghost", "maven") is None
+
+    # 7. Unknown Ecosystem
+    assert slicer.locate_physical_package(tmp_path, "pkg", "alien_eco") is None
+
+
+# ==============================================================================
+# TEST 3: System Exits and Empty Voids
+# ==============================================================================
+def test_sbom_generator_system_exits(tmp_path):
+    """Proves the orchestrator aborts gracefully if the target is invalid or empty."""
+
+    # 1. Invalid Target
+    with patch.object(sys, "argv", ["sbom_generator.py", "/path/does/not/exist"]):
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 1
+
+    # 2. Valid Target, No Manifests
+    empty_dir = tmp_path / "empty_project"
+    empty_dir.mkdir()
+    with patch.object(sys, "argv", ["sbom_generator.py", str(empty_dir)]):
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+
+
+# ==============================================================================
+# TEST 4: The Zero-Trust CycloneDX Matrix (Spoofs & Exceptions)
 # ==============================================================================
 @patch("gitgalaxy.tools.compliance.sbom_generator.SecurityLens")
 @patch("gitgalaxy.tools.compliance.sbom_generator.LanguageDetector")
-def test_zero_trust_sbom_generation(mock_detector_class, mock_security_class, tmp_path):
-    """
-    Proves that the physical audit matrix correctly translates missing packages 
-    and spoofed files into strict CycloneDX JSON properties.
-    """
-    # 1. Setup Mock Workspace
+def test_zero_trust_sbom_generation_anomalies(
+    mock_detector_class, mock_security_class, tmp_path
+):
+    """Proves the physical audit detects malware, missing files, and survives OS exceptions."""
     project_dir = tmp_path / "target_project"
     project_dir.mkdir()
-    
-    # Create a package.json with two dependencies
+
     pkg_json = project_dir / "package.json"
-    pkg_json.write_text('{"dependencies": {"safe-lib": "1.0", "ghost-lib": "2.0"}}', encoding='utf-8')
-    
-    # Simulate "safe-lib" existing physically on disk, but "ghost-lib" is missing
+    pkg_json.write_text(
+        '{"dependencies": {"safe-lib": "1.0", "ghost-lib": "2.0", "broken-lib": "3.0"}}',
+        encoding="utf-8",
+    )
+
+    # safe-lib: Malware Spoof
     safe_lib_dir = project_dir / "node_modules" / "safe-lib"
     safe_lib_dir.mkdir(parents=True)
-    (safe_lib_dir / "index.js").write_text("console.log('hello');", encoding='utf-8')
+    (safe_lib_dir / "index.js").write_text("console.log('hello');")
 
-    # 2. Configure the Mocks to simulate a Spoof Detection
+    # broken-lib: Permissions / Read Error Trap
+    broken_lib_dir = project_dir / "node_modules" / "broken-lib"
+    broken_lib_dir.mkdir(parents=True)
+    (broken_lib_dir / "corrupt.js").write_text("bad data")
+
+    # Mocks
     mock_sec_instance = mock_security_class.return_value
     mock_det_instance = mock_detector_class.return_value
-    
-    # We will pretend the SecurityLens found high entropy malware in safe-lib!
+
+    # safe-lib trips the threat detector
     mock_sec_instance.scan_content.return_value = {"counts": {"entropy": 5.2}}
     mock_det_instance.inspect.return_value = {"anomaly_flags": ["Disguised Executable"]}
 
-    # 3. Execute the Generator
-    test_args = ["sbom_generator.py", str(project_dir), "--out", "test_bom.json"]
-    with patch.object(sys, 'argv', test_args):
+    # Force an OS Exception on broken-lib to prove the generator survives
+    original_open = open
+
+    def conditional_open(file, *args, **kwargs):
+        if "corrupt.js" in str(file):
+            raise PermissionError("Locked")
+        return original_open(file, *args, **kwargs)
+
+    with (
+        patch("builtins.open", side_effect=conditional_open),
+        patch.object(
+            sys,
+            "argv",
+            ["sbom_generator.py", str(project_dir), "--out", "test_bom.json"],
+        ),
+    ):
         main()
-        
-    # 4. Verify the CycloneDX Output
+
     bom_file = tmp_path / "target_project_test_bom.json"
-    assert bom_file.exists(), "SBOM generator failed to create the output JSON."
-    
-    bom_data = json.loads(bom_file.read_text(encoding='utf-8'))
-    
-    assert bom_data["bomFormat"] == "CycloneDX"
-    assert len(bom_data["components"]) == 2
-    
-    # Extract components by name for easy assertion
+    bom_data = json.loads(bom_file.read_text(encoding="utf-8"))
+
     components = {c["name"]: c for c in bom_data["components"]}
-    
-    # Assert Ghost-Lib (Missing on Disk)
+
+    # Assert missing packages correctly mapped
     ghost_props = {p["name"]: p["value"] for p in components["ghost-lib"]["properties"]}
     assert ghost_props["gitgalaxy:trust_status"] == "UNVERIFIED_MISSING_ON_DISK"
-    
-    # Assert Safe-Lib (Malware Spoof Detected)
+
+    # Assert Spoof accurately mapped
     safe_props = {p["name"]: p["value"] for p in components["safe-lib"]["properties"]}
     assert safe_props["gitgalaxy:trust_status"] == "SPOOF_DETECTED"
     assert "High Entropy" in safe_props["gitgalaxy:anomaly_notes"]
+
+    # Assert Exception Survival
+    assert "broken-lib" in components
+
+
+# ==============================================================================
+# TEST 5: Perfect Clean Execution
+# ==============================================================================
+@patch("gitgalaxy.tools.compliance.sbom_generator.SecurityLens")
+@patch("gitgalaxy.tools.compliance.sbom_generator.LanguageDetector")
+def test_zero_trust_sbom_clean_run(mock_detector_class, mock_security_class, tmp_path):
+    """Proves the generator successfully outputs a VERIFIED_SAFE SBOM status."""
+    project_dir = tmp_path / "clean_project"
+    project_dir.mkdir()
+
+    pkg_json = project_dir / "package.json"
+    pkg_json.write_text('{"dependencies": {"good-lib": "1.0"}}', encoding="utf-8")
+
+    lib_dir = project_dir / "node_modules" / "good-lib"
+    lib_dir.mkdir(parents=True)
+    (lib_dir / "index.js").write_text("console.log('clean');")
+
+    mock_sec_instance = mock_security_class.return_value
+    mock_det_instance = mock_detector_class.return_value
+    mock_sec_instance.scan_content.return_value = {"counts": {"entropy": 0.0}}
+    mock_det_instance.inspect.return_value = {"anomaly_flags": []}
+
+    with patch.object(
+        sys, "argv", ["sbom_generator.py", str(project_dir), "--out", "clean_bom.json"]
+    ):
+        main()
+
+    bom_file = tmp_path / "clean_project_clean_bom.json"
+    bom_data = json.loads(bom_file.read_text(encoding="utf-8"))
+
+    props = {p["name"]: p["value"] for p in bom_data["components"][0]["properties"]}
+    assert props["gitgalaxy:trust_status"] == "VERIFIED_SAFE"

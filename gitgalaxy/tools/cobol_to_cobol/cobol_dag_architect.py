@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 from collections import defaultdict, deque
 
+
 def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
     """
     X-Rays a COBOL program to map internal variables to external physical files.
@@ -20,21 +21,21 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
         dead_paras = set()
 
     try:
-        content = filepath.read_text(encoding='utf-8', errors='ignore').upper()
+        content = filepath.read_text(encoding="utf-8", errors="ignore").upper()
     except Exception:
         return None
 
     # 1. Extract the permanent PROGRAM-ID
-    prog_match = re.search(r'PROGRAM-ID\.\s+([A-Z0-9@#$]+)', content)
+    prog_match = re.search(r"PROGRAM-ID\.\s+([A-Z0-9@#$]+)", content)
     if not prog_match:
         return None
     program_id = prog_match.group(1)
 
     # 2. Map internal file variables to physical external boundaries (DD Names)
     file_map = {}
-    for match in re.finditer(r'SELECT\s+([A-Z0-9-]+)\s+ASSIGN\s+(?:TO\s+)?([A-Z0-9@#$\-]+)', content):
+    for match in re.finditer(r"SELECT\s+([A-Z0-9-]+)\s+ASSIGN\s+(?:TO\s+)?([A-Z0-9@#$\-]+)", content):
         raw_dd = match.group(2)
-        clean_dd = re.sub(r'^(?:UT|UR)-S-', '', raw_dd)
+        clean_dd = re.sub(r"^(?:UT|UR)-S-", "", raw_dd)
         file_map[match.group(1)] = clean_dd
 
     inputs = set()
@@ -47,41 +48,41 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
         parts = content.split("PROCEDURE DIVISION")
         data_div = parts[0]
         proc_div = parts[1]
-        
+
         active_proc_lines = []
         current_paragraph = "MAIN-ENTRY"
-        para_pattern = re.compile(r'^[ \t]{0,7}([A-Z0-9\-]+)\.[ \t]*$')
+        para_pattern = re.compile(r"^[ \t]{0,7}([A-Z0-9\-]+)\.[ \t]*$")
 
-        for line in proc_div.split('\n'):
+        for line in proc_div.split("\n"):
             para_match = para_pattern.match(line)
             if para_match:
                 current_paragraph = para_match.group(1)
-            
-            # If the paragraph is dead, we replace its characters with spaces 
+
+            # If the paragraph is dead, we replace its characters with spaces
             # to preserve exact string geometry without triggering the regex.
             if current_paragraph in dead_paras:
                 active_proc_lines.append(" " * len(line))
             else:
                 active_proc_lines.append(line)
-                
+
         safe_content = data_div + "PROCEDURE DIVISION\n" + "\n".join(active_proc_lines)
     else:
         safe_content = content
 
     # 3. Extract exact Functional Intent (OPEN INPUT vs OPEN OUTPUT)
     # We run this on the safe_content where dead code is invisible.
-    for match in re.finditer(r'OPEN\s+(INPUT|OUTPUT|I-O|EXTEND)\s+([^.]+)\.', safe_content):
+    for match in re.finditer(r"OPEN\s+(INPUT|OUTPUT|I-O|EXTEND)\s+([^.]+)\.", safe_content):
         mode = match.group(1)
         # Handle multiple files opened on the same line
-        files_raw = re.sub(r'\s+', ' ', match.group(2)).replace(',', ' ').split()
-        
+        files_raw = re.sub(r"\s+", " ", match.group(2)).replace(",", " ").split()
+
         for internal_file in files_raw:
             if internal_file in file_map:
                 physical_file = file_map[internal_file]
                 # I-O and EXTEND require the file to exist (Input) but also mutate it (Output)
-                if mode in ('INPUT', 'I-O', 'EXTEND'):
+                if mode in ("INPUT", "I-O", "EXTEND"):
                     inputs.add(physical_file)
-                if mode in ('OUTPUT', 'I-O', 'EXTEND'):
+                if mode in ("OUTPUT", "I-O", "EXTEND"):
                     outputs.add(physical_file)
 
     # --- HONESTY SENSOR: DYNAMIC CALLS ---
@@ -94,8 +95,9 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
         "program_id": program_id,
         "inputs": inputs,
         "outputs": outputs,
-        "unresolved_calls": list(dynamic_calls)
+        "unresolved_calls": list(dynamic_calls),
     }
+
 
 def main():
     parser = argparse.ArgumentParser(description="GitGalaxy DAG Architect v3")
@@ -110,28 +112,28 @@ def main():
     print(f"🕸️ GitGalaxy DAG Architect mapping data lineage in: {target_path.name}...\n")
 
     cobol_files = list(target_path.rglob("*.cbl")) + list(target_path.rglob("*.cob"))
-    
+
     programs = []
     for f in cobol_files:
         # In standalone CLI mode, it defaults to an empty set for dead_paras
         lineage = extract_lineage(f)
-        if lineage and (lineage['inputs'] or lineage['outputs']):
+        if lineage and (lineage["inputs"] or lineage["outputs"]):
             programs.append(lineage)
 
     # Map which programs create which physical files
     file_creators = defaultdict(set)
     for p in programs:
-        for out_file in p['outputs']:
-            file_creators[out_file].add(p['program_id'])
+        for out_file in p["outputs"]:
+            file_creators[out_file].add(p["program_id"])
 
     # Build the Dependency Graph
     dependencies = defaultdict(set)
     dependents = defaultdict(set)
-    in_degree = {p['program_id']: 0 for p in programs}
+    in_degree = {p["program_id"]: 0 for p in programs}
 
     for p in programs:
-        pid = p['program_id']
-        for in_file in p['inputs']:
+        pid = p["program_id"]
+        for in_file in p["inputs"]:
             # If a file this program needs is created by another program in this cluster...
             if in_file in file_creators:
                 for creator in file_creators[in_file]:
@@ -160,7 +162,7 @@ def main():
     print("==========================================================")
     print(" ⚡ ZERO-TRUST EXECUTION PIPELINE (TOPOLOGICAL SORT)")
     print("==========================================================\n")
-    
+
     if len(execution_order) != len(programs):
         print(" ⚠️ WARNING: Cyclic Dependency Detected! Pipeline locked.")
         # Identify the cycle for the user
@@ -169,14 +171,15 @@ def main():
         sys.exit(1)
 
     for step, pid in enumerate(execution_order, 1):
-        prog_data = next((p for p in programs if p['program_id'] == pid), None)
-        in_files = ", ".join(prog_data['inputs']) if prog_data['inputs'] else "None"
-        out_files = ", ".join(prog_data['outputs']) if prog_data['outputs'] else "None"
-        
+        prog_data = next((p for p in programs if p["program_id"] == pid), None)
+        in_files = ", ".join(prog_data["inputs"]) if prog_data["inputs"] else "None"
+        out_files = ", ".join(prog_data["outputs"]) if prog_data["outputs"] else "None"
+
         print(f" STEP {step:02d}: Run [{pid}]")
         print(f"          ↳ Reads : {in_files}")
         print(f"          ↳ Writes: {out_files}")
         print("-" * 58)
+
 
 if __name__ == "__main__":
     main()
