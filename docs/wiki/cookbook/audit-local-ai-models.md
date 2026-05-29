@@ -41,3 +41,7 @@ Because model weights possess immense gravitational density, the engine assigns 
 By safely mapping AI topology alongside standard source code, Security Architects can easily see which microservices are wired directly into local LLM compute without crashing the build pipeline.
 
 > **Read the full technical specification:** [Neural Auditor](../02-19-neural-auditor.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

@@ -31,3 +31,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Decouple Chat Contribution Orchestrators:** The rapid development of AI features has turned `chatInputPart.ts` and `chat.contribution.ts` into highly volatile hotspots. Extract the specific command execution and state management logic into discrete, testable controllers to reduce the 90%+ churn rate and lower cognitive load.
 2. **Document Foundational Blind Bottlenecks:** Address the 100% documentation risk in `src/vs/base/common/path.ts` and `extensions/typescript-language-features/src/utils/fs.ts`. Adding rigorous JSDoc/TSDoc architectural contracts to these files will mitigate the "House of Cards" error risk for the hundreds of downstream dependents.
 3. **Refactor Test Service Locators:** `workbenchTestServices.ts` exhibits severe design slop (130 orphaned functions) and pulls in 189 outbound dependencies. Split this monolithic test helper into domain-specific mock service providers (e.g., `editorTestServices.ts`, `terminalTestServices.ts`) to reduce testing fragility and improve test compilation times.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

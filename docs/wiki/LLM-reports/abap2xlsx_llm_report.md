@@ -29,3 +29,8 @@ To stabilize the architecture and reduce the blast radius of future changes, pri
 1.  **Prune the Style Changer Graveyard:** Immediately deprecate and remove the 95 orphaned functions in `src/zcl_excel_style_changer.clas.abap`. This will rapidly reduce cognitive load and drop the repository's peak technical debt vector.
 2.  **Decouple the Reader/Writer Monoliths:** `zcl_excel_reader_2007.clas.abap` and `zcl_excel_worksheet.clas.abap` are violating the Single Responsibility Principle. Refactor the O(N^6) `load_worksheet` logic by extracting XML parsing, style mapping, and memory allocation into isolated, heavily tested strategy classes.
 3.  **Distribute Key Person Knowledge:** The `not_cloud/zcl_excel_ole.clas.abap` and `zcl_excel_common` nodes represent severe systemic risk due to their size (Mass > 400) and 100% isolated ownership. Mandate comprehensive JSDoc/ABAPDoc documentation for these files and require cross-team code reviews for any future commits to break the knowledge silo.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

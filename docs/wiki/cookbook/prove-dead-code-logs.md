@@ -37,3 +37,7 @@ The scanner outputs a `dynamic_telemetry.json` sidecar file alongside your logs.
 This file contains the hard execution counts for every program. You can feed this sidecar back into the GitGalaxy visualizer or LLM Recorder to augment your static risk map with physical runtime reality.
 
 > **Read the full technical specification:** [Terabyte Log Scanner](../04-07-terabyte-log-scanner.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

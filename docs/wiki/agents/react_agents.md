@@ -32,3 +32,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **De-silo Core Reconciler Knowledge:** Address the 100% isolated ownership of `ReactDOMComponent.js` and `ReactChildFiber.js`. Introduce rigorous architectural documentation and pairing to distribute domain knowledge regarding DOM property updates and child reconciliation algorithms.
 2. **Harden React Flight Serialization Boundaries:** Given the high cumulative risk and exploit generation exposure in the Flight (RSC) clients and servers, isolate the serialization and stream-parsing logic into strictly typed, independent modules. This will limit the blast radius and allow for more targeted security fuzzing of the hydration payloads.
 3. **Document the `shared-runtime.ts` Blind Bottleneck:** `shared-runtime.ts` holds a massive blast radius for the React Compiler (549 inbound connections) but suffers from high documentation risk (74%). Formalize the API contracts and usage constraints via TSDoc to prevent downstream compiler pipeline breakages and reduce "House of Cards" fragility.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

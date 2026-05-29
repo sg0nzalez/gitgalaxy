@@ -82,6 +82,10 @@ For enterprise file inventory management, the Language Lens provides a fundament
 * **Absolute Repeatability:** The same file, scanned under the same Roadmap context, will *always* yield the exact same Identity Lock and Confidence Score. This consistency is vital for Software Bill of Materials (SBOM) generation.
 * **Traceable Inventory Logic:** Every identification is accompanied by its "Lock Tier" and "Source Proof". If a script is flagged as Python, the user can see precisely why (e.g., "Tier 1: Roadmap Lock via package.json" vs "Tier 4: Spectral Discovery"). This transparency allows security teams to distinguish between contextual certainty and heuristic discovery.
 
+## Extending the Language Lens
+
+GitGalaxy is designed to be infinitely extensible. To add native parsing support for a new language, you do not need to write a complex AST parser. You simply need to calibrate the thermodynamic physics of the target language using our strict LLM Master Prompt. Review the integration protocol here: **[Architecting a New Language](../../gitgalaxy/standards/how_to_add_a_language.md)**.
+
 <br><br>
 
 ---
@@ -93,3 +97,8 @@ This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
 * 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
 
+
+
+---
+
+**[⬅️ Back to Master Index](index.md)**

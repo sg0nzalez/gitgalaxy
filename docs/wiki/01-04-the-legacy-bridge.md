@@ -42,3 +42,7 @@ While Autonomous AI Agents and Large Language Models (LLMs) are highly capable o
 GitGalaxy serves as the deterministic bridge. Before an AI agent writes a single line of Java, GitGalaxy injects a strict remediation ticket containing the exact external dependencies, required I/O boundaries, and "honesty flags" (e.g., *“This module assumes EBCDIC encoding”*). 
 
 By grounding probabilistic AI models in deterministic structural physics, GitGalaxy guarantees that modernized microservices reflect the absolute reality of the legacy monolith.
+
+---
+
+**[⬅️ Back to Master Index](index.md)**

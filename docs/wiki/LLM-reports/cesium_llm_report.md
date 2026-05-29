@@ -28,3 +28,8 @@ To stabilize the rendering pipeline and reduce maintenance friction, prioritize 
 1.  **Decompose the Scene and Data Orchestrators:** `Scene.js` and `CzmlDataSource.js` violate the Single Responsibility Principle and act as fragile God Nodes. Extract specific sub-tasks—such as environment updates, culling, and specific entity parsing—into isolated, compositional strategy classes to reduce their outbound coupling and state flux.
 2.  **Refactor Rendering Loop Bottlenecks:** Address the massive data gravity in the `update` methods of `BillboardCollection.js` and `PointPrimitiveCollection.js`. Transition these operations to use more efficient typed-array bulk updates or offload matrix calculations to Web Workers to relieve main-thread rendering pressure.
 3.  **Distribute Domain Knowledge:** Break the 100% ownership isolation on terrain generation and 3D Tiles (`TerrainFillMesh.js`, `Cesium3DTile.js`). Enforce cross-team code reviews and assign secondary maintainers to these high-impact files to mitigate Key Person dependencies in the rendering engine.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

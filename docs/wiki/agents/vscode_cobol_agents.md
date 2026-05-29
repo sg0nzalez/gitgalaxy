@@ -31,3 +31,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Decompose the Scanner Monolith:** `src/cobolsourcescanner.ts` is a massive God Node with 3400+ LOC, O(2^N) complexity, and 100% isolated ownership. Begin extracting specific parsing domains (e.g., token classification, copybook resolution) into isolated, testable modules. This will lower the cognitive load and isolate churn.
 2. **Mitigate Key Person Dependency (Bus Factor):** The entire extension heavily relies on `spgennard`. Introduce rigorous architectural documentation and JSDoc/TSDoc type annotations to `src/vscobolutils.ts` and `src/vscommon_commands.ts` to democratize understanding of the extension's initialization and utility flows.
 3. **Document CI/CD Blind Bottlenecks:** Add explicit inline documentation to `publish.sh` and `gen_changelog.sh`. Because these files govern the release process and are currently "flying blind," establishing documented contracts will prevent accidental deployment failures.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

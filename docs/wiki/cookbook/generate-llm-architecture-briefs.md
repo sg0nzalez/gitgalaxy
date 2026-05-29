@@ -151,3 +151,7 @@ This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid
 
 * 📖 **[Deep Dive: The LLM Recorder Engine](../02-14-llm-recorder.md)**
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

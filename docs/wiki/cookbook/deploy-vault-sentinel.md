@@ -49,3 +49,7 @@ Instead of turning off the scanner, DevSecOps can explicitly whitelist the safe 
 Open `gitgalaxy/standards/gitgalaxy_config.py` and add the exact file path to the `ALLOWLIST_PATHS` array. The Sentinel will safely bypass it on the next run while keeping the rest of the vault sealed.
 
 > **Read the full technical specification:** [Vault Sentinel](../04-04-vault-sentinel.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

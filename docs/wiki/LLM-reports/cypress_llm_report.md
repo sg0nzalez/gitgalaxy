@@ -28,3 +28,8 @@ To stabilize the execution pipeline and reduce developer friction, prioritize th
 1. **Decompose Volatile Orchestrators:** Refactor `packages/app/src/runner/event-manager.ts` and `packages/frontend-shared/cypress/e2e/e2ePluginSetup.ts`. Break down their monolithic event handling and setup routines into isolated, single-responsibility listeners to reduce their extreme churn rates and cognitive load.
 2. **Illuminate the Blind Bottlenecks:** Immediately enforce structured documentation (e.g., TSDoc) on heavily relied-upon utility nodes like `scripts/debug.js` and `scripts/cypress.js`. Reducing their 100% Documentation Risk is critical to safely maintaining the core build and execution scaffolding.
 3. **Prune Error Handling Design Slop:** Execute a targeted cleanup of the combined 188 orphaned functions across `errors.ts` and `error_messages.ts`. Removing this dead code will reduce the framework's baseline technical debt and clarify the active error-handling contracts.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

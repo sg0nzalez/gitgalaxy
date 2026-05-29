@@ -31,3 +31,8 @@ To stabilize the architecture and reduce cognitive load for ongoing maintenance,
 1. **Modularize the eBPF Verifier & Schedulers:** Given the extreme volatility and cognitive load in `kernel/bpf/verifier.c` and `kernel/sched/ext.c`, break down the validation passes and scheduling heuristics into isolated, testable compilation units. This will reduce merge conflicts and stabilize the core security/performance boundary.
 2. **Audit and Document Blind Bottlenecks:** Address the 100% documentation risk in foundational headers like `vmlinux.h` and `nolibc/stdio.h`. Adding structured, architectural inline documentation detailing ABI constraints and usage rules will prevent cascading failures across BPF tools and user-space binaries.
 3. **Prune Driver Design Slop:** Target specific legacy driver files showing high orphaned function counts (e.g., `drivers/net/wireless/realtek/rtw89/fw.h` with 244 orphans). Deprecating and removing dead hardware logic will lower overall repository mass and reduce the maintenance surface area for security patches.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

@@ -34,3 +34,7 @@ If a file blends in perfectly on a global scale but heavily violates the convent
 In the example above, the file pretends to be a simple declarative logger globally, but locally, it utilizes structural syntax matching a heavy network orchestrator. This massive Biaxial Ratio (2.45x) alerts security teams that `logger.js` is likely camouflaging a malicious data-exfiltration script.
 
 > **Read the full technical specification:** [Spectral Audit](../02-11-spectral-audit.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

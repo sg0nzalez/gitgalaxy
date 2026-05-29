@@ -27,3 +27,8 @@ The repository contains severe algorithmic bottlenecks and structural hotspots, 
 1.  **Dismantle the `headers.h` God Node:** The "include everything" pattern in `src/headers.h` creates artificial coupling and slows compilation. Decouple the translation units by enforcing explicit, localized `#include` directives for only the specific headers required by each `.cpp` file.
 2.  **Decouple the UI from Core Consensus:** `src/ui.cpp` currently executes direct database and wallet operations. Extract the core Bitcoin logic (mining, transaction validation, networking) from the `CMainFrame` classes and establish a clear API boundary (e.g., an RPC layer or distinct service classes) so the UI only acts as a thin presentation client.
 3.  **Fortify Cryptographic Math Headers:** Address the 'House of Cards' risk in `src/uint256.h` and `src/bignum.h`. Add strict bounds checking, overflow protections, and formal unit test coverage to these deeply embedded files to mitigate their 86% Error Risk exposure and prevent silent consensus failures.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

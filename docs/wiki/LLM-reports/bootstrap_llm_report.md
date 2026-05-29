@@ -28,3 +28,8 @@ To stabilize the component architecture and mitigate developer friction, priorit
 1.  **Decompose the JavaScript UI Components:** Files like `js/src/tooltip.js` and `js/src/carousel.js` should be refactored to reduce their O(2^N) traversal complexity. Extract DOM manipulation and event delegation into isolated, testable utility functions to lower their cognitive load and error risk exposure.
 2.  **Illuminate the Site-Generation Bottlenecks:** Immediately mandate comprehensive JSDoc-style documentation and strict nullability assertions for `site/src/libs/astro.ts` and `site/src/libs/remark.ts`. As deeply embedded 'Blind Bottlenecks', clarifying their operational intent is critical to preventing silent build failures.
 3.  **Distribute Key Person Knowledge:** Break the 100% ownership isolation held by individual developers on core interactions (`tooltip.js`, `dropdown.js`, `collapse.js`). Enforce cross-team code reviews and assign secondary maintainers to these high-risk JavaScript files to distribute domain knowledge and ensure long-term framework maintainability.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

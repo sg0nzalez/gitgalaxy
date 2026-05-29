@@ -28,3 +28,8 @@ To stabilize the repository's maintenance overhead and reduce structural frictio
 1.  **Prune Algebraic Design Slop:** Execute a targeted cleanup of the 54 combined orphaned functions residing in `ReadonlySet.ts`, `These.ts`, `ReadonlyMap.ts`, `ReadonlyRecord.ts`, and `Either.ts`. Removing this dead logic will reduce the library's physical mass and clarify the active API surface.
 2.  **Illuminate Scripting Blind Bottlenecks:** Enforce basic JSDoc or TSDoc standards on the internal tooling housed in the `scripts/` directory, specifically `linter.ts` and `build.ts`. Reducing their 100% Documentation Risk is critical to ensuring the CI/CD pipeline remains maintainable for outside contributors.
 3.  **Optimize Linter Recursion:** Investigate the O(2^N) parsing functions within `scripts/linter.ts` (`parseType`, `getTypeArguments`). Replacing deeply recursive AST evaluations with iterative traversal patterns or caching mechanisms will reduce the I/O latency risks associated with the build process.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

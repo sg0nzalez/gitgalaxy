@@ -63,3 +63,7 @@ If a malicious package is detected—either via a Blacklist match or a structura
 ```
 
 > **Read the full technical specification:** [Supply Chain Firewall](../04-03-supply-chain-firewall.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

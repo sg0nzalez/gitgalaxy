@@ -34,3 +34,7 @@ As the scanner finds PII, it surgically masks the payload (e.g., converting a 16
 Because the evidence log is mathematically scrubbed of the actual sensitive data, DevSecOps can safely hand the file directly to the engineering team to fix the logging bug without triggering further compliance violations.
 
 > **Read the full technical specification:** [Terabyte Log Scanner](../04-07-terabyte-log-scanner.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

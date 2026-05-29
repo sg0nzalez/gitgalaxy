@@ -28,3 +28,8 @@ To stabilize the core framework and reduce developer friction, prioritize the fo
 1.  **Decompose the ORM Query Compiler:** The `solve_lookup_type` function in `django/db/models/sql/query.py` is collapsing under cognitive load and recursive complexity. Extract the specific parsing logic for distinct database dialects or lookup types (e.g., exact, icontains) into isolated, polymorphic handler classes to reduce the O(2^N) bottleneck.
 2.  **Mitigate Core Knowledge Silos:** Break the 100% ownership isolation held by single contributors on critical files like `django/forms/fields.py` and `django/db/models/options.py`. Mandate cross-team code reviews and assign secondary maintainers to these components to distribute framework knowledge.
 3.  **Illuminate the Blind Bottlenecks:** Enforce strict PEP 257 docstring compliance on the GIS mapping layers and core template backends (`django/template/backends/django.py`). Reducing their high Documentation Risk is critical to preventing silent regressions when interacting with external spatial databases or custom template engines.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

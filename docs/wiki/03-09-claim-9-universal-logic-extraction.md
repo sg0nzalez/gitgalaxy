@@ -53,3 +53,7 @@ Because GitGalaxy standardizes all logic blocks into a unified "Satellite" metri
 By unifying the extraction of legacy Mainframe languages (COBOL, JCL) with modern object-oriented languages (Java, C#), GitGalaxy serves as a Rosetta Stone. It allows enterprise engineering teams to slice microservices out of 40-year-old monoliths and automatically map their architectural complexity to modern target environments.
 
 Through the empirical validation of our Strict Extraction Gauntlets (as documented in Claim 8), we prove that this universal extraction is not just theoretical—it is mathematically deterministic and enterprise-ready.
+
+---
+
+**[⬅️ Back to Master Index](index.md)**

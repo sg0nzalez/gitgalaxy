@@ -23,3 +23,8 @@ To stabilize the operational tooling and reduce developer friction, prioritize t
 
 1.  **Decompose the God Script:** `baremetal.sh` currently violates the Single Responsibility Principle by conflating build instructions, network configuration, and emulator invocation. Extract these discrete responsibilities into separate, purpose-built scripts (e.g., `build.sh`, `run-qemu.sh`) or transition to a standard `Makefile` to reduce the script's cognitive load and centralized complexity.
 2.  **Fortify the Blind Bottleneck:** Immediately mandate structured documentation within the orchestration scripting. The 100% Documentation Risk combined with 100% single-developer ownership creates a brittle maintenance environment. Document the specific virtualization parameters, memory mappings, and expected device configurations to distribute knowledge and ensure long-term stability.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

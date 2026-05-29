@@ -79,3 +79,7 @@ Instead of letting an LLM guess how to fix the file (which leads to catastrophic
 The LLM is dispatched as a deterministic Systems Architect, tasked solely with resolving the specific structural anomaly without altering the core business logic.
 
 > **Read the full technical specification:** [Legacy Refraction Controller](../05-01-legacy-refraction-controller.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

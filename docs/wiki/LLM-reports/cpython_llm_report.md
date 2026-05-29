@@ -28,3 +28,8 @@ To stabilize the core execution pipeline and distribute architectural knowledge,
 1.  **Decompose the Bytecode Monoliths:** `Python/bytecodes.c` and `Python/optimizer_bytecodes.c` are collapsing under high churn. Refactor these files by isolating specific opcode definitions and optimization passes into smaller, discrete translation units or macro-generated includes to reduce developer collision and cognitive load.
 2.  **Illuminate the God Headers:** Immediately enforce strict, comprehensive Doxygen-style documentation on `Include/Python.h` and the `pycore_*` internal headers. As deeply embedded 'Blind Bottlenecks', clarifying their operational intent is critical to preventing silent regressions or memory corruption in downstream C-extensions.
 3.  **Distribute Core Domain Knowledge:** Break the 100% ownership isolation on foundational parsing logic (`Modules/expat/xmlparse.c`) and numerical operations (`Python/dtoa.c`). Mandate cross-team code reviews and assign secondary maintainers to these components to mitigate severe Key Person risk.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

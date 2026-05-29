@@ -30,3 +30,8 @@ To stabilize the scaffolding for downstream autonomous agents or developers, pri
 
 1. **Mitigate Blind Bottlenecks:** Add explicit, structured documentation (JSDoc/PHPDoc) to `vite.config.js` and `bootstrap/app.php`. Explaining their exact role in the asset pipeline and framework bootstrapping will reduce their severity as undocumented choke points.
 2. **Resolve Design Slop in Providers:** The `app/Providers/AppServiceProvider.php` file contains functions (`boot`, `register`) flagged as "orphaned" because they are invoked dynamically by the framework, not directly by local code. Add inline architectural comments clarifying their framework-driven lifecycle to suppress static analysis warnings and guide future agents.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

@@ -28,3 +28,8 @@ To stabilize the kernel architecture and reduce developer friction in legacy sub
 1.  **Decompose the Power Management Engine:** The `IOPMrootDomain.cpp` class is collapsing under technical debt and orphaned logic. Refactor the `powerChangeDone` and `evaluateSystemSleepPolicy` methods into a state-pattern driven architecture to reduce the O(2^N) algorithmic complexity and eliminate the 200 orphaned design slop functions.
 2.  **Illuminate the God Headers:** Immediately mandate Doxygen-style documentation for foundational headers, specifically `EXTERNAL_HEADERS/stdint.h` and `AvailabilityInternal.h`. As deeply embedded 'Blind Bottlenecks', clarifying their operational intent and macro definitions is critical to preventing silent API misuse in new kernel extensions.
 3.  **Optimize the Packet Filter (PF):** The `bsd/net/pf.c` module contains significant data gravity and cognitive load. Isolate the rule evaluation logic (`pf_test_rule`) into discrete, table-driven validation phases rather than monolithic, recursive branching to improve maintainability and performance under high network loads.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

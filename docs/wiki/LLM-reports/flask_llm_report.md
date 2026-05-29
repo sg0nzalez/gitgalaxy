@@ -28,3 +28,8 @@ To stabilize the framework's architecture and reduce technical debt, prioritize 
 1. **Decompose the CLI Orchestrator:** Extract the application discovery and environment variable parsing logic from `src/flask/cli.py` into distinct, isolated utility modules. This will lower its 30 outbound dependencies and reduce the cognitive load required to maintain the command-line interface.
 2. **Illuminate the Type Definitions:** Enforce comprehensive docstrings on `src/flask/typing.py`. As a foundational load-bearer with a blast radius over 105, reducing its Documentation Risk is critical to prevent downstream type-resolution failures for third-party extension developers.
 3. **Distribute Core Domain Knowledge:** Break the single-developer ownership silo on `src/flask/app.py` and `src/flask/ctx.py`. Introduce mandatory cross-team reviews for the core request/response lifecycle to mitigate the severe key-person risk on the framework's most fragile orchestrators.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

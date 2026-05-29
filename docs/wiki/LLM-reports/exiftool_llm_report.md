@@ -28,3 +28,8 @@ To stabilize the architecture and mitigate the severe risks associated with its 
 1.  **Decompose the God Node (`ExifTool.pm`):** The `ExtractInfo` and `WriteInfo` subroutines are collapsing under their own structural magnitude and O(2^N) complexity. Refactor these monolithic dispatchers into isolated, format-specific delegate classes or strategy patterns to reduce their cognitive load and extreme physical mass.
 2.  **Mitigate Core Knowledge Silos:** Break the 100% ownership isolation held by Phil Harvey on the foundational parsing modules (`Exif.pm`, `MakerNotes.pm`). Mandate cross-team code reviews, pair programming, and secondary maintainer assignments for these files to ensure the survival and maintainability of the project.
 3.  **Illuminate the Blind Bottlenecks:** Enforce strict, standardized Perl POD (Plain Old Documentation) headers on `lib/Image/ExifTool.pm` and `lib/Image/ExifTool/Exif.pm`. As heavily relied-upon structural pillars, reducing their 100% Documentation Risk is a prerequisite before any safe structural refactoring can occur.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

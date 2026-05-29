@@ -28,3 +28,8 @@ To stabilize the architecture during its language transition and reduce develope
 1.  **Decompose the GitHub API God Node:** `Library/Homebrew/utils/github.rb` violates the Single Responsibility Principle, conflating artifact URL resolution, PR review parsing, and release management. Extract these distinct behaviors into isolated service classes to reduce the file's massive O(N^6) algorithmic bottlenecks.
 2.  **Illuminate the Rust Delegation Boundary:** Immediately mandate comprehensive docstrings and structural documentation for `Library/Homebrew/rust/brew-rs/src/delegate.rs` and `Library/Homebrew/utils/github/api.rb`. As deeply embedded 'Blind Bottlenecks', clarifying their operational intent is critical to safely managing the Rust/Ruby FFI boundary.
 3.  **Distribute Rust Migration Knowledge:** Break the 100% ownership isolation held by Mike McQuaid on the Rust command implementations (`fetch.rs`, `install.rs`, `list.rs`). Enforce cross-team code reviews and assign secondary maintainers to these files to ensure the broader engineering team can support the Rust architectural shift.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

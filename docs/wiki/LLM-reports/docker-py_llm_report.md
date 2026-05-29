@@ -28,3 +28,8 @@ To stabilize the API client architecture and reduce maintenance friction, priori
 1. **Decompose the Container Constructor:** The `__init__` method in `docker/types/containers.py` is an extreme structural outlier. Extract the argument parsing, validation, and schema formatting logic into a dedicated builder or factory class to reduce its massive Cognitive Load and O(2^N) algorithmic complexity.
 2. **Illuminate the Socket Bottleneck:** Immediately mandate strict docstrings and architectural comments for `docker/utils/socket.py`. Because it acts as the foundational load-bearer for daemon communication, reducing its Documentation Risk is critical to preventing silent I/O regressions.
 3. **Prune the Transport Graveyard:** Execute a targeted cleanup of the 41 combined orphaned functions in `docker/transport/npipesocket.py` and `docker/utils/utils.py`. Removing this design slop will lower the repository's baseline technical debt and clarify the active transport contracts.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

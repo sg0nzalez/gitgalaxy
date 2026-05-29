@@ -28,3 +28,8 @@ To stabilize the compilation pipeline and reduce developer friction, prioritize 
 1.  **Fortify the Compiler Base:** Add strict nullability annotations, defensive assertions, and robust JSDoc intent to `packages/compiler-cli/src/ngtsc/util/src/typescript.ts`. As the primary load-bearer (422 inbound connections) with severe Error Risk, hardening this file prevents systemic compiler crashes.
 2.  **Stabilize the Signals Forms API:** Address the extreme volatility in `packages/forms/signals/src/field/node.ts` and associated types. Freeze the core interface contracts and enforce strict code-review boundaries to lower the technical debt (96.7%) and cognitive load before finalizing the public API.
 3.  **Decompose the Component Handler:** `packages/compiler-cli/src/ngtsc/annotations/component/src/handler.ts` violates the Single Responsibility Principle. Extract the highly complex AST resolution logic (such as `isUsedPipe` and defer-block resolution) into isolated, testable visitor classes to reduce the O(2^N) bottlenecks and lower the file's overall physical mass.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

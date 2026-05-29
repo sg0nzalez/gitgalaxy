@@ -33,3 +33,8 @@ To stabilize the system's architecture and reduce technical debt, prioritize the
 1. **Decouple Diagnostic Orchestrators:** Break down `FirErrorsDefaultMessages.kt` and `FirJvmErrorsDefaultMessages.kt` using a registry or service-loader pattern. Distributing these massive outbound dependency hubs will reduce recompilation bottlenecks and fragility in the FIR analyzer.
 2. **Mitigate Compose Lowering Silo:** Refactor `ComposableFunctionBodyTransformer.kt` to extract specific IR transformations (e.g., state hoisting, slot management) into distinct, testable visitor classes. This will reduce its 8500+ Structural Mass and alleviate the 100% single-person silo risk.
 3. **Document Native Runtime Boundaries:** Aggressively add architectural documentation to `Memory.h`, `Types.h`, and `KotlinRuntimeSupport.swift`. These files represent severe blind bottlenecks; establishing explicit ABI and memory management contracts will lower the risk of cross-platform segmentation faults during Native runtime updates.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

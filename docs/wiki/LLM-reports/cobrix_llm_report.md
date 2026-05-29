@@ -28,3 +28,8 @@ To stabilize the parsing pipeline and reduce developer friction, prioritize the 
 1.  **Decompose the Schema Flattener:** The `flattenSchema` method in `SparkUtils.scala` is a massive recursive bottleneck. Decompose this function by extracting the specific handling of nested REDEFINES and OCCURS clauses into isolated, testable strategy objects. This will lower the O(2^N) complexity and reduce the file's extreme mass.
 2.  **Mitigate Core Parser Silos:** Immediately distribute architectural knowledge regarding the ANTLR visitor pattern and the EBCDIC decoders. Mandate paired programming or strict cross-team code reviews for any further modifications to `ParserVisitor.scala` and `StringDecoders.scala` to break the severe ownership isolation held by Ruslan Iushchenko.
 3.  **Illuminate the AST Blind Spots:** Enforce ScalaDoc standards on foundational AST components (`Primitive.scala`, `Copybook.scala`, `DependencyMarker.scala`). Because these files manage the transformation of the legacy COBOL state machine into Spark schemas, reducing their 100% Documentation Risk is critical to preventing silent data corruption during refactoring.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

@@ -60,3 +60,7 @@ To prevent false positives from breaking your build, you can explicitly tune the
 * **`XRAY_BYPASS_PATHS`:** Add specific, known-safe files that trigger the scanner (e.g., `['src/crypto/seed_data.json']`).
 
 > **Read the full technical specification:** [Binary Anomaly Detector](../04-05-binary-anomaly-detector.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

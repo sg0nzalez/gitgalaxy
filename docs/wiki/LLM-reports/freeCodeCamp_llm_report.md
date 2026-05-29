@@ -28,3 +28,8 @@ To stabilize the platform's core architecture and reduce developer friction, pri
 1.  **Decompose the Challenge Editor:** The `Editor` component in `client/src/templates/Challenges/classic/editor.tsx` is collapsing under structural magnitude. Extract the Monaco setup, TypeScript language server initialization (`setupTSModels`), and React state bindings into isolated custom hooks or separate provider components.
 2.  **Illuminate the Mock Bottlenecks:** Immediately enforce documentation standards on `client/__mocks__/react-i18next.js` and `client/__mocks__/gatsby.ts`. Reducing their high Documentation Risk is critical to preventing silent test failures for frontend contributors.
 3.  **Distribute Worker Execution Knowledge:** Break the ownership silo surrounding the challenge worker lifecycle. Mandate cross-team code reviews and assign secondary maintainers to `packages/challenge-builder/src/worker-executor.js` and `curriculum/src/test/test-challenges.js` to mitigate Key Person risk.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

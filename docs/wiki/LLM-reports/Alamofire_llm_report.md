@@ -28,3 +28,8 @@ To stabilize the internal routing architecture and mitigate documentation and ow
 1.  **Refactor the Delegate Hub:** Decompose the overloaded `urlSession` methods within `Source/Core/SessionDelegate.swift`. Extract the specific state management and routing logic into isolated, testable strategy objects to reduce the O(2^N) time complexity and lower the cognitive load.
 2.  **Illuminate Blind Bottlenecks:** Mandate comprehensive docstrings and structural documentation for `Source/Core/SessionDelegate.swift` and `Source/Features/Combine.swift`. Because they act as core infrastructure bridges, reducing their 100% Documentation Risk is critical to preventing accidental architectural drift.
 3.  **Distribute Core Error Handling Knowledge:** Break the single-developer ownership isolation on `Source/Core/AFError.swift`. Enforce cross-team code reviews and assign secondary maintainers to this file to eliminate the Key Person dependency.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

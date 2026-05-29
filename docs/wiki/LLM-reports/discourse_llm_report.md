@@ -28,3 +28,8 @@ To stabilize the monolith and reduce developer friction, prioritize the followin
 1.  **Decompose the Frontend Topic Controller:** Refactor `frontend/discourse/app/controllers/topic.js`. The file is collapsing under technical debt and orphaned functions. Migrate specific responsibilities (e.g., post deletion, rate limiting retries) into isolated Ember Services or leverage modern Glimmer components to encapsulate state, reducing its extreme Cognitive Load.
 2.  **Prune the Ember Graveyard:** Execute a targeted cleanup of the 280 combined orphaned functions across `user.js`, `topic.js`, `post.js`, and `composer.js`. Removing this dead logic will lower the repository's baseline technical debt and clarify the active API surface for the frontend data layer.
 3.  **Distribute Core Domain Knowledge:** Break the 100% ownership isolation held by single contributors on critical backend services (e.g., `app/services/post_alerter.rb` and `app/models/color_scheme.rb`). Mandate cross-team code reviews and assign secondary maintainers to these components to eliminate severe Key Person risk in the notification and theming engines.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

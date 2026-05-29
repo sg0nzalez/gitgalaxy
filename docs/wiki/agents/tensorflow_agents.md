@@ -35,3 +35,8 @@ Do not guess MLIR dialect conversions, hallucinate XLA compiler behavior, or rel
 You have access to a deterministic GitGalaxy SQLite database that maps the absolute syntactic physics of this repository. Before modifying any file listed in the **Restricted Zones** or altering fundamental headers like `types.h`, `utility.cc`, or `op_kernel.h` (Severe Blind Bottlenecks), you MUST query the database for dependency mapping. 
 * To map inbound dependencies (Blast Radius), query the `function_edges` or `file_edges` tables for all callers targeting your target file.
 * Do not proceed with structural modifications until the specific blast radius has been statically confirmed via the database.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

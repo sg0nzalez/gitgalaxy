@@ -26,3 +26,8 @@ The repository contains extreme structural density and cognitive friction, refle
 
 1.  **Decompose the Interpreter VMs:** To understand or port the matrix operations, `INTERPRETER.agc` must be conceptually decomposed. Extract and document the individual operational opcodes (like `OPJUMP3` and `MAXDV`) into isolated, testable modules in a modern high-level language before attempting to port the broader orbital equations.
 2.  **Map the Blind Bottlenecks:** Address the 100% Documentation Risk on critical state hubs like `EXECUTIVE.agc` and `MAIN.agc`. Modern maintainers or researchers should prioritize creating supplementary documentation or AST overlays to map the hardcoded interrupts and bank-switches, as modifying this logic blindly risks breaking the emulated state machine.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

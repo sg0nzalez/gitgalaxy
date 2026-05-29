@@ -28,3 +28,8 @@ To stabilize the framework's core execution paths and reduce technical debt, pri
 1.  **Decompose the Security Module:** `system/core/Security.php` is an operational bottleneck with high Error & Exception Risk. Refactor its monolithic payload filtering algorithms into isolated, testable strategy classes (e.g., separating URI sanitization from XSS filtering) to reduce the file's Cognitive Load and ensure tighter security auditing.
 2.  **Isolate and Deprecate Legacy Drivers:** Address the high cognitive load in peripheral database drivers (e.g., `oci8`, `ibase`, `cubrid`). Ensure they are cleanly encapsulated behind interfaces and consider formal deprecation paths for drivers that lack active upstream support, reducing the framework's maintenance burden.
 3.  **Modernize the Core Loader:** While preserving backward compatibility is paramount for CodeIgniter, internally decoupling the `Loader.php` logic from the `Controller.php` state will reduce the 100% Tech Debt exposure. Introduce internal boundaries that prevent the core super-object from mutating uncontrollably during runtime.
+
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**

@@ -30,3 +30,7 @@ Agents are prone to "silent mutations"—introducing subtle logic errors that do
 Because the AI cannot verify its own fixes programmatically, modifications to this file are restricted until test coverage is established.
 
 > **Read the full technical specification:** [Dev Agent Firewall](../02-18-dev-agent-firewall.md)
+
+---
+
+**[⬅️ Back to Master Index](../index.md)**
