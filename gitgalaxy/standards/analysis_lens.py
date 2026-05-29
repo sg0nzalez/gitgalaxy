@@ -618,10 +618,11 @@ PATH_MODIFIERS = {
         # Dampens auto-generated database migrations and schema snapshots. These are
         # declarative mappings of state, not complex, human-maintained execution paths.
         (
-            re.compile(
-                r"(?:(?:^|/)(?:migrations?|schema)/.*|(?:\d{10,}_[a-z0-9_]+))\.(?:sql|ts|js|rb|py)$",
-                re.I,
-            ),
+            re.compile(r"(?:^|/)(?:migrations?|schema)/.*\.(?:sql|ts|js|rb|py)$", re.I),
+            0.05,
+        ),
+        (
+            re.compile(r"(?:\d{10,}_[a-z0-9_]+)\.(?:sql|ts|js|rb|py)$", re.I),
             0.05,
         ),
         # The Vendored Directory Dampener
