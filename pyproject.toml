@@ -91,3 +91,8 @@ tag_regex = '^v?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$'
 
 [tool.black]
 line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
