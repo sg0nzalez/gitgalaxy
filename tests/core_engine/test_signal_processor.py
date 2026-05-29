@@ -11,9 +11,7 @@ def physics_engine():
 # ==============================================================================
 # SYNTHETIC GALAXY DATA (MOCKING THE DETECTOR PAYLOADS)
 # ==============================================================================
-def create_synthetic_star(
-    engine, name, loc, equations=None, forensics=None, functions=None
-):
+def create_synthetic_star(engine, name, loc, equations=None, forensics=None, functions=None):
     """Generates a perfectly structured raw detector payload."""
     base_eq = {
         "branch": 0,
@@ -51,8 +49,7 @@ def create_synthetic_star(
         "lang_id": "python",
         "coding_loc": loc,
         "telemetry": {},
-        "functions": functions
-        or [{"name": "mock_func", "loc": loc, "branch": base_eq["branch"]}],
+        "functions": functions or [{"name": "mock_func", "loc": loc, "branch": base_eq["branch"]}],
         "raw_imports": ["os", "sys"],
         "equations": base_eq,
         "dependency_network": {
@@ -75,9 +72,7 @@ def create_synthetic_star(
 # ==============================================================================
 def test_signal_processor_perfect_baseline(physics_engine):
     """Proves a file with perfect safety/docs results in 0.0% risk exposures."""
-    meta, eq = create_synthetic_star(
-        physics_engine, "perfect", 50, {"safety": 10, "doc": 20, "test": 5}
-    )
+    meta, eq = create_synthetic_star(physics_engine, "perfect", 50, {"safety": 10, "doc": 20, "test": 5})
     res = physics_engine.calculate_risk_vector(meta, eq)
 
     assert res["risk_vector"][0] < 10.0, "Perfect file failed Cog Load baseline!"
@@ -153,9 +148,7 @@ def test_signal_processor_error_risk_floor(physics_engine):
 # ==============================================================================
 def test_signal_processor_api_and_concurrency(physics_engine):
     """Proves the engine accurately calculates API and Concurrency risks."""
-    meta, eq = create_synthetic_star(
-        physics_engine, "api_gw", 10, {"api": 500, "concurrency": 500}
-    )
+    meta, eq = create_synthetic_star(physics_engine, "api_gw", 10, {"api": 500, "concurrency": 500})
     meta["functions"] = [{"name": "mock_func", "loc": 10, "branch": 0}]
 
     res = physics_engine.calculate_risk_vector(meta, eq)
@@ -170,9 +163,7 @@ def test_signal_processor_civil_war(physics_engine):
     """Proves the Civil War exposure accurately measures Tab vs Space purity."""
     mt, et = create_synthetic_star(physics_engine, "t", 100, {"indent_tabs": 100})
     ms, es = create_synthetic_star(physics_engine, "s", 100, {"indent_spaces": 100})
-    mm, em = create_synthetic_star(
-        physics_engine, "m", 100, {"indent_tabs": 50, "indent_spaces": 50}
-    )
+    mm, em = create_synthetic_star(physics_engine, "m", 100, {"indent_tabs": 50, "indent_spaces": 50})
 
     rt = physics_engine.calculate_risk_vector(mt, et)
     rs = physics_engine.calculate_risk_vector(ms, es)
@@ -194,9 +185,7 @@ def test_signal_processor_sibling_test_bonus(physics_engine):
     high_risk = physics_engine.calculate_risk_vector(m1, e1, umbrella_bonus=0.0)
     low_risk = physics_engine.calculate_risk_vector(m2, e2, umbrella_bonus=0.5)
 
-    assert (
-        low_risk["risk_vector"][3] < high_risk["risk_vector"][3]
-    ), "Sibling Test Bonus failed to apply!"
+    assert low_risk["risk_vector"][3] < high_risk["risk_vector"][3], "Sibling Test Bonus failed to apply!"
 
 
 # ==============================================================================
@@ -242,9 +231,7 @@ def test_signal_processor_git_forensics(physics_engine):
 
     assert m1["risk_vector"][9] > 0.0, "Failed to calculate Instability!"
     assert m1["risk_vector"][10] > 0.0, "Failed to calculate Deep Churn!"
-    assert (
-        m1["telemetry"]["author_distribution"] == 100.0
-    ), "Failed to calculate Silo Risk!"
+    assert m1["telemetry"]["author_distribution"] == 100.0, "Failed to calculate Silo Risk!"
 
 
 # ==============================================================================
@@ -252,17 +239,13 @@ def test_signal_processor_git_forensics(physics_engine):
 # ==============================================================================
 def test_signal_processor_math_overflow_shield(physics_engine):
     """Proves astronomical negative densities trigger and survive the OverflowError."""
-    meta, eq = create_synthetic_star(
-        physics_engine, "absurd", 1, {"sec_danger": -99999999, "branch": -99999999}
-    )
+    meta, eq = create_synthetic_star(physics_engine, "absurd", 1, {"sec_danger": -99999999, "branch": -99999999})
 
     try:
         res = physics_engine.calculate_risk_vector(meta, eq)
         assert "risk_vector" in res
     except OverflowError:
-        pytest.fail(
-            "Signal Processor crashed with an OverflowError on extreme density!"
-        )
+        pytest.fail("Signal Processor crashed with an OverflowError on extreme density!")
 
 
 # ==============================================================================
@@ -292,9 +275,7 @@ def test_signal_processor_aggregations(physics_engine):
 
     forensics = physics_engine.generate_forensic_report(parsed)
     assert "cumulative_risk" in forensics, "Forensic report missing cumulative risk!"
-    assert (
-        "highest" in forensics["cumulative_risk"]
-    ), "Forensic report missing highest risk array!"
+    assert "highest" in forensics["cumulative_risk"], "Forensic report missing highest risk array!"
 
 
 # ==============================================================================
@@ -302,25 +283,17 @@ def test_signal_processor_aggregations(physics_engine):
 # ==============================================================================
 def test_signal_processor_minified_tripwire(physics_engine):
     """Proves minified files bypass standard math and trigger explicit risk spikes."""
-    meta, eq = create_synthetic_star(
-        physics_engine, "vendor_bundle", 1000, {"sec_danger": 50}
-    )
+    meta, eq = create_synthetic_star(physics_engine, "vendor_bundle", 1000, {"sec_danger": 50})
     meta["is_minified"] = True  # Trigger the tripwire
 
     res = physics_engine.calculate_risk_vector(meta, eq)
 
     # Standard cognitive load should be 0.0, and the file impact forced to 1.0
-    assert (
-        res["risk_vector"][0] == 0.0
-    ), "Standard cognitive load should be bypassed for minified files!"
-    assert (
-        res["file_impact"] == 1.0
-    ), "Minified files should have an impact of exactly 1.0!"
+    assert res["risk_vector"][0] == 0.0, "Standard cognitive load should be bypassed for minified files!"
+    assert res["file_impact"] == 1.0, "Minified files should have an impact of exactly 1.0!"
 
     # We don't know the exact index, but the 100.0 spike MUST exist in the array
-    assert (
-        100.0 in res["risk_vector"]
-    ), "Minified tripwire failed to spike the malicious exposure vector!"
+    assert 100.0 in res["risk_vector"], "Minified tripwire failed to spike the malicious exposure vector!"
 
 
 # ==============================================================================
@@ -329,24 +302,18 @@ def test_signal_processor_minified_tripwire(physics_engine):
 def test_signal_processor_doc_and_secrets_bypass(physics_engine):
     """Proves markdown files skip logic math, and exposed secrets spike risk."""
     # 1. Test Documentation Bypass
-    meta_doc, eq_doc = create_synthetic_star(
-        physics_engine, "readme", 500, {"branch": 500}
-    )
+    meta_doc, eq_doc = create_synthetic_star(physics_engine, "readme", 500, {"branch": 500})
     meta_doc["lang_id"] = "markdown"  # Claim to be docs
 
     res_doc = physics_engine.calculate_risk_vector(meta_doc, eq_doc)
-    assert (
-        res_doc["risk_vector"][0] == 0.0
-    ), "Documentation shouldn't calculate logic cognitive load!"
+    assert res_doc["risk_vector"][0] == 0.0, "Documentation shouldn't calculate logic cognitive load!"
 
     # 2. Test Critical Secrets Leak
     meta_sec, eq_sec = create_synthetic_star(physics_engine, "keys", 10)
     meta_sec["metadata"] = {"aperture_reason": "CRITICAL LEAK"}
 
     res_sec = physics_engine.calculate_risk_vector(meta_sec, eq_sec)
-    assert (
-        100.0 in res_sec["risk_vector"]
-    ), "Critical Leak failed to spike the Secrets Risk to 100%!"
+    assert 100.0 in res_sec["risk_vector"], "Critical Leak failed to spike the Secrets Risk to 100%!"
 
 
 # ==============================================================================
@@ -356,23 +323,17 @@ def test_signal_processor_oom_bomb(physics_engine):
     """Proves recursive functions with high state mutation trigger the OOM multiplier."""
     # Baseline: Normal function with state mutation
     meta1, eq1 = create_synthetic_star(physics_engine, "safe_flux", 100, {"flux": 50})
-    meta1["functions"] = [
-        {"name": "safe", "loc": 100, "is_recursive": False, "big_o_depth": 1}
-    ]
+    meta1["functions"] = [{"name": "safe", "loc": 100, "is_recursive": False, "big_o_depth": 1}]
 
     # OOM Bomb: Recursive function + State mutation (No lazy evaluation)
     meta2, eq2 = create_synthetic_star(physics_engine, "oom_flux", 100, {"flux": 50})
-    meta2["functions"] = [
-        {"name": "bomb", "loc": 100, "is_recursive": True, "big_o_depth": 1}
-    ]
+    meta2["functions"] = [{"name": "bomb", "loc": 100, "is_recursive": True, "big_o_depth": 1}]
 
     res_safe = physics_engine.calculate_risk_vector(meta1, eq1)
     res_bomb = physics_engine.calculate_risk_vector(meta2, eq2)
 
     # The oom_multiplier = 3.0 should cause a significant difference in the final arrays
-    assert (
-        res_bomb["risk_vector"] != res_safe["risk_vector"]
-    ), "OOM Bomb multiplier failed to alter the risk vector!"
+    assert res_bomb["risk_vector"] != res_safe["risk_vector"], "OOM Bomb multiplier failed to alter the risk vector!"
 
 
 # ==============================================================================
@@ -389,9 +350,7 @@ def test_signal_processor_ai_topology(physics_engine):
     )
 
     # RAG Pipeline
-    m2, e2 = create_synthetic_star(
-        physics_engine, "rag", 100, {"llm_api": 10, "llm_vector_store": 10}
-    )
+    m2, e2 = create_synthetic_star(physics_engine, "rag", 100, {"llm_api": 10, "llm_vector_store": 10})
 
     # Process files
     tel1 = physics_engine.calculate_risk_vector(m1, e1)
@@ -414,13 +373,9 @@ def test_signal_processor_ai_topology(physics_engine):
     summary = physics_engine.summarize_galaxy_metrics(parsed, [])
 
     topology = summary.get("ai_topology", {})
-    assert (
-        topology["classification"] == "Autonomous Agentic Fleet (Level 4)"
-    ), "Failed to classify Level 4 Agent!"
+    assert topology["classification"] == "Autonomous Agentic Fleet (Level 4)", "Failed to classify Level 4 Agent!"
 
     insights = " ".join(topology["insights"])
     assert "context amnesia" in insights, "Failed to detect missing Agent Memory!"
-    assert (
-        "catastrophically across the system" in insights
-    ), "Failed to detect high PageRank blast radius!"
+    assert "catastrophically across the system" in insights, "Failed to detect high PageRank blast radius!"
     assert "Cognitive Choke Point" in insights, "Failed to detect high Betweenness!"

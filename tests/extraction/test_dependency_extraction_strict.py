@@ -113,9 +113,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import std.core;", "std.core"),
         ],
         "invalid": ["int include_count = 0;", "// #include <stdio.h>"],
-        "pathological": [
-            ("export \n import \n external.module.name \n ;", "external.module.name")
-        ],
+        "pathological": [("export \n import \n external.module.name \n ;", "external.module.name")],
     },
     "c": {
         "valid": [("#include <stdio.h>", "stdio.h"), ('#include "local.h"', "local.h")],
@@ -144,9 +142,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("using namespace System.Net", "System.Net"),
         ],
         "invalid": ["Write-Host 'Import-Module'", "# using module foo"],
-        "pathological": [
-            ("using \n module \n 'MyCustomModule.psm1'", "MyCustomModule.psm1")
-        ],
+        "pathological": [("using \n module \n 'MyCustomModule.psm1'", "MyCustomModule.psm1")],
     },
     "shell": {
         "valid": [("source .env", ".env"), (". /etc/profile", "/etc/profile")],
@@ -185,9 +181,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import static org.mockito.Mockito.*", "org.mockito.Mockito.*"),
         ],
         "invalid": ["val importPath = false", "// import foo.bar"],
-        "pathological": [
-            ("import \n kotlinx.coroutines.flow.*", "kotlinx.coroutines.flow.*")
-        ],
+        "pathological": [("import \n kotlinx.coroutines.flow.*", "kotlinx.coroutines.flow.*")],
     },
     "sqlite": {
         "valid": [
@@ -203,9 +197,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ('<link rel="stylesheet" href="style.css">', "style.css"),
         ],
         "invalid": ["", 'let src = "app.js";'],
-        "pathological": [
-            ('<link \n rel="stylesheet" \n href="theme.css">', "theme.css")
-        ],
+        "pathological": [('<link \n rel="stylesheet" \n href="theme.css">', "theme.css")],
     },
     "css": {
         "valid": [
@@ -297,9 +289,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("export scala.collection.mutable.Map", "scala.collection.mutable.Map"),
         ],
         "invalid": ["val importCount = 0", "// import cats.effect.IO"],
-        "pathological": [
-            ("import \n scala.concurrent.Future", "scala.concurrent.Future")
-        ],
+        "pathological": [("import \n scala.concurrent.Future", "scala.concurrent.Future")],
     },
     "dockerfile": {
         "valid": [
@@ -307,9 +297,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("COPY --from=builder /app /app", "builder"),
         ],
         "invalid": ["# FROM ubuntu", "ENV FROM_PATH=/app"],
-        "pathological": [
-            ("FROM \n --platform=linux/amd64 \n alpine:3.18", "alpine:3.18")
-        ],
+        "pathological": [("FROM \n --platform=linux/amd64 \n alpine:3.18", "alpine:3.18")],
     },
     "matlab": {
         "valid": [
@@ -325,9 +313,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ('require "database"', "database"),
         ],
         "invalid": ["-- start using stack", "put empty into requirePath"],
-        "pathological": [
-            ('start \n using \n behavior \n "btnBehavior"', "btnBehavior")
-        ],
+        "pathological": [('start \n using \n behavior \n "btnBehavior"', "btnBehavior")],
     },
     "solidity": {
         "valid": [
@@ -337,9 +323,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             )
         ],
         "invalid": ['// import "foo.sol"', "string memory importPath;"],
-        "pathological": [
-            ('import \n { \n ERC20 \n } \n from \n "token.sol";', "token.sol")
-        ],
+        "pathological": [('import \n { \n ERC20 \n } \n from \n "token.sol";', "token.sol")],
     },
     "objective-c": {
         "valid": [
@@ -391,15 +375,11 @@ class TestDependencyExtraction:
 
         for payload, expected_name in cases["valid"]:
             match = pattern.search(payload)
-            assert (
-                match is not None
-            ), f"[{lang_id}] Iron Wall Blocked Valid Import: '{payload}'"
+            assert match is not None, f"[{lang_id}] Iron Wall Blocked Valid Import: '{payload}'"
 
             if pattern.groups > 0:
                 captured_groups = [g for g in match.groups() if g is not None]
-                assert (
-                    len(captured_groups) > 0
-                ), f"[{lang_id}] Regex matched but captured nothing!"
+                assert len(captured_groups) > 0, f"[{lang_id}] Regex matched but captured nothing!"
 
                 # Check if the expected name is in ANY of the capture groups (some languages use alternate groups for require vs import)
                 found = any(expected_name in g for g in captured_groups)
@@ -407,9 +387,7 @@ class TestDependencyExtraction:
                     found
                 ), f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean path '{expected_name}' from '{payload}'"
             else:
-                pytest.fail(
-                    f"[{lang_id}] _dependency_capture MUST use a capture group to isolate the path!"
-                )
+                pytest.fail(f"[{lang_id}] _dependency_capture MUST use a capture group to isolate the path!")
 
     @pytest.mark.parametrize("lang_id", DEPENDENCY_EXTRACTION_CASES.keys())
     def test_negative_dependency_extraction(self, lang_id):
@@ -448,15 +426,11 @@ class TestDependencyExtraction:
 
         for payload, expected_name in cases["pathological"]:
             match = pattern.search(payload)
-            assert (
-                match is not None
-            ), f"[{lang_id}] 💥 Engine choked on pathological import formatting: '{payload}'"
+            assert match is not None, f"[{lang_id}] 💥 Engine choked on pathological import formatting: '{payload}'"
 
             if pattern.groups > 0:
                 captured_groups = [g for g in match.groups() if g is not None]
-                assert (
-                    len(captured_groups) > 0
-                ), f"[{lang_id}] Matched but captured nothing!"
+                assert len(captured_groups) > 0, f"[{lang_id}] Matched but captured nothing!"
 
                 found = any(expected_name in g for g in captured_groups)
                 assert (

@@ -15,9 +15,7 @@ MOCK_LANG_DEFS = {
     "python": {
         "lexical_family": "pure_hash",
         "rules": {
-            "func_start": re.compile(
-                r"^[ \t]*def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", re.M
-            ),
+            "func_start": re.compile(r"^[ \t]*def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", re.M),
             "branch": re.compile(r"\b(if|elif|for|while)\b"),
             "linear": re.compile(r"\b(print|return|assign)\b"),
             "ownership": re.compile(r"#\s*Architect:\s*(.*)"),
@@ -35,9 +33,7 @@ MOCK_LANG_DEFS = {
     "c": {
         "lexical_family": "std_c",
         "rules": {
-            "func_start": re.compile(
-                r"^[ \t]*\w+\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\)\s*\{", re.M
-            ),
+            "func_start": re.compile(r"^[ \t]*\w+\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\)\s*\{", re.M),
             "memory_scraping": re.compile(r"\b(memcpy|VirtualRead)\b"),
             "exfiltration_camouflage": re.compile(r"\b(send|socket)\b"),
             "danger": re.compile(r"\b(strcpy|gets)\b"),
@@ -121,12 +117,8 @@ def test_detector_spatial_appsec_correlation():
 
     # A single memory_scraping hit normally = 1.
     # The AppSec multiplier adds 100 if correlated. Total should be >= 100.
-    assert (
-        result["equations"]["memory_scraping"] >= 100
-    ), "Spatial correlation failed to multiply the threat penalty!"
-    assert (
-        result["mitigation_telemetry"]["amplified_leaks"] == 1
-    ), "Failed to log the active leak mitigation stat!"
+    assert result["equations"]["memory_scraping"] >= 100, "Spatial correlation failed to multiply the threat penalty!"
+    assert result["mitigation_telemetry"]["amplified_leaks"] == 1, "Failed to log the active leak mitigation stat!"
 
 
 def test_detector_silencer_region():
@@ -145,9 +137,7 @@ def test_detector_silencer_region():
     result = splicer.splice(code, "")
     # The raw string "strcpy" is inside "strncpy", so both trigger in a naive regex.
     # The spatial math should subtract the danger hit.
-    assert (
-        result["equations"]["danger"] == 0
-    ), "Silencer region failed to dampen the danger signal!"
+    assert result["equations"]["danger"] == 0, "Silencer region failed to dampen the danger signal!"
     assert result["mitigation_telemetry"]["mitigated_danger"] >= 1
 
 
@@ -163,18 +153,14 @@ def test_detector_anti_redos_line_limiter():
 
     # Generate a 2500 character string
     massive_blob = "A" * 2500
-    code = (
-        "def parse_blob():\n" f"    payload = '{massive_blob}'\n" "    return payload\n"
-    )
+    code = "def parse_blob():\n" f"    payload = '{massive_blob}'\n" "    return payload\n"
 
     # If the shield fails, the regex engine might hang. If it succeeds, it finishes instantly.
     result = splicer.splice(code, "")
 
     assert len(result["functions"]) == 1
     assert result["functions"][0]["name"] == "parse_blob"
-    assert (
-        result["functions"][0]["coding_loc"] == 3
-    ), "Anti-ReDoS shield destroyed the physical line count!"
+    assert result["functions"][0]["coding_loc"] == 3, "Anti-ReDoS shield destroyed the physical line count!"
 
 
 # ==============================================================================
@@ -186,32 +172,17 @@ def test_detector_terminator_cleaving():
     braces or indentation scopes.
     """
     splicer = LogicSplicer("sql", MOCK_LANG_DEFS)
-    code = (
-        "SELECT * FROM users\n"
-        "WHERE active = 1;\n"
-        "\n"
-        "UPDATE audit_log\n"
-        "SET viewed = 1\n"
-        "WHERE id = 55;\n"
-    )
+    code = "SELECT * FROM users\n" "WHERE active = 1;\n" "\n" "UPDATE audit_log\n" "SET viewed = 1\n" "WHERE id = 55;\n"
 
     # Mode E requires specific handshake routing inside the engine
-    with patch(
-        "gitgalaxy.core.detector.SemanticScopeRegistry.get_mode", return_value="mode_e"
-    ):
+    with patch("gitgalaxy.core.detector.SemanticScopeRegistry.get_mode", return_value="mode_e"):
         result = splicer.splice(code, "")
 
-        assert (
-            len(result["functions"]) >= 2
-        ), "Mode E failed to cleave the file into distinct blocks!"
+        assert len(result["functions"]) >= 2, "Mode E failed to cleave the file into distinct blocks!"
 
         func_names = [f["name"] for f in result["functions"]]
-        assert any(
-            "SELECT" in name for name in func_names
-        ), "Failed to ignite the SELECT block!"
-        assert any(
-            "UPDATE" in name for name in func_names
-        ), "Failed to ignite the UPDATE block!"
+        assert any("SELECT" in name for name in func_names), "Failed to ignite the SELECT block!"
+        assert any("UPDATE" in name for name in func_names), "Failed to ignite the UPDATE block!"
 
 
 def test_detector_class_extraction_and_lcom():
@@ -238,13 +209,9 @@ def test_detector_class_extraction_and_lcom():
 
     cls = result["classes"][0]
     assert cls["name"] == "UserManager"
-    assert (
-        cls["method_count"] == 2
-    ), "Failed to spatially link methods to the parent class!"
+    assert cls["method_count"] == 2, "Failed to spatially link methods to the parent class!"
     assert cls["lcom_score"] < 100.0, "LCOM calculation failed or defaulted to 100!"
-    assert (
-        cls["state_entanglement"] > 0.0
-    ), "State entanglement failed to register mutations!"
+    assert cls["state_entanglement"] > 0.0, "State entanglement failed to register mutations!"
 
 
 def test_detector_atomic_literal_shield():
@@ -266,12 +233,8 @@ def test_detector_atomic_literal_shield():
     # Access the shield directly
     safe_code = splicer._apply_literal_shield(code, "ruby")
 
-    assert (
-        "def fake_function_inside_string" not in safe_code
-    ), "Shield failed to mask heredoc contents!"
-    assert safe_code.count("\n") == code.count(
-        "\n"
-    ), "Shield altered the physical line count!"
+    assert "def fake_function_inside_string" not in safe_code, "Shield failed to mask heredoc contents!"
+    assert safe_code.count("\n") == code.count("\n"), "Shield altered the physical line count!"
 
 
 def test_detector_orphan_and_duplicate_logic():
@@ -297,12 +260,8 @@ def test_detector_orphan_and_duplicate_logic():
     # active_helper is used, forgotten_orphan is not, main_process is the entry point
     orphans = [f["name"] for f in result["functions"] if f.get("usage_status") == 1]
 
-    assert (
-        "forgotten_orphan" in orphans
-    ), "Failed to flag the unused function as an orphan!"
-    assert (
-        "active_helper" not in orphans
-    ), "Falsely flagged an active function as an orphan!"
+    assert "forgotten_orphan" in orphans, "Failed to flag the unused function as an orphan!"
+    assert "active_helper" not in orphans, "Falsely flagged an active function as an orphan!"
 
 
 def test_detector_c_macro_dead_branch_shield():
@@ -325,9 +284,7 @@ def test_detector_c_macro_dead_branch_shield():
 
     # Because 'danger' is in the dead branch, it should be scrubbed by the preprocessor shield
     # before the regex engine even sees it.
-    assert (
-        result["equations"]["danger"] == 0
-    ), "Failed to scrub dead preprocessor branches!"
+    assert result["equations"]["danger"] == 0, "Failed to scrub dead preprocessor branches!"
 
 
 # ==============================================================================
@@ -352,9 +309,7 @@ def test_detector_mode_d_shell_handshake():
 
     result = splicer.splice(code, "")
 
-    assert (
-        len(result["functions"]) == 1
-    ), "Failed to extract the shell function as a single block!"
+    assert len(result["functions"]) == 1, "Failed to extract the shell function as a single block!"
 
     func = result["functions"][0]
     assert func["name"] == "backup_db"
@@ -381,9 +336,7 @@ def test_detector_mode_d_ruby_inline_modifier():
 
     result = splicer.splice(code, "")
 
-    assert (
-        len(result["functions"]) == 2
-    ), "Inline modifiers corrupted the stack depth and swallowed the file!"
+    assert len(result["functions"]) == 2, "Inline modifiers corrupted the stack depth and swallowed the file!"
 
     names = [f["name"] for f in result["functions"]]
     assert "calculate_risk" in names
@@ -411,15 +364,11 @@ def test_detector_mode_c_indentation():
 
     result = splicer.splice(code, "")
 
-    assert (
-        len(result["functions"]) == 2
-    ), "Mode C failed to separate Python functions by indentation!"
+    assert len(result["functions"]) == 2, "Mode C failed to separate Python functions by indentation!"
 
     parent = result["functions"][0]
     assert parent["name"] == "parent_process"
-    assert (
-        parent["loc"] == 4
-    ), "Mode C failed to accurately count lines inside the indentation block!"
+    assert parent["loc"] == 4, "Mode C failed to accurately count lines inside the indentation block!"
 
 
 # ==============================================================================
@@ -459,25 +408,14 @@ def test_detector_classification_and_wiring():
     topology wiring and accurately classifies function types based on naming heuristics.
     """
     splicer = LogicSplicer("python", MOCK_LANG_DEFS)
-    code = (
-        "def save_user_data(user_id):\n"
-        "    validate_id(user_id)\n"
-        "    db_insert(user_id)\n"
-        "    return True\n"
-    )
+    code = "def save_user_data(user_id):\n" "    validate_id(user_id)\n" "    db_insert(user_id)\n" "    return True\n"
 
     result = splicer.splice(code, "")
     func = result["functions"][0]
 
-    assert (
-        "validate_id" in func["calls_out_to"]
-    ), "Failed to extract Level 3 outbound calls!"
-    assert (
-        "db_insert" in func["calls_out_to"]
-    ), "Failed to extract Level 3 outbound calls!"
-    assert (
-        func["type_id"] == "mutation"
-    ), "Failed to classify 'save_user_data' as a mutation!"
+    assert "validate_id" in func["calls_out_to"], "Failed to extract Level 3 outbound calls!"
+    assert "db_insert" in func["calls_out_to"], "Failed to extract Level 3 outbound calls!"
+    assert func["type_id"] == "mutation", "Failed to classify 'save_user_data' as a mutation!"
 
 
 # ==============================================================================
@@ -497,21 +435,14 @@ def test_detector_ghost_tether_and_metadata():
         "    return True\n"
     )
 
-    comment_stream = (
-        "# Architect: Ada Lovelace\n"
-        "# Purpose: Handles core cryptographic operations.\n"
-    )
+    comment_stream = "# Architect: Ada Lovelace\n" "# Purpose: Handles core cryptographic operations.\n"
 
     # We must pass raw_content to allow the Ghost Tether to search coordinates
     result = splicer.splice(code, comment_stream, raw_content=code)
 
     # Check File Metadata
-    assert (
-        result["metadata"]["ownership"] == "Ada Lovelace"
-    ), "Failed to decode ownership from comment stream!"
-    assert (
-        "cryptographic operations" in result["metadata"]["purpose"]
-    ), "Failed to decode purpose from comment stream!"
+    assert result["metadata"]["ownership"] == "Ada Lovelace", "Failed to decode ownership from comment stream!"
+    assert "cryptographic operations" in result["metadata"]["purpose"], "Failed to decode purpose from comment stream!"
 
     # Check Ghost Tether (Function-level docstring)
     func = result["functions"][0]
@@ -531,16 +462,11 @@ def test_detector_cpp_objc_name_extraction():
     splicer = LogicSplicer("cpp", MOCK_LANG_DEFS)
 
     # Objective-C
-    assert (
-        splicer._extract_name("- (void)initWithObjects:(NSArray *)objects {")
-        == "initWithObjects"
-    )
+    assert splicer._extract_name("- (void)initWithObjects:(NSArray *)objects {") == "initWithObjects"
     assert splicer._extract_name("+ (instancetype)sharedInstance;") == "sharedInstance"
 
     # C++ Operators
-    assert (
-        splicer._extract_name("MyClass::operator<<(std::ostream& os)") == "operator<<"
-    )
+    assert splicer._extract_name("MyClass::operator<<(std::ostream& os)") == "operator<<"
     assert splicer._extract_name("operator bool() const") == "operator bool"
     assert splicer._extract_name("operator()()") == "operator()"
 
@@ -569,22 +495,14 @@ def test_detector_advanced_appsec_sensors():
     mits = result["mitigation_telemetry"]
 
     # 1. RCE Weaponization: sec_danger spatially overlapping with sec_io
-    assert (
-        eqs.get("sec_tainted_injection", 0) >= 1
-    ), "Failed to spatially correlate Tainted RCE Injection!"
+    assert eqs.get("sec_tainted_injection", 0) >= 1, "Failed to spatially correlate Tainted RCE Injection!"
 
     # 2. Race Conditions: concurrency overlapping with unlocked flux (multiplies by 5)
-    assert (
-        eqs.get("concurrency", 0) >= 5
-    ), "Failed to detect and amplify the Race Condition penalty!"
-    assert (
-        mits.get("amplified_race_conditions", 0) >= 1
-    ), "Failed to log the Race Condition telemetry!"
+    assert eqs.get("concurrency", 0) >= 5, "Failed to detect and amplify the Race Condition penalty!"
+    assert mits.get("amplified_race_conditions", 0) >= 1, "Failed to log the Race Condition telemetry!"
 
     # 3. Memory Leaks: unmitigated alloc
-    assert (
-        eqs.get("memory_alloc", 0) >= 1
-    ), "Failed to flag the unmitigated Memory Leak!"
+    assert eqs.get("memory_alloc", 0) >= 1, "Failed to flag the unmitigated Memory Leak!"
 
 
 # ==============================================================================
@@ -606,15 +524,9 @@ def test_detector_catastrophic_fallbacks():
         side_effect=ValueError("Catastrophic parsing failure"),
     ):
         result = splicer.splice("def foo(): pass", "# Architect: Joe")
-        assert (
-            result["equations"] == {}
-        ), "Fallback did not return an empty equations dict!"
-        assert (
-            result["logic_density"] == 0.0
-        ), "Fallback did not zero out logic density!"
-        assert (
-            result["metadata"]["ownership"] == "Joe"
-        ), "Fallback destroyed the Ghost Mass metadata!"
+        assert result["equations"] == {}, "Fallback did not return an empty equations dict!"
+        assert result["logic_density"] == 0.0, "Fallback did not zero out logic density!"
+        assert result["metadata"]["ownership"] == "Joe", "Fallback destroyed the Ghost Mass metadata!"
 
     # 2. TimeoutError -> Hardware Guillotine drops cleanly
     with patch.object(
@@ -714,9 +626,7 @@ def test_cartographer_ray_casting_collision_avoidance(cartographer):
 
     # Because of the step_factor (1.5x) in the math engine, the distance between them
     # MUST be significantly larger than a single footprint to prevent a visual crash.
-    assert (
-        distance > footprint * 1.5
-    ), "Ray-Caster failed! Massive constellations are overlapping in 3D space."
+    assert distance > footprint * 1.5, "Ray-Caster failed! Massive constellations are overlapping in 3D space."
 
 
 # ==============================================================================
@@ -729,9 +639,7 @@ def test_detector_prose_and_empty_bypass():
 
     # 1. Prose/Confidence Bypass
     res_prose = splicer.splice("## Header", "comment", confidence=0.40)
-    assert (
-        res_prose["logic_density"] == 0.0
-    ), "Prose bypass failed to abort on low confidence!"
+    assert res_prose["logic_density"] == 0.0, "Prose bypass failed to abort on low confidence!"
 
     # 2. Empty Code Stream Bypass
     splicer_py = LogicSplicer("python", MOCK_LANG_DEFS)
@@ -755,19 +663,11 @@ def test_detector_function_classification():
     res = splicer.splice(code, "")
 
     types = {f["name"]: f["type_id"] for f in res["functions"]}
-    assert (
-        types.get("handle_click_event") == "event"
-    ), "Failed to classify 'handle' as event!"
-    assert (
-        types.get("parse_raw_text") == "logic"
-    ), "Failed to classify 'parse' as logic!"
+    assert types.get("handle_click_event") == "event", "Failed to classify 'handle' as event!"
+    assert types.get("parse_raw_text") == "logic", "Failed to classify 'parse' as logic!"
     assert types.get("is_valid_user") == "check", "Failed to classify 'is_' as check!"
-    assert (
-        types.get("test_identity") == "verification"
-    ), "Failed to classify 'test' as verification!"
-    assert (
-        types.get("generate_uuid") == "standard"
-    ), "Failed to fallback to standard taxonomy!"
+    assert types.get("test_identity") == "verification", "Failed to classify 'test' as verification!"
+    assert types.get("generate_uuid") == "standard", "Failed to fallback to standard taxonomy!"
 
 
 # ==============================================================================
@@ -802,6 +702,4 @@ def test_detector_missing_tiktoken_fallback():
     res = splicer.splice("def foo(): pass", "")
 
     assert res["token_mass"] is None, "Fallback failed to return None for token mass!"
-    assert (
-        res["financial_read_cost"] is None
-    ), "Fallback failed to neutralize financial cost!"
+    assert res["financial_read_cost"] is None, "Fallback failed to neutralize financial cost!"

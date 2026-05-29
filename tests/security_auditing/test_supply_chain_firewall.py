@@ -10,15 +10,11 @@ import gitgalaxy.tools.supply_chain_security.supply_chain_firewall as firewall_m
 # ==============================================================================
 def test_zero_trust_import_slicer(tmp_path, monkeypatch):
     monkeypatch.setattr(firewall_module, "APPROVED_IMPORTS", ["react", "express"])
-    monkeypatch.setattr(
-        firewall_module, "BLACKLISTED_IMPORTS", ["event-stream-malware"]
-    )
+    monkeypatch.setattr(firewall_module, "BLACKLISTED_IMPORTS", ["event-stream-malware"])
 
     repo_dir = tmp_path / "imports_repo"
     repo_dir.mkdir()
-    (repo_dir / "app.js").write_text(
-        "import 'react'; require('event-stream-malware');", encoding="utf-8"
-    )
+    (repo_dir / "app.js").write_text("import 'react'; require('event-stream-malware');", encoding="utf-8")
     (repo_dir / "main.py").write_text("from 'django' import models", encoding="utf-8")
 
     result = firewall_module.run_firewall_audit(repo_dir)
@@ -31,9 +27,7 @@ def test_zero_trust_import_slicer(tmp_path, monkeypatch):
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.supply_chain_firewall.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.supply_chain_firewall.ApertureFilter")
-def test_strict_mode_enforcement(
-    mock_aperture_class, mock_security_class, tmp_path, monkeypatch
-):
+def test_strict_mode_enforcement(mock_aperture_class, mock_security_class, tmp_path, monkeypatch):
     monkeypatch.setattr(firewall_module, "APPROVED_IMPORTS", ["react"])
     monkeypatch.setattr(firewall_module, "BLACKLISTED_IMPORTS", [])
     monkeypatch.setattr(firewall_module, "STRICT_IMPORT_MODE", True)
@@ -62,9 +56,7 @@ def test_strict_mode_enforcement(
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.supply_chain_firewall.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.supply_chain_firewall.ApertureFilter")
-def test_inert_data_shield_minified_bypass(
-    mock_aperture_class, mock_security_class, tmp_path, monkeypatch
-):
+def test_inert_data_shield_minified_bypass(mock_aperture_class, mock_security_class, tmp_path, monkeypatch):
     monkeypatch.setattr(firewall_module, "STRICT_IMPORT_MODE", False)
     monkeypatch.setattr(firewall_module, "BLACKLISTED_IMPORTS", [])
 

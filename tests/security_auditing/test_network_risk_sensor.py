@@ -78,12 +78,8 @@ def test_network_isolated_island(sensor, universe):
 
     assert telemetry["in_degree"] == 0
     assert telemetry["out_degree"] == 0
-    assert (
-        telemetry["ecosystem_role"] == "Isolated/Orphan"
-    ), "Failed to identify the isolated island!"
-    assert (
-        telemetry["producer_ratio"] == 0.0
-    ), "Divide by zero occurred on producer_ratio!"
+    assert telemetry["ecosystem_role"] == "Isolated/Orphan", "Failed to identify the isolated island!"
+    assert telemetry["producer_ratio"] == 0.0, "Divide by zero occurred on producer_ratio!"
 
 
 # ==============================================================================
@@ -101,9 +97,7 @@ def test_network_cyclic_loop_resilience(sensor, universe):
     # Prove the cycle was mathematically registered
     assert telemetry["in_degree"] == 1
     assert telemetry["out_degree"] == 1
-    assert (
-        metrics["cyclic_density"] > 0.0
-    ), "Failed to register macro-level cyclic density!"
+    assert metrics["cyclic_density"] > 0.0, "Failed to register macro-level cyclic density!"
 
 
 # ==============================================================================
@@ -115,26 +109,13 @@ def test_network_ecosystem_roles(sensor, universe):
     mapped_stars, metrics = sensor.map_ecosystem(universe)
 
     foundation = next(s for s in mapped_stars if s["path"] == "/src/core/foundation.py")
-    assert (
-        foundation["telemetry"]["network_metrics"]["ecosystem_role"]
-        == "Pure Producer (Foundation)"
-    )
+    assert foundation["telemetry"]["network_metrics"]["ecosystem_role"] == "Pure Producer (Foundation)"
 
-    orchestrator = next(
-        s for s in mapped_stars if s["path"] == "/src/main/orchestrator.py"
-    )
-    assert (
-        orchestrator["telemetry"]["network_metrics"]["ecosystem_role"]
-        == "Pure Consumer (Orchestrator)"
-    )
+    orchestrator = next(s for s in mapped_stars if s["path"] == "/src/main/orchestrator.py")
+    assert orchestrator["telemetry"]["network_metrics"]["ecosystem_role"] == "Pure Consumer (Orchestrator)"
 
-    transceiver = next(
-        s for s in mapped_stars if s["path"] == "/src/utils/transceiver.py"
-    )
-    assert (
-        transceiver["telemetry"]["network_metrics"]["ecosystem_role"]
-        == "Transceiver (Middle-Tier)"
-    )
+    transceiver = next(s for s in mapped_stars if s["path"] == "/src/utils/transceiver.py")
+    assert transceiver["telemetry"]["network_metrics"]["ecosystem_role"] == "Transceiver (Middle-Tier)"
 
 
 # ==============================================================================
@@ -155,16 +136,12 @@ def test_network_algorithmic_bottleneck(sensor, universe):
     # 1. Foundation has high gravity (PageRank), but simple internal logic (Big O 1). Should be False.
     foundation = next(s for s in mapped_stars if s["path"] == "/src/core/foundation.py")
     assert foundation["telemetry"]["network_metrics"]["normalized_blast_radius"] > 1.0
-    assert (
-        foundation["telemetry"]["network_metrics"]["is_algorithmic_bottleneck"] is False
-    )
+    assert foundation["telemetry"]["network_metrics"]["is_algorithmic_bottleneck"] is False
 
     # 2. Heavy Calc has high gravity AND extreme logic (Big O 4 + Recursive). Should be True!
     heavy_calc = next(s for s in mapped_stars if s["path"] == "/src/math/heavy_calc.py")
     assert heavy_calc["telemetry"]["network_metrics"]["normalized_blast_radius"] > 1.0
-    assert (
-        heavy_calc["telemetry"]["network_metrics"]["is_algorithmic_bottleneck"] is True
-    )
+    assert heavy_calc["telemetry"]["network_metrics"]["is_algorithmic_bottleneck"] is True
 
 
 # ==============================================================================
@@ -176,13 +153,6 @@ def test_network_fallback_mode(sensor, universe):
         mapped_stars, metrics = sensor.map_ecosystem(universe)
 
         # It should still calculate basic in/out degrees and roles using pure Python dicts
-        foundation = next(
-            s for s in mapped_stars if s["path"] == "/src/core/foundation.py"
-        )
-        assert (
-            foundation["telemetry"]["network_metrics"]["ecosystem_role"]
-            == "Pure Producer (Foundation)"
-        )
-        assert (
-            foundation["telemetry"]["network_metrics"]["pagerank_score"] == 0.0
-        )  # Math is disabled
+        foundation = next(s for s in mapped_stars if s["path"] == "/src/core/foundation.py")
+        assert foundation["telemetry"]["network_metrics"]["ecosystem_role"] == "Pure Producer (Foundation)"
+        assert foundation["telemetry"]["network_metrics"]["pagerank_score"] == 0.0  # Math is disabled

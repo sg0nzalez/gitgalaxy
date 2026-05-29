@@ -23,9 +23,7 @@ MOCK_GUIDESTAR_CONFIG = {
 @pytest.fixture
 def guidestar(tmp_path):
     """Initializes the GuideStar Lens with a mocked configuration."""
-    with patch(
-        "gitgalaxy.core.guidestar_lens.GuideStarLens._gs_config", MOCK_GUIDESTAR_CONFIG
-    ):
+    with patch("gitgalaxy.core.guidestar_lens.GuideStarLens._gs_config", MOCK_GUIDESTAR_CONFIG):
         with patch(
             "gitgalaxy.core.guidestar_lens.GuideStarLens.MANIFEST_MAP",
             MOCK_GUIDESTAR_CONFIG["MANIFEST_MAP"],
@@ -108,9 +106,7 @@ def test_guidestar_gitignore_evasion_tactics(guidestar, tmp_path):
     a max-priority evasion alarm (1.0 confidence).
     """
     ignore_path = tmp_path / ".gitignore"
-    ignore_path.write_text(
-        "node_modules/\nbuild/\n!malicious_payload.so\n", encoding="utf-8"
-    )
+    ignore_path.write_text("node_modules/\nbuild/\n!malicious_payload.so\n", encoding="utf-8")
 
     guidestar.align_telescope()
 

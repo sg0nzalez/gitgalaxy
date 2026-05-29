@@ -26,9 +26,7 @@ def test_all_framework_regex_traps(tmp_path):
     # Create dummy files for every supported framework
     (repo_dir / "app.py").write_text('@app.get("/api/py")', encoding="utf-8")
     (repo_dir / "server.js").write_text('router.post("/api/js")', encoding="utf-8")
-    (repo_dir / "Controller.java").write_text(
-        '@DeleteMapping("/api/java")', encoding="utf-8"
-    )
+    (repo_dir / "Controller.java").write_text('@DeleteMapping("/api/java")', encoding="utf-8")
     (repo_dir / "main.go").write_text('.PUT("/api/go")', encoding="utf-8")
     (repo_dir / "Api.cs").write_text('[HttpPatch("/api/cs")]', encoding="utf-8")
     (repo_dir / "MinApi.cs").write_text('.MapGet("/api/csmin")', encoding="utf-8")
@@ -86,9 +84,7 @@ def test_auto_discover_swagger_logic(tmp_path):
     (tmp_path / "swagger.json").write_text("{}", encoding="utf-8")
 
     # 2. Deep Grep (Weird name, but contains OpenAPI signature)
-    (tmp_path / "hidden_spec.yml").write_text(
-        'openapi: "3.0.0"\npaths: {}', encoding="utf-8"
-    )
+    (tmp_path / "hidden_spec.yml").write_text('openapi: "3.0.0"\npaths: {}', encoding="utf-8")
 
     # 3. Decoy (Valid extension, no signature)
     (tmp_path / "package.json").write_text('{"name": "app"}', encoding="utf-8")
@@ -175,17 +171,11 @@ def test_main_ambiguous_merge_all(tmp_path, capsys):
     repo_dir.mkdir()
 
     # We must inject the "openapi" signature so the Deep Grep engine recognizes them!
-    (repo_dir / "swagger1.json").write_text(
-        '{"openapi": "3.0.0", "paths":{"/api/one":{"get":{}}}}', encoding="utf-8"
-    )
-    (repo_dir / "swagger2.json").write_text(
-        '{"openapi": "3.0.0", "paths":{"/api/two":{"post":{}}}}', encoding="utf-8"
-    )
+    (repo_dir / "swagger1.json").write_text('{"openapi": "3.0.0", "paths":{"/api/one":{"get":{}}}}', encoding="utf-8")
+    (repo_dir / "swagger2.json").write_text('{"openapi": "3.0.0", "paths":{"/api/two":{"post":{}}}}', encoding="utf-8")
 
     # Add a physical file so the dashboard prints cleanly
-    (repo_dir / "app.py").write_text(
-        '@app.get("/api/one")\n@app.post("/api/two")', encoding="utf-8"
-    )
+    (repo_dir / "app.py").write_text('@app.get("/api/one")\n@app.post("/api/two")', encoding="utf-8")
 
     with patch("sys.argv", ["api_map", str(repo_dir), "--merge-all"]):
         main()  # Should NOT raise SystemExit
@@ -238,9 +228,7 @@ def test_main_presentation_dashboard(tmp_path, capsys):
     )
 
     # 2. Source Code (Has a Shadow and the Shared endpoint)
-    (repo_dir / "app.py").write_text(
-        '@app.post("/api/shared")\n@app.delete("/api/shadow")', encoding="utf-8"
-    )
+    (repo_dir / "app.py").write_text('@app.post("/api/shared")\n@app.delete("/api/shadow")', encoding="utf-8")
 
     with patch("sys.argv", ["api_map", str(repo_dir)]):
         main()
@@ -283,22 +271,16 @@ def test_run_api_audit_success(tmp_path):
     repo_dir.mkdir()
 
     # Primary Spec
-    (repo_dir / "openapi.json").write_text(
-        '{"paths":{"/api/real":{"get":{}}}}', encoding="utf-8"
-    )
+    (repo_dir / "openapi.json").write_text('{"paths":{"/api/real":{"get":{}}}}', encoding="utf-8")
 
     # Test Spec (Should be ignored automatically)
     # The programmatic entry point strictly looks for "test", not "tests"
     test_dir = repo_dir / "test"
     test_dir.mkdir()
-    (test_dir / "swagger.json").write_text(
-        '{"paths":{"/api/test":{"get":{}}}}', encoding="utf-8"
-    )
+    (test_dir / "swagger.json").write_text('{"paths":{"/api/test":{"get":{}}}}', encoding="utf-8")
 
     # Source Code
-    (repo_dir / "app.py").write_text(
-        '@app.get("/api/real")\n@app.post("/api/shadow")', encoding="utf-8"
-    )
+    (repo_dir / "app.py").write_text('@app.get("/api/real")\n@app.post("/api/shadow")', encoding="utf-8")
 
     result = run_api_audit(repo_dir)
     assert result["status"] == "success"
