@@ -722,6 +722,7 @@ def test_cartographer_ray_casting_collision_avoidance(cartographer):
 # ==============================================================================
 # TEST 13: THE PROSE & SINGULARITY BYPASS
 # ==============================================================================
+@pytest.mark.smoke
 def test_detector_prose_and_empty_bypass():
     """Proves the engine gracefully aborts on Markdown, low confidence, or empty streams."""
     splicer = LogicSplicer("markdown", MOCK_LANG_DEFS)

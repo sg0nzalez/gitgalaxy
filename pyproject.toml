@@ -96,3 +96,6 @@ line-length = 120
 testpaths = [
     "tests",
 ]
+markers = [
+    "smoke: quick core engine tests for CI/CD pipelines",
+]

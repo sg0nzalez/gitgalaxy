@@ -53,6 +53,7 @@ def prism_engine():
 # ==============================================================================
 # TEST 1: THE BYPASS PROTOCOLS
 # ==============================================================================
+@pytest.mark.smoke
 def test_prism_prose_bypass(prism_engine):
     """Proves that Markdown and XML are routed entirely to the Ghost Mass (Doc) stream."""
     content = "# Title\n\nThis is a markdown file.\nIt has no active logic."
