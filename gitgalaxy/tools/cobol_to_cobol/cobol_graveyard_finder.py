@@ -144,6 +144,7 @@ def x_ray_dead_code(filepath: Path) -> dict:
 
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
+
     enforce_licensing_guard("The Graveyard Reaper")
 
     parser = argparse.ArgumentParser(description="GitGalaxy Graveyard Reaper v3")

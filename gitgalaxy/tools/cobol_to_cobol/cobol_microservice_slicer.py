@@ -123,6 +123,7 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
 
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
+
     enforce_licensing_guard("Microservice Slicer (The Legacy Forge)")
 
     parser = argparse.ArgumentParser(description="GitGalaxy Microservice Slicer v3")

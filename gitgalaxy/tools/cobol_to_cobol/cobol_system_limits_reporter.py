@@ -65,6 +65,7 @@ def scan_system_limits(filepath: Path) -> list:
 
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
+
     enforce_licensing_guard("System Limit Reporter (The Legacy Forge)")
 
     parser = argparse.ArgumentParser(description="GitGalaxy System Limit Reporter (Honesty Protocol)")

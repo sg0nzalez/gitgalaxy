@@ -149,6 +149,7 @@ def generate_build_jcl(source_text: str, prog_name: str, files: set, dialect: st
 
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
+
     enforce_licensing_guard("MVS 3.8j COBOL Compiler Forge")
 
     parser = argparse.ArgumentParser(description="GitGalaxy COBOL Compiler Forge")

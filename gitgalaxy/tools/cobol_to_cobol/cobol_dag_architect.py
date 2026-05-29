@@ -101,6 +101,7 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
 
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
+
     enforce_licensing_guard("DAG Architect (Data Lineage)")
 
     parser = argparse.ArgumentParser(description="GitGalaxy DAG Architect v3")

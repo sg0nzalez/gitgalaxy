@@ -127,6 +127,7 @@ def audit_zero_trust_jcls(forged_dir: Path, original_dir: Path) -> dict:
 
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
+
     enforce_licensing_guard("Zero-Trust Meta Auditor")
 
     parser = argparse.ArgumentParser(description="GitGalaxy Zero-Trust Meta Auditor (v5)")
