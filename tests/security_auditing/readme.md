@@ -1,45 +1,39 @@
-# 🛡️ Security & Auditing Test Suite
+### 🛡️ Mathematical Proofs: Zero-Trust Security & Auditing
 
-Welcome to the **Security & Auditing** domain.
+This directory contains the strict mathematical and physical validation suite for GitGalaxy's Security, Auditing, and Threat Intelligence sensors.
 
-Because GitGalaxy is utilized as a zero-trust forensic engine, its security sensors must be mathematically flawless. This test suite proves that the engine can successfully detect agentic threats, supply chain poisons, shadow APIs, and Catastrophic Backtracking attacks entirely through static structural physics, without ever requiring dynamic execution or external sandboxes.
+Most enterprise security tools rely on fragile dynamic execution, slow sandboxing, or shallow manifest scanning (which misses typosquatting and hidden payloads). GitGalaxy approaches DevSecOps as a problem of **structural physics**. This test suite exists to mathematically prove that our AST-free engine can definitively detect autonomous agent threats, supply chain poisons, Shadow APIs, and catastrophic algorithmic vulnerabilities using pure static mathematics—without ever executing the target code.
 
-## 📂 The Intelligence Sensors
+---
 
-### 1. AppSec & AI Guardrails
-Validates the sensors designed to monitor Large Language Models (LLMs) and autonomous agent frameworks interacting with the codebase.
-* `test_ai_appsec_sensor.py` - Proves the engine can correctly flag AI-specific vulnerabilities: **RCE Funnels** (Agentic code execution), **God-Mode Agents** (over-permissioned database writes + autonomous tools), and **Exfiltration Vectors** (AI models with access to both network sockets and raw secrets).
-* `test_dev_agent_firewall.py` - Validates the DevAgent architectural guardrails. Proves the engine can flag **Context Window Shredders** (massive $O(N^3)$ files that hallucinate LLMs), enforce **HITL (Human-in-the-Loop) Mandates** via blast radius math, and detect **Silent Mutation Risks**.
-* `test_neural_auditor.py` - Validates the Local Compute AI scanner. Proves the auditor can execute zero-RAM binary header parsing on `.safetensors` and `.gguf` files to extract the exact Architecture, Quantization, and Parameter Math (e.g., 16.8M) without loading massive payloads into memory, while explicitly blocking OOM hallucination attacks.
+### 🧪 Execution Protocols
 
-### 2. Supply Chain & Vault Security
-Validates the perimeter defenses that prevent malicious code, exposed secrets, and unauthorized dependencies from entering the build pipeline.
-* `test_vault_sentinel.py` - Validates the multi-tiered secrets scanner. Proves the Denylist Wall instantly blocks files like `id_rsa`, while the Deep Scan Trap successfully crashes the pipeline if it catches hardcoded `AKIA` AWS keys in otherwise benign files.
-* `test_supply_chain_firewall.py` - Validates the Zero-Trust Import Slicer. Proves the firewall can cross-reference package imports against Approved/Blacklisted arrays, enforce Strict Mode, and safely bypass minified inert data files.
-* `test_binary_anomaly_detector.py` - Validates the X-Ray engine. Proves the detector can spot **Magic Byte Mismatches** (e.g., an executable disguised as a `.jpg`), flag high-entropy packed payloads, and enforce the Shebang Shield.
-* `test_sbom_generator.py` - Validates the Universal Manifest Slicer. Proves the regex can extract packages natively across diverse ecosystems (NPM, PyPI, Cargo) and securely translate threat states (`SPOOF_DETECTED`, `UNVERIFIED_MISSING_ON_DISK`) into a compliant CycloneDX JSON specification.
+These gauntlets stress-test the threat sensors against embedded malware, corrupted JSON schemas, infinite cyclic loops, and RCE injection vectors. To run the security matrix in isolation:
 
-### 3. Data Physics & Ecosystem Compliance
-Validates the mathematical graph theory and data-destruction pipelines.
-* `test_network_risk_sensor.py` - Validates the N-Dimensional graph physics. Proves the engine can calculate PageRank (Blast Radius) and Betweenness Centrality without NetworkX installed, while safely surviving mathematically impossible states like Isolated Islands (0 edges) and A->B->A infinite cyclic deadlocks.
-* `test_api_network_map.py` - Validates the Set-Theory API auditor. Proves it can cross-reference physical code boundaries across multiple languages against Swagger specifications to definitively flag **Ghost APIs** (documented but missing) and **Shadow APIs** (actively listening but undocumented).
-* `test_pii_leak_hunter.py` - Validates the Terabyte Data Destroyer. Proves the log-scanner can mathematically intercept, mask, and safely write PII (Credit Cards, SSNs, AWS Keys) at the streaming level, guaranteeing zero raw data ever touches the output evidence log.
-* `test_terabyte_log_scanner.py` - Validates the binary stream log filter. Proves the tool correctly parses the GitGalaxy IR state JSON, applies the target whitelist to a live, gigabyte-scale log stream, and safely extracts only matching telemetry.
-* `test_spectral_auditor.py` - Validates the Heuristic Physics Filter. Proves the engine enforces the **50/0 Law** (rejecting massive files with 0 logic structures) and the **Supernova Guard** (rejecting minified payloads with impossible signal densities), while using a Consensus Engine to rescue ambiguous files.
-
-### 4. The Core Stability Proving Ground
-* `test_redos_poison.py` - The ultimate stability test. Spawns an isolated 8-core multiprocessing pool to blast every single regex in the production pipeline (1,200+ rules) with the "Toxic Arsenal" of classic ReDoS payloads (unclosed scopes, exponential overlapping whitespace, escaping quote hell), utilizing a 0.25-second kill-switch to guarantee that no regular expression can ever lock the CPU.
-
-## 🚀 Execution Commands
-
-Execute these tests from the project root while within the `galaxy_venv`.
-
-**Run the entire security gauntlet:**
 ```bash
 python -m pytest tests/security_auditing/ -v
 ```
 
-**Run the ReDoS poison fuzzer specifically:**
-```bash
-python -m pytest tests/security_auditing/test_redos_poison.py -v
-```
+---
+
+### 📂 Verified Capabilities & Documentation Index
+
+The following tests validate the core perimeter defenses and intelligence sensors. Click on any component to review its underlying structural physics.
+
+#### 1. AI Governance & Autonomous Guardrails
+Validates the sensors designed to monitor Large Language Models (LLMs) and autonomous agents interacting with your codebase.
+* **`test_dev_agent_firewall.py`** — Validates the [Dev Agent Firewall](../../docs/wiki/02-18-dev-agent-firewall.md). Proves the engine mathematically identifies **Context Window Shredders** (O(N^3) logic in massive files), flags **Silent Mutation Risks**, and enforces **HITL (Human-in-the-Loop) Mandates** based on calculated blast radii.
+* **`test_ai_appsec_sensor.py`** — Validates the [AI AppSec Sensor](../../docs/wiki/02-17-ai-appsec-sensor.md). Proves the engine can flag AI-specific vulnerabilities, including **RCE Funnels** (Agentic code execution) and **God-Mode Agents** (over-permissioned database writes).
+* **`test_neural_auditor.py`** — Validates the [Neural Auditor](../../docs/wiki/02-19-neural-auditor.md). Proves the local scanner can execute zero-RAM binary header parsing on `.safetensors` and `.gguf` payloads to extract quantization and parameter math without causing OOM crashes.
+
+#### 2. Supply Chain & Vault Security
+Validates the Zero-Trust perimeter defenses that block hostile dependencies and credential leaks.
+* **`test_supply_chain_firewall.py`** — Validates the [Supply Chain Firewall](../../docs/wiki/04-03-supply-chain-firewall.md). Proves the Zero-Trust Import Slicer successfully enforces Strict Mode allowlists, cross-references physical imports against known poisons, and safely bypasses minified data files.
+* **`test_vault_sentinel.py`** — Validates the [Vault Sentinel](../../docs/wiki/04-04-vault-sentinel.md). Proves the dual-layer perimeter instantly blocks forbidden extensions (Denylist Wall) and executes a Deep Scan Trap to crash the pipeline if hardcoded `AKIA` AWS keys are found in otherwise benign source code.
+* **`test_binary_anomaly_detector.py`** — Validates the [Binary Anomaly Detector](../../docs/wiki/04-05-binary-anomaly-detector.md). Proves the X-Ray engine catches **Magic Byte Mismatches** (e.g., an executable disguised as a `.jpg`), flags high-entropy encrypted payloads, and enforces the Shebang Shield.
+* **`test_sbom_generator.py`** — Validates the [SBOM Generator](../../docs/wiki/04-02-sbom-generator.md). Proves the Universal Manifest Slicer securely translates threat states into compliant CycloneDX JSON without blindly trusting package names.
+
+#### 3. Structural Threat Physics & Ecosystem Compliance
+Validates the mathematical graph theory and data-destruction pipelines.
+* **`test_security_auditor.py`** — Validates the [Security Auditor](../../docs/wiki/02-20-security-auditor.md). Proves the XGBoost multiclass ML inference engine successfully formats spatial data into Pandas matrices to predict threats, while utilizing an O(1) pure-Python fallback to resolve dependency graphs if NetworkX is missing.
+* **`test_network_risk_sensor.py`** — Validates the [Network Risk Sensor](../../docs/wiki/02-16-network-risk-sensor.md). Proves the engine calculates **PageRank (Blast Radius)** and

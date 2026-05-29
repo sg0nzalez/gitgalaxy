@@ -1,10 +1,12 @@
-# 🌌 GitGalaxy: WebGPU Visualizer (GitGalaxy.io)
+# 🌌 GitGalaxy: WebGPU Visualizer ([GitGalaxy.io](https://gitgalaxy.io))
 
 **A High-Performance, Zero-Trust 3D Codebase Cartography Engine.**
 
-GitGalaxy is a forensic visualizer that maps repository telemetry into an interactive, real-time 3D universe. By translating flat code into spatial data, it exposes hidden architectural patterns, dependency gravity, and generalized risk exposures (like technical debt and cognitive load) that are otherwise invisible in standard IDEs. 
+Modern IDEs present code as a flat list of files, masking the true physical weight, fragility, and blast radius of enterprise architecture. GitGalaxy is a forensic visualizer that solves this by mapping repository telemetry into an interactive, real-time 3D universe. 
 
-A live, hosted version of this engine is available at **[GitGalaxy.io](https://gitgalaxy.io/)**.
+This repository houses the standalone WebGPU presentation layer for the [GitGalaxy blAST Engine](https://github.com/squid-protocol/gitgalaxy). By translating raw static analysis into spatial geometry, it instantly exposes hidden architectural bottlenecks, dependency gravity, and critical risk exposures.
+
+🔭 **[Launch the Live Interactive Visualizer at GitGalaxy.io](https://gitgalaxy.io/)**
 
 ## 🔭 Architectural Case Studies
 
@@ -22,7 +24,8 @@ This isn't a standard charting library; it's a custom-built, hardware-accelerate
 
 * **Next-Gen WebGPU Rendering:** Built on `three/webgpu` with custom TSL (Three.js Shading Language) nodes. It utilizes bit-packed vertex attributes and instanced meshes to render up to 150,000 files simultaneously at a smooth 60FPS, even on mobile GPUs.
 * **Fibonacci Physics & 3D Phyllotaxis:** Files aren't placed randomly. The engine calculates "Orbital Reach" and distributes satellite functions around parent classes using golden-angle mathematics, creating organic, mathematically sound code constellations.
-* **Multi-Dimensional Forensic Metrics:** The UI provides deep telemetry, visually mapping calculated risk metrics derived from DNA/regex hits—including API exposure, state flux, cyclomatic complexity, and even "Civil War" metrics (tabs vs. spaces) using dynamic, shader-driven color mapping.
+* **Multi-Dimensional Forensic Metrics:** The UI provides deep telemetry, visually mapping calculated risk exposures derived from our AST-free regex heuristics. Toggle shader-driven color overlays to instantly identify [API Exposure](https://squid-protocol.github.io/gitgalaxy/08-14-api-exposure.md), [State Flux](https://squid-protocol.github.io/gitgalaxy/08-16-state-flux-exposure.md), [Cognitive Load](https://squid-protocol.github.io/gitgalaxy/08-05-cognitive-load.md), and even [Civil War](https://squid-protocol.github.io/gitgalaxy/08-12-civil-war.md) formatting fractures (tabs vs. spaces) across the entire system.
+* **The Structural RAG Graph:** Visualizes the exact deterministic [Knowledge Graph Context](https://squid-protocol.github.io/gitgalaxy/01-06-the-structural-rag-graph.md) that the core engine feeds to downstream AI agents, allowing humans to audit the precise boundaries of their DevSecOps pipelines.
 * **Interactive Dependency Webs:** Navigate the architecture with hyperspace jumps, isolate single components, and toggle global inbound/outbound dependency rings that arc across the galaxy.
 
 ## 🛡️ Zero-Trust & Local Execution
@@ -33,7 +36,11 @@ When you drop a `your_repo_GPU_galaxy.json` state dump into the interface, **abs
 
 ## 🛠️ Getting Started & Local Development
 
-The visualizer is designed to be the front-end counterpart to the `galaxyscope` PyPI module. Once you've generated your JSON payload via the CLI, you can view it either on the live site or by spinning up the engine locally.
+This visualizer is the front-end counterpart to the core [GitGalaxy Python CLI](https://github.com/squid-protocol/gitgalaxy). To generate your own 3D repository map:
+
+1. Install the core engine: `pip install gitgalaxy`
+2. Scan your local repository: `galaxyscope /path/to/your/repo`
+3. Drop the resulting `_galaxy_gpu.json` payload directly into [GitGalaxy.io](https://gitgalaxy.io), or spin up this engine locally for completely air-gapped enterprise environments.
 
 1. Clone this repository and navigate to the visualizer directory.
 2. Boot the local server (e.g., using the included `app.py` or any standard HTTP server).

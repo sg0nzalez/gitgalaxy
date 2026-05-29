@@ -14,6 +14,8 @@
 
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)](https://pypi.org/project/gitgalaxy/)
 [![Airgap Ready](https://img.shields.io/badge/Security-Airgap_Ready-teal.svg)](#)
+[![Downloads](https://static.pepy.tech/badge/gitgalaxy)](https://pepy.tech/project/gitgalaxy)
+[![GitHub stars](https://img.shields.io/github/stars/squid-protocol/gitgalaxy?style=social)](https://github.com/squid-protocol/gitgalaxy/stargazers)
 
 ### **AST-Free Static Analysis & Knowledge Graph Engine**
 
@@ -39,6 +41,8 @@ Every assumption our system makes has been abstracted into over 300 tunable vari
 * Scans 50+ languages, 250+ extensions, fully folder-aware. **([How to add a language in 1 minute and 1 prompt](gitgalaxy/standards/HOW_TO_ADD_LANGUAGE.md))**
 
 **Enterprise Scale & Performance Metrics**
+* **Active Pipeline Integration:** Over 11,000 PyPI downloads, driven heavily by automated CI/CD security sweeps and zero-trust DevSecOps workflows.
+* **Production Tested:** Backed by an active early-adopter community on GitHub driving real-world issue resolution, architectural forks, and continuous engine hardening.
 * 100,000 LOC/sec code analysis.
 * 0.07 GB/sec raw log ingestion.
 * Full-system scans in minutes without data sampling.
@@ -173,10 +177,22 @@ Your code never leaves your machine. GitGalaxy performs 100% of its scanning and
 * **Ephemeral Memory Processing:** Repositories are unpacked into a volatile memory buffer (RAM) and are automatically purged when the browser tab is closed.
 * **Privacy-by-Design:** Even when using the web-based viewer, the data remains behind the user's firewall at all times.
 
-## License & Copyright
+## ⚖️ Licensing & Usage
 
 Copyright (c) 2026 Joe Esquibel
 
-GitGalaxy is released under the PolyForm Noncommercial License 1.0.0. It is completely free for personal use, research, experiment, testing, and hobby projects. Use by educational or charitable organizations is also permitted.
+GitGalaxy is distributed under the **PolyForm Noncommercial License 1.0.0**. 
 
-Any commercial use or integration into commercial SaaS products or corporate CI/CD pipelines requires a separate commercial license. Please reach out via gitgalaxy.io to discuss commercial integration.
+### 🎓 Community Free Tier (Academic, Research, & Hobbyist)
+We are deeply committed to the open-source and academic communities. If you are using GitGalaxy for personal projects, academic research, or non-commercial development, the engine is 100% free to use.
+
+To suppress the commercial licensing delays in your terminal or personal CI/CD pipelines, simply set the following environment variable:
+
+```bash
+export GITGALAXY_LICENSE_KEY="COMMUNITY_FREE_TIER"
+```
+
+### 🏢 Commercial & Enterprise Use
+Running GitGalaxy in corporate environments, proprietary codebases, or commercial CI/CD pipelines requires an enterprise license. Unlicensed corporate pipelines will experience intentional execution friction, and attempting to use the Community Free Tier key in a corporate environment will trigger explicit non-compliance warnings in your audit logs.
+
+To acquire a zero-trust commercial key for your organization and ensure clean compliance logs, please contact: **joe@gitgalaxy.io**
