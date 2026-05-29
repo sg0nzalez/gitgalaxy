@@ -2,8 +2,12 @@ import pytest
 import json
 
 # Import your Forge generators
-from gitgalaxy.tools.cobol_to_java.cobol_to_java_api_contract_forge import generate_rest_controller
-from gitgalaxy.tools.cobol_to_java.cobol_to_java_spring_forge import generate_java_entity
+from gitgalaxy.tools.cobol_to_java.cobol_to_java_api_contract_forge import (
+    generate_rest_controller,
+)
+from gitgalaxy.tools.cobol_to_java.cobol_to_java_spring_forge import (
+    generate_java_entity,
+)
 
 # ==============================================================================
 # INLINE FIXTURES (The "Known Good" Inputs)
@@ -14,9 +18,9 @@ MOCK_IR_STATE = {
         "base_intent": {"files_requested": [], "is_cics": False},
         "lineage": {
             "inputs": ["EMPLOYEE-RECORD", "TIMECARD-DATA"],
-            "outputs": ["PAYROLL-RECEIPT"]
-        }
-    }
+            "outputs": ["PAYROLL-RECEIPT"],
+        },
+    },
 }
 
 MOCK_SCHEMA_STATE = {
@@ -24,8 +28,8 @@ MOCK_SCHEMA_STATE = {
     "properties": {
         "EMP-ID": {"type": "integer", "description": "PIC 9(6)"},
         "EMP-NAME": {"type": "string", "description": "PIC X(50)"},
-        "SALARY": {"type": "decimal", "description": "PIC 9(5)V99"}
-    }
+        "SALARY": {"type": "decimal", "description": "PIC 9(5)V99"},
+    },
 }
 
 # ==============================================================================
@@ -87,27 +91,31 @@ public class EmployeeTable {
 # THE TESTS
 # ==============================================================================
 
+
 def test_api_contract_golden_image():
     """
-    Feeds a known IR state into the API Contract Forge and verifies the 
+    Feeds a known IR state into the API Contract Forge and verifies the
     resulting Java code matches our Golden Image byte-for-byte.
     """
     # 1. Generate the code using the mock IR
     generated_java = generate_rest_controller(MOCK_IR_STATE, "com.gitgalaxy.modernized")
-    
+
     # 2. Compare against the Golden Image
     # We collapse whitespace to prevent OS line-ending differences (CRLF vs LF) from failing the test
-    assert " ".join(generated_java.split()) == " ".join(GOLDEN_CONTROLLER.split()), \
-        "API Contract generation drifted from the Golden Image! Did someone alter the string formatting?"
+    assert " ".join(generated_java.split()) == " ".join(
+        GOLDEN_CONTROLLER.split()
+    ), "API Contract generation drifted from the Golden Image! Did someone alter the string formatting?"
+
 
 def test_spring_entity_golden_image():
     """
-    Feeds a known Schema state into the Spring Entity Forge and verifies the 
+    Feeds a known Schema state into the Spring Entity Forge and verifies the
     resulting JPA Entity (with PIC constraints) matches our Golden Image.
     """
     # 1. Generate the entity using the mock schema
     generated_java = generate_java_entity(MOCK_SCHEMA_STATE, "com.gitgalaxy.modernized")
-    
+
     # 2. Compare against the Golden Image
-    assert " ".join(generated_java.split()) == " ".join(GOLDEN_ENTITY.split()), \
-        "Spring Entity generation drifted from the Golden Image! Check PIC clause parsing logic."
+    assert " ".join(generated_java.split()) == " ".join(
+        GOLDEN_ENTITY.split()
+    ), "Spring Entity generation drifted from the Golden Image! Check PIC clause parsing logic."

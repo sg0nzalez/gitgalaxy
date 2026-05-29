@@ -88,3 +88,6 @@ exclude = [
 [tool.setuptools_scm]
 # This tells it to expect tags like "v2.0.5" instead of just "2.0.5"
 tag_regex = '^v?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$'
+
+[tool.black]
+line-length = 120

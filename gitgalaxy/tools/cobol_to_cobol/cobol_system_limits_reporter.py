@@ -12,21 +12,25 @@ from pathlib import Path
 # Define the "Ancient Dragons" (Structural limiters)
 SYSTEM_LIMIT_RULES = {
     "ALTER_STATEMENT": {
-        "regex": re.compile(r'\bALTER\s+[A-Z0-9\-]+\s+TO\s+(?:PROCEED\s+TO\s+)?[A-Z0-9\-]+\b', re.IGNORECASE),
+        "regex": re.compile(
+            r"\bALTER\s+[A-Z0-9\-]+\s+TO\s+(?:PROCEED\s+TO\s+)?[A-Z0-9\-]+\b",
+            re.IGNORECASE,
+        ),
         "severity": "CRITICAL",
-        "description": "Control flow mathematically compromised. The target of a GO TO is being dynamically rewritten."
+        "description": "Control flow mathematically compromised. The target of a GO TO is being dynamically rewritten.",
     },
     "COPY_REPLACING": {
         "regex": re.compile(r'\bCOPY\s+[\'"]?[A-Z0-9\-]+[\'"]?\s+REPLACING\b', re.IGNORECASE),
         "severity": "HIGH",
-        "description": "Macro substitution detected. AST math may drift from actual compiled execution."
+        "description": "Macro substitution detected. AST math may drift from actual compiled execution.",
     },
     "CICS_ASYNC_JUMP": {
-        "regex": re.compile(r'EXEC\s+CICS\s+HANDLE\s+CONDITION', re.IGNORECASE),
+        "regex": re.compile(r"EXEC\s+CICS\s+HANDLE\s+CONDITION", re.IGNORECASE),
         "severity": "CRITICAL",
-        "description": "Asynchronous error routing detected. Execution flow can jump outside the static DAG."
-    }
+        "description": "Asynchronous error routing detected. Execution flow can jump outside the static DAG.",
+    },
 }
+
 
 def scan_system_limits(filepath: Path) -> list:
     """
@@ -36,14 +40,14 @@ def scan_system_limits(filepath: Path) -> list:
     anomalies = []
     try:
         # Open file with error handling for legacy encodings
-        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+        with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
             lines = f.readlines()
     except Exception as e:
         return [f"[{filepath.name}] ERROR: Failed to read file - {e}"]
 
     for line_num, line in enumerate(lines, start=1):
         # Skip standard COBOL comments (asterisk in column 7)
-        if len(line) > 6 and line[6] == '*':
+        if len(line) > 6 and line[6] == "*":
             continue
 
         clean_line = line.strip()
@@ -57,6 +61,7 @@ def scan_system_limits(filepath: Path) -> list:
                 anomalies.append(warning)
 
     return anomalies
+
 
 def main():
     parser = argparse.ArgumentParser(description="GitGalaxy System Limit Reporter (Honesty Protocol)")
@@ -81,7 +86,7 @@ def main():
         sys.exit(0)
 
     print(f"\n🔎 GitGalaxy Honesty Protocol scanning {len(cobol_files)} files for structural dragons...\n")
-    print("="*90)
+    print("=" * 90)
 
     total_anomalies = 0
 
@@ -92,12 +97,13 @@ def main():
                 print(f" ⚠️ {anomaly}")
                 total_anomalies += 1
 
-    print("="*90)
+    print("=" * 90)
     if total_anomalies == 0:
         print(" ✅ No structural limits detected. DAG is 100% mathematically deterministic.")
     else:
         print(f" 🚨 WARNING: Found {total_anomalies} structural anomalies requiring human architectural review.")
     print("==========================================================================================\n")
+
 
 if __name__ == "__main__":
     main()

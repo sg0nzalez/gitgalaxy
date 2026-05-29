@@ -4,13 +4,14 @@
 import logging
 from typing import List, Dict, Any
 
+
 class AIAppSecSensor:
     """
     The AppSec Threat Hunter.
-    
-    PURPOSE: Scans the ecosystem for weaponized AI architectures built by the 
-    developers. It flags dangerous intersections where LLMs (which are vulnerable 
-    to Prompt Injection) are given access to OS commands, database writes, or 
+
+    PURPOSE: Scans the ecosystem for weaponized AI architectures built by the
+    developers. It flags dangerous intersections where LLMs (which are vulnerable
+    to Prompt Injection) are given access to OS commands, database writes, or
     unfiltered network sockets.
     """
 
@@ -19,31 +20,31 @@ class AIAppSecSensor:
 
     def hunt_threats(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info("AI AppSec Sensor: Hunting for Agentic Vulnerabilities...")
-        
+
         for file_data in parsed_files:
             # Extract the raw DNA triggers (assuming they are tallied in 'telemetry')
             telemetry = file_data.get("telemetry", {})
             risk_vector = file_data.get("risk_vector", [])
-            
+
             # Extract specific architectural signals
             ai_orchestrator = telemetry.get("ai_orchestrator", 0) > 0
             llm_api = telemetry.get("llm_api", 0) > 0
             ai_tools = telemetry.get("ai_tools", 0) > 0
-            
+
             arch_api = telemetry.get("arch_api", 0) > 0  # Publicly exposed
-            arch_io = telemetry.get("arch_io", 0) > 0    # Network/Disk I/O
-            db_complexity = file_data.get("max_db_complexity", 0) # Data gravity
-            
+            arch_io = telemetry.get("arch_io", 0) > 0  # Network/Disk I/O
+            db_complexity = file_data.get("max_db_complexity", 0)  # Data gravity
+
             # Security DNA
-            sec_danger = telemetry.get("sec_danger", 0) > 0     # eval, exec, subprocess
-            sec_secrets = telemetry.get("sec_secrets", 0) > 0   # Hardcoded keys/env access
-            safety_density = telemetry.get("safety_density", 1.0) # Defensive programming (try/catch, regex)
-            
+            sec_danger = telemetry.get("sec_danger", 0) > 0  # eval, exec, subprocess
+            sec_secrets = telemetry.get("sec_secrets", 0) > 0  # Hardcoded keys/env access
+            safety_density = telemetry.get("safety_density", 1.0)  # Defensive programming (try/catch, regex)
+
             appsec_report = {
                 "is_rce_funnel": False,
                 "over_permissioned_agent": False,
                 "agentic_exfiltration_risk": False,
-                "critical_warnings": []
+                "critical_warnings": [],
             }
 
             # 1. The RCE Funnel (Weaponized Prompt Injection)
@@ -72,5 +73,5 @@ class AIAppSecSensor:
 
             # Inject the AppSec report back into the file's telemetry
             file_data["telemetry"]["ai_appsec"] = appsec_report
-            
+
         return parsed_files

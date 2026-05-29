@@ -2,6 +2,7 @@ import subprocess
 import json
 from pathlib import Path
 
+
 def test_galaxyscope_python_fixture(tmp_path):
     """
     Tests that GalaxyScope can parse a micro-repo (iwubi),
@@ -10,11 +11,13 @@ def test_galaxyscope_python_fixture(tmp_path):
     # 1. Dynamically get the absolute path to the GitGalaxy root
     test_dir = Path(__file__).parent
     project_root = test_dir.parent.parent  # <--- Added second .parent
-    
+
     # 2. Build absolute paths for the script and the fixture
     script_path = project_root / "gitgalaxy" / "galaxyscope.py"
-    fixture_path = test_dir.parent / "fixtures" / "iwubi_frankenstein_test" # <--- Added .parent
-    
+    fixture_path = (
+        test_dir.parent / "fixtures" / "iwubi_frankenstein_test"
+    )  # <--- Added .parent
+
     # Force output to a temporary directory
     output_dir = tmp_path / "test_run"
 
@@ -22,16 +25,18 @@ def test_galaxyscope_python_fixture(tmp_path):
     result = subprocess.run(
         ["python", str(script_path), str(fixture_path), "--output", str(output_dir)],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     # INVARIANT 1: CLI Exit Code & Billboard Output
     assert result.returncode == 0, f"GalaxyScope crashed! Stderr: {result.stderr}"
-    assert "MISSION_SUCCESS" in result.stdout, "CLI did not print the success billboard."
+    assert (
+        "MISSION_SUCCESS" in result.stdout
+    ), "CLI did not print the success billboard."
 
     # The engine uses the target folder name to build the filenames automatically
     target_name = "iwubi_frankenstein_test"
-    
+
     gpu_file = output_dir / f"{target_name}_galaxy_gpu.json"
     audit_file = output_dir / f"{target_name}_galaxy_audit.json"
     llm_file = output_dir / f"{target_name}_galaxy_llm.md"
@@ -56,6 +61,6 @@ def test_galaxyscope_python_fixture(tmp_path):
         md_content = f.read()
         assert "# ARCHITECTURAL_BRIEF" in md_content, "LLM Markdown missing main header"
         assert "MACRO STATE" in md_content, "LLM Markdown missing MACRO STATE section"
-        
+
     # INVARIANT 5: SQLite Database (Byte check)
     assert db_file.stat().st_size > 1000, "SQLite database appears to be empty"

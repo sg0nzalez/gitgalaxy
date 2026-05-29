@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # ==============================================================================
 # GitGalaxy Spoke: Java Spring EBCDIC & COMP-3 Decoder Forge
-# Purpose: Auto-generates the utility class necessary to translate raw 
+# Purpose: Auto-generates the utility class necessary to translate raw
 #          mainframe byte streams into modern Java data structures.
 # ==============================================================================
 def generate_decoder_util(package_name: str) -> str:

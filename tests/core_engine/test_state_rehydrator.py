@@ -9,6 +9,7 @@ from gitgalaxy.core.state_rehydrator import StateRehydrator
 # MOCK DATABASE CALIBRATION
 # ==============================================================================
 
+
 @pytest.fixture
 def mock_db(tmp_path):
     """Creates a temporary SQLite database populated with mock schema and data."""
@@ -17,14 +18,14 @@ def mock_db(tmp_path):
     cursor = conn.cursor()
 
     # Create Mock Schema
-    cursor.execute('''
+    cursor.execute("""
         CREATE TABLE repo_data (
             repo_name TEXT,
             commit_hash TEXT,
             commit_date INTEGER
         )
-    ''')
-    cursor.execute('''
+    """)
+    cursor.execute("""
         CREATE TABLE file_data (
             repo_name TEXT,
             commit_hash TEXT,
@@ -40,15 +41,21 @@ def mock_db(tmp_path):
             total_downstream INTEGER,
             total_upstream INTEGER
         )
-    ''')
+    """)
 
     # Insert Mock Data: Repo History
     # Older commit
-    cursor.execute("INSERT INTO repo_data VALUES ('test_repo', 'hash_old_123', 1600000000)")
+    cursor.execute(
+        "INSERT INTO repo_data VALUES ('test_repo', 'hash_old_123', 1600000000)"
+    )
     # Newer commit (This should be the one selected!)
-    cursor.execute("INSERT INTO repo_data VALUES ('test_repo', 'hash_new_456', 1700000000)")
+    cursor.execute(
+        "INSERT INTO repo_data VALUES ('test_repo', 'hash_new_456', 1700000000)"
+    )
     # Different repo entirely
-    cursor.execute("INSERT INTO repo_data VALUES ('other_repo', 'hash_other_789', 1800000000)")
+    cursor.execute(
+        "INSERT INTO repo_data VALUES ('other_repo', 'hash_other_789', 1800000000)"
+    )
 
     # Insert Mock Data: File Physics for the newer commit
     cursor.execute("""
@@ -60,8 +67,9 @@ def mock_db(tmp_path):
 
     conn.commit()
     conn.close()
-    
+
     return str(db_path)
+
 
 # ==============================================================================
 # TEST 1: COLD START (Missing DB)
@@ -70,9 +78,10 @@ def test_rehydrator_cold_start(tmp_path):
     """Proves the rehydrator safely returns None if the master DB is missing."""
     missing_db_path = tmp_path / "does_not_exist.db"
     rehydrator = StateRehydrator(str(missing_db_path))
-    
+
     result = rehydrator.load_latest_state("test_repo")
     assert result is None, "Failed to handle a cold start gracefully!"
+
 
 # ==============================================================================
 # TEST 2: GHOST REPOSITORY (Missing Repo Data)
@@ -80,9 +89,10 @@ def test_rehydrator_cold_start(tmp_path):
 def test_rehydrator_missing_repo(mock_db):
     """Proves the rehydrator safely returns None if the repo history is empty."""
     rehydrator = StateRehydrator(mock_db)
-    
+
     result = rehydrator.load_latest_state("ghost_repo")
     assert result is None, "Failed to handle a missing repository gracefully!"
+
 
 # ==============================================================================
 # TEST 3: TEMPORAL ACCURACY & SCHEMA MAPPING
@@ -97,11 +107,15 @@ def test_rehydrator_successful_load(mock_db):
 
     # 1. Assert Temporal Accuracy
     assert result is not None
-    assert result["commit_hash"] == "hash_new_456", "Failed to select the most recent commit!"
+    assert (
+        result["commit_hash"] == "hash_new_456"
+    ), "Failed to select the most recent commit!"
 
     # 2. Assert the cryolink dictionary structure is perfectly mapped
     cryolink = result["cryolink"]
-    assert "src/main.py" in cryolink, "Failed to map the file path as the dictionary key!"
+    assert (
+        "src/main.py" in cryolink
+    ), "Failed to map the file path as the dictionary key!"
 
     file_node = cryolink["src/main.py"]
     assert file_node["lang_id"] == "python"

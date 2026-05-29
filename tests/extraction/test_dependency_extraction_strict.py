@@ -4,14 +4,14 @@ from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
 
 # ==============================================================================
 # THE GRAVITY LINK GAUNTLET
-# Proves that the `_dependency_capture` spawner accurately isolates EXACTLY 
-# the imported file/module path across major languages, surviving destructuring, 
+# Proves that the `_dependency_capture` spawner accurately isolates EXACTLY
+# the imported file/module path across major languages, surviving destructuring,
 # aliases, and multi-line formatting without capturing the wrong variables.
 # ==============================================================================
 # ==============================================================================
 # THE GRAVITY LINK GAUNTLET (37-LANGUAGE MEGA SUITE)
-# Proves that the `_dependency_capture` spawner accurately isolates EXACTLY 
-# the imported file/module path across ALL supported languages, surviving 
+# Proves that the `_dependency_capture` spawner accurately isolates EXACTLY
+# the imported file/module path across ALL supported languages, surviving
 # destructuring, aliases, and multi-line formatting without capturing the wrong variables.
 # ==============================================================================
 DEPENDENCY_EXTRACTION_CASES = {
@@ -19,403 +19,397 @@ DEPENDENCY_EXTRACTION_CASES = {
         "valid": [
             ("import os", "os"),
             ("from gitgalaxy.engine import Parser", "gitgalaxy.engine"),
-            ("import numpy as np", "numpy")
+            ("import numpy as np", "numpy"),
         ],
         "invalid": ["import_path = 'foo'", "def import_data():"],
         "pathological": [
-            ("from \n core.networking.sockets \n import ( \n    TCPSocket \n )", "core.networking.sockets")
-        ]
+            (
+                "from \n core.networking.sockets \n import ( \n    TCPSocket \n )",
+                "core.networking.sockets",
+            )
+        ],
     },
     "javascript": {
         "valid": [
-            ('import { Component } from "@scope/package/module";', "@scope/package/module"),
-            ('const fs = require("fs");', "fs")
+            (
+                'import { Component } from "@scope/package/module";',
+                "@scope/package/module",
+            ),
+            ('const fs = require("fs");', "fs"),
         ],
         "invalid": ['const importPath = "x";', 'console.log("imported");'],
         "pathological": [
-            ("export \n type \n { \n  ComponentA \n } \n from \n '@scope/custom-module'", "@scope/custom-module")
-        ]
+            (
+                "export \n type \n { \n  ComponentA \n } \n from \n '@scope/custom-module'",
+                "@scope/custom-module",
+            )
+        ],
     },
     "typescript": {
         "valid": [
             ('import type { Node } from "./ast/node";', "./ast/node"),
-            ('export * from "../utils";', "../utils")
+            ('export * from "../utils";', "../utils"),
         ],
         "invalid": ['let from_path = "x";', '// import { x } from "y"'],
         "pathological": [
-            ("import \n type \n { \n  ASTNode \n } \n from \n '@typescript-eslint/parser'", "@typescript-eslint/parser")
-        ]
+            (
+                "import \n type \n { \n  ASTNode \n } \n from \n '@typescript-eslint/parser'",
+                "@typescript-eslint/parser",
+            )
+        ],
     },
     "java": {
         "valid": [
             ("import java.util.List;", "java.util.List"),
-            ("import static org.junit.Assert.*;", "org.junit.Assert.*")
+            ("import static org.junit.Assert.*;", "org.junit.Assert.*"),
         ],
         "invalid": ["String importPath;", "// import java.util.List;"],
         "pathological": [
-            ("import \n static \n org.springframework.boot.SpringApplication \n ;", "org.springframework.boot.SpringApplication")
-        ]
+            (
+                "import \n static \n org.springframework.boot.SpringApplication \n ;",
+                "org.springframework.boot.SpringApplication",
+            )
+        ],
     },
     "csharp": {
         "valid": [
             ("using System.Threading.Tasks;", "System.Threading.Tasks"),
-            ("global using static System.Math;", "System.Math")
+            ("global using static System.Math;", "System.Math"),
         ],
         "invalid": ["using (var stream = new FileStream())", "// using System;"],
         "pathological": [
-            ("global \n using \n static \n Microsoft.AspNetCore.Mvc \n ;", "Microsoft.AspNetCore.Mvc")
-        ]
+            (
+                "global \n using \n static \n Microsoft.AspNetCore.Mvc \n ;",
+                "Microsoft.AspNetCore.Mvc",
+            )
+        ],
     },
     "go": {
-        "valid": [
-            ('import "net/http"', "net/http"),
-            ('import fmt "fmt"', "fmt")
-        ],
+        "valid": [('import "net/http"', "net/http"), ('import fmt "fmt"', "fmt")],
         "invalid": ['var importPath = "foo"', '// import "fmt"'],
         "pathological": [
-            ("import \n ( \n  customAlias \n \"github.com/gin-gonic/gin\" \n )", "github.com/gin-gonic/gin")
-        ]
+            (
+                'import \n ( \n  customAlias \n "github.com/gin-gonic/gin" \n )',
+                "github.com/gin-gonic/gin",
+            )
+        ],
     },
     "rust": {
         "valid": [
             ("use std::collections::HashMap;", "std::collections::HashMap"),
-            ("pub use crate::networking::Socket;", "crate::networking::Socket")
+            ("pub use crate::networking::Socket;", "crate::networking::Socket"),
         ],
         "invalid": ["let use_cache = true;", "// use std::io;"],
         "pathological": [
-            ("pub \n use \n crate::core::networking \n :: \n { \n  tcp::TcpSocket \n };", "crate::core::networking")
-        ]
+            (
+                "pub \n use \n crate::core::networking \n :: \n { \n  tcp::TcpSocket \n };",
+                "crate::core::networking",
+            )
+        ],
     },
     "cpp": {
         "valid": [
             ("#include <sys/types.h>", "sys/types.h"),
-            ("import std.core;", "std.core")
+            ("import std.core;", "std.core"),
         ],
         "invalid": ["int include_count = 0;", "// #include <stdio.h>"],
         "pathological": [
             ("export \n import \n external.module.name \n ;", "external.module.name")
-        ]
+        ],
     },
     "c": {
-        "valid": [
-            ("#include <stdio.h>", "stdio.h"),
-            ('#include "local.h"', "local.h")
-        ],
+        "valid": [("#include <stdio.h>", "stdio.h"), ('#include "local.h"', "local.h")],
         "invalid": ["int include_path = 1;", "/* #include <stdlib.h> */"],
-        "pathological": [
-            ("# \n include \n <sys/socket.h>", "sys/socket.h")
-        ]
+        "pathological": [("# \n include \n <sys/socket.h>", "sys/socket.h")],
     },
     "php": {
         "valid": [
-            ("use Illuminate\\Support\\Facades\\Route;", "Illuminate\\Support\\Facades\\Route"),
-            ("require_once 'vendor/autoload.php';", "vendor/autoload.php")
+            (
+                "use Illuminate\\Support\\Facades\\Route;",
+                "Illuminate\\Support\\Facades\\Route",
+            ),
+            ("require_once 'vendor/autoload.php';", "vendor/autoload.php"),
         ],
         "invalid": ["$useCache = true;", "// require 'foo.php';"],
         "pathological": [
-            ("use \n function \n My\\Custom\\Namespace\\target_function \n ;", "My\\Custom\\Namespace\\target_function")
-        ]
+            (
+                "use \n function \n My\\Custom\\Namespace\\target_function \n ;",
+                "My\\Custom\\Namespace\\target_function",
+            )
+        ],
     },
     "powershell": {
         "valid": [
             ("Import-Module ActiveDirectory", "ActiveDirectory"),
-            ("using namespace System.Net", "System.Net")
+            ("using namespace System.Net", "System.Net"),
         ],
         "invalid": ["Write-Host 'Import-Module'", "# using module foo"],
         "pathological": [
             ("using \n module \n 'MyCustomModule.psm1'", "MyCustomModule.psm1")
-        ]
+        ],
     },
     "shell": {
-        "valid": [
-            ("source .env", ".env"),
-            (". /etc/profile", "/etc/profile")
-        ],
+        "valid": [("source .env", ".env"), (". /etc/profile", "/etc/profile")],
         "invalid": ["echo 'source .env'", "# . /etc/profile"],
-        "pathological": [
-            (". \n '/opt/custom/script.sh'", "/opt/custom/script.sh")
-        ]
+        "pathological": [(". \n '/opt/custom/script.sh'", "/opt/custom/script.sh")],
     },
     "ruby": {
         "valid": [
             ("require 'json'", "json"),
-            ("require_relative '../core/engine'", "../core/engine")
+            ("require_relative '../core/engine'", "../core/engine"),
         ],
         "invalid": ["required_fields = []", "# require 'foo'"],
         "pathological": [
-            ("require_relative \n ( \n \"../lib/massive_module\" \n )", "../lib/massive_module")
-        ]
+            (
+                'require_relative \n ( \n "../lib/massive_module" \n )',
+                "../lib/massive_module",
+            )
+        ],
     },
     "swift": {
         "valid": [
             ("import Foundation", "Foundation"),
-            ("@_exported import UIKit", "UIKit")
+            ("@_exported import UIKit", "UIKit"),
         ],
         "invalid": ["var importData = true", "// import SwiftUI"],
         "pathological": [
-            ("@_exported \n import \n typealias \n CustomModule.TargetType", "CustomModule.TargetType")
-        ]
+            (
+                "@_exported \n import \n typealias \n CustomModule.TargetType",
+                "CustomModule.TargetType",
+            )
+        ],
     },
     "kotlin": {
         "valid": [
             ("import java.util.*", "java.util.*"),
-            ("import static org.mockito.Mockito.*", "org.mockito.Mockito.*")
+            ("import static org.mockito.Mockito.*", "org.mockito.Mockito.*"),
         ],
         "invalid": ["val importPath = false", "// import foo.bar"],
         "pathological": [
             ("import \n kotlinx.coroutines.flow.*", "kotlinx.coroutines.flow.*")
-        ]
+        ],
     },
     "sqlite": {
         "valid": [
             ("ATTACH DATABASE 'file.db' AS file;", "file.db"),
-            (".read schema.sql", "schema.sql")
+            (".read schema.sql", "schema.sql"),
         ],
         "invalid": ["SELECT 'ATTACH DATABASE';", "-- .read schema.sql"],
-        "pathological": [
-            ("load_extension \n ( \n 'crypto.so' \n )", "crypto.so")
-        ]
+        "pathological": [("load_extension \n ( \n 'crypto.so' \n )", "crypto.so")],
     },
     "html": {
         "valid": [
             ('<script src="app.js"></script>', "app.js"),
-            ('<link rel="stylesheet" href="style.css">', "style.css")
+            ('<link rel="stylesheet" href="style.css">', "style.css"),
         ],
-        "invalid": ['', 'let src = "app.js";'],
+        "invalid": ["", 'let src = "app.js";'],
         "pathological": [
-            ("<link \n rel=\"stylesheet\" \n href=\"theme.css\">", "theme.css")
-        ]
+            ('<link \n rel="stylesheet" \n href="theme.css">', "theme.css")
+        ],
     },
     "css": {
         "valid": [
             ('@import url("reset.css");', "reset.css"),
-            ('@import "theme.css";', "theme.css")
+            ('@import "theme.css";', "theme.css"),
         ],
         "invalid": [".import { color: red; }", "/* @import url('foo') */"],
-        "pathological": [
-            ("@import \n url( \n \"fonts.css\" \n )", "fonts.css")
-        ]
+        "pathological": [('@import \n url( \n "fonts.css" \n )', "fonts.css")],
     },
     "fortran": {
         "valid": [
             ("USE iso_fortran_env", "iso_fortran_env"),
-            ("INCLUDE 'constants.h'", "constants.h")
+            ("INCLUDE 'constants.h'", "constants.h"),
         ],
         "invalid": ["! USE iso_fortran_env", "CHARACTER(LEN=10) :: INCLUDE_FILE"],
-        "pathological": [
-            ("USE \n , \n INTRINSIC \n :: \n omp_lib", "omp_lib")
-        ]
+        "pathological": [("USE \n , \n INTRINSIC \n :: \n omp_lib", "omp_lib")],
     },
     "assembly": {
         "valid": [
             ('%include "macros.inc"', "macros.inc"),
-            ('.include "defs.s"', "defs.s")
+            ('.include "defs.s"', "defs.s"),
         ],
-        "invalid": ["; %include \"macros.inc\"", "include_flag db 1"],
-        "pathological": [
-            ("%include \n \"syscalls.inc\"", "syscalls.inc")
-        ]
+        "invalid": ['; %include "macros.inc"', "include_flag db 1"],
+        "pathological": [('%include \n "syscalls.inc"', "syscalls.inc")],
     },
     "agc_assembly": {
-        "valid": [
-            ("BANK 43", "43"),
-            ("SETLOC 4000", "4000")
-        ],
+        "valid": [("BANK 43", "43"), ("SETLOC 4000", "4000")],
         "invalid": ["# BANK 43", "EBANK_VAR EQUALS 1"],
-        "pathological": [
-            ("SETLOC \n 2000", "2000")
-        ]
+        "pathological": [("SETLOC \n 2000", "2000")],
     },
     "lua": {
-        "valid": [
-            ("require 'math'", "math"),
-            ('local ffi = require("ffi")', "ffi")
-        ],
+        "valid": [("require 'math'", "math"), ('local ffi = require("ffi")', "ffi")],
         "invalid": ["local require_path = ''", "-- require 'math'"],
-        "pathological": [
-            ("require \n ( \n 'bit32' \n )", "bit32")
-        ]
+        "pathological": [("require \n ( \n 'bit32' \n )", "bit32")],
     },
     "perl": {
-        "valid": [
-            ("use strict;", "strict"),
-            ("require Foo::Bar;", "Foo::Bar")
-        ],
+        "valid": [("use strict;", "strict"), ("require Foo::Bar;", "Foo::Bar")],
         "invalid": ["my $use = 1;", "# use strict;"],
-        "pathological": [
-            ("use \n Data::Dumper", "Data::Dumper")
-        ]
+        "pathological": [("use \n Data::Dumper", "Data::Dumper")],
     },
     "haskell": {
         "valid": [
             ("import Control.Monad", "Control.Monad"),
-            ("import qualified Data.Text as T", "Data.Text")
+            ("import qualified Data.Text as T", "Data.Text"),
         ],
         "invalid": ["-- import Control.Monad", "let import_val = 1"],
-        "pathological": [
-            ("import \n qualified \n Data.Map", "Data.Map")
-        ]
+        "pathological": [("import \n qualified \n Data.Map", "Data.Map")],
     },
     "embedded_python": {
         "valid": [
             ("import machine", "machine"),
-            ("from network import WLAN", "network")
+            ("from network import WLAN", "network"),
         ],
         "invalid": ["import_state = True", "# import machine"],
-        "pathological": [
-            ("from \n uasyncio \n import \n sleep", "uasyncio")
-        ]
+        "pathological": [("from \n uasyncio \n import \n sleep", "uasyncio")],
     },
     "cobol": {
-        "valid": [
-            ("COPY MYLIB.", "MYLIB"),
-            ("INCLUDE SQLCA.", "SQLCA")
-        ],
+        "valid": [("COPY MYLIB.", "MYLIB"), ("INCLUDE SQLCA.", "SQLCA")],
         "invalid": ["* COPY MYLIB.", "01 COPY-FILE PIC X(10)."],
-        "pathological": [
-            ("COPY \n 'Z_MACROS'", "Z_MACROS")
-        ]
+        "pathological": [("COPY \n 'Z_MACROS'", "Z_MACROS")],
     },
     "zig": {
         "valid": [
             ('const std = @import("std");', "std"),
-            ('@cInclude("stdio.h");', "stdio.h")
+            ('@cInclude("stdio.h");', "stdio.h"),
         ],
-        "invalid": ['// @import("std")', 'var import_val = 0;'],
-        "pathological": [
-            ("@cInclude \n ( \n \"sys/types.h\" \n )", "sys/types.h")
-        ]
+        "invalid": ['// @import("std")', "var import_val = 0;"],
+        "pathological": [('@cInclude \n ( \n "sys/types.h" \n )', "sys/types.h")],
     },
     "dart": {
         "valid": [
             ("import 'dart:io';", "dart:io"),
-            ("export 'package:flutter/material.dart';", "package:flutter/material.dart")
+            (
+                "export 'package:flutter/material.dart';",
+                "package:flutter/material.dart",
+            ),
         ],
         "invalid": ["var importPath = '';", "// import 'dart:io';"],
         "pathological": [
-            ("export \n 'package:provider/provider.dart'", "package:provider/provider.dart")
-        ]
+            (
+                "export \n 'package:provider/provider.dart'",
+                "package:provider/provider.dart",
+            )
+        ],
     },
     "scala": {
         "valid": [
             ("import cats.effect.IO", "cats.effect.IO"),
-            ("export scala.collection.mutable.Map", "scala.collection.mutable.Map")
+            ("export scala.collection.mutable.Map", "scala.collection.mutable.Map"),
         ],
         "invalid": ["val importCount = 0", "// import cats.effect.IO"],
         "pathological": [
             ("import \n scala.concurrent.Future", "scala.concurrent.Future")
-        ]
+        ],
     },
     "dockerfile": {
         "valid": [
             ("FROM ubuntu:latest", "ubuntu:latest"),
-            ("COPY --from=builder /app /app", "builder")
+            ("COPY --from=builder /app /app", "builder"),
         ],
         "invalid": ["# FROM ubuntu", "ENV FROM_PATH=/app"],
         "pathological": [
             ("FROM \n --platform=linux/amd64 \n alpine:3.18", "alpine:3.18")
-        ]
+        ],
     },
     "matlab": {
         "valid": [
             ("import matlab.unittest.*", "matlab.unittest.*"),
-            ("import mypack.myclass", "mypack.myclass")
+            ("import mypack.myclass", "mypack.myclass"),
         ],
         "invalid": ["% import matlab", "import_val = 1;"],
-        "pathological": [
-            ("import \n parallel.Pool", "parallel.Pool")
-        ]
+        "pathological": [("import \n parallel.Pool", "parallel.Pool")],
     },
     "livecode": {
         "valid": [
             ('start using stack "lib"', "lib"),
-            ('require "database"', "database")
+            ('require "database"', "database"),
         ],
         "invalid": ["-- start using stack", "put empty into requirePath"],
         "pathological": [
-            ("start \n using \n behavior \n \"btnBehavior\"", "btnBehavior")
-        ]
+            ('start \n using \n behavior \n "btnBehavior"', "btnBehavior")
+        ],
     },
     "solidity": {
         "valid": [
-            ('import "@openzeppelin/contracts/token/ERC20/ERC20.sol";', "@openzeppelin/contracts/token/ERC20/ERC20.sol")
+            (
+                'import "@openzeppelin/contracts/token/ERC20/ERC20.sol";',
+                "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+            )
         ],
-        "invalid": ['// import "foo.sol"', 'string memory importPath;'],
+        "invalid": ['// import "foo.sol"', "string memory importPath;"],
         "pathological": [
-            ("import \n { \n ERC20 \n } \n from \n \"token.sol\";", "token.sol")
-        ]
+            ('import \n { \n ERC20 \n } \n from \n "token.sol";', "token.sol")
+        ],
     },
     "objective-c": {
         "valid": [
             ("#import <Foundation/Foundation.h>", "Foundation/Foundation.h"),
-            ("@import UIKit;", "UIKit")
+            ("@import UIKit;", "UIKit"),
         ],
         "invalid": ["int import_count;", "// #import <Foundation/Foundation.h>"],
-        "pathological": [
-            ("@import \n CoreGraphics \n ;", "CoreGraphics")
-        ]
+        "pathological": [("@import \n CoreGraphics \n ;", "CoreGraphics")],
     },
     "makefile": {
-        "valid": [
-            ("include config.mk", "config.mk"),
-            ("-include deps.mk", "deps.mk")
-        ],
+        "valid": [("include config.mk", "config.mk"), ("-include deps.mk", "deps.mk")],
         "invalid": ["# include config.mk", "include_path := foo"],
-        "pathological": [
-            ("-include \n .depend", ".depend")
-        ]
+        "pathological": [("-include \n .depend", ".depend")],
     },
     "abap": {
         "valid": [
             ("INCLUDE z_my_macros.", "z_my_macros"),
-            ("TYPE-POOLS abap.", "abap")
+            ("TYPE-POOLS abap.", "abap"),
         ],
         "invalid": ["* INCLUDE z_my_macros.", "DATA include_name TYPE string."],
-        "pathological": [
-            ("TYPE-POOLS \n slis \n .", "slis")
-        ]
+        "pathological": [("TYPE-POOLS \n slis \n .", "slis")],
     },
     "yaml": {
         "valid": [
             ("uses: actions/checkout@v3", "actions/checkout@v3"),
-            ("image: node:18-alpine", "node:18-alpine")
+            ("image: node:18-alpine", "node:18-alpine"),
         ],
         "invalid": ["# uses: actions/checkout@v3", "description: 'image setup'"],
-        "pathological": [
-            ("image: \n postgres:15", "postgres:15")
-        ]
-    }
-    
+        "pathological": [("image: \n postgres:15", "postgres:15")],
+    },
 }
+
+
 class TestDependencyExtraction:
 
     @pytest.mark.parametrize("lang_id", DEPENDENCY_EXTRACTION_CASES.keys())
     def test_positive_dependency_extraction(self, lang_id):
         """
-        Proves that valid import signatures are caught, and the regex 
+        Proves that valid import signatures are caught, and the regex
         isolates EXACTLY the module/file path.
         """
         cases = DEPENDENCY_EXTRACTION_CASES.get(lang_id, {})
         if "valid" not in cases:
             pytest.skip(f"No valid cases defined for {lang_id}")
-            
+
         pattern = LANGUAGE_DEFINITIONS[lang_id]["rules"].get("_dependency_capture")
         if not pattern:
             pytest.skip(f"No _dependency_capture pattern defined for {lang_id}")
-        
+
         for payload, expected_name in cases["valid"]:
             match = pattern.search(payload)
-            assert match is not None, f"[{lang_id}] Iron Wall Blocked Valid Import: '{payload}'"
-            
+            assert (
+                match is not None
+            ), f"[{lang_id}] Iron Wall Blocked Valid Import: '{payload}'"
+
             if pattern.groups > 0:
                 captured_groups = [g for g in match.groups() if g is not None]
-                assert len(captured_groups) > 0, f"[{lang_id}] Regex matched but captured nothing!"
-                
+                assert (
+                    len(captured_groups) > 0
+                ), f"[{lang_id}] Regex matched but captured nothing!"
+
                 # Check if the expected name is in ANY of the capture groups (some languages use alternate groups for require vs import)
                 found = any(expected_name in g for g in captured_groups)
-                assert found, f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean path '{expected_name}' from '{payload}'"
+                assert (
+                    found
+                ), f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean path '{expected_name}' from '{payload}'"
             else:
-                pytest.fail(f"[{lang_id}] _dependency_capture MUST use a capture group to isolate the path!")
+                pytest.fail(
+                    f"[{lang_id}] _dependency_capture MUST use a capture group to isolate the path!"
+                )
 
     @pytest.mark.parametrize("lang_id", DEPENDENCY_EXTRACTION_CASES.keys())
     def test_negative_dependency_extraction(self, lang_id):
@@ -426,37 +420,45 @@ class TestDependencyExtraction:
         cases = DEPENDENCY_EXTRACTION_CASES.get(lang_id, {})
         if "invalid" not in cases:
             pytest.skip(f"No invalid cases defined for {lang_id}")
-            
+
         pattern = LANGUAGE_DEFINITIONS[lang_id]["rules"].get("_dependency_capture")
         if not pattern:
             pytest.skip(f"No _dependency_capture pattern defined for {lang_id}")
-        
+
         for payload in cases["invalid"]:
             match = pattern.search(payload)
-            assert match is None, f"[{lang_id}] 👻 GHOST DEPENDENCY HALLUCINATED! Erroneously mapped path on: '{payload}'"
+            assert (
+                match is None
+            ), f"[{lang_id}] 👻 GHOST DEPENDENCY HALLUCINATED! Erroneously mapped path on: '{payload}'"
 
     @pytest.mark.parametrize("lang_id", DEPENDENCY_EXTRACTION_CASES.keys())
     def test_pathological_dependency_extraction(self, lang_id):
         """
-        Adversarial Engineering: Proves the regex can survive "Frankenstein" 
-        formatting, including vertical newlines, destructuring, and 
+        Adversarial Engineering: Proves the regex can survive "Frankenstein"
+        formatting, including vertical newlines, destructuring, and
         alias stacking, while still cleanly extracting the path.
         """
         cases = DEPENDENCY_EXTRACTION_CASES.get(lang_id, {})
         if "pathological" not in cases:
             pytest.skip(f"No pathological cases defined for {lang_id}")
-            
+
         pattern = LANGUAGE_DEFINITIONS[lang_id]["rules"].get("_dependency_capture")
         if not pattern:
             pytest.skip(f"No _dependency_capture pattern defined for {lang_id}")
-        
+
         for payload, expected_name in cases["pathological"]:
             match = pattern.search(payload)
-            assert match is not None, f"[{lang_id}] 💥 Engine choked on pathological import formatting: '{payload}'"
-            
+            assert (
+                match is not None
+            ), f"[{lang_id}] 💥 Engine choked on pathological import formatting: '{payload}'"
+
             if pattern.groups > 0:
                 captured_groups = [g for g in match.groups() if g is not None]
-                assert len(captured_groups) > 0, f"[{lang_id}] Matched but captured nothing!"
-                
+                assert (
+                    len(captured_groups) > 0
+                ), f"[{lang_id}] Matched but captured nothing!"
+
                 found = any(expected_name in g for g in captured_groups)
-                assert found, f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean path '{expected_name}'"
+                assert (
+                    found
+                ), f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean path '{expected_name}'"

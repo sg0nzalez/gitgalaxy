@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # ==============================================================================
 # GitGalaxy Spoke: Java Spring Build System Forge
-# Purpose: Auto-generates the Maven pom.xml and application.yml configuration 
+# Purpose: Auto-generates the Maven pom.xml and application.yml configuration
 #          to make the translated Spring Boot architecture instantly compilable.
 # ==============================================================================
+
 
 def generate_pom_xml(group_id: str, artifact_id: str) -> str:
     """Forges a production-ready Maven pom.xml for the microservice."""
@@ -100,6 +101,7 @@ def generate_pom_xml(group_id: str, artifact_id: str) -> str:
 """
     return pom
 
+
 def generate_application_yml(artifact_id: str) -> str:
     """Forges the application.yml with standard Postgres and JPA configs."""
     yml = f"""server:
@@ -132,6 +134,7 @@ spring:
       enabled: false # Prevents batch jobs from auto-running on startup
 """
     return yml
+
 
 def generate_main_class(package_name: str, class_name: str) -> str:
     """Forges the Spring Boot Application entry point."""

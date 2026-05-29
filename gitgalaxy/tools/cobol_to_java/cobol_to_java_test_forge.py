@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # ==============================================================================
 # GitGalaxy Spoke: Java Spring Test Forge (Phase 3)
-# Purpose: Auto-generates JUnit 5 and Spring Boot integration tests to 
+# Purpose: Auto-generates JUnit 5 and Spring Boot integration tests to
 #          mathematically prove the translated architecture compiles and runs.
 # ==============================================================================
 import argparse
 import sys
 import json
 from pathlib import Path
+
 
 def generate_context_test(package_name: str, class_name: str) -> str:
     """Forges a @SpringBootTest to ensure the entire dependency injection context loads."""
@@ -27,10 +28,11 @@ class {class_name}ApplicationTests {{
 }}
 """
 
+
 def generate_controller_test(package_name: str, class_name: str, endpoint_path: str) -> str:
     """Forges a @WebMvcTest to verify REST API mappings without booting the full server."""
     service_var = class_name[0].lower() + class_name[1:]
-    
+
     return f"""package {package_name}.controller;
 
 import {package_name}.service.{class_name}Service;
@@ -63,6 +65,7 @@ class {class_name}ControllerTest {{
 }}
 """
 
+
 def main():
     parser = argparse.ArgumentParser(description="GitGalaxy Java Test Forge")
     parser.add_argument("ir_file", help="Path to the GitGalaxy _ir.json state dump")
@@ -74,31 +77,32 @@ def main():
         sys.exit(1)
 
     try:
-        ir_state = json.loads(ir_path.read_text(encoding='utf-8'))
-        
+        ir_state = json.loads(ir_path.read_text(encoding="utf-8"))
+
         # Determine class names
-        prog_id = ir_state.get("metadata", {}).get("file_name", "Unknown").split('.')[0]
-        class_name = "".join(word.capitalize() for word in prog_id.split('-'))
+        prog_id = ir_state.get("metadata", {}).get("file_name", "Unknown").split(".")[0]
+        class_name = "".join(word.capitalize() for word in prog_id.split("-"))
         endpoint_path = prog_id.lower()
-        
+
         # Target output directories (Assuming standard Maven layout)
-        test_dir = ir_path.parent / "src" / "test" / "java" / args.pkg.replace('.', '/')
+        test_dir = ir_path.parent / "src" / "test" / "java" / args.pkg.replace(".", "/")
         test_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # 1. Forge Context Test
         context_code = generate_context_test(args.pkg, class_name)
-        (test_dir / f"{class_name}ApplicationTests.java").write_text(context_code, encoding='utf-8')
-        
+        (test_dir / f"{class_name}ApplicationTests.java").write_text(context_code, encoding="utf-8")
+
         # 2. Forge Controller Test
         controller_test_dir = test_dir / "controller"
         controller_test_dir.mkdir(exist_ok=True)
         controller_code = generate_controller_test(args.pkg, class_name, endpoint_path)
-        (controller_test_dir / f"{class_name}ControllerTest.java").write_text(controller_code, encoding='utf-8')
+        (controller_test_dir / f"{class_name}ControllerTest.java").write_text(controller_code, encoding="utf-8")
 
         print(f"🧪 Spring Boot Test Suite Forged for {class_name}")
 
     except Exception as e:
         print(f"Error forging Java tests: {e}")
+
 
 if __name__ == "__main__":
     main()

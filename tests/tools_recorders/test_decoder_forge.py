@@ -1,5 +1,7 @@
 import pytest
-from gitgalaxy.tools.cobol_to_java.cobol_to_java_decoder_forge import generate_decoder_util
+from gitgalaxy.tools.cobol_to_java.cobol_to_java_decoder_forge import (
+    generate_decoder_util,
+)
 
 # ==============================================================================
 # GOLDEN IMAGE (The "Perfect" Expected Output)
@@ -88,16 +90,18 @@ public class EbcdicDecoderUtil {
 # THE TESTS
 # ==============================================================================
 
+
 def test_ebcdic_comp3_decoder_golden_image():
     """
     Verifies that the generated EBCDIC and COMP-3 decoding logic perfectly matches
-    the mathematically proven Golden Image. This prevents fatal regressions in 
+    the mathematically proven Golden Image. This prevents fatal regressions in
     mainframe bitwise unpacking logic.
     """
     # 1. Generate the code
     generated_java = generate_decoder_util("com.gitgalaxy.modernized")
-    
+
     # 2. Compare against the Golden Image
     # Using strip() to neutralize OS-level newline differences (CRLF vs LF)
-    assert generated_java.strip() == GOLDEN_DECODER_UTIL.strip(), \
-        "FATAL REGRESSION: The Mainframe Decoder utility drifted from the Golden Image! Check bitwise math and hex boundaries."
+    assert (
+        generated_java.strip() == GOLDEN_DECODER_UTIL.strip()
+    ), "FATAL REGRESSION: The Mainframe Decoder utility drifted from the Golden Image! Check bitwise math and hex boundaries."

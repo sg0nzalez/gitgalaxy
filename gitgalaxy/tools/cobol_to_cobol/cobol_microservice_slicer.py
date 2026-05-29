@@ -9,6 +9,7 @@ import sys
 import re
 from pathlib import Path
 
+
 def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = None, orphaned_vars: set = None):
     """
     Recursively tracks a variable and its aliases through the AST.
@@ -22,13 +23,13 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
     initial_var = initial_var.upper()
 
     # --- SYNERGY 1: ORPHANED MEMORY ABORT ---
-    # If the target variable is already known to be dead memory from the Graveyard Reaper, 
+    # If the target variable is already known to be dead memory from the Graveyard Reaper,
     # we can abort the slice immediately. It has no business logic.
     if initial_var in orphaned_vars:
         return [], {initial_var: "ORPHANED_MEMORY"}
 
     try:
-        content = filepath.read_text(encoding='utf-8', errors='ignore').upper()
+        content = filepath.read_text(encoding="utf-8", errors="ignore").upper()
     except Exception:
         return None
 
@@ -36,11 +37,11 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
         return None
 
     proc_div = content.split("PROCEDURE DIVISION")[1]
-    lines = proc_div.split('\n')
-    
+    lines = proc_div.split("\n")
+
     tainted_vars = {initial_var}
-    para_pattern = re.compile(r'^[ \t]{0,7}([A-Z0-9\-]+)\.[ \t]*$')
-    
+    para_pattern = re.compile(r"^[ \t]{0,7}([A-Z0-9\-]+)\.[ \t]*$")
+
     # ==========================================================================
     # PASS 1: Recursive Taint Mapping (The Alias Engine)
     # ==========================================================================
@@ -49,70 +50,76 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
         current_paragraph = "MAIN-ENTRY"
         for line in lines:
             clean_line = line.strip()
-            if not clean_line or clean_line.startswith('*'): 
+            if not clean_line or clean_line.startswith("*"):
                 continue
-            
+
             # Update current paragraph context
             para_match = para_pattern.match(line)
             if para_match:
                 current_paragraph = para_match.group(1)
                 continue
-            
+
             # --- SYNERGY 2: THE GHOST DEFLECTOR ---
             # If the orchestrator's IR state tells us this paragraph is unreachable,
             # we skip it. This prevents dead code from creating false-positive taints.
             if current_paragraph in dead_paras:
                 continue
-                
+
             # Match assignments: MOVE A TO B, ADD A TO B, SUBTRACT A FROM B
-            match = re.search(r'(?:MOVE|ADD|SUBTRACT)\s+([A-Z0-9\-]+)\s+(?:TO|FROM)\s+([A-Z0-9\-]+)', clean_line)
+            match = re.search(
+                r"(?:MOVE|ADD|SUBTRACT)\s+([A-Z0-9\-]+)\s+(?:TO|FROM)\s+([A-Z0-9\-]+)",
+                clean_line,
+            )
             if match:
                 var1, var2 = match.group(1), match.group(2)
                 # If either variable is tainted, taint the other
                 if var1 in tainted_vars or var2 in tainted_vars:
                     tainted_vars.add(var1)
                     tainted_vars.add(var2)
-                    
+
             # Match math formulas: COMPUTE X = Y * Z
-            comp_match = re.search(r'COMPUTE\s+([A-Z0-9\-]+)\s*=', clean_line)
+            comp_match = re.search(r"COMPUTE\s+([A-Z0-9\-]+)\s*=", clean_line)
             if comp_match:
                 var1 = comp_match.group(1)
-                vars_in_eq = re.findall(r'([A-Z][A-Z0-9\-]+)', clean_line.split('=')[1])
+                vars_in_eq = re.findall(r"([A-Z][A-Z0-9\-]+)", clean_line.split("=")[1])
                 # Taint forwards and backwards!
                 if var1 in tainted_vars or any(v in tainted_vars for v in vars_in_eq):
                     tainted_vars.add(var1)
                     tainted_vars.update(vars_in_eq)
-                    
+
     # ==========================================================================
     # PASS 2: Extraction
     # ==========================================================================
     extracted_logic = []
     current_paragraph = "MAIN-ENTRY"
-    
+
     for i, line in enumerate(lines):
         clean_line = line.strip()
-        if not clean_line or clean_line.startswith('*'): 
+        if not clean_line or clean_line.startswith("*"):
             continue
-        
+
         para_match = para_pattern.match(line)
         if para_match:
             current_paragraph = para_match.group(1)
             continue
-            
+
         # --- SYNERGY 3: EXTRACTION SHIELD ---
         # Do not extract text from paragraphs that are mathematically unreachable.
         if current_paragraph in dead_paras:
             continue
-            
+
         # TAINT CHECK: If ANY tainted variable is on this line, extract it
         if any(var in clean_line for var in tainted_vars):
-            extracted_logic.append({
-                "line_num": i + 1,
-                "paragraph": current_paragraph,
-                "statement": clean_line
-            })
-            
+            extracted_logic.append(
+                {
+                    "line_num": i + 1,
+                    "paragraph": current_paragraph,
+                    "statement": clean_line,
+                }
+            )
+
     return extracted_logic, tainted_vars
+
 
 def main():
     parser = argparse.ArgumentParser(description="GitGalaxy Microservice Slicer v3")
@@ -127,10 +134,10 @@ def main():
 
     print(f"🔪 GitGalaxy Slicer hunting aliases for [{args.var.upper()}] in {target_path.name}...\n")
 
-    # When run in standalone CLI mode, it won't have the IR RAM context, 
+    # When run in standalone CLI mode, it won't have the IR RAM context,
     # but the function signature safely defaults to empty sets.
     result = slice_business_logic(target_path, args.var)
-    
+
     if not result:
         print(f"⚠️ Variable {args.var.upper()} is never mutated in the PROCEDURE DIVISION.")
         sys.exit(0)
@@ -146,18 +153,19 @@ def main():
     print("==========================================================")
     print(f" 🧬 TAINTS FOUND: {', '.join(aliases)}")
     print("==========================================================")
-    
+
     current_p = ""
     for item in logic_slice:
-        if item['paragraph'] != current_p:
+        if item["paragraph"] != current_p:
             print(f"\n[{item['paragraph']}]")
-            current_p = item['paragraph']
-        
+            current_p = item["paragraph"]
+
         print(f"  Line {item['line_num']:04d} | {item['statement']}")
-        
+
     print("\n==========================================================")
     print(f" 🎯 Sliced {len(logic_slice)} distinct business rules.")
     print("==========================================================\n")
+
 
 if __name__ == "__main__":
     main()
