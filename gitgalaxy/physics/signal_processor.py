@@ -683,7 +683,21 @@ class SignalProcessor:
                 popularity=popularity,
             )
 
-            doc_score = self._calc_documentation(loc, doc_lines, equations, fc, irc, mp_map.get("doc", 1.0), functions)
+            # Calculate Silo Risk early for the Documentation N-Dimensional Math
+            silo_exposure = self._calculate_silo_risk(meta.get("authors", {}))
+
+            doc_score = self._calc_documentation(
+                loc,
+                doc_lines,
+                equations,
+                fc,
+                irc,
+                mp_map.get("doc", 1.0),
+                functions,
+                doc_umbrella=ghost_meta.get("doc_umbrella", 0.0),
+                popularity=popularity,
+                silo_exposure=silo_exposure,
+            )
             spec_score = self._calc_spec_alignment(equations, mp_map.get("spec", 1.0))
 
             bureaucracy_dampener = min(loc / 15.0, 1.0)
@@ -1481,35 +1495,60 @@ class SignalProcessor:
         irc: int,
         mp: float,
         functions: List[Dict[str, Any]] = None,
+        doc_umbrella: float = 0.0,
+        popularity: int = 0,
+        silo_exposure: float = 0.0,
     ) -> float:
         t = self.risk_tuning.get("documentation", {})
-        weighted_points = (
+
+        # 1. THE DEFENSE (The Knowledge Shield)
+        # GuideStar Umbrella projection: 1.0 shield = 50 lines of virtual documentation
+        umbrella_defense = doc_umbrella * 50.0
+
+        defense_hits = (
             (eq.get("doc", 0) * t.get("doc_weight", 1.0))
             + (eq.get("ownership", 0) * t.get("ownership_weight", 0.5))
             + (doc_loc * t.get("doc_loc_weight", 0.33))
-        )
+            + umbrella_defense
+        ) * fc
 
-        # ---> THE BLIND COMPLEXITY PENALTY <---
-        # If the file contains incredibly heavy logic blocks or bad Big-O
-        # but the specific functions lack docstrings, the baseline coverage is a lie.
-        blind_penalty = 0.0
+        # 2. THE RISK (Kinetic Blindness)
+        kinetic_blindness = 0.0
+        api_exposure = eq.get("api", 0) * 2.0
+
         if functions:
             for func in functions:
-                if (func.get("impact", 0) > 50 or func.get("big_o_depth", 1) >= 3) and not func.get("docstring"):
-                    blind_penalty += 15.0  # Flat 15% risk penalty per undocumented God Function
+                impact = func.get("impact", 0.0)
+                big_o = func.get("big_o_depth", 1)
 
-        density = (weighted_points / max(loc, 1)) * 100.0
+                # If a load-bearing or deeply nested block lacks a semantic tether
+                if (impact > 50.0 or big_o >= 3) and not func.get("docstring"):
+                    kinetic_blindness += 5.0 + (math.log1p(impact) * (big_o * 0.5))
 
-        if loc <= 2 and doc_loc == 0:
-            return 0
+        # Add Implicit Risk Correction (Opacity Tax) to the risk
+        risk_hits = kinetic_blindness + api_exposure + irc
 
-        threshold = (t.get("threshold_base", 10.0) + irc) * mp
+        # 3. UNIVERSAL DENSITY EQUATION
+        net_exposure = max(0.0, risk_hits - (defense_hits / 2.0))
+        density = (net_exposure / max(loc, 1)) * 100.0
+
+        # 4. THE MULTIPLIERS (Blast Radius & Bus Factor)
+        # Undocumented code is exponentially more dangerous if it is highly
+        # integrated (popularity) or siloed to a single developer.
+        network_multiplier = 1.0 + (popularity / 10.0)
+        silo_multiplier = 1.0 + (silo_exposure / 200.0)
+
+        final_multiplier = network_multiplier * silo_multiplier * mp
+
+        threshold = t.get("threshold_base", 10.0)
+
         try:
-            raw_risk = 100.0 / (1.0 + math.exp(t.get("sigmoid_slope", 0.2) * (density - threshold)))
+            # We use a negative slope because high density = high risk exposure
+            raw_risk = 100.0 / (1.0 + math.exp(-t.get("sigmoid_slope", 0.2) * (density - threshold)))
         except OverflowError:
-            raw_risk = 0.0 if density > threshold else 100.0
+            raw_risk = 100.0 if density > threshold else 0.0
 
-        return min((raw_risk * (2.0 - fc)) + blind_penalty, 100.0)
+        return min(raw_risk * final_multiplier, 100.0)
 
     def _calc_verification(
         self,
