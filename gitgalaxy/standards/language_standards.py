@@ -8829,7 +8829,12 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: (CORRECTION) Markdown relies entirely on HTML's SGML-style block comments ().
         # Mapping this to 'hybrid_dash' would cause the engine to miss hidden documentation mass.
         "lexical_family": "singular",
-        "rules": {},
+        "rules": {
+            "lit_code_blocks": re.compile(r"^```[a-zA-Z0-9]*$", re.M),
+            "lit_diagrams": re.compile(r"^```(?:mermaid|plantuml)$", re.M),
+            "lit_headers": re.compile(r"^#{1,6}\s+", re.M),
+            "lit_links": re.compile(r"\[[^\]]+\]\([^)]+\)"),
+        },
     },
     "csv": {
         "_meta": {"target_version": "Comma Separated Values", "status": "production"},
