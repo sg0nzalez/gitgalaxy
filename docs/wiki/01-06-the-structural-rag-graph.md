@@ -88,7 +88,7 @@ Whether you are scanning a 50-year-old COBOL banking monolith, a modern Rust mic
 
 This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, compilation-free heuristic knowledge graph engine.
 
-* 📖 **[Previous: How to Read the Galaxy](./01-05-how-to-read-the-galaxy.md)**
+* 📖 **[Previous: The Legacy Bridge](./01-04-the-legacy-bridge.md)**
 * 📖 **[Next: Pipeline Overview](./02-01-pipeline-overview.md)**
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
 * 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
