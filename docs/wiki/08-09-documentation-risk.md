@@ -1,89 +1,151 @@
 # Documentation Risk Exposure
 
-> **Metric: Density of Intent (Sigmoid Debt)**
+> **Metric: N-Dimensional Knowledge Debt**
 >
-> **Summary:** Visualizes the "Duty of Care" a developer owes to their future self and the collective within the knowledge graph. This metric does not reward the raw volume of text; it measures the **Density of Intent**. We distinguish between "Library-Grade" engineering—where a component is supported by structured metadata—and "Silent Logic," which requires the reader to perform manual mental compilation to understand the *why* behind the *what*.
+> **TL;DR:** Counting lines of comments is an archaic metric. A 20-line utility function converting Celsius to Fahrenheit doesn’t need a sprawling docstring. But an $O(N^3)$ orchestrator function that mutates the global database state and has 45 inbound network dependencies? If that lacks documentation, it is a catastrophic vulnerability. 
+> 
+> GitGalaxy abandons flat volumetric counting in favor of an **N-Dimensional Physics Equation**. We weigh the *gravitational mass of undocumented logic* against *architectural knowledge shields*, amplifying the risk based on the file's network blast radius and developer silo risk.
 >
 > **Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
-> * 🟦 **VERY LOW (Score 0-19):** Thorough. Saturated map. Perfect coverage with high intent density.
-> * 🟨 **INTERMEDIATE (Score 40-59):** Moderate. Functional baseline. Meets standard safety thresholds.
-> * 🟥 **VERY HIGH (Score 80-100):** Undocumented. Total Opacity. Zero intent density, representing high maintenance risk.
+> * 🟦 **VERY LOW (Score 0-19):** Fully shielded. The file is highly documented or lives under a strong architectural markdown umbrella.
+> * 🟨 **INTERMEDIATE (Score 40-59):** Moderate. Standard logic with acceptable inline intent.
+> * 🟥 **VERY HIGH (Score 80-100+):** Critical Blindness. Massive, highly-coupled, or siloed logic operating with zero human context.
 
-## The Inputs (Tiered Efficiency)
+## The 4 Pillars of Context-Aware Documentation Risk
 
-The heuristic scanning has been decoupled from the core deterministic engine. The analysis engine pre-calculates documentation lines and structured hits, passing them into the Signal Processor.
+GitGalaxy evaluates documentation through four interconnected dimensions, treating it as a true structural shield rather than a formatting requirement.
 
-| Variable | Weight | Value | Structural Definition |
-| :--- | :--- | :--- | :--- |
-| `doc_hits` | 1.0x | **High** | **Tier 1 (The Interface).** Gold standard tags (`@param`, `///`). One hit provides a full point of intent density. |
-| `ownership_hits` | 0.5x | **Medium** | **Tier 2 (The Metadata).** Attribution and file-level summaries. Valuable context, but less critical for line-by-line logic comprehension. |
-| `doc_loc` | 0.33x | **Low** | **Tier 3 (The Narrative).** General inline comments. Requires 3 lines of text to equal 1 structured tag, honoring effort but demanding volume. |
+### 1. Kinetic Blindness (The Risk)
+Instead of a flat penalty for missing docstrings, the engine measures the **exact physical mass** of undocumented logic. We sweep the file's structural satellites (functions/classes). If a function lacks a docstring, the engine evaluates its `impact` score and `big_o_depth`. An undocumented $O(N^3)$ monolithic state machine generates massive "Kinetic Blindness" risk, while an undocumented 5-line utility barely moves the needle. We penalize the *absence of intent on load-bearing structures*.
+
+### 2. The GuideStar Umbrella (Contextual Defense)
+Documentation doesn't just live inside source files. The `GuideStarLens` acts as an early-warning radar, sweeping directories for "Knowledge Anchors" (like `README.md` or `ARCHITECTURE.md`). If found, it projects a `doc_umbrella` defense shield over the entire directory. This mathematically forgives complex code for lacking inline comments if a massive architectural document sits right next to it.
+
+### 3. Instructional Density (Markdown Optics)
+Markdown is no longer treated as "Dark Matter." Markdown files flow through the optical regex engine to measure their **Instructional Density**. We actively count:
+* `lit_code_blocks` (Instructional Proof)
+* `lit_diagrams` (Architectural Proof like Mermaid/PlantUML)
+* `lit_headers` (Structural Proof)
+* `lit_links` (Navigational Proof)
+
+A markdown file full of code examples and diagrams projects an exponentially stronger shield than a massive wall of auto-generated text.
+
+### 4. Blast Radius & Bus Factor (The Multipliers)
+We wire the `NetworkRiskSensor` and `Chronometer` directly into the documentation math.
+* **Network Blast Radius:** If an undocumented file is an orphaned utility, the risk stays low. If it is a "God Node" imported by 50 other files, the documentation risk is exponentially amplified.
+* **Silo Risk (Bus Factor):** If a volatile, undocumented file is written 95% by a single author, the risk multiplies again. The engine mathematically flags: *"If this one developer quits, the company loses the entire context of this load-bearing architecture."*
+
+---
 
 ## Universal Framework Integration
 
-* **$Fc$ (Fidelity Coefficient):** Applied to the final risk reduction. We trust documentation in Explicit languages (e.g., Rust) more than in Implicit languages (e.g., Shell), where comments are prone to "drifting" from the actual logic.
-* **$Irc$ (Implicit Risk Correction):** Applied to the Threshold. Implicit languages require a higher "Opacity Tax." They need more documentation density just to reach a baseline safety level.
-* **$Mp$ (Path Modifier):** * *Public/API ($Mp = 1.5$):* High Bar. This is the face of the system. Lack of docs here is punished more severely.
-  * *Tests/Experiments ($Mp = 0.5$):* Low Bar. Internal logic is more "forgiven" for being silent.
+As with all GitGalaxy physics, documentation risk is governed by the Universal Trust Matrix:
+* **$Fc$ (Fidelity Coefficient):** We trust documentation in Explicit languages (e.g., Rust, Java) more than in Implicit languages (e.g., Shell, Groovy), where comments are prone to "drifting" from the actual execution logic.
+* **$Irc$ (Implicit Risk Correction):** Applied to the risk baseline. Implicit languages require a higher "Opacity Tax." They need more documentation density just to reach a baseline safety level.
 
-## The Equation: The Dynamic Risk Sigmoid
+---
 
-We calculate the density of intent and map it to a "Debt Curve" where the score represents the Exposure caused by missing documentation.
+## The Mathematics: The Density of Intent
 
-**Step A: The Micro-Bypass**
-Tiny scripts ($\le 2$ lines of code) with $0$ documentation are automatically granted a $0.0$ risk score. A one-line utility function does not require a map.
+**Step A: The Defense (The Knowledge Shield)**
+We calculate the defensive mass by combining inline documentation, ownership tags, and the external `GuideStar` umbrella shield. The entire defense is then dampened by the language's Fidelity Coefficient ($Fc$).
 
-**Step B: Calculate Intent Density**
-We sum the weighted points and normalize them against the file size ($LOC$). A 1,000-line file requires significantly more intent-signaling than a 10-line utility.
+$$UmbrellaDefense = doc\_umbrella \times 50.0$$
+$$DefenseHits = (InlineDocs \times 1.0 + Ownership \times 0.5 + DocLOC \times 0.33 + UmbrellaDefense) \times Fc$$
 
-$$WeightedPoints = (doc\_hits \times 1.0) + (ownership\_hits \times 0.5) + (doc\_loc \times 0.33)$$
-$$Density = \left( \frac{WeightedPoints}{LOC} \right) \times 100.0$$
+**Step B: The Risk (Kinetic Blindness)**
+We calculate the raw risk by identifying exposed public APIs and summing the mass of all undocumented, heavy logic blocks. The language's Opacity Tax ($Irc$) is appended as a baseline penalty.
 
-**Step C: Determine The Risk Threshold (The Bar)**
-We calculate the "Tipping Point" where a file transitions from "Well-Documented" to "High Risk." We add the Implicit Risk Correction ($Irc$) and multiply by the Path Modifier ($Mp$).
+$$KineticBlindness = \sum_{undocumented} \left( 5.0 + (\ln(Impact) \times (BigO \times 0.5)) \right)$$
+$$RiskHits = KineticBlindness + (API\_Exposure \times 2.0) + Irc$$
 
-$$Threshold = (BaseThreshold + Irc) \times Mp$$
+**Step C: Net Exposure & Density**
+We balance the Risk against the Defense and normalize it against the physical lines of code to find the overall density of vulnerability.
 
-**Step D: The Risk Sigmoid Map**
-We use a sigmoid with a positive exponent. As Documentation Density increases, the denominator grows, causing the Risk Score to mathematically decrease.
+$$NetExposure = \max\left(0, RiskHits - \frac{DefenseHits}{2.0}\right)$$
+$$Density = \left( \frac{NetExposure}{\max(LOC, 1)} \right) \times 100.0$$
 
-$$RawRisk = \frac{100.0}{1 + e^{0.2 \times (Density - Threshold)}}$$
+**Step D: Systemic Multipliers**
+We calculate the multipliers for the file's Network Popularity (Blast Radius) and Author Silo Risk (Bus Factor).
 
-**Step E: Fidelity Trust Multiplier**
-Finally, we apply the Fidelity Coefficient ($Fc$). Low-fidelity languages suffer an inverted trust multiplier, acknowledging that comments in those languages are more prone to drifting from reality.
+$$NetworkMultiplier = 1.0 + \left(\frac{Popularity}{10.0}\right)$$
+$$SiloMultiplier = 1.0 + \left(\frac{SiloExposure}{200.0}\right)$$
+$$FinalMultiplier = NetworkMultiplier \times SiloMultiplier \times Mp$$
 
-$$FinalRisk = \min(RawRisk \times (2.0 - Fc), 100.0)$$
+**Step E: The Risk Sigmoid Map**
+Because high density equals high risk, we use a sigmoid with a *negative* slope. Finally, we multiply the output by the Systemic Multipliers.
+
+$$RawRisk = \frac{100.0}{1 + e^{-0.2 \times (Density - 10.0)}}$$
+$$FinalRisk = \min(RawRisk \times FinalMultiplier, 100.0)$$
+
+---
 
 ## Implementation (Python Reference)
 
 ```python
 import math
-from typing import Dict
+from typing import Dict, List, Any
 
-def _calc_documentation(self, loc: int, doc_loc: int, eq: Dict[str, int], fc: float, irc: int, mp: float) -> float:
+def _calc_documentation(
+    self,
+    loc: int,
+    doc_loc: int,
+    eq: Dict[str, int],
+    fc: float,
+    irc: int,
+    mp: float,
+    functions: List[Dict[str, Any]] = None,
+    doc_umbrella: float = 0.0,
+    popularity: int = 0,
+    silo_exposure: float = 0.0
+) -> float:
     t = self.risk_tuning.get("documentation", {})
     
-    # Step B: Calculate Intent Density
-    weighted_points = (eq.get("doc", 0) * t.get("doc_weight", 1.0)) + \
-                      (eq.get("ownership", 0) * t.get("ownership_weight", 0.5)) + \
-                      (doc_loc * t.get("doc_loc_weight", 0.33))
-    density = (weighted_points / loc) * 100.0
+    # 1. THE DEFENSE (The Knowledge Shield)
+    umbrella_defense = doc_umbrella * 50.0 
     
-    # Step A: Micro-bypass for tiny utilities
-    if loc <= 2 and doc_loc == 0:
-        return 0.0
-        
-    # Step C: Dynamic Threshold
-    threshold = (t.get("threshold_base", 10.0) + irc) * mp
+    defense_hits = (
+        (eq.get("doc", 0) * t.get("doc_weight", 1.0))
+        + (eq.get("ownership", 0) * t.get("ownership_weight", 0.5))
+        + (doc_loc * t.get("doc_loc_weight", 0.33))
+        + umbrella_defense
+    ) * fc
     
-    # Step D: Sigmoid Map
+    # 2. THE RISK (Kinetic Blindness)
+    kinetic_blindness = 0.0
+    api_exposure = eq.get("api", 0) * 2.0
+    
+    if functions:
+        for func in functions:
+            impact = func.get("impact", 0.0)
+            big_o = func.get("big_o_depth", 1)
+            
+            # If a load-bearing or deeply nested block lacks a semantic tether
+            if (impact > 50.0 or big_o >= 3) and not func.get("docstring"):
+                kinetic_blindness += 5.0 + (math.log1p(impact) * (big_o * 0.5))
+
+    risk_hits = kinetic_blindness + api_exposure + irc
+
+    # 3. UNIVERSAL DENSITY EQUATION
+    net_exposure = max(0.0, risk_hits - (defense_hits / 2.0))
+    density = (net_exposure / max(loc, 1)) * 100.0
+
+    # 4. THE MULTIPLIERS (Blast Radius & Bus Factor)
+    network_multiplier = 1.0 + (popularity / 10.0)
+    silo_multiplier = 1.0 + (silo_exposure / 200.0)
+    
+    final_multiplier = network_multiplier * silo_multiplier * mp
+
+    threshold = t.get("threshold_base", 10.0)
+    
+    # 5. SIGMOID CURVE
     try:
-        raw_risk = 100.0 / (1.0 + math.exp(t.get("sigmoid_slope", 0.2) * (density - threshold)))
+        raw_risk = 100.0 / (1.0 + math.exp(-t.get("sigmoid_slope", 0.2) * (density - threshold)))
     except OverflowError:
-        raw_risk = 0.0 if density > threshold else 100.0
-        
-    # Step E: Fidelity Trust Multiplier
-    return min(raw_risk * (2.0 - fc), 100.0)
+        raw_risk = 100.0 if density > threshold else 0.0
+
+    return min(raw_risk * final_multiplier, 100.0)
+```
 
 <br><br>
 
@@ -95,8 +157,6 @@ This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid
 
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
 * 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
-
-
 
 ---
 

@@ -4,7 +4,6 @@ from pathlib import Path
 import os
 
 
-
 def test_galaxyscope_python_fixture(tmp_path):
     """
     Tests that GalaxyScope can parse a micro-repo (iwubi),
@@ -30,7 +29,7 @@ def test_galaxyscope_python_fixture(tmp_path):
         capture_output=True,
         text=True,
         env=env,
-        cwd=str(project_root)
+        cwd=str(project_root),
     )
 
     # INVARIANT 1: CLI Exit Code & Billboard Output
