@@ -8,6 +8,7 @@
 # of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
 # ==============================================================================
 import re
+import os
 import json
 import logging
 import fnmatch
@@ -68,6 +69,9 @@ class GuideStarLens:
         # Pattern Prior Map for .gitattributes (e.g., *.h)
         self.pattern_priors: Dict[str, Dict[str, Any]] = {}
 
+        # Spatial Documentation Map: Dict[directory_path, shield_strength_float]
+        self.doc_umbrellas: Dict[str, float] = {}
+
         self.logger.debug(f"GuideStar Lens Online | Sector: {self.root.name}")
 
     def align_telescope(self):
@@ -83,8 +87,11 @@ class GuideStarLens:
         # 3. The Evasion Scout (.gitignore)
         self._survey_gitignore()
 
+        # 4. The Knowledge Scout (Documentation Umbrellas)
+        self._survey_knowledge_anchors()
+
         self.logger.info(
-            f"GuideStar: Alignment complete. Cached {len(self.priors)} intent priors and {len(self.pattern_priors)} pattern rules."
+            f"GuideStar: Alignment complete. Cached {len(self.priors)} intent priors, {len(self.pattern_priors)} pattern rules, and {len(self.doc_umbrellas)} documentation shields."
         )
 
     def get_intent_status(self, path: Union[str, Path]) -> Tuple[bool, Dict[str, Any]]:
@@ -425,3 +432,63 @@ class GuideStarLens:
 
         except Exception as e:
             self.logger.debug(f"GuideStar: Evasion inspection failed for .gitignore: {e}")
+
+    # ==============================================================================
+    # KNOWLEDGE ANCHORS (The Documentation Scout)
+    # ==============================================================================
+
+    def _survey_knowledge_anchors(self):
+        """
+        Scans the repository for high-value architectural literature.
+        Calculates the physical mass of the documentation to project a
+        defensive umbrella shield over the surrounding directory.
+        """
+        anchor_patterns = {
+            "README.md",
+            "README.txt",
+            "README.rst",
+            "ARCHITECTURE.md",
+            "DESIGN.md",
+            "SPEC.md",
+            "swagger.json",
+            "openapi.yaml",
+            "openapi.json",
+            "CONTRIBUTING.md",
+            "USAGE.md",
+        }
+
+        for root_dir, dirs, files in os.walk(self.root):
+            dir_path = Path(root_dir)
+
+            # Skip known black holes to avoid wasting I/O
+            if any(part in self._gs_config.get("BLACK_HOLES", set()) for part in dir_path.parts):
+                continue
+
+            local_shield_mass = 0
+
+            for file in files:
+                if file in anchor_patterns or file.lower().endswith(".md"):
+                    file_path = dir_path / file
+                    try:
+                        # Fetch the physical byte size of the documentation
+                        size_bytes = file_path.stat().st_size
+
+                        # Ignore stubs (e.g., "# Project Title" and nothing else)
+                        if size_bytes > 150:
+                            local_shield_mass += size_bytes
+                    except OSError:
+                        pass
+
+            if local_shield_mass > 0:
+                # Calculate Shield Strength:
+                # 3000+ bytes of documentation provides a 100% (1.0) shield for this folder.
+                shield_strength = min(local_shield_mass / 3000.0, 1.0)
+
+                rel_dir = str(dir_path.relative_to(self.root)).replace("\\", "/")
+                if rel_dir == ".":
+                    rel_dir = "__root__"
+
+                self.doc_umbrellas[rel_dir] = round(shield_strength, 3)
+                self.logger.debug(
+                    f"GuideStar: Projected {shield_strength*100:.1f}% Documentation Shield over '{rel_dir}'"
+                )
