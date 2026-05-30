@@ -84,7 +84,7 @@ For enterprise file inventory management, the Language Lens provides a fundament
 
 ## Extending the Language Lens
 
-GitGalaxy is designed to be infinitely extensible. To add native parsing support for a new language, you do not need to write a complex AST parser. You simply need to calibrate the thermodynamic physics of the target language using our strict LLM Master Prompt. Review the integration protocol here: **[Architecting a New Language](../../gitgalaxy/standards/how_to_add_a_language.md)**.
+GitGalaxy is designed to be infinitely extensible. To add native parsing support for a new language, you do not need to write a complex AST parser. You simply need to calibrate the thermodynamic physics of the target language using our strict LLM Master Prompt. Review the integration protocol here: **[Architecting a Review the integration protocol here: **[Architecting a New Language](./06-02-language-standards.md)**. Language](../../gitgalaxy/standards/how_to_add_a_language.md)**.
 
 <br><br>
 

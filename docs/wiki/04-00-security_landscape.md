@@ -92,7 +92,7 @@ To process 100,000+ lines of code per second and map complex reachability, you n
 
 This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, compilation-free heuristic knowledge graph engine.
 
-* 📖 **[Previous: Future Outlooks](./03-08-future-outlooks.md)**
+* 📖 **[Previous: Future Outlooks](./03-20-future-outlooks.md)**
 * 📖 **[Next: Full API Network Map](./04-01-full-api-network-map.md)**
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
 * 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.

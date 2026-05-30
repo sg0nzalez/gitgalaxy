@@ -1125,6 +1125,11 @@ RECORDING_SCHEMAS = {
         "design_long_vars",
         "design_slop_duplicates",
         "design_slop_orphans",
+        # --- NEW: INSTRUCTIONAL PROOF SENSORS (LITERATURE) ---
+        "lit_code_blocks",
+        "lit_diagrams",
+        "lit_headers",
+        "lit_links",
         # --- NEW: PASSIVE SECURITY LENS OBSERVERS ---
         "sec_heat_triggers",
         "sec_safety_neg",
@@ -1249,6 +1254,11 @@ RECORDING_SCHEMAS = {
         "dl_frameworks": "Deep Learning & Neural Networks",
         "lazy_evaluation": "Lazy Evaluation & Generators (O(1) Memory)",
         "vectorized_math": "Vectorized Math & Tensor Operations",
+        # --- INSTRUCTIONAL PROOF SENSORS (LITERATURE) ---
+        "lit_code_blocks": "Instructional Code Examples",
+        "lit_diagrams": "Architectural Diagrams (Mermaid/PlantUML)",
+        "lit_headers": "Structured Literature Headers",
+        "lit_links": "Hyperlinked Literature References",
         # --- SECURITY LENS UI MAPPINGS (Plain English) ---
         "sec_heat_triggers": "High-Entropy / Obfuscated Logic",
         "sec_safety_neg": "Safety & Constraint Bypasses",

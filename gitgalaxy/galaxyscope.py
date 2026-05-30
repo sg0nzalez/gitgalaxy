@@ -396,6 +396,15 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                 if is_file_profiling:
                     phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
 
+                # ---> INJECT THE KNOWLEDGE SHIELD <---
+                dir_path = str(Path(rel_path).parent).replace("\\", "/")
+                if dir_path == ".":
+                    dir_path = "__root__"
+
+                if "metadata" not in logic_data:
+                    logic_data["metadata"] = {}
+                logic_data["metadata"]["doc_umbrella"] = guidestar.doc_umbrellas.get(dir_path, 0.0)
+
                 logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
 
             # --- Phase 5.5: Security Lens (Passive Observers) ---
@@ -1431,6 +1440,45 @@ class Orchestrator:
         self.used_tokens = set()
         for meta in self.cryolink.values():
             self.used_tokens.update(meta.get("named_tokens", []))
+        # ==============================================================
+
+        # ==============================================================
+        # ---> NEW: CALCULATE INSTRUCTIONAL DENSITY MULTIPLIERS <---
+        # Aggregate markdown heuristics to upgrade the doc_umbrella shields
+        # ==============================================================
+        instructional_multipliers = {}
+        for rel_path, meta in self.cryolink.items():
+            if meta.get("lang_id") == "markdown":
+                folder = str(Path(rel_path).parent).replace("\\", "/")
+                if folder == ".":
+                    folder = "__root__"
+
+                eq = meta.get("equations", {})
+
+                # Instructional Mass = Diagrams (10x) + Code Blocks (5x) + Headers (1x) + Links (0.5x)
+                instructional_mass = (
+                    (eq.get("lit_diagrams", 0) * 10.0)
+                    + (eq.get("lit_code_blocks", 0) * 5.0)
+                    + (eq.get("lit_headers", 0) * 1.0)
+                    + (eq.get("lit_links", 0) * 0.5)
+                )
+
+                # Base Multiplier is 1.0. High-quality docs can double the shield (2.0)
+                multiplier = 1.0 + min(instructional_mass / 50.0, 1.0)
+
+                if folder not in instructional_multipliers or multiplier > instructional_multipliers.get(folder, 0.0):
+                    instructional_multipliers[folder] = multiplier
+
+        # Apply the multiplier to the existing doc_umbrellas
+        for rel_path, meta in self.cryolink.items():
+            folder = str(Path(rel_path).parent).replace("\\", "/")
+            if folder == ".":
+                folder = "__root__"
+
+            if "metadata" in meta and "doc_umbrella" in meta["metadata"]:
+                base_shield = meta["metadata"]["doc_umbrella"]
+                mult = instructional_multipliers.get(folder, 1.0)
+                meta["metadata"]["doc_umbrella"] = min(base_shield * mult, 1.0)
         # ==============================================================
 
         for rel_path, meta in self.cryolink.items():
