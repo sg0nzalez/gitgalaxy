@@ -34,7 +34,9 @@ classifiers = [
     "Intended Audience :: Information Technology",
 ]
 
-dependencies = []
+dependencies = [
+    "PyYAML>=6.0"
+]
 
 [project.urls]
 "Homepage" = "https://gitgalaxy.io"
