@@ -820,7 +820,7 @@ def test_signal_processor_llm_api_secrets(physics_engine):
     })
     
     # 2. Careless LLM API secret leak (Calling APIs without using global variables)
-    m_llm, e_llm = create_synthetic_star(physics_engine, "llm_leak", 500, {
+    m_llm, _unused_e_llm = create_synthetic_star(physics_engine, "llm_leak", 500, {
         "sec_private_info": 1, "llm_api": 5, "globals": 0, "sec_heat_triggers": 1
     })
 
