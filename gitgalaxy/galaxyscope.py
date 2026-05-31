@@ -2104,7 +2104,7 @@ def main():
         # ---> DEFAULT PROTOTYPING PATH <---
         # Hardcode your preferred testing directory here.
         # Leave as "" to default to your current terminal directory.
-        DEFAULT_OUT_DIR = "/srv/storage_16tb/projects/gitgalaxy/v6/updated_results_2"
+        DEFAULT_OUT_DIR = ""
 
         if args.output:
             out_arg = Path(args.output)
