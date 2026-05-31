@@ -222,13 +222,27 @@ class SignalProcessor:
         umbrella_bonus: float = 0.0,
     ) -> Dict[str, Any]:
         """Calculates risk exposure, temporal physics, and per-file physical impact."""
-        loc = max(meta.get("coding_loc", 1), 1)
-        total_loc = max(meta.get("total_loc", loc), 1)
-        doc_lines = meta.get("doc_loc", 0)
-        lang_id = meta.get("lang_id", "undeterminable")
         rel_path = meta.get("path", "unknown")
+        loc = 1  # Safe fallback for the except block
 
         try:
+            try:
+                loc = max(int(meta.get("coding_loc", 1)), 1)
+            except (ValueError, TypeError):
+                loc = 1
+                
+            try:
+                total_loc = max(int(meta.get("total_loc", loc)), 1)
+            except (ValueError, TypeError):
+                total_loc = loc
+                
+            try:
+                doc_lines = int(meta.get("doc_loc", 0))
+            except (ValueError, TypeError):
+                doc_lines = 0
+
+            lang_id = meta.get("lang_id", "undeterminable")
+
             import os
 
             filename = os.path.basename(rel_path).lower()
@@ -1903,6 +1917,24 @@ class SignalProcessor:
         if explicit_threats == 0 and taint_confirmed == 0 and not getattr(self, "is_paranoid", False):
             sabotage_mass *= 0.05
 
+        # Fetch tuning parameters
+        t = self.risk_tuning.get("logic_bomb", {})
+        density = (sabotage_mass / max(loc + t.get("loc_padding", 150), 1)) * 100.0
+
+        if getattr(self, "is_paranoid", False):
+            threshold = t.get("paranoid_threshold", 10.0)
+            slope = t.get("paranoid_slope", 0.5)
+        else:
+            threshold = t.get("std_threshold", 75.0)
+            slope = t.get("std_slope", 0.2)
+
+        try:
+            score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
+        except OverflowError:
+            score = 100.0 if density > threshold else 0.0
+
+        return min(score * mp, 100.0)
+
     def _calc_injection_surface(self, loc: int, eq: Dict[str, int], mp: float, archetype: str) -> float:
         """
         Calculates Injection Surface Exposure (XSS, SQLi, RCE, SSTI).
@@ -2182,8 +2214,10 @@ class SignalProcessor:
 
         def get_cumulative_risk(f):
             rv = f.get("risk_vector", [])
+            if not isinstance(rv, list):
+                return 0.0
             # Sum all exposures except civil_war
-            return sum(val for i, val in enumerate(rv) if i != civil_war_idx and i < len(rv))
+            return sum(val for i, val in enumerate(rv) if i != civil_war_idx and i < len(rv) and isinstance(val, (int, float)))
 
         sorted_by_cumulative = sorted(active_files, key=get_cumulative_risk, reverse=True)
 
@@ -2200,16 +2234,17 @@ class SignalProcessor:
 
         for file_data in active_files:
             net = file_data.get("telemetry", {}).get("network_metrics", {})
-            rv = file_data.get("risk_vector", [])
+            raw_rv = file_data.get("risk_vector", [])
+            rv = raw_rv if isinstance(raw_rv, list) else []
             p = file_data.get("path", "")
 
             btw = net.get("betweenness_score") or 0.0
             close = net.get("closeness_score") or 0.0
             pr = net.get("normalized_blast_radius") or 0.0
 
-            flux_risk = rv[flux_idx] if flux_idx >= 0 and len(rv) > flux_idx else 0.0
-            err_risk = rv[err_idx] if err_idx >= 0 and len(rv) > err_idx else 0.0
-            doc_risk = rv[doc_idx] if doc_idx >= 0 and len(rv) > doc_idx else 0.0
+            flux_risk = float(rv[flux_idx]) if flux_idx >= 0 and len(rv) > flux_idx and isinstance(rv[flux_idx], (int, float)) else 0.0
+            err_risk = float(rv[err_idx]) if err_idx >= 0 and len(rv) > err_idx and isinstance(rv[err_idx], (int, float)) else 0.0
+            doc_risk = float(rv[doc_idx]) if doc_idx >= 0 and len(rv) > doc_idx and isinstance(rv[doc_idx], (int, float)) else 0.0
 
             bottlenecks["contagious_mutation"].append(
                 {
