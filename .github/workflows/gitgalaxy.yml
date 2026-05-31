@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: squid-protocol/gitgalaxy@v2.2.2
+      - uses: squid-protocol/gitgalaxy@v2.2.3
         with:
           tool: 'vault-sentinel'
           target: '.'
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: squid-protocol/gitgalaxy@v2.2.2
+      - uses: squid-protocol/gitgalaxy@v2.2.3
         with:
           tool: 'xray-inspector'
           target: '.'
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: squid-protocol/gitgalaxy@v2.2.2
+      - uses: squid-protocol/gitgalaxy@v2.2.3
         with:
           tool: 'supply-chain-firewall'
           target: '.'
@@ -48,7 +48,7 @@ jobs:
           fetch-depth: 0
 
       - name: Generate GalaxyScope LLM Brief
-        uses: squid-protocol/gitgalaxy@v2.2.2
+        uses: squid-protocol/gitgalaxy@v2.2.3
         with:
           tool: 'galaxyscope'
           target: '.'
