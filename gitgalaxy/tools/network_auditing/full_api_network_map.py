@@ -8,9 +8,13 @@ import argparse
 import sys
 import re
 import json
-import yaml
 from pathlib import Path
 from collections import defaultdict
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 # ==============================================================================
 # 1. THE ROUTER PHYSICS (EXPANDED FRAMEWORK REGEX TRAPS)
@@ -116,6 +120,10 @@ def parse_official_swagger(swagger_path: Path) -> set:
     try:
         with open(swagger_path, "r", encoding="utf-8") as f:
             if swagger_path.suffix.lower() in [".yaml", ".yml"]:
+                if yaml is None:
+                    print(f" ❌ Error: PyYAML is required to parse .yaml Swagger files ({swagger_path.name}).")
+                    print("    Please run 'pip install pyyaml' or provide a .json specification.")
+                    sys.exit(1)
                 swagger_data = yaml.safe_load(f)
             else:
                 swagger_data = json.load(f)

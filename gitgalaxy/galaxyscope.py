@@ -44,6 +44,13 @@ from gitgalaxy.recorders.llm_recorder import LLMRecorder
 from gitgalaxy.recorders.record_keeper import RecordKeeper
 from gitgalaxy.security.security_lens import SecurityLens
 from gitgalaxy.security.security_auditor import SecurityAuditor, ML_AVAILABLE
+
+try:
+    import yaml
+    HAS_PYYAML = True
+except ImportError:
+    HAS_PYYAML = False
+
 from gitgalaxy.tools.ai_guardrails.dev_agent_firewall import DevAgentFirewall
 from gitgalaxy.tools.ai_guardrails.ai_appsec_sensor import AIAppSecSensor
 from gitgalaxy.standards.gitgalaxy_config import (
@@ -624,7 +631,7 @@ class Orchestrator:
         start_time = time.time()
         logger.info(f"--- MISSION_IGNITION: {self.root.name} (v{self.version}) ---")
 
-        if not HAS_NETWORKX or not HAS_TIKTOKEN or not ML_AVAILABLE:
+        if not HAS_NETWORKX or not HAS_TIKTOKEN or not ML_AVAILABLE or not HAS_PYYAML:
             missing_libs = []
             if not HAS_NETWORKX:
                 missing_libs.append("networkx")
@@ -632,6 +639,8 @@ class Orchestrator:
                 missing_libs.append("tiktoken")
             if not ML_AVAILABLE:
                 missing_libs.extend(["xgboost", "pandas", "numpy"])
+            if not HAS_PYYAML:
+                missing_libs.append("pyyaml")
 
             pip_cmd = f"pip install {' '.join(missing_libs)}"
 
@@ -646,6 +655,8 @@ class Orchestrator:
                 logger.warning(" ┃  - tiktoken (Absolute Token Mass, Financial Read Cost)                  ┃")
             if not ML_AVAILABLE:
                 logger.warning(" ┃  - xgboost, pandas (Advanced ML Threat Inference & Taxonomy)            ┃")
+            if not HAS_PYYAML:
+                logger.warning(" ┃  - pyyaml (Required for parsing .yaml/.yml Swagger/OpenAPI specs)       ┃")
             logger.warning(" ┃                                                                         ┃")
             logger.warning(" ┃ To unlock absolute precision, run:                                      ┃")
             logger.warning(f" ┃    {pip_cmd}".ljust(75) + "┃")
@@ -750,8 +761,9 @@ class Orchestrator:
                     "networkx": not HAS_NETWORKX,
                     "tiktoken": not HAS_TIKTOKEN,
                     "xgboost": not ML_AVAILABLE,
+                    "pyyaml": not HAS_PYYAML,
                 },
-                "zero_dependency_mode": (not HAS_NETWORKX or not HAS_TIKTOKEN or not ML_AVAILABLE),
+                "zero_dependency_mode": (not HAS_NETWORKX or not HAS_TIKTOKEN or not ML_AVAILABLE or not HAS_PYYAML),
             }
 
             if "unparsable_files" not in summary:
