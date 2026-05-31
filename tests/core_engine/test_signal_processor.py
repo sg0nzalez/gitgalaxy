@@ -815,7 +815,7 @@ def test_signal_processor_crypto_professionalism_shield(physics_engine):
 def test_signal_processor_llm_api_secrets(physics_engine):
     """Proves that hardcoded secrets mixed with LLM APIs trigger a massive careless amplifier."""
     # 1. Standard secret leak (Requires sec_heat_triggers to bypass the 2.0 clamp)
-    m_std, e_std = create_synthetic_star(physics_engine, "std_leak", 500, {
+    _unused_m_std, e_std = create_synthetic_star(physics_engine, "std_leak", 500, {
         "sec_private_info": 1, "globals": 1, "sec_heat_triggers": 1
     })
     
