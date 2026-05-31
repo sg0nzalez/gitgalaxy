@@ -379,3 +379,38 @@ def test_signal_processor_ai_topology(physics_engine):
     assert "context amnesia" in insights, "Failed to detect missing Agent Memory!"
     assert "catastrophically across the system" in insights, "Failed to detect high PageRank blast radius!"
     assert "Cognitive Choke Point" in insights, "Failed to detect high Betweenness!"
+
+
+# ==============================================================================
+# TEST 15: ALGORITHMIC DOS EXPOSURE
+# ==============================================================================
+def test_signal_processor_algorithmic_dos(physics_engine):
+    """Proves the Big-O risk exposure scales with data gravity and choke points, and is dampened by safety guardrails."""
+    
+    # 1. Isolated Harmless Loop: O(N^3) but no IO/API and 0 popularity.
+    m_iso, e_iso = create_synthetic_star(physics_engine, "isolated", 100, {"api": 0})
+    m_iso["popularity"] = 0
+    m_iso["functions"] = [{"name": "safe_loop", "loc": 50, "big_o_depth": 3, "db_complexity": 0, "hit_vector": {}}]
+    
+    # 2. API DoS Bomb: O(N^3) + DB Complexity + Exposed to API & IO
+    m_bomb, e_bomb = create_synthetic_star(physics_engine, "exposed_bomb", 100, {"api": 10})
+    m_bomb["popularity"] = 5
+    m_bomb["functions"] = [{"name": "dos_bomb", "loc": 50, "big_o_depth": 3, "db_complexity": 10, "hit_vector": {"api": 5, "io": 5, "flux": 5}}]
+    
+    # 3. Guarded DoS Bomb: Same as above but mitigated by safety bailouts
+    m_guard, e_guard = create_synthetic_star(physics_engine, "guarded_bomb", 100, {"api": 10})
+    m_guard["popularity"] = 5
+    m_guard["functions"] = [{"name": "safe_bomb", "loc": 50, "big_o_depth": 3, "db_complexity": 10, "hit_vector": {"api": 5, "io": 5, "flux": 5, "safety": 1, "bailout_hits": 2}}]
+
+    res_iso = physics_engine.calculate_risk_vector(m_iso, e_iso)
+    res_bomb = physics_engine.calculate_risk_vector(m_bomb, e_bomb)
+    res_guard = physics_engine.calculate_risk_vector(m_guard, e_guard)
+
+    # Index 13 is the new algorithmic_dos vector
+    iso_score = res_iso["risk_vector"][13]
+    bomb_score = res_bomb["risk_vector"][13]
+    guard_score = res_guard["risk_vector"][13]
+
+    assert iso_score < bomb_score, "Isolated loop should have significantly lower risk than exposed bomb!"
+    assert guard_score < bomb_score, "Safety guardrails failed to dampen the Algorithmic DoS threat!"
+    assert bomb_score > 50.0, "API DoS bomb failed to spike the risk exposure!"
