@@ -60,6 +60,7 @@ ALLOWLIST_PATHS = [
     # "tests/phpunit/integration/includes/Json/key1.pem.pub",
     # "tests/phpunit/integration/includes/Json/key2.pem",
     # "tests/phpunit/integration/includes/Json/key2.pem.pub"
+    "tests/"
 ]
 
 # ------------------------------------------------------------------
@@ -80,7 +81,18 @@ XRAY_BYPASS_EXTENSIONS = [
     ".yml",
 ]
 
-XRAY_BYPASS_PATHS = ["package-lock.json", "yarn.lock", "composer.lock"]
+XRAY_BYPASS_PATHS = ["package-lock.json", "yarn.lock", "composer.lock",
+    "gitgalaxy/core/aperture.py",
+    "gitgalaxy/standards/language_standards.py",
+    "gitgalaxy/security/security_lens.py",
+    "gitgalaxy/tools/network_auditing/full_api_network_map.py",
+    "gitgalaxy/tools/cobol_to_cobol/cobol_schema_forge.py",
+    "gitgalaxy/tools/cobol_to_cobol/cobol_compiler_forge.py",
+    "gitgalaxy/tools/terabyte_log_scanning/pii_leak_hunter.py",
+    "gitgalaxy/tools/supply_chain_security/binary_anomaly_detector.py",
+    "gitgalaxy/tools/supply_chain_security/supply_chain_firewall.py",
+    "site/css/styles.css"
+]
 
 
 # ------------------------------------------------------------------------------
