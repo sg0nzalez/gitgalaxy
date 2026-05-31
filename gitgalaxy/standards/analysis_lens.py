@@ -799,6 +799,11 @@ RISK_EQUATION_TUNING = {
         "threshold_base": 6.0,  # Lowered from 15.0 (6% mutation density is much more realistic)
         "sigmoid_slope": 0.40,  # Increased from 0.20 to stretch the curve
     },
+    "algorithmic_dos": {
+        "loc_padding": 150,  # Standard padding to forgive O(N^2) in tiny scripts
+        "threshold_base": 15.0,  # The density tipping point where risk spikes
+        "sigmoid_slope": 0.3,  # Stretches the curve to reward partial mitigations
+    },
     # ---> DECOUPLED SECURITY EQUATION TUNING <---
     "obscured_payload": {
         "loc_padding": 500,  # Raised from 150. Dilutes the density of massive framework files.
@@ -1035,6 +1040,7 @@ RECORDING_SCHEMAS = {
         "churn",
         "documentation",
         "civil_war",
+        "algorithmic_dos",
         # --- THE SECURITY & VULNERABILITY LENSES ---
         "obscured_payload",
         "logic_bomb",
@@ -1276,6 +1282,7 @@ RECORDING_SCHEMAS = {
         "injection_surface": "Weaponizable Injection Vectors",
         "memory_corruption": "Weaponizable Memory Operations",
         "secrets_risk": "Hardcoded Credential Exposure",
+        "algorithmic_dos": "Algorithmic DoS Exposure",
     },
     "EXPOSURE_LABELS": {
         "cognitive_load": "Cognitive Load Exposure",
@@ -1291,6 +1298,7 @@ RECORDING_SCHEMAS = {
         "churn": "Volatility Exposure",
         "documentation": "Documentation Exposure",
         "civil_war": "Civil War Exposure",
+        "algorithmic_dos": "Algorithmic DoS Exposure",
         # --- SECURITY LENS UI LABELS (Plain English) ---
         "obscured_payload": "Obfuscation & Evasion Surface",
         "logic_bomb": "Exploit Generation Surface",
