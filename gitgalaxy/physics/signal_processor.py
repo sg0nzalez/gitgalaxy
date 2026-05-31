@@ -719,6 +719,9 @@ class SignalProcessor:
                 "churn": 0.0,
                 "documentation": doc_score,
                 "civil_war": self._calc_civil_war(equations),
+                "algorithmic_dos": self._calc_algorithmic_dos(
+                    loc, equations, mp_map.get("algorithmic_dos", 1.0), functions, popularity
+                ),
                 # ---> BIAXIAL WEAPONIZATION <---
                 "obscured_payload": self._calc_obscured_payload(
                     loc,
@@ -735,6 +738,7 @@ class SignalProcessor:
                     global_archetype,
                     global_drift,
                     local_drift,
+                    max_big_o,
                 ),
                 "injection_surface": self._calc_injection_surface(
                     loc,
@@ -1833,6 +1837,7 @@ class SignalProcessor:
         archetype: str,
         global_drift: float,
         local_drift: float,
+        max_big_o: int = 1,
     ) -> float:
         """
         Calculates Logic Bomb / Sabotage Exposure.
@@ -1860,6 +1865,22 @@ class SignalProcessor:
         # ---> APPLY THE ARCHETYPE CONTEXT <---
         sabotage_mass = (trigger * payload) * arch_multiplier
 
+        # ---> THE ALGORITHMIC DOS SPIKE (Big-O Vulnerability) <---
+        if max_big_o >= 3:
+            # 1. API/IO Choke Point (User-Controlled N or Network Latency)
+            attack_surface = eq.get("api", 0) + eq.get("sec_io", 0) + eq.get("io", 0)
+            dos_mass = attack_surface * (max_big_o**2) * 10.0
+
+            # 2. State Flux Bomb (Memory Exhaustion)
+            flux = eq.get("flux", 0) + eq.get("globals", 0)
+            dos_mass += flux * (max_big_o**2) * 5.0
+
+            # 3. The Shielding Dampener (Safety Guardrails)
+            if eq.get("safety", 0) > 0 or eq.get("bailout_hits", 0) > 0:
+                dos_mass *= 0.25  # 75% reduction if guardrails exist
+
+            sabotage_mass += dos_mass
+
         # ---> THE TAINT SPIKE <---
         # If the LHS Slicer confirmed data crossed from I/O to Danger, risk is absolute.
         taint_confirmed = eq.get("sec_tainted_injection", 0)
@@ -1876,26 +1897,11 @@ class SignalProcessor:
             return 0.0
 
         explicit_threats = eq.get("sec_graveyard", 0) + eq.get("sec_heat_triggers", 0)
+        if max_big_o >= 3:
+            explicit_threats += 1  # Preserve DoS Mass from being zeroed out
+
         if explicit_threats == 0 and taint_confirmed == 0 and not getattr(self, "is_paranoid", False):
             sabotage_mass *= 0.05
-
-        # Fetch tuning parameters
-        t = self.risk_tuning.get("logic_bomb", {})
-        density = (sabotage_mass / max(loc + t.get("loc_padding", 150), 1)) * 100.0
-
-        if getattr(self, "is_paranoid", False):
-            threshold = t.get("paranoid_threshold", 10.0)
-            slope = t.get("paranoid_slope", 0.5)
-        else:
-            threshold = t.get("std_threshold", 75.0)
-            slope = t.get("std_slope", 0.2)
-
-        try:
-            score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
-        except OverflowError:
-            score = 100.0 if density > threshold else 0.0
-
-        return min(score * mp, 100.0)
 
     def _calc_injection_surface(self, loc: int, eq: Dict[str, int], mp: float, archetype: str) -> float:
         """
@@ -2072,6 +2078,76 @@ class SignalProcessor:
 
         return min(score * mp, 100.0)
 
+    def _calc_algorithmic_dos(
+        self,
+        loc: int,
+        eq: Dict[str, int],
+        mp: float,
+        functions: List[Dict[str, Any]],
+        popularity: int,
+    ) -> float:
+        """
+        Calculates Algorithmic DoS Exposure based on Big-O depth, data gravity, and network choke points.
+        """
+        if not functions:
+            return 0.0
+
+        dos_mass = 0.0
+
+        for func in functions:
+            depth = func.get("big_o_depth", 1)
+            if depth < 2:
+                continue
+
+            # 1. The Base Threat (Exponential decay of performance)
+            func_threat = float(depth**2)
+
+            # 2. The Amplifiers (Network & Data Gravity)
+            db_complex = func.get("db_complexity", 0)
+            if db_complex > 0:
+                func_threat *= 1.0 + (db_complex * 0.5)
+
+            hv = func.get("hit_vector", {})
+            api_hits = hv.get("api", 0)
+            io_hits = hv.get("io", 0) + hv.get("sec_io", 0)
+            flux_hits = hv.get("flux", 0) + hv.get("globals", 0)
+
+            choke_multiplier = 1.0 + api_hits + io_hits + flux_hits
+            func_threat *= choke_multiplier
+
+            # 3. The Dampeners (Guardrails)
+            safety_hits = hv.get("safety", 0) + hv.get("bailout_hits", 0) + hv.get("cleanup", 0)
+            if safety_hits > 0:
+                func_threat *= 0.5  # 50% reduction for bounded iteration
+
+            dos_mass += func_threat
+
+        if dos_mass == 0.0:
+            return 0.0
+
+        # Apply File-Level Network Dampeners/Amplifiers
+        network_multiplier = 1.0
+        if popularity == 0 and eq.get("api", 0) == 0:
+            network_multiplier = 0.10  # Safely isolated orphan
+        elif popularity > 0:
+            network_multiplier = min(1.0 + (math.log1p(popularity) / 5.0), 3.0)
+
+        total_threat_mass = dos_mass * network_multiplier
+
+        # Fetch tuning parameters
+        t = self.risk_tuning.get("algorithmic_dos", {})
+        density = (total_threat_mass / max(loc + t.get("loc_padding", 150), 1)) * 100.0
+
+        threshold = t.get("threshold_base", 15.0)
+        slope = t.get("sigmoid_slope", 0.3)
+
+        try:
+            score = 100.0 / (1.0 + math.exp(-slope * (density - threshold)))
+        except OverflowError:
+            score = 100.0 if density > threshold else 0.0
+
+        return min(score * mp, 100.0)
+
     # --------------------------------------------------------------------------
     # REPORTING UTILITIES
     # --------------------------------------------------------------------------
@@ -2211,6 +2287,7 @@ class SignalProcessor:
             "State Flux Exposure": "flux",
             "Specification Exposure": "spec",
             "Churn Exposure": "churn",
+            "Algorithmic DoS Exposure": "algorithmic_dos",
             # --- SECURITY LENSES ---
             "Obscured Payload Exposure": "obscured",
             "Logic Bomb Exposure": "logic_bomb",
