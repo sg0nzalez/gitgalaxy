@@ -1,0 +1,72 @@
+name: GitGalaxy Zero-Trust Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  vault-sentinel:
+    name: Vault Sentinel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: squid-protocol/gitgalaxy@v2.2.1
+        with:
+          tool: 'vault-sentinel'
+          target: '.'
+
+  xray-inspector:
+    name: X-Ray Inspector
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: squid-protocol/gitgalaxy@v2.2.1
+        with:
+          tool: 'xray-inspector'
+          target: '.'
+
+  supply-chain-firewall:
+    name: Supply Chain Firewall
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: squid-protocol/gitgalaxy@v2.2.1
+        with:
+          tool: 'supply-chain-firewall'
+          target: '.'
+
+  architectural-report:
+    name: LLM Structural Brief
+    needs: [vault-sentinel, xray-inspector, supply-chain-firewall]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Critical: Grants the Action permission to push to main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate GalaxyScope LLM Brief
+        uses: squid-protocol/gitgalaxy@v2.2.1
+        with:
+          tool: 'galaxyscope'
+          target: '.'
+          args: '--llm-only'
+          full_precision: 'true'
+
+      - name: Commit and Push LLM Brief to Main
+        run: |
+          # Move the report to the docs folder for clean organization
+          mkdir -p docs
+          mv *_galaxy_llm.md docs/gitgalaxy_architecture_brief.md || true
+          
+          # Configure the GitHub Actions bot identity
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage the file
+          git add docs/gitgalaxy_architecture_brief.md
+          
+          # Only commit and push if there are actual changes to prevent pipeline failures
+          git diff --quiet && git diff --staged --quiet || (git commit -m "docs: auto-update LLM architectural brief" && git push)
