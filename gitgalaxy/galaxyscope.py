@@ -47,6 +47,7 @@ from gitgalaxy.security.security_auditor import SecurityAuditor, ML_AVAILABLE
 
 try:
     import yaml
+
     HAS_PYYAML = True
 except ImportError:
     HAS_PYYAML = False
