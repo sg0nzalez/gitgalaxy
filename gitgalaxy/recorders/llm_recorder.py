@@ -709,6 +709,7 @@ class LLMRecorder:
             "injection_surface",
             "memory_corruption",
             "secrets_risk",
+            "algorithmic_dos",
         ]
         vuln_found = False
         for v_key in vuln_keys:
