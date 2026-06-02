@@ -91,7 +91,7 @@ class SecurityLens:
                 r"child_process\.(?:exec|spawn|fork)|"
                 r'(?:window|global|this|globalThis)\[[ \t]*(?:["\'][a-zA-Z]["\'][ \t]*\+[ \t]*){1,15}["\'][a-zA-Z]["\'][ \t]*\][ \t]*\(|'
                 r"\$[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\s*\(\s*\$_(?:POST|GET|COOKIE|REQUEST|HEADERS)|"
-                r"getattr\s*\(\s*__import__\s*\(|__builtins__\[|Assembly\.Load\s*\(|"
+                r"getattr\s*\(\s*__import__\s*\(|importlib\.import_module\s*\(|\brequire\s*\(\s*(?!['\"])[a-zA-Z_$]|__builtins__\[|Assembly\.Load\s*\(|"
                 r"\$\{\{\s*github\.event\.(?:issue|pull_request|comment|review|push\.commits).*?\}\}",
                 re.I | re.X,
             ),
