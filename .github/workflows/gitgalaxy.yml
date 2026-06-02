@@ -1,9 +1,8 @@
 name: GitGalaxy Zero-Trust Pipeline
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   vault-sentinel:
@@ -40,6 +39,7 @@ jobs:
     name: LLM Structural Brief
     needs: [vault-sentinel, xray-inspector, supply-chain-firewall]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     permissions:
       contents: write # Critical: Grants the Action permission to push to main
     steps:
