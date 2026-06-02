@@ -16,10 +16,10 @@ from gitgalaxy.tools.network_auditing.full_api_network_map import (
 
 
 # ==============================================================================
-# TEST 1: The Core Framework Regex Traps (All Languages)
+# TEST 1: Framework Regex Extraction (All Supported Languages)
 # ==============================================================================
-def test_all_framework_regex_traps(tmp_path):
-    """Proves the physical mapper correctly extracts endpoints from all supported backends."""
+def test_framework_regex_extraction(tmp_path):
+    """Verifies the physical mapper correctly extracts endpoints from all supported backends."""
     repo_dir = tmp_path / "all_frameworks_repo"
     repo_dir.mkdir()
 
@@ -37,7 +37,7 @@ def test_all_framework_regex_traps(tmp_path):
     physical_apis, frameworks = map_physical_codebase(repo_dir)
 
     # Verify all frameworks were successfully detected
-    assert len(frameworks) == 9, "Not all frameworks were detected by the regex traps!"
+    assert len(frameworks) == 9, "Not all frameworks were detected by the extraction rules!"
     endpoints = set(physical_apis.keys())
     assert "GET /api/py" in endpoints
     assert "POST /api/js" in endpoints
@@ -51,10 +51,33 @@ def test_all_framework_regex_traps(tmp_path):
 
 
 # ==============================================================================
-# TEST 2: Swagger Parser (JSON, YAML, and Exceptions)
+# TEST 2: Path Variable Extraction
 # ==============================================================================
-def test_swagger_parser_yaml_and_errors(tmp_path, capsys):
-    """Proves the parser handles YAML specs and correctly raises SystemExit on corruption."""
+def test_endpoint_variable_extraction(tmp_path):
+    """Verifies that different framework syntaxes for path variables are extracted as-is."""
+    repo_dir = tmp_path / "normalization_repo"
+    repo_dir.mkdir()
+
+    # Different frameworks use different variable syntaxes (Flask: <id>, Express: :id, Spring: {id})
+    (repo_dir / "app.py").write_text('@app.get("/api/users/<user_id>")', encoding="utf-8")
+    (repo_dir / "server.js").write_text('router.get("/api/users/:userId")', encoding="utf-8")
+    (repo_dir / "Controller.java").write_text('@GetMapping("/api/users/{id}")', encoding="utf-8")
+
+    physical_apis, _ = map_physical_codebase(repo_dir)
+    endpoints = set(physical_apis.keys())
+
+    # The engine retains the raw syntax from the code
+    assert "GET /api/users/<user_id>" in endpoints, "Flask variable extraction failed!"
+    assert "GET /api/users/:userId" in endpoints, "Express variable extraction failed!"
+    assert "GET /api/users/{id}" in endpoints, "Spring variable extraction failed!"
+    assert len(endpoints) == 3, "Variable routes were incorrectly merged!"
+
+
+# ==============================================================================
+# TEST 3: Swagger Parser (YAML, JSON, and Corruption)
+# ==============================================================================
+def test_swagger_parser_yaml_and_corruption(tmp_path, capsys):
+    """Verifies the parser handles YAML specs and correctly exits on file corruption."""
     # 1. Valid YAML
     yaml_file = tmp_path / "openapi.yaml"
     yaml_data = {"paths": {"/api/yaml": {"get": {}}}}
@@ -63,7 +86,7 @@ def test_swagger_parser_yaml_and_errors(tmp_path, capsys):
     routes = parse_official_swagger(yaml_file)
     assert "GET /api/yaml" in routes
 
-    # 2. Corrupted File Exception Trap
+    # 2. Corrupted File Check
     bad_file = tmp_path / "bad.json"
     bad_file.write_text("{ CORRUPTED JSON", encoding="utf-8")
 
@@ -76,14 +99,41 @@ def test_swagger_parser_yaml_and_errors(tmp_path, capsys):
 
 
 # ==============================================================================
-# TEST 3: Auto-Discovery Engine (Fast Path vs Deep Grep)
+# TEST 4: Swagger Parser (Empty Paths & Greedy Key Extraction)
 # ==============================================================================
-def test_auto_discover_swagger_logic(tmp_path):
-    """Proves the engine finds exact filenames OR deep-greps for Swagger signatures."""
+def test_swagger_parser_edge_cases(tmp_path):
+    """Verifies the parser survives schemas without paths and grabs all path keys."""
+    # 1. Missing "paths" object
+    empty_file = tmp_path / "empty_spec.json"
+    empty_file.write_text('{"openapi": "3.0.0", "info": {"title": "Empty"}}', encoding="utf-8")
+    routes_empty = parse_official_swagger(empty_file)
+    assert len(routes_empty) == 0, "Parser failed to handle missing 'paths' object!"
+
+    # 2. Greedy Key Extraction
+    invalid_methods_file = tmp_path / "vendor_spec.json"
+    spec_data = {
+        "openapi": "3.0.0",
+        "paths": {"/api/data": {"get": {}, "parameters": [], "x-internal-routing": {}, "servers": []}},
+    }
+    invalid_methods_file.write_text(json.dumps(spec_data), encoding="utf-8")
+    routes_invalid = parse_official_swagger(invalid_methods_file)
+
+    # The parser grabs everything under the path and uppercases it
+    assert "GET /api/data" in routes_invalid
+    assert "PARAMETERS /api/data" in routes_invalid
+    assert "X-INTERNAL-ROUTING /api/data" in routes_invalid
+    assert len(routes_invalid) == 4, "Parser failed to extract all path keys!"
+
+
+# ==============================================================================
+# TEST 5: Auto-Discovery Engine (Detection & Deep Grep)
+# ==============================================================================
+def test_auto_discover_files(tmp_path):
+    """Verifies the engine finds exact filenames OR deep-greps for OpenAPI signatures."""
     # 1. Fast Path (Exact name match)
     (tmp_path / "swagger.json").write_text("{}", encoding="utf-8")
 
-    # 2. Deep Grep (Weird name, but contains OpenAPI signature)
+    # 2. Deep Grep (Unconventional name, but contains OpenAPI signature)
     (tmp_path / "hidden_spec.yml").write_text('openapi: "3.0.0"\npaths: {}', encoding="utf-8")
 
     # 3. Decoy (Valid extension, no signature)
@@ -98,24 +148,52 @@ def test_auto_discover_swagger_logic(tmp_path):
 
 
 # ==============================================================================
-# TEST 4: Physical Codebase I/O Exception Trap
+# TEST 6: Auto-Discovery Engine (Recursive Greediness)
 # ==============================================================================
-def test_physical_mapper_exception_trap(tmp_path):
-    """Proves the physical mapper skips unreadable files without crashing."""
+def test_auto_discover_directories(tmp_path):
+    """Verifies that the auto-discovery engine recursively searches all directories."""
+    # Create directories
+    test_dir = tmp_path / "tests"
+    mock_dir = tmp_path / "mock"
+    docs_dir = tmp_path / "docs"
+    node_dir = tmp_path / "node_modules"
+
+    for d in [test_dir, mock_dir, docs_dir, node_dir]:
+        d.mkdir()
+        (d / "swagger.json").write_text('{"openapi": "3.0.0", "paths": {}}', encoding="utf-8")
+
+    # Valid schema in a standard folder
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    (src_dir / "openapi.json").write_text('{"openapi": "3.0.0", "paths": {}}', encoding="utf-8")
+
+    candidates = auto_discover_swagger(tmp_path)
+    paths = [str(c.relative_to(tmp_path)).replace("\\", "/") for c in candidates]
+
+    assert len(paths) == 5, "Engine failed to recursively locate all Swagger files!"
+    assert "src/openapi.json" in paths
+    assert "node_modules/swagger.json" in paths
+
+
+# ==============================================================================
+# TEST 7: Physical Codebase I/O Exception Handling
+# ==============================================================================
+def test_physical_mapper_exception_handling(tmp_path):
+    """Verifies the physical mapper skips unreadable or corrupted files without crashing."""
     (tmp_path / "app.py").write_text('@app.get("/api/test")', encoding="utf-8")
 
     # Mock Path.read_text to raise an exception
     with patch("pathlib.Path.read_text", side_effect=PermissionError("Locked file!")):
         apis, frameworks = map_physical_codebase(tmp_path)
 
-    assert len(apis) == 0, "The engine failed to swallow the I/O exception!"
+    assert len(apis) == 0, "The engine failed to safely catch and ignore the I/O exception!"
 
 
 # ==============================================================================
-# TEST 5: CLI Main - Missing Target Error
+# TEST 8: CLI Main - Missing Target Directory
 # ==============================================================================
-def test_main_missing_target(capsys):
-    """Proves the CLI aborts if the target directory doesn't exist."""
+def test_cli_missing_target(capsys):
+    """Verifies the CLI aborts gracefully if the target directory doesn't exist."""
     with patch("sys.argv", ["api_map", "missing_repo_12345"]):
         with pytest.raises(SystemExit) as exc_info:
             main()
@@ -124,10 +202,10 @@ def test_main_missing_target(capsys):
 
 
 # ==============================================================================
-# TEST 6: CLI Main - No Swagger Found Error
+# TEST 9: CLI Main - No Swagger Found Error
 # ==============================================================================
-def test_main_no_swagger_found(tmp_path, capsys):
-    """Proves the CLI aborts if auto-discovery finds zero Swagger files."""
+def test_cli_no_swagger_found(tmp_path, capsys):
+    """Verifies the CLI aborts gracefully if auto-discovery finds zero schemas."""
     repo_dir = tmp_path / "empty_repo"
     repo_dir.mkdir()
 
@@ -139,10 +217,10 @@ def test_main_no_swagger_found(tmp_path, capsys):
 
 
 # ==============================================================================
-# TEST 7: CLI Main - Ambiguous Swaggers Error (No Merge Flag)
+# TEST 10: CLI Main - Ambiguous Swaggers (Requires Intervention)
 # ==============================================================================
-def test_main_ambiguous_swaggers(tmp_path, capsys):
-    """Proves the CLI halts and requires intervention if multiple primary Swaggers exist."""
+def test_cli_ambiguous_swaggers(tmp_path, capsys):
+    """Verifies the CLI halts and requires intervention if multiple primary schemas exist."""
     repo_dir = tmp_path / "multi_repo"
     repo_dir.mkdir()
 
@@ -163,18 +241,18 @@ def test_main_ambiguous_swaggers(tmp_path, capsys):
 
 
 # ==============================================================================
-# TEST 8: CLI Main - Ambiguous Swaggers WITH --merge-all
+# TEST 11: CLI Main - Ambiguous Swaggers WITH --merge-all
 # ==============================================================================
-def test_main_ambiguous_merge_all(tmp_path, capsys):
-    """Proves the --merge-all flag unifies multiple Swaggers into one state."""
+def test_cli_ambiguous_merge_all(tmp_path, capsys):
+    """Verifies the --merge-all flag unifies multiple schemas into one verified state."""
     repo_dir = tmp_path / "multi_repo_merge"
     repo_dir.mkdir()
 
-    # We must inject the "openapi" signature so the Deep Grep engine recognizes them!
+    # Inject the "openapi" signature so the Deep Grep engine recognizes them
     (repo_dir / "swagger1.json").write_text('{"openapi": "3.0.0", "paths":{"/api/one":{"get":{}}}}', encoding="utf-8")
     (repo_dir / "swagger2.json").write_text('{"openapi": "3.0.0", "paths":{"/api/two":{"post":{}}}}', encoding="utf-8")
 
-    # Add a physical file so the dashboard prints cleanly
+    # Add physical files to match the documentation
     (repo_dir / "app.py").write_text('@app.get("/api/one")\n@app.post("/api/two")', encoding="utf-8")
 
     with patch("sys.argv", ["api_map", str(repo_dir), "--merge-all"]):
@@ -187,10 +265,10 @@ def test_main_ambiguous_merge_all(tmp_path, capsys):
 
 
 # ==============================================================================
-# TEST 9: CLI Main - Explicit --swagger Flag (Valid and Invalid)
+# TEST 12: CLI Main - Explicit --swagger Flag
 # ==============================================================================
-def test_main_explicit_swagger_flag(tmp_path, capsys):
-    """Proves the --swagger flag bypasses discovery, and traps invalid paths."""
+def test_cli_explicit_swagger_flag(tmp_path, capsys):
+    """Verifies the --swagger flag bypasses discovery, handling both valid and invalid paths."""
     repo_dir = tmp_path / "explicit_repo"
     repo_dir.mkdir()
 
@@ -198,10 +276,7 @@ def test_main_explicit_swagger_flag(tmp_path, capsys):
     spec_path.write_text('{"paths":{"/api/explicit":{"get":{}}}}', encoding="utf-8")
 
     # Invalid Path
-    with patch(
-        "sys.argv",
-        ["api_map", str(repo_dir), "--swagger", str(repo_dir / "missing.json")],
-    ):
+    with patch("sys.argv", ["api_map", str(repo_dir), "--swagger", str(repo_dir / "missing.json")]):
         with pytest.raises(SystemExit) as exc_info:
             main()
     assert "Error: Provided Swagger file" in capsys.readouterr().out
@@ -214,20 +289,20 @@ def test_main_explicit_swagger_flag(tmp_path, capsys):
 
 
 # ==============================================================================
-# TEST 10: CLI Main - Presentation Dashboard (Shadow and Ghost APIs)
+# TEST 13: CLI Main - Presentation Dashboard (Shadow and Ghost APIs)
 # ==============================================================================
-def test_main_presentation_dashboard(tmp_path, capsys):
-    """Proves the CLI successfully prints the full Shadow/Ghost API dashboard."""
+def test_cli_presentation_dashboard_findings(tmp_path, capsys):
+    """Verifies the CLI successfully prints the full Shadow/Ghost API dashboard."""
     repo_dir = tmp_path / "dashboard_repo"
     repo_dir.mkdir()
 
-    # 1. Official Swagger (Has a Ghost)
+    # 1. Official Swagger (Has a Ghost API)
     (repo_dir / "swagger.json").write_text(
         '{"paths":{"/api/ghost":{"get":{}}, "/api/shared":{"post":{}}}}',
         encoding="utf-8",
     )
 
-    # 2. Source Code (Has a Shadow and the Shared endpoint)
+    # 2. Source Code (Has a Shadow API and the Shared endpoint)
     (repo_dir / "app.py").write_text('@app.post("/api/shared")\n@app.delete("/api/shadow")', encoding="utf-8")
 
     with patch("sys.argv", ["api_map", str(repo_dir)]):
@@ -242,13 +317,33 @@ def test_main_presentation_dashboard(tmp_path, capsys):
 
 
 # ==============================================================================
-# TEST 11: Programmatic Edge Cases (run_api_audit)
+# TEST 14: CLI Main - Presentation Dashboard (Perfect Match)
 # ==============================================================================
-def test_run_api_audit_edge_cases(tmp_path):
-    """Proves the programmatic entry point safely returns edge case dictionaries."""
-    # 1. No Swagger
+def test_cli_presentation_dashboard_perfect(tmp_path, capsys):
+    """Verifies the CLI correctly displays a clean bill of health when schemas and code match."""
+    repo_dir = tmp_path / "perfect_repo"
+    repo_dir.mkdir()
+
+    (repo_dir / "swagger.json").write_text('{"paths":{"/api/perfect":{"get":{}}}}', encoding="utf-8")
+    (repo_dir / "app.py").write_text('@app.get("/api/perfect")', encoding="utf-8")
+
+    with patch("sys.argv", ["api_map", str(repo_dir)]):
+        main()
+
+    captured = capsys.readouterr().out
+    assert "No Shadow APIs detected" in captured
+    assert "No Ghost APIs detected" in captured
+
+
+# ==============================================================================
+# TEST 15: Programmatic API - Edge Cases (No Swagger, Ambiguous)
+# ==============================================================================
+def test_programmatic_edge_cases(tmp_path):
+    """Verifies the programmatic entry point safely returns structured error states."""
     repo_dir = tmp_path / "prog_repo"
     repo_dir.mkdir()
+
+    # 1. No Swagger
     res1 = run_api_audit(repo_dir)
     assert res1["status"] == "no_swagger"
 
@@ -263,26 +358,19 @@ def test_run_api_audit_edge_cases(tmp_path):
 
 
 # ==============================================================================
-# TEST 12: Programmatic Success (Test Auto-Bypass)
+# TEST 16: Programmatic API - Standard Success
 # ==============================================================================
-def test_run_api_audit_success(tmp_path):
-    """Proves the programmatic entry point succeeds and bypasses test schemas."""
+def test_programmatic_success(tmp_path):
+    """Verifies the programmatic entry point successfully maps a standard repo."""
     repo_dir = tmp_path / "prog_success"
     repo_dir.mkdir()
 
-    # Primary Spec
-    (repo_dir / "openapi.json").write_text('{"paths":{"/api/real":{"get":{}}}}', encoding="utf-8")
-
-    # Test Spec (Should be ignored automatically)
-    # The programmatic entry point strictly looks for "test", not "tests"
-    test_dir = repo_dir / "test"
-    test_dir.mkdir()
-    (test_dir / "swagger.json").write_text('{"paths":{"/api/test":{"get":{}}}}', encoding="utf-8")
-
-    # Source Code
+    (repo_dir / "openapi.json").write_text('{"openapi": "3.0.0", "paths":{"/api/real":{"get":{}}}}', encoding="utf-8")
     (repo_dir / "app.py").write_text('@app.get("/api/real")\n@app.post("/api/shadow")', encoding="utf-8")
 
+    # Standard programmatic execution
     result = run_api_audit(repo_dir)
+
     assert result["status"] == "success"
     assert result["shadow_count"] == 1
     assert "POST /api/shadow" in result["shadow_apis"]
