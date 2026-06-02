@@ -65,9 +65,9 @@ PHYSICS_CONSTANTS = {
     "WEIGHT_DEFENSE": 1.0,
     # Trust Dampeners & Opacity Taxes
     "TIER_VARS": {
-        "tier1": {"fc": 1.0, "irc": 0},  # Explicit (Rust, Go, Java)
-        "tier2": {"fc": 0.85, "irc": 2},  # Structured (Python, TS)
-        "tier3": {"fc": 0.60, "irc": 5},  # Implicit (Shell, Groovy)
+        "tier1": {"fc": 1.0, "ot": 1.00, "irc": 0},  # Explicit (Rust, Go, Java)
+        "tier2": {"fc": 0.85, "ot": 1.15, "irc": 2},  # Structured (Python, TS)
+        "tier3": {"fc": 0.60, "ot": 1.40, "irc": 5},  # Implicit (Shell, Groovy)
     },
     # Math constraints
     "TESTING_RISK_FLOOR": 15.0,

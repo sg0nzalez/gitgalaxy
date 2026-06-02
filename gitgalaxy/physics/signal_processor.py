@@ -230,12 +230,12 @@ class SignalProcessor:
                 loc = max(int(meta.get("coding_loc", 1)), 1)
             except (ValueError, TypeError):
                 loc = 1
-                
+
             try:
                 total_loc = max(int(meta.get("total_loc", loc)), 1)
             except (ValueError, TypeError):
                 total_loc = loc
-                
+
             try:
                 doc_lines = int(meta.get("doc_loc", 0))
             except (ValueError, TypeError):
@@ -434,6 +434,7 @@ class SignalProcessor:
             tier = self._get_tier(lang_id)
             fc = self.TIER_VARS[tier]["fc"]
             irc = self.TIER_VARS[tier]["irc"]
+            ot = self.TIER_VARS[tier].get("ot", 1.0)
 
             # Environmental Context (Path-based overrides)
             mp_map = self._get_locational_multipliers(rel_path)
@@ -441,24 +442,7 @@ class SignalProcessor:
             folder_lang = ghost_meta.get("folder_dominant_lang", lang_id)
             eco_mp = self._get_context_multipliers(lang_id, folder_lang)
 
-            self.logger.debug(f"[{rel_path}] Physics Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc})")
-
-            hit_vector = [equations.get(key, 0) for key in self.SIGNAL_SCHEMA]
-
-            # ==================================================================
-            # 1. ACTIVE PHYSICS ENGINE (For normal executable code)
-            # ==================================================================
-            tier = self._get_tier(lang_id)
-            fc = self.TIER_VARS[tier]["fc"]
-            irc = self.TIER_VARS[tier]["irc"]
-
-            # Environmental Context (Path-based overrides)
-            mp_map = self._get_locational_multipliers(rel_path)
-
-            folder_lang = ghost_meta.get("folder_dominant_lang", lang_id)
-            eco_mp = self._get_context_multipliers(lang_id, folder_lang)
-
-            self.logger.debug(f"[{rel_path}] Physics Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc})")
+            self.logger.debug(f"[{rel_path}] Physics Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc}, Ot: {ot:.2f})")
 
             hit_vector = [equations.get(key, 0) for key in self.SIGNAL_SCHEMA]
 
@@ -690,9 +674,11 @@ class SignalProcessor:
                 rel_path,
                 meta.get("is_protected", False),
                 equations,
-                irc,
+                ot,
                 fc,
                 mp_map.get("test", 1.0),
+                functions,
+                meta.get("test_coverage_map", {}),
                 umbrella_bonus=umbrella_bonus,
                 popularity=popularity,
             )
@@ -1574,53 +1560,104 @@ class SignalProcessor:
         rel_path: str,
         is_protected: bool,
         eq: Dict[str, int],
-        irc: int,
+        ot: float,
         fc: float,
         mp: float,
+        functions: List[Dict[str, Any]],
+        test_coverage_map: Dict[str, List[Dict[str, Any]]],
         umbrella_bonus: float = 0.0,
         popularity: int = 0,
     ) -> float:
         """
-        YIN: Test assertions (test).
-        YANG: Bypassed/Mocked tests (test_skip).
-        Returns 100.0 for HIGH risk (no tests), 0.0 for LOW risk (well tested).
+        Calculates Verification Risk Exposure by comparing structural function complexity
+        against the scope of tests validating it via asymptotic dampening.
         """
-        tuning = self.risk_tuning.get("verification", {})
-        loc_padding = tuning.get("loc_padding", 150)
+        t = self.risk_tuning.get("verification", {})
+        ct = t.get("asymptotic_dampener", 1.5)
 
-        test_hits = float(eq.get("test", 0))
-        test_skips = float(eq.get("test_skip", 0))
+        total_untested_impact = 0.0
+        total_function_impact = 0.0
 
-        # THERMODYNAMIC BALANCE: Penalize "Safety Theater".
-        # 1 bypassed test neutralizes 2 real assertions.
-        true_verification = max(0.0, test_hits - (test_skips * 2.0))
+        if functions:
+            for func in functions:
+                name = func.get("name", "")
+                func_impact = func.get("impact", 0.0)
+                total_function_impact += func_impact
 
-        density = true_verification / max(loc + loc_padding, 1)
+                if func_impact == 0:
+                    continue
 
-        threshold = tuning.get("threshold_base", 15.0)
-        slope = tuning.get("sigmoid_slope", 0.25)
+                # Step A: The Base Impact
+                hit_vector = func.get("hit_vector", {})
+                verification = float(hit_vector.get("test", 0))
+                safety = float(hit_vector.get("safety", 0))
+                bypassed = float(hit_vector.get("test_skip", 0))
 
-        # Calculate coverage (100% = fully tested)
-        coverage = self._sigmoid(density, threshold, slope) * 100.0
+                internal_defenses = (verification + safety - (bypassed * 2.0)) * fc
+                base_impact = max(func_impact - internal_defenses, 0.0)
 
-        # Re-apply the architectural bonuses
-        coverage = min(coverage + umbrella_bonus, 100.0)
+                # Step B: The Defensive Ratio (Effective Mass)
+                targeting_tests = test_coverage_map.get(name, [])
+                effective_test_impact_sum = 0.0
 
-        # Mass Penalty: Massive files require exponentially more tests to prove safety.
-        mass_penalty = 0.0
-        if loc > 300:
-            mass_penalty = min(((loc - 300) / 100) * 5.0, 40.0)
+                for test in targeting_tests:
+                    # Assertion Density: Ignore empty test shells
+                    if test.get("test_hits", 0) == 0:
+                        continue
 
-        # ---> THE LOAD-BEARER PENALTY <---
-        # If this file is a foundational pillar (highly imported), a lack of tests
-        # threatens the entire ecosystem.
-        if popularity > 5:
-            mass_penalty += min(popularity * 2.0, 30.0)
+                    # Sabotage: Ignore skipped/bypassed tests
+                    if test.get("test_skip_hits", 0) > 0:
+                        continue
 
-        final_coverage = max(0.0, coverage - mass_penalty)
+                    raw_impact = test.get("impact", 0.0)
+                    target_count = max(test.get("target_count", 1), 1)
 
-        # INVERT FOR RISK: 100% Coverage = 0% Risk Exposure.
-        return 100.0 - final_coverage
+                    # Parameterization Multiplier
+                    param_multiplier = 2.0 if test.get("decorators", 0) > 0 else 1.0
+
+                    effective_test_impact_sum += (raw_impact * param_multiplier) / target_count
+
+                defensive_ratio = effective_test_impact_sum / func_impact
+
+                # Step C: The Asymptotic Dampener
+                untested_impact = base_impact * (1.0 / (1.0 + (ct * defensive_ratio)))
+                total_untested_impact += untested_impact
+
+        # Add file-level danger as raw unverified mass
+        file_level_danger = float(eq.get("danger", 0))
+        total_untested_impact += file_level_danger
+
+        # Step D: Executable Density Normalization & Ecosystem Modifiers
+        # Apply the Opacity Tax (ot) directly to the density
+        raw_density = (total_untested_impact / max(loc, 1)) * ot
+
+        # The GuideStar Umbrella (Dampener)
+        # umbrella_bonus is max 50.0. If bonus is 50, dampener is 0.5.
+        guidestar_dampener = max(1.0 - (umbrella_bonus / 100.0), 0.1)
+
+        # Network Blast Radius (Amplifier)
+        blast_radius = mp + min(popularity * 0.2, 3.0)
+
+        adjusted_density = (raw_density * guidestar_dampener) * blast_radius
+
+        # Step E: Sigmoidal Normalization
+        threshold = t.get("threshold_base", 15.0)
+        slope = t.get("sigmoid_slope", 0.25)
+
+        try:
+            base_score = 100.0 / (1.0 + math.exp(-slope * (adjusted_density - threshold)))
+        except OverflowError:
+            base_score = 100.0 if adjusted_density > threshold else 0.0
+
+        # Step F: The Path Modifier & Breach Cap
+        if mp == 0.0 or is_protected:
+            return 0.0
+
+        # Breach Cap: If untested mass is overwhelmingly larger than verified, cap to Fragile (80+)
+        if total_untested_impact > (total_function_impact * 0.8) and total_function_impact > 50.0:
+            return max(base_score, 80.0)
+
+        return min(base_score, 100.0)
 
     def _calc_graveyard(self, total_loc: float, eq: Dict[str, int], mp: float) -> float:
         hits = eq.get("graveyard", 0)
@@ -2217,7 +2254,9 @@ class SignalProcessor:
             if not isinstance(rv, list):
                 return 0.0
             # Sum all exposures except civil_war
-            return sum(val for i, val in enumerate(rv) if i != civil_war_idx and i < len(rv) and isinstance(val, (int, float)))
+            return sum(
+                val for i, val in enumerate(rv) if i != civil_war_idx and i < len(rv) and isinstance(val, (int, float))
+            )
 
         sorted_by_cumulative = sorted(active_files, key=get_cumulative_risk, reverse=True)
 
@@ -2242,9 +2281,21 @@ class SignalProcessor:
             close = net.get("closeness_score") or 0.0
             pr = net.get("normalized_blast_radius") or 0.0
 
-            flux_risk = float(rv[flux_idx]) if flux_idx >= 0 and len(rv) > flux_idx and isinstance(rv[flux_idx], (int, float)) else 0.0
-            err_risk = float(rv[err_idx]) if err_idx >= 0 and len(rv) > err_idx and isinstance(rv[err_idx], (int, float)) else 0.0
-            doc_risk = float(rv[doc_idx]) if doc_idx >= 0 and len(rv) > doc_idx and isinstance(rv[doc_idx], (int, float)) else 0.0
+            flux_risk = (
+                float(rv[flux_idx])
+                if flux_idx >= 0 and len(rv) > flux_idx and isinstance(rv[flux_idx], (int, float))
+                else 0.0
+            )
+            err_risk = (
+                float(rv[err_idx])
+                if err_idx >= 0 and len(rv) > err_idx and isinstance(rv[err_idx], (int, float))
+                else 0.0
+            )
+            doc_risk = (
+                float(rv[doc_idx])
+                if doc_idx >= 0 and len(rv) > doc_idx and isinstance(rv[doc_idx], (int, float))
+                else 0.0
+            )
 
             bottlenecks["contagious_mutation"].append(
                 {
