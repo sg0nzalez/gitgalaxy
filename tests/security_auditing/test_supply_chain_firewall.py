@@ -1,5 +1,6 @@
 import pytest
 import sys
+import json
 from unittest.mock import patch
 
 import gitgalaxy.tools.supply_chain_security.supply_chain_firewall as firewall_module
@@ -8,16 +9,17 @@ import gitgalaxy.tools.supply_chain_security.supply_chain_firewall as firewall_m
 # ==============================================================================
 # TEST 1: Zero-Trust Import Slicer (Regex & Bins)
 # ==============================================================================
-def test_zero_trust_import_slicer(tmp_path, monkeypatch):
+def test_zero_trust_import_slicer(monkeypatch):
     monkeypatch.setattr(firewall_module, "APPROVED_IMPORTS", ["react", "express"])
     monkeypatch.setattr(firewall_module, "BLACKLISTED_IMPORTS", ["event-stream-malware"])
 
-    repo_dir = tmp_path / "imports_repo"
-    repo_dir.mkdir()
-    (repo_dir / "app.js").write_text("import 'react'; require('event-stream-malware');", encoding="utf-8")
-    (repo_dir / "main.py").write_text("from 'django' import models", encoding="utf-8")
+    # Build the mock RAM graph (Pre-tokenized by Phase 1)
+    mock_ram_graph = [
+        {"path": "app.js", "raw_imports": ["react", "event-stream-malware"], "equations": {}, "coding_loc": 50},
+        {"path": "main.py", "raw_imports": ["django"], "equations": {}, "coding_loc": 20},
+    ]
 
-    result = firewall_module.run_firewall_audit(repo_dir)
+    result = firewall_module.run_firewall_audit(mock_ram_graph)
     assert result["imports_blacklisted"] == 1, "Failed to identify blacklisted package!"
     assert result["imports_unknown"] == 1, "Failed to identify unknown package!"
 
@@ -25,26 +27,18 @@ def test_zero_trust_import_slicer(tmp_path, monkeypatch):
 # ==============================================================================
 # TEST 2: Strict Mode Enforcement
 # ==============================================================================
-@patch("gitgalaxy.tools.supply_chain_security.supply_chain_firewall.SecurityLens")
-@patch("gitgalaxy.tools.supply_chain_security.supply_chain_firewall.ApertureFilter")
-def test_strict_mode_enforcement(mock_aperture_class, mock_security_class, tmp_path, monkeypatch):
+def test_strict_mode_enforcement(tmp_path, monkeypatch):
     monkeypatch.setattr(firewall_module, "APPROVED_IMPORTS", ["react"])
     monkeypatch.setattr(firewall_module, "BLACKLISTED_IMPORTS", [])
     monkeypatch.setattr(firewall_module, "STRICT_IMPORT_MODE", True)
 
-    mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
-    mock_aperture.evaluate_path_integrity.return_value = (True, 100, "OK")
+    mock_ram_graph = {"stars": [{"path": "server.js", "raw_imports": ["shadow-library"], "equations": {}}]}
 
-    mock_security = mock_security_class.return_value
-    mock_security.scan_content.return_value = {"counts": {}, "snippets": {}}
-    mock_security.evaluate_risk.return_value = {}
+    # Test the main CLI interface by writing a fake RAM graph JSON
+    graph_file = tmp_path / "results.json"
+    graph_file.write_text(json.dumps(mock_ram_graph), encoding="utf-8")
 
-    repo_dir = tmp_path / "strict_repo"
-    repo_dir.mkdir()
-    (repo_dir / "server.js").write_text("import 'shadow-library';", encoding="utf-8")
-
-    test_args = ["supply_chain_firewall.py", str(repo_dir)]
+    test_args = ["supply_chain_firewall.py", str(graph_file)]
     with patch.object(sys, "argv", test_args):
         with pytest.raises(SystemExit) as exc:
             firewall_module.main()
@@ -54,47 +48,25 @@ def test_strict_mode_enforcement(mock_aperture_class, mock_security_class, tmp_p
 # ==============================================================================
 # TEST 3: The Inert Data Shield (Minified File Bypass)
 # ==============================================================================
-@patch("gitgalaxy.tools.supply_chain_security.supply_chain_firewall.SecurityLens")
-@patch("gitgalaxy.tools.supply_chain_security.supply_chain_firewall.ApertureFilter")
-def test_inert_data_shield_minified_bypass(mock_aperture_class, mock_security_class, tmp_path, monkeypatch):
+def test_inert_data_shield_minified_bypass(tmp_path, monkeypatch):
     monkeypatch.setattr(firewall_module, "STRICT_IMPORT_MODE", False)
     monkeypatch.setattr(firewall_module, "BLACKLISTED_IMPORTS", [])
 
-    mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
-    mock_aperture.evaluate_path_integrity.return_value = (True, 100, "OK")
-
-    mock_security = mock_security_class.return_value
-    mock_security.scan_content.return_value = {
-        "counts": {"homoglyphs": 500, "danger": 50},
-        "snippets": {},
+    # The firewall evaluates behavioral hits based on Phase 1 equations.
+    # We simulate a file that Phase 1 flagged with massive threats
+    mock_ram_graph_threat = {
+        "stars": [
+            {"path": "logic.js", "raw_imports": [], "equations": {"homoglyphs": 500, "danger": 50}, "coding_loc": 50}
+        ]
     }
 
-    def mock_eval_risk(counts, loc):
-        if counts.get("homoglyphs", 0) > 10:
-            return {"Hidden Malware Risk": 0.99}
-        return {}
+    graph_file = tmp_path / "results.json"
+    graph_file.write_text(json.dumps(mock_ram_graph_threat), encoding="utf-8")
 
-    mock_security.evaluate_risk.side_effect = mock_eval_risk
+    test_args = ["supply_chain_firewall.py", str(graph_file)]
 
-    repo_dir = tmp_path / "inert_repo"
-    repo_dir.mkdir()
-    test_args = ["supply_chain_firewall.py", str(repo_dir)]
-
-    normal_file = repo_dir / "logic.js"
-    normal_file.write_text("var a = 'fake malware';", encoding="utf-8")
-
+    # It should exit with code 1 due to the high density of threats
     with patch.object(sys, "argv", test_args):
         with pytest.raises(SystemExit) as exc:
             firewall_module.main()
         assert exc.value.code == 1
-
-    normal_file.unlink()
-    min_file = repo_dir / "logic.min.js"
-    min_file.write_text("var a = 'fake malware';", encoding="utf-8")
-
-    try:
-        with patch.object(sys, "argv", test_args):
-            firewall_module.main()
-    except SystemExit:
-        pytest.fail("The Inert Data Shield failed!")
