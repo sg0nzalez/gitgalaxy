@@ -447,7 +447,13 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                         for match in import_regex.finditer(content_buffer):
                             extracted_path = next((g for g in match.groups() if g), None)
                             if extracted_path:
-                                raw_imports.add(extracted_path)
+                                # Handle comma-separated blocks and brackets (e.g., Rust/Scala: {A, B}, Python: a, b as c)
+                                clean_group = extracted_path.replace("{", "").replace("}", "")
+                                for item in clean_group.split(","):
+                                    # Strip 'as alias' and whitespace to isolate the pure module name
+                                    clean_module = re.split(r"\s+as\s+", item)[0].strip()
+                                    if clean_module:
+                                        raw_imports.add(clean_module)
                     except Exception:
                         pass
 
@@ -733,10 +739,23 @@ class Orchestrator:
             # ==========================================================
             logger.info("Phase 7.9: Executing Ecosystem Security Audits (X-Ray, Firewall, API Mapper)...")
 
+            # 1. Gather all manifests instantly using the Phase 0 stem_map (Zero Disk Walk)
+            manifest_paths = [
+                str(self.root / rel_path)
+                for rel_path in self.stem_map.values()
+                if Path(rel_path).name == "package.json"
+            ]
+
+            # 2. Build the global translation map
+            from gitgalaxy.security.manifest_parser import ManifestParser
+
+            alias_map = ManifestParser(parent_logger=logger).build_translation_map(manifest_paths)
+
             ecosystem_audits = {
                 "api_mapper": run_api_audit(self.root),
                 "xray": run_xray_audit(self.root),
-                "firewall": run_firewall_audit(self.root),
+                # 3. Pass the RAM graph and the alias map to the Firewall
+                "firewall": run_firewall_audit(repository_graph, alias_map=alias_map),
             }
 
             # Attach it to the summary payload
