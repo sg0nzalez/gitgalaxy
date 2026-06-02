@@ -89,8 +89,8 @@ DEPENDENCY_EXTRACTION_CASES = {
         "invalid": ['var importPath = "foo"'],
         "pathological": [
             (
-                'import \n ( \n  customAlias \n "https://github.com/gin-gonic/gin" \n )',
-                "https://github.com/gin-gonic/gin",
+                'import \n ( \n  customAlias \n "my_internal_pkg/core_lib" \n )',
+                "my_internal_pkg/core_lib",
             )
         ],
     },
