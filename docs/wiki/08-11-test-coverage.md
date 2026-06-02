@@ -1,103 +1,94 @@
-# Testing & Verification Exposure
+# Verification Risk Exposure (Test Coverage)
 
-> **Metric: Verification Density (Internal Assertions & Sibling Coverage)**
->
-> **Summary:** Visualizes the "Security Blanket" of the knowledge graph. In GitGalaxy, we distinguish between *Defensive Code* (handling errors at runtime) and *Verified Code* (proving correctness at design time). Because this metric has been unified into the Risk Exposure model, a high score now indicates a *lack* of verification (high risk), while a low score indicates ironclad, verified code.
->
-> **Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
-> * 🟦 **IRONCLAD (Score 15-20):** Fortified. The code is heavily backed by internal assertions, mocks, or a dedicated sibling test suite. *(Note: The deterministic engine enforces a hard minimum floor of 15.0, acknowledging that no code is 100% perfectly safe).*
-> * 🟨 **MODERATE (Score 40-59):** Partial verification. Meets the bare minimum threshold.
-> * 🟥 **VERY HIGH (Score 80-100):** Speculative. The code might work, but there is no programmatic proof. It relies entirely on hope.
+GitGalaxy measures test coverage not by counting lines, but by assessing the complexity and magnitude of the logic against the amount and size of the tests defending it. We calculate an initial raw structural impact for every function which can be reduced by testing, either with internal assertions or external testing files that reference that function. This reveals the remaining **Untested Impact** for each function and these scores are rolled up into classes. At the file level, we have enough data to normalize the raw values. The raw untested impact values are normalized for coding loc, network importance and by the presence of golden image tests and subjected to a sigmoidal threshold scoring system that ranges from 0-100. 
 
-## The Inputs (Verification Signals)
+ **Effect:** Maps directly to the GitGalaxy Universal Risk Spectrum.
+ * 🟦 **VERY LOW (Score 0-19):** Heavy Shielding. The largest, small and large functions are heavily dampened by proportional, targeted unit tests or component-level golden images.
+ * 🟨 **INTERMEDIATE (Score 40-59):** Moderate Exposure. Standard logic has basic coverage, but some functions lack sufficient defensive mass, leaving noticeable residual risk.
+ * 🟥 **VERY HIGH (Score 80-100+):** Blind Execution. Many functions and files with very low testing verification. 
 
-We combine internal evidence (assertions) with external evidence (sibling files). The file system checks are now abstracted, passing an `is_protected` boolean directly into the deterministic engine.
+### Level 1: Function 
 
-| Variable | Target Syntax / System | Weight | Structural Definition |
-| :--- | :--- | :--- | :--- |
-| `test_hits` | `assert`, `describe`, `mock` | 5.0x | **Internal Tests.** Assertions, mocks, and test definitions inside the file itself. |
-| `is_protected` | `X.test.js` next to `X.js` | +30.0 (Flat) | **Sibling Match.** External Coverage. This flat density bonus represents strong verification intent. |
-| `Mass Penalty` | `LOC > 300` | Variable | **Monolith Penalty.** Files over 300 lines gain a stacking risk penalty up to +40. Massive files cannot be adequately verified by unit tests alone. |
+Range: 0 - Max
 
-## Universal Framework Integration
+This level starts with the initial the raw structural impact value of the function and reduces that impact if it has tests targeting it, and uses that relative ratio to mathematically crush the risk into a residual **Untested Impact**.
 
-**Exemptions:** Untestable files (e.g., Markdown, Makefiles, CMake, or specific extensions configured in the asset masks) bypass the engine entirely, returning a $0.0$ risk score.
+**Step A: The Base Impact**
+We take the raw `Function Impact` score and subtract the explicitly defined internal defenses located physically inside the function boundaries. To ensure accuracy across all languages, the engine calculates this defense by combining exactly **three specific metrics** from the 51-Element Universal Schema:
+* **Verification (`test`):** Inline assertions and test macros (e.g., `assert()`, `expect()`).
+* **Safety (`safety`):** Guard clauses, type-guards, and strict boundary management (e.g., `require()`).
+* **Bypassed Tests (`test_skip`):** A negative modifier that aggressively *subtracts* defensive mass if an assertion is explicitly disabled (e.g., `it.skip`).
 
-* **$Fc$ (Fidelity Coefficient):** Applied as an inverted multiplier ($2.0 - Fc$). We trust explicit verification in high-fidelity languages more than loose assertions in implicit languages.
-* **$Irc$ (Implicit Risk Correction):** Added to the Threshold. Implicit languages (Python, Ruby) rely entirely on tests for type safety, meaning they require a *higher* density of tests to clear the risk bar.
-* **$Mp$ (Path Modifier):** Scales the Threshold. Critical infrastructure (`core/`) gets a higher bar; notoriously hard-to-test views (`UI/`) get a lower bar.
+$$BaseImpact = \max(FunctionImpact - ((Verification + Safety - (Bypassed \times 2.0)) \times Fc), 0.0)$$
 
-## The Equation: The Verification Sigmoid
+**Step B: The Defensive Ratio (Effective Mass)**
+We calculate the `EffectiveTestImpact` of every external test targeting the function. To prevent "safety theater" and structural blind spots, a test's raw impact is modified by three strict rules before summation:
+* **Assertion Density:** If the external test lacks internal assertions (zero `test` schema hits), its mass is zeroed out—a massive test without assertions verifies nothing.
+* **External Bypass (Sabotage):** If the external test contains a skip/bypass trigger (`test_skip`), its defensive tether is severed and its mass is completely nullified.
+* **Parameterization Multiplier:** If the test utilizes data-driven parameterization macros (e.g., `@pytest.mark.parametrize`), a multiplier is applied to its mass to accurately reflect its dynamic execution weight.
 
-**Step A: The Exemption Bypass**
-If the file matches known untestable patterns (e.g., `readme`, `makefile`), the engine immediately returns $0.0$.
+Each test's effective impact is then divided by the total number of production functions it targets ($TargetCount$) to dilute sprawling integration tests.
 
-**Step B: Calculate Verification Density**
-We calculate the density of internal tests and add the flat Sibling Bonus ($+30.0$). The bonus is added directly to the density because the existence of a test file implies coverage of the whole module.
+$$DefensiveRatio = \frac{\sum (EffectiveTestImpact / TargetCount)}{FunctionImpact}$$
 
-$$InternalDensity = \left( \frac{test\_hits \times 5.0}{\max(LOC, 1)} \right) \times 100.0$$
-$$TotalDensity = InternalDensity + SiblingBonus$$
+**Step C: The Asymptotic Dampener**
+We feed that `DefensiveRatio` into the inverse decay equation. If the tests are physically tiny compared to the function, the ratio is low, and the dampener barely reduces the risk. If the tests are massive compared to the function, the ratio is high, and the risk is violently crushed toward zero.
 
-**Step C: Determine The Bar (Dynamic Threshold)**
-This is the "Passing Grade" the density must overcome to lower the risk score.
+$$UntestedImpact = BaseImpact \times \left( \frac{1}{1 + (C_t \times DefensiveRatio)} \right)$$
 
-$$Threshold = (15.0 + (Irc \times 3.0)) \times Mp$$
+### Level 2: Class 
 
-**Step D: The Inverse Sigmoid Map**
-We map density against the dynamic threshold using a positive exponent. As Verification Density *increases*, the denominator grows, and the Risk Exposure mathematically *decreases*.
+Range: 0 - Max
 
-$$RawExposure = \frac{100.0}{1 + e^{0.25 \times (TotalDensity - Threshold)}}$$
+Classes act strictly as containment boundaries to roll up the math. 
 
-**Step E: Trust Adjustment & Mass Penalty**
-We multiply the result by the inverted Fidelity score ($2.0 - Fc$). If the file size exceeds the `MASSIVE_FILE_THRESHOLD` (300 lines), we calculate and add a structural mass penalty, capping the final calculation between the $15.0$ risk floor and $100.0$ maximum.
+* **The Mechanics:** We sum the residual **Untested Impact** scores from all the functions contained within the class architecture.
+* **The Math:**
+$$ClassUntestedImpact = \sum (FunctionUntestedImpact)$$
 
-$$FinalExposure = \min(\max((RawExposure \times (2.0 - Fc)) + MassPenalty, 15.0), 100.0)$$
+### Level 3: File 
 
-## Implementation (Python Reference)
+Range: 0-100
 
-```python
-import math
-import os
-from typing import Dict
+This level translates the raw, accumulated unverified impact scores into a true risk percentage. Following the Universal Exposure Framework, we normalize the risk against the file's coding loc, apply environmental multipliers, and finally push the adjusted density through our sigmoidal model.
 
-def _calc_verification(self, loc: int, file_path: str, is_protected: bool, eq: Dict[str, int], irc: int, fc: float, mp: float, umbrella_bonus: float = 0.0) -> float:
-    filename = os.path.basename(file_path).lower()
-    ext = filename.split('.')[-1] if '.' in filename else ""
-    
-    exempt_exts = self.asset_masks.get("UNTESTABLE_EXTENSIONS", set())
-    exempt_names = self.asset_masks.get("UNTESTABLE_NAMES", set())
-    
-    # Step A: Untestable Bypass
-    if ext in exempt_exts or filename in exempt_names or filename.startswith('readme') or 'makefile' in filename or 'cmake' in filename:
-        return 0.0
+* **Step A: Executable Density Normalization**
+We take the sum of all `Untested Impact` from the file's functions and divide this total by the `coding_loc` (Total LOC minus comments and whitespace) to establish the base density. By stripping out comments and whitespace, we prevent bloated formatting from artificially diluting the risk. 
 
-    t = self.risk_tuning.get("verification", {})
-    safe_loc = max(loc, 1)
-    
-    # Step B: Verification Density
-    sibling_bonus = t.get("sibling_bonus", 30.0) if is_protected else 0.0
-    internal_density = (eq.get("test", 0) * t.get("internal_test_mult", 5.0) / safe_loc) * 100.0
-    total_density = internal_density + sibling_bonus 
-    
-    # Step C: Dynamic Threshold
-    threshold = (t.get("threshold_base", 15.0) + (irc * t.get("irc_mult", 3.0))) * mp
-    
-    # Step D: Inverse Sigmoid Map
-    try:
-        raw_exposure = 100.0 / (1.0 + math.exp(t.get("sigmoid_slope", 0.25) * (total_density - threshold)))
-    except OverflowError:
-        raw_exposure = 0.0 if total_density > threshold else 100.0
-        
-    # Step E: Trust Adjustment
-    final_exposure = raw_exposure * (2.0 - fc)
+To account for the "Opacity Tax" of highly dynamic or implicit languages, we multiply this base density by the language's **Opacity Tax Multiplier**. This ensures that the penalty for the language's implicit ambiguity scales proportionally with the amount of unverified logic.
+$$RawDensity = \left( \frac{\sum ClassUntestedImpact}{\max(CodingLOC, 1)} \right) \times Ot$$
 
-    # Step F: The Mass Penalty
-    if safe_loc > self.MASSIVE_FILE_THRESHOLD:
-        mass_penalty = min((safe_loc - self.MASSIVE_FILE_THRESHOLD) / t.get("mass_penalty_div", 20.0), t.get("mass_penalty_max", 40.0)) 
-        final_exposure += mass_penalty
+* **Step B: Ecosystem Modifiers (Pre-Curve Normalization)**
+Before plugging this into our sigmoidal equation, we adjust the density based on the file's physical surroundings and network gravity:
+  * **The GuideStar Umbrella (Dampener):** If the file is protected by directory-level golden image tests or visual regression snapshots, we apply a dampening fraction to shrink the density.
+  * **Network Blast Radius (Amplifier):** We multiply the density by the file's PageRank centrality. If the file is a highly imported global router, its lack of verification is exponentially more dangerous, artificially swelling its density.
+$$AdjustedDensity = (RawDensity \times GuideStarDampener) \times BlastRadius$$
 
-    # Enforce the 15.0 Risk Floor
-    return min(max(final_exposure, t.get("risk_floor", 15.0)), 100.0)
+* **Step C: Sigmoidal Normalization**
+The `AdjustedDensity` is pushed through the logistic sigmoid function. This acts as a strict noise gate: files with trace amounts of unverified mass stay near 0 (Safe/Blue). Once the unverified density crosses the critical threshold, the sigmoidal model normalizes the value, spiking rapidly toward 100 (Critical/Red).
+$$BaseScore = \min\left( \frac{100.0}{1 + e^{-Slope \times (AdjustedDensity - Threshold)}}, 100.0 \right)$$
+
+* **Step D: The Path Modifier & Breach Cap**
+Finally, we apply the Path Modifier ($Mp$). If the file itself is a test suite (e.g., `router.spec.js` or located in `/tests/`), $Mp$ is set to $0.0$, immediately neutralizing the risk. For production files ($Mp = 1.0$), we evaluate the **Breach Cap**: if the total unverified mass is overwhelmingly larger than the verified mass, the file is hard-capped to a minimum "Fragile" rating, ensuring no amount of mathematical noise-gating can hide a fundamentally untested file.
+$$FinalFileScore = BaseScore \times Mp$$
+
+### Level 4: Folder 
+
+Range: 0-100
+
+This level determines the testing risk exposure of different folders.
+
+*  The Testing Risk Exposure scores for each file, ranging from 0-100, within a directory are rolled up using a Mass-Weighted Average coding LOC of each file.
+* **The Result:** A massive, complex God Object that scores a 95 (Critical Risk) will exert immense averaging pull on the parent folder's overall health score. A tiny, 15-line helper script with zero tests that also scores a 95 will barely move the needle, preventing small utility files from skewing the local aggregate metrics.
+
+### Level 5: Repo 
+
+Range: 0-100
+
+This level determines the ultimate testing risk exposure of the entire codebase.
+
+*  The Testing Risk Exposure scores for each directory under root, ranging from 0-100, are rolled up using a Mass-Weighted Average coding LOC of each folder.
+* **The Physics:** A massive, highly complex core directory saturated with risk will drag down the gravitational health of the entire project. Conversely, a highly risky but lightweight experimental folder will be safely absorbed by the stabilizing mass of a well-tested, fortified core.
 
 <br><br>
 
@@ -107,10 +98,9 @@ def _calc_verification(self, loc: int, file_path: str, is_protected: bool, eq: D
 
 This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
 
+* 🧠 **[Deep Dive into the Physics Source Code](https://github.com/squid-protocol/gitgalaxy/tree/main/gitgalaxy/physics)** to see the math in action.
 * 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
 * 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
-
-
 
 ---
 
