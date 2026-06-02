@@ -1456,6 +1456,15 @@ class Orchestrator:
         # ==============================================================
 
         # ==============================================================
+        # ---> TEST COVERAGE MAPPING <---
+        # Sweep the galaxy for test files and map their outbound calls
+        # directly to the production functions they verify.
+        # ==============================================================
+        logger.info("PASS_2: Extracting Test Coverage Mapping...")
+        test_coverage_map = self.network_sensor.extract_test_coverage_mapping(list(self.cryolink.values()))
+        # ==============================================================
+
+        # ==============================================================
         # ---> NEW: CALCULATE INSTRUCTIONAL DENSITY MULTIPLIERS <---
         # Aggregate markdown heuristics to upgrade the doc_umbrella shields
         # ==============================================================
@@ -1564,6 +1573,9 @@ class Orchestrator:
                 f"{stem}spec",
             ]
             meta["is_protected"] = any(cand in self.census for cand in sibling_candidates)
+
+            # Pass the mapped test coverage data to the risk engine
+            meta["test_coverage_map"] = test_coverage_map.get(rel_path, {})
 
             # The physics engine natively handles the Exposed Secret and Documentation bypass protocols.
             # We unconditionally route to the Signal Processor so it can execute the 18-point math.

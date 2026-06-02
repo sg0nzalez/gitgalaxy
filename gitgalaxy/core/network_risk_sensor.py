@@ -31,6 +31,70 @@ class NetworkRiskSensor:
         self.logger = parent_logger.getChild("network_sensor") if parent_logger else logging.getLogger("network_sensor")
         self.RISK_SCHEMA = RECORDING_SCHEMAS.get("RISK_SCHEMA", [])
 
+    def extract_test_coverage_mapping(self, files: List[Dict[str, Any]]) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+        """
+        Maps function calls from test files to their imported production targets.
+        Returns a dictionary mapping: production_file_path -> { production_function_name: [test_function_data] }
+        """
+        coverage_map = {}
+        resolution_map = {}
+
+        # 1. Build resolution map
+        for f in files:
+            path = f.get("path", "")
+            if path:
+                resolution_map[path] = path
+                resolution_map[Path(path).name] = path
+                resolution_map[Path(path).stem] = path
+
+        # 2. Identify Test Files and extract their outgoing invocations
+        for f in files:
+            path = f.get("path", "")
+            low_path = path.lower()
+
+            # Structural heuristic for test files
+            is_test = any(x in low_path for x in ["/test/", "/tests/", "test_", "_test", ".spec.", ".test."])
+            if not is_test:
+                continue
+
+            # Identify which production files this test file imports
+            target_paths = set()
+            for imp in f.get("raw_imports", []):
+                target_token = imp[0] if isinstance(imp, tuple) and len(imp) == 2 else imp
+                target_path = resolution_map.get(target_token)
+
+                if target_path and target_path != path:
+                    target_paths.add(target_path)
+
+            if not target_paths:
+                continue
+
+            # Map each test function's payload to the production functions it calls
+            for test_func in f.get("functions", []):
+                calls_out = test_func.get("calls_out_to", [])
+                if not calls_out:
+                    continue
+
+                target_count = len(calls_out)
+                test_payload = {
+                    "impact": test_func.get("impact", 0.0),
+                    "target_count": target_count,
+                    "test_hits": test_func.get("hit_vector", {}).get("test", 0),
+                    "test_skip_hits": test_func.get("hit_vector", {}).get("test_skip", 0),
+                    "decorators": test_func.get("hit_vector", {}).get("decorators", 0),
+                }
+
+                for target_path in target_paths:
+                    if target_path not in coverage_map:
+                        coverage_map[target_path] = {}
+
+                    for called_func_name in calls_out:
+                        if called_func_name not in coverage_map[target_path]:
+                            coverage_map[target_path][called_func_name] = []
+                        coverage_map[target_path][called_func_name].append(test_payload)
+
+        return coverage_map
+
     def map_ecosystem(self, stars: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Builds the directed graph and calculates multi-dimensional risk vectors.
