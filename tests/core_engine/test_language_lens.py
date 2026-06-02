@@ -177,6 +177,7 @@ def test_tier_3_spectral_scan(isolated_detector):
 def test_tier_4_deep_space_discovery(isolated_detector):
     """Proves the engine can blindly identify a file with no extension."""
     import os
+
     # Needs > 20 lines to trigger Tier 4. We inject C-style comments and structure.
     content = f"// C-style comment{os.linesep}" * 25 + f"int main() {{ return 0; }}{os.linesep}" * 5
 
