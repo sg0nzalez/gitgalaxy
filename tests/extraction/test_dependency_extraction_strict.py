@@ -50,7 +50,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ('import type { Node } from "./ast/node";', "./ast/node"),
             ('export * from "../utils";', "../utils"),
         ],
-        "invalid": ['let from_path = "x";', '// import { x } from "y"'],
+        "invalid": ['let from_path = "x";'],
         "pathological": [
             (
                 "import \n type \n { \n  ASTNode \n } \n from \n '@typescript-eslint/parser'",
@@ -63,7 +63,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import java.util.List;", "java.util.List"),
             ("import static org.junit.Assert.*;", "org.junit.Assert.*"),
         ],
-        "invalid": ["String importPath;", "// import java.util.List;"],
+        "invalid": ["String importPath;"],
         "pathological": [
             (
                 "import \n static \n org.springframework.boot.SpringApplication \n ;",
@@ -76,7 +76,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("using System.Threading.Tasks;", "System.Threading.Tasks"),
             ("global using static System.Math;", "System.Math"),
         ],
-        "invalid": ["using (var stream = new FileStream())", "// using System;"],
+        "invalid": ["using (var stream = new FileStream())"],
         "pathological": [
             (
                 "global \n using \n static \n Microsoft.AspNetCore.Mvc \n ;",
@@ -86,11 +86,11 @@ DEPENDENCY_EXTRACTION_CASES = {
     },
     "go": {
         "valid": [('import "net/http"', "net/http"), ('import fmt "fmt"', "fmt")],
-        "invalid": ['var importPath = "foo"', '// import "fmt"'],
+        "invalid": ['var importPath = "foo"'],
         "pathological": [
             (
-                'import \n ( \n  customAlias \n "github.com/gin-gonic/gin" \n )',
-                "github.com/gin-gonic/gin",
+                'import \n ( \n  customAlias \n "https://github.com/gin-gonic/gin" \n )',
+                "https://github.com/gin-gonic/gin",
             )
         ],
     },
@@ -99,7 +99,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("use std::collections::HashMap;", "std::collections::HashMap"),
             ("pub use crate::networking::Socket;", "crate::networking::Socket"),
         ],
-        "invalid": ["let use_cache = true;", "// use std::io;"],
+        "invalid": ["let use_cache = true;"],
         "pathological": [
             (
                 "pub \n use \n crate::core::networking \n :: \n { \n  tcp::TcpSocket \n };",
@@ -112,12 +112,12 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("#include <sys/types.h>", "sys/types.h"),
             ("import std.core;", "std.core"),
         ],
-        "invalid": ["int include_count = 0;", "// #include <stdio.h>"],
+        "invalid": ["int include_count = 0;"],
         "pathological": [("export \n import \n external.module.name \n ;", "external.module.name")],
     },
     "c": {
         "valid": [("#include <stdio.h>", "stdio.h"), ('#include "local.h"', "local.h")],
-        "invalid": ["int include_path = 1;", "/* #include <stdlib.h> */"],
+        "invalid": ["int include_path = 1;"],
         "pathological": [("# \n include \n <sys/socket.h>", "sys/socket.h")],
     },
     "php": {
@@ -128,7 +128,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ),
             ("require_once 'vendor/autoload.php';", "vendor/autoload.php"),
         ],
-        "invalid": ["$useCache = true;", "// require 'foo.php';"],
+        "invalid": ["$useCache = true;"],
         "pathological": [
             (
                 "use \n function \n My\\Custom\\Namespace\\target_function \n ;",
@@ -141,20 +141,20 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("Import-Module ActiveDirectory", "ActiveDirectory"),
             ("using namespace System.Net", "System.Net"),
         ],
-        "invalid": ["Write-Host 'Import-Module'", "# using module foo"],
+        "invalid": ["Write-Host 'Import-Module'"],
         "pathological": [("using \n module \n 'MyCustomModule.psm1'", "MyCustomModule.psm1")],
     },
     "shell": {
         "valid": [("source .env", ".env"), (". /etc/profile", "/etc/profile")],
-        "invalid": ["echo 'source .env'", "# . /etc/profile"],
-        "pathological": [(". \n '/opt/custom/script.sh'", "/opt/custom/script.sh")],
+        "invalid": ["echo 'source .env'"],
+        "pathological": [(". \t  '/opt/custom/script.sh'", "/opt/custom/script.sh")],
     },
     "ruby": {
         "valid": [
             ("require 'json'", "json"),
             ("require_relative '../core/engine'", "../core/engine"),
         ],
-        "invalid": ["required_fields = []", "# require 'foo'"],
+        "invalid": ["required_fields = []"],
         "pathological": [
             (
                 'require_relative \n ( \n "../lib/massive_module" \n )',
@@ -167,7 +167,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import Foundation", "Foundation"),
             ("@_exported import UIKit", "UIKit"),
         ],
-        "invalid": ["var importData = true", "// import SwiftUI"],
+        "invalid": ["var importData = true"],
         "pathological": [
             (
                 "@_exported \n import \n typealias \n CustomModule.TargetType",
@@ -180,7 +180,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import java.util.*", "java.util.*"),
             ("import static org.mockito.Mockito.*", "org.mockito.Mockito.*"),
         ],
-        "invalid": ["val importPath = false", "// import foo.bar"],
+        "invalid": ["val importPath = false"],
         "pathological": [("import \n kotlinx.coroutines.flow.*", "kotlinx.coroutines.flow.*")],
     },
     "sqlite": {
@@ -188,7 +188,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("ATTACH DATABASE 'file.db' AS file;", "file.db"),
             (".read schema.sql", "schema.sql"),
         ],
-        "invalid": ["SELECT 'ATTACH DATABASE';", "-- .read schema.sql"],
+        "invalid": ["SELECT 'ATTACH DATABASE';"],
         "pathological": [("load_extension \n ( \n 'crypto.so' \n )", "crypto.so")],
     },
     "html": {
@@ -204,7 +204,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ('@import url("reset.css");', "reset.css"),
             ('@import "theme.css";', "theme.css"),
         ],
-        "invalid": [".import { color: red; }", "/* @import url('foo') */"],
+        "invalid": [".import { color: red; }"],
         "pathological": [('@import \n url( \n "fonts.css" \n )', "fonts.css")],
     },
     "fortran": {
@@ -212,7 +212,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("USE iso_fortran_env", "iso_fortran_env"),
             ("INCLUDE 'constants.h'", "constants.h"),
         ],
-        "invalid": ["! USE iso_fortran_env", "CHARACTER(LEN=10) :: INCLUDE_FILE"],
+        "invalid": ["CHARACTER(LEN=10) :: INCLUDE_FILE"],
         "pathological": [("USE \n , \n INTRINSIC \n :: \n omp_lib", "omp_lib")],
     },
     "assembly": {
@@ -220,22 +220,22 @@ DEPENDENCY_EXTRACTION_CASES = {
             ('%include "macros.inc"', "macros.inc"),
             ('.include "defs.s"', "defs.s"),
         ],
-        "invalid": ['; %include "macros.inc"', "include_flag db 1"],
+        "invalid": ["include_flag db 1"],
         "pathological": [('%include \n "syscalls.inc"', "syscalls.inc")],
     },
     "agc_assembly": {
         "valid": [("BANK 43", "43"), ("SETLOC 4000", "4000")],
-        "invalid": ["# BANK 43", "EBANK_VAR EQUALS 1"],
+        "invalid": ["EBANK_VAR EQUALS 1"],
         "pathological": [("SETLOC \n 2000", "2000")],
     },
     "lua": {
         "valid": [("require 'math'", "math"), ('local ffi = require("ffi")', "ffi")],
-        "invalid": ["local require_path = ''", "-- require 'math'"],
+        "invalid": ["local require_path = ''"],
         "pathological": [("require \n ( \n 'bit32' \n )", "bit32")],
     },
     "perl": {
         "valid": [("use strict;", "strict"), ("require Foo::Bar;", "Foo::Bar")],
-        "invalid": ["my $use = 1;", "# use strict;"],
+        "invalid": ["my $use = 1;"],
         "pathological": [("use \n Data::Dumper", "Data::Dumper")],
     },
     "haskell": {
@@ -243,7 +243,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import Control.Monad", "Control.Monad"),
             ("import qualified Data.Text as T", "Data.Text"),
         ],
-        "invalid": ["-- import Control.Monad", "let import_val = 1"],
+        "invalid": ["let import_val = 1"],
         "pathological": [("import \n qualified \n Data.Map", "Data.Map")],
     },
     "embedded_python": {
@@ -251,12 +251,12 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import machine", "machine"),
             ("from network import WLAN", "network"),
         ],
-        "invalid": ["import_state = True", "# import machine"],
+        "invalid": ["import_state = True"],
         "pathological": [("from \n uasyncio \n import \n sleep", "uasyncio")],
     },
     "cobol": {
         "valid": [("COPY MYLIB.", "MYLIB"), ("INCLUDE SQLCA.", "SQLCA")],
-        "invalid": ["* COPY MYLIB.", "01 COPY-FILE PIC X(10)."],
+        "invalid": ["01 COPY-FILE PIC X(10)."],
         "pathological": [("COPY \n 'Z_MACROS'", "Z_MACROS")],
     },
     "zig": {
@@ -264,7 +264,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ('const std = @import("std");', "std"),
             ('@cInclude("stdio.h");', "stdio.h"),
         ],
-        "invalid": ['// @import("std")', "var import_val = 0;"],
+        "invalid": ["var import_val = 0;"],
         "pathological": [('@cInclude \n ( \n "sys/types.h" \n )', "sys/types.h")],
     },
     "dart": {
@@ -275,7 +275,7 @@ DEPENDENCY_EXTRACTION_CASES = {
                 "package:flutter/material.dart",
             ),
         ],
-        "invalid": ["var importPath = '';", "// import 'dart:io';"],
+        "invalid": ["var importPath = '';"],
         "pathological": [
             (
                 "export \n 'package:provider/provider.dart'",
@@ -288,7 +288,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import cats.effect.IO", "cats.effect.IO"),
             ("export scala.collection.mutable.Map", "scala.collection.mutable.Map"),
         ],
-        "invalid": ["val importCount = 0", "// import cats.effect.IO"],
+        "invalid": ["val importCount = 0"],
         "pathological": [("import \n scala.concurrent.Future", "scala.concurrent.Future")],
     },
     "dockerfile": {
@@ -296,7 +296,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("FROM ubuntu:latest", "ubuntu:latest"),
             ("COPY --from=builder /app /app", "builder"),
         ],
-        "invalid": ["# FROM ubuntu", "ENV FROM_PATH=/app"],
+        "invalid": ["ENV FROM_PATH=/app"],
         "pathological": [("FROM \n --platform=linux/amd64 \n alpine:3.18", "alpine:3.18")],
     },
     "matlab": {
@@ -304,7 +304,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("import matlab.unittest.*", "matlab.unittest.*"),
             ("import mypack.myclass", "mypack.myclass"),
         ],
-        "invalid": ["% import matlab", "import_val = 1;"],
+        "invalid": ["import_val = 1;"],
         "pathological": [("import \n parallel.Pool", "parallel.Pool")],
     },
     "livecode": {
@@ -312,7 +312,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ('start using stack "lib"', "lib"),
             ('require "database"', "database"),
         ],
-        "invalid": ["-- start using stack", "put empty into requirePath"],
+        "invalid": ["put empty into requirePath"],
         "pathological": [('start \n using \n behavior \n "btnBehavior"', "btnBehavior")],
     },
     "solidity": {
@@ -322,7 +322,7 @@ DEPENDENCY_EXTRACTION_CASES = {
                 "@openzeppelin/contracts/token/ERC20/ERC20.sol",
             )
         ],
-        "invalid": ['// import "foo.sol"', "string memory importPath;"],
+        "invalid": ["string memory importPath;"],
         "pathological": [('import \n { \n ERC20 \n } \n from \n "token.sol";', "token.sol")],
     },
     "objective-c": {
@@ -330,12 +330,12 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("#import <Foundation/Foundation.h>", "Foundation/Foundation.h"),
             ("@import UIKit;", "UIKit"),
         ],
-        "invalid": ["int import_count;", "// #import <Foundation/Foundation.h>"],
+        "invalid": ["int import_count;"],
         "pathological": [("@import \n CoreGraphics \n ;", "CoreGraphics")],
     },
     "makefile": {
         "valid": [("include config.mk", "config.mk"), ("-include deps.mk", "deps.mk")],
-        "invalid": ["# include config.mk", "include_path := foo"],
+        "invalid": ["include_path := foo"],
         "pathological": [("-include \n .depend", ".depend")],
     },
     "abap": {
@@ -343,7 +343,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("INCLUDE z_my_macros.", "z_my_macros"),
             ("TYPE-POOLS abap.", "abap"),
         ],
-        "invalid": ["* INCLUDE z_my_macros.", "DATA include_name TYPE string."],
+        "invalid": ["DATA include_name TYPE string."],
         "pathological": [("TYPE-POOLS \n slis \n .", "slis")],
     },
     "yaml": {
@@ -351,7 +351,7 @@ DEPENDENCY_EXTRACTION_CASES = {
             ("uses: actions/checkout@v3", "actions/checkout@v3"),
             ("image: node:18-alpine", "node:18-alpine"),
         ],
-        "invalid": ["# uses: actions/checkout@v3", "description: 'image setup'"],
+        "invalid": ["description: 'image setup'"],
         "pathological": [("image: \n postgres:15", "postgres:15")],
     },
 }

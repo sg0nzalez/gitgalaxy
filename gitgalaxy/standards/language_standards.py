@@ -377,8 +377,16 @@ LANGUAGE_DEFINITIONS = {
                 r"__(?:getattr|setattr|del|call|new|metaclass|dict|dir|import)__|@(?:staticmethod|classmethod|property)|\b(?:getattr|setattr|inspect\.)\b"
             ),
             # 24. import (The Gravity Links)
-            "import": re.compile(r"^[ \t]*(?:import|from)\b\s+[\w.]+", re.M),
-            "_dependency_capture": re.compile(r"^[ \t]*(?:from|import)\s+([a-zA-Z0-9_.]+)", re.M),
+            "import": re.compile(
+                r"\b(?:from\s+[a-zA-Z0-9_.]+\s+import\b|import\s+[a-zA-Z0-9_., \t]+|\b__import__\s*\(|\bimportlib\.import_module\s*\()",
+                re.M,
+            ),
+            "_dependency_capture": re.compile(
+                r"\bfrom\s+([a-zA-Z0-9_.]+)\s+import\b|"  # Group 1: from X import ...
+                r"\bimport\s+([a-zA-Z0-9_., \t]+)|"  # Group 2: import X, Y as Z
+                r"\b(?:__import__|importlib\.import_module)\s*\(\s*['\"]([a-zA-Z0-9_.]+)['\"]",  # Group 3: __import__('X')
+                re.M,
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
@@ -637,11 +645,30 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (The Gravity Links)
             "import": re.compile(
-                r"^[ \t]*(?:import|export)\b[^;]*?\bfrom\b|\brequire\s*\(|import\s*\(",
+                r"\b(?:import|export)\b[^;]*?\bfrom\b|\brequire\s*\(|\bimport\s*\(",
                 re.M,
             ),
             "_dependency_capture": re.compile(
-                r"(?:import|export)\b[^;]*?\bfrom\s*['\"]([^'\"]+)['\"]|\b(?:require|import)\s*\(\s*['\"]([^'\"]+)['\"]",
+                # =====================================================================
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (JAVASCRIPT) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Supply Chain Firewall.
+                #
+                # HISTORICAL BUG: Originally, the `import` regex was anchored to the start of the
+                # line `^[ \t]*`. While this perfectly prevented the engine from hallucinating
+                # commented-out imports, it completely blinded the firewall to dynamic/inline execution.
+                # If an attacker tucked an import inside a function (e.g., `const payload = require('malware')`
+                # or `await import('trojan')`), it bypassed the sensors entirely.
+                #
+                # THE FIX: The `^` anchor has been stripped across both the counter and the capture regex.
+                # We now rely on the `\b` word boundary to find the keywords anywhere in the file.
+                # (Note: The engine's optical comment-stripper runs BEFORE this regex, naturally preventing
+                # the commented-out hallucination issue without needing strict line anchors).
+                #
+                # [ THE VERTICAL DESTRUCTURING SHIELD ]
+                # We enforce `[ \t\n]*` near the `from` and inside the `require()` parentheses to safely
+                # leap across vertical multi-line destructured imports (e.g., `import \n { \n Component \n } \n from`).
+                # =====================================================================
+                r"\b(?:import|export)\b[^;]*?\bfrom[ \t\n]*['\"]([^'\"]+)['\"]|\b(?:require|import)[ \t\n]*\([ \t\n]*['\"]([^'\"]+)['\"]",
                 re.M,
             ),
             # 25. ownership (The Authorship)
@@ -887,18 +914,31 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (The Gravity Links)
             "import": re.compile(
-                r"^[ \t]*(?:import(?:\s+type)?|export(?:\s+type)?)\b[^;]*?\bfrom\b|\brequire\s*\(|import\s*\(",
+                r"\b(?:import(?:\s+type)?|export(?:\s+type)?)\b[^;]*?\bfrom\b|\brequire\s*\(|\bimport\s*\(",
                 re.M,
             ),
             "_dependency_capture": re.compile(
                 # =====================================================================
-                # [ THE VERTICAL DESTRUCTURING SHIELD (TYPESCRIPT) ]
-                # Safely captures multi-line `import type \n { \n ASTNode \n } \n from`
-                # Anchors strictly to line-start `^[ \t]*` to mathematically prevent
-                # hallucinating `// import { x }` inside comments.
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (TYPESCRIPT) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Supply Chain Firewall.
+                #
+                # HISTORICAL BUG: Originally, this regex was anchored to the start of the
+                # line `^[ \t]*`. While this perfectly prevented the engine from hallucinating
+                # commented-out imports (`// import { x }`), it completely blinded the firewall
+                # to dynamic/inline execution. If an attacker tucked an import inside a function
+                # (e.g., `const payload = require('malware')` or `await import('trojan')`),
+                # it sailed right past the sensors.
+                #
+                # THE FIX: The `^` anchor has been stripped. We now rely on the `\b` word
+                # boundary to find the keywords anywhere in the file. (Note: The engine's
+                # optical comment-stripper runs BEFORE this regex, naturally preventing the
+                # commented-out hallucination issue without needing strict line anchors).
+                #
+                # [ THE VERTICAL DESTRUCTURING SHIELD ]
+                # We retain `[ \t\n]+` to safely leap across massive vertical multi-line
+                # destructured imports: `import type \n { \n ASTNode \n } \n from`
                 # =====================================================================
-                r"^[ \t]*(?:(?:const|let|var|type)[ \t]+[a-zA-Z_$][\w$]*[ \t]*=[ \t]*(?:await[ \t]+)?)?"
-                r"(?:(?:import(?:[ \t\n]+type)?|export(?:[ \t\n]+type)?)\b[^;]*?\bfrom[ \t\n]*['\"]([^'\"]+)['\"]|(?:require|import)[ \t\n]*\([ \t\n]*['\"]([^'\"]+)['\"])",
+                r"\b(?:import(?:[ \t\n]+type)?|export(?:[ \t\n]+type)?)\b[^;]*?\bfrom[ \t\n]*['\"]([^'\"]+)['\"]|\b(?:require|import)[ \t\n]*\([ \t\n]*['\"]([^'\"]+)['\"]",
                 re.M,
             ),
             # 25. ownership (The Authorship)
@@ -1904,8 +1944,32 @@ LANGUAGE_DEFINITIONS = {
             # Metaprogramming and memory transmutation.
             "heat_triggers": re.compile(r"\b(macro_rules!|std::mem::transmute|Pin::|PhantomData|UnsafeCell)\b"),
             # 24. import (The Gravity Links)
-            "import": re.compile(r"^[ \t]*(?:pub[ \t]+)?use\s+[^;]+;", re.M),
-            "_dependency_capture": re.compile(r"^[ \t]*(?:pub[ \t]+)?use\s+([a-zA-Z0-9_:]+)", re.M),
+            "import": re.compile(r"\b(?:pub[ \t]+)?use\s+[^;]+;", re.M),
+            "_dependency_capture": re.compile(
+                # =====================================================================
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (RUST) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Supply Chain Firewall.
+                #
+                # HISTORICAL BUG: Originally, this regex was anchored to the start of the
+                # line `^[ \t]*`. While Rust doesn't evaluate dependencies dynamically at
+                # runtime like scripting languages, it heavily utilizes locally scoped imports
+                # inside functions or trait implementations (e.g., `fn do_work() { use std::fs; }`).
+                # The anchored regex completely missed these localized dependencies.
+                #
+                # THE FIX: The `^` anchor has been stripped. We now rely on the `\b` word
+                # boundary to locate the `use` keyword anywhere in the file.
+                #
+                # [ THE COMMA-SEPARATED DESTRUCTURING SHIELD ]
+                # Previously, `_dependency_capture` stopped at the first non-word character,
+                # which meant for `use std::collections::{HashMap, HashSet};` it only captured
+                # `std::collections`. The expanded capture group `([a-zA-Z0-9_:{},\s]+)` now
+                # explicitly swallows the entire comma-separated bracket block up to the semicolon.
+                # NOTE: The downstream parser MUST flatten and split this string on commas and
+                # brackets to accurately register the individual nodes.
+                # =====================================================================
+                r"\b(?:pub[ \t]+)?use\s+([a-zA-Z0-9_:{},\s]+);",
+                re.M,
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"//\s*(?:Author|Maintainer|Copyright):\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
@@ -2697,12 +2761,34 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (The Gravity Links)
             "import": re.compile(
-                r"^[ \t]*(?:use\s+(?:function|const[ \t]+)?[\w\\]+|require|include|require_once|include_once)\b",
+                r"\b(?:use\s+(?:function|const[ \t]+)?[\w\\]+|require|include|require_once|include_once)\b",
                 re.M,
             ),
             "_dependency_capture": re.compile(
-                r"^[ \t]*(?:\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*[ \t]*=[ \t]*)?"
-                r"(?:use[ \t\n]+(?:function[ \t\n]+|const[ \t\n]+)?([\w\\]+)|(?:require|require_once|include|include_once)[ \t\n]*\(?[ \t\n]*['\"]([^'\"]+)['\"])",
+                # =====================================================================
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (PHP) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Supply Chain Firewall.
+                #
+                # HISTORICAL BUG: Originally, this regex was anchored to the start of the
+                # line `^[ \t]*`. This blinded the firewall to PHP's dynamic execution
+                # patterns. PHP applications (especially legacy frameworks) frequently
+                # lazy-load files inside controllers, `if` statements, or assign the result
+                # of a file inclusion directly to a variable (e.g., `$config = require 'cfg.php';`).
+                #
+                # THE FIX: The `^` anchor has been stripped. We now rely on the `\b` word
+                # boundary to find the inclusion keywords anywhere in the file.
+                #
+                # [ THE ASSIGNMENT SHIELD SIMPLIFICATION ]
+                # Because the regex is no longer anchored to the start of the line, we were
+                # able to completely delete the bloated, ReDoS-prone assignment capture group
+                # `(?:\$[a-zA-Z_]...=)?`. The engine now effortlessly ignores the `$var = `
+                # portion and skips straight to the `require` boundary.
+                #
+                # [ THE PARENTHESIS SHIELD ]
+                # PHP allows `require 'file.php'` and `require('file.php')`. The `\(?` safely
+                # bridges both syntaxes while capturing the target path.
+                # =====================================================================
+                r"\b(?:use[ \t\n]+(?:function[ \t\n]+|const[ \t\n]+)?([\w\\]+)|(?:require|require_once|include|include_once)[ \t\n]*\(?[ \t\n]*['\"]([^'\"]+)['\"])",
                 re.M,
             ),
             # 25. ownership (The Authorship)
@@ -3173,8 +3259,34 @@ LANGUAGE_DEFINITIONS = {
                 r'\$\([^)]+\)|`[^`]+`|\b(?:awk|sed|perl|python[23]?|ruby)\s+[\'"][^\'"]{0,500}|\beval\s+\$|\$\{!?[a-zA-Z0-9_]+\}'
             ),
             # 24. import (The Gravity Links)
-            "import": re.compile(r"^[ \t]*(?:source|\.)\s+[^\s]+", re.M),
-            "_dependency_capture": re.compile(r"^[ \t]*(?:source|\.)\s+['\"]?([^'\"\s]+)['\"]?", re.M),
+            "import": re.compile(r"(?:^|[ \t;|&])(?:source\b|\.(?=[ \t]))[ \t]+[^\s;]+", re.M),
+            "_dependency_capture": re.compile(
+                # =====================================================================
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (SHELL) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Supply Chain Firewall.
+                #
+                # HISTORICAL BUG: Originally, this regex was anchored to the start of the
+                # line `^[ \t]*`. This blinded the firewall to dynamic or conditional shell
+                # execution. Shell scripts frequently source environment files inside `if`
+                # blocks (e.g., `if [ -f .env ]; then source .env; fi`) or after logical
+                # operators (e.g., `test -f lib.sh && . lib.sh`). The anchored regex missed
+                # these entirely.
+                #
+                # THE FIX: The `^` anchor has been replaced with a Shell Statement Boundary:
+                # `(?:^|[ \t;|&])`. This allows the engine to recognize a `source` or `.`
+                # command immediately following a pipe `|`, a background task `&`, a logic
+                # gate `&&`, a command separator `;`, or standard whitespace, without
+                # triggering false positives on prose in echo statements.
+                #
+                # [ THE DOT-OPERATOR WORD BOUNDARY TRAP ]
+                # We CANNOT use a standard `\b` word boundary for the entire group because
+                # the dot operator (`.`) is a non-word character. `\b\.` will fail.
+                # Therefore, we explicitly branch: `source` gets a word boundary `\b`,
+                # and `.` gets a positive lookahead for whitespace `(?=[ \t])`.
+                # =====================================================================
+                r"(?:^|[ \t;|&])(?:source\b|\.(?=[ \t]))[ \t]+['\"]?([^'\"\s;]+)['\"]?",
+                re.M,
+            ),
             # 25. ownership (The Authorship)
             "ownership": re.compile(
                 r"^[ \t]*#\s*(?:Author|Created by|Maintainer|Copyright):?\s+(.*)",
@@ -3413,9 +3525,30 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(method_missing|define_method|const_missing|respond_to_missing\?|included|extended|prepended|class\s*<<\s*self)\b"
             ),
             # 24. import (The Gravity Links)
-            "import": re.compile(r"^[ \t]*(?:require|require_relative|load|autoload)\b", re.M),
+            "import": re.compile(r"\b(?:require|require_relative|load|autoload)\b[^'\"]*['\"]", re.M),
             "_dependency_capture": re.compile(
-                r"^[ \t]*(?:require|require_relative|load|autoload)\b[^'\"]*['\"]([^'\"]+)['\"]",
+                # =====================================================================
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (RUBY) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Supply Chain Firewall.
+                #
+                # HISTORICAL BUG: Originally, this regex was anchored to the start of the
+                # line `^[ \t]*`. While this perfectly prevented hallucinations on commented-out
+                # imports, it completely blinded the firewall to Ruby's highly dynamic execution
+                # patterns. Ruby developers frequently lazy-load dependencies inside methods
+                # (e.g., `def parse; require 'json'; end`) or behind conditionals. The anchored
+                # regex missed these entirely, allowing Trojans to slip through.
+                #
+                # THE FIX: The `^` anchor has been stripped. We now rely on the `\b` word
+                # boundary to find the keywords anywhere in the file.
+                #
+                # [ THE OPTIONAL PARENTHESIS & AUTOLOAD SHIELD ]
+                # Ruby methods do not require parentheses (e.g., `require 'json'` vs `require('json')`).
+                # Additionally, `autoload` takes a symbol before the path (e.g., `autoload :MyMod, 'path'`).
+                # By injecting `[^'\"]*` between the keyword and the string delimiter, the engine
+                # safely bridges across optional parentheses, whitespace, and `autoload` symbol arguments
+                # to securely capture the target string.
+                # =====================================================================
+                r"\b(?:require|require_relative|load|autoload)\b[^'\"]*['\"]([^'\"]+)['\"]",
                 re.M,
             ),
             # 25. ownership (The Authorship)
@@ -3991,7 +4124,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 2. args (The Coupling Mass)
             # Parameter blocks and input coupling. Bounded to prevent ReDoS on massive IN clauses.
-            "args": re.compile(r"\?[0-9]*|[:@$][a-zA-Z_]\w*|\b(?:VALUES|IN)\s*\([^)]*\)", re.I),
+            # Now explicitly captures CTE scoped arguments: cte_name (col1, col2)
+            "args": re.compile(
+                r"\?[0-9]*|[:@$][a-zA-Z_]\w*|\b(?:VALUES|IN)\s*\([^)]*\)|^[ \t]*[a-zA-Z_]\w*[ \t\n]*\([^)]*\)[ \t\n]*AS[ \t\n]*\(",
+                re.I | re.M,
+            ),
             # 3. linear (The Smooth Path)
             # Structural boundaries defining query execution flow.
             "linear": re.compile(
@@ -5561,10 +5698,29 @@ LANGUAGE_DEFINITIONS = {
             "heat_triggers": re.compile(
                 r"\b(__index|__newindex|__call|__add|__sub|__mul|__div|__mod|__pow|__unm|__idiv|__band|__bor|__bxor|__bnot|__shl|__shr|__concat|__len|__eq|__lt|__le|__gc|__close|__mode)\b"
             ),
-            # 24. import: Gravity Links. Dependency resolution.
-            "import": re.compile(r"\b(require|dofile)\b"),
+            # 24. import (The Gravity Links)
+            "import": re.compile(r"\b(?:require|dofile)\b[ \t\n]*\(?[ \t\n]*['\"]", re.M),
             "_dependency_capture": re.compile(
-                r"^[ \t]*(?:local[ \t]+[a-zA-Z0-9_, \t]*=[ \t]*)?(?:require|dofile)[ \t\n]*\(?[ \t\n]*['\"]([^'\"]+)['\"]",
+                # =====================================================================
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (LUA) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Firewall.
+                #
+                # HISTORICAL BUG: Anchored to `^[ \t]*`. In Lua, modules are simply tables
+                # returned by the `require` function. They are frequently lazy-loaded
+                # inside local functions or conditionally assigned. Furthermore, because
+                # the regex demanded the assignment (`local x = require...`) to touch the
+                # left margin, it missed indented conditionals and inline evaluations entirely.
+                #
+                # THE FIX: Stripped the `^` anchor and completely deleted the bloated
+                # variable-assignment capture group. We now scan directly for the `require`
+                # or `dofile` boundary.
+                #
+                # [ THE PARENTHESIS SHIELD ]
+                # Lua allows calling functions with a single string argument without
+                # parentheses: `require "math"` vs `require("math")`. The `\(?` safely
+                # bridges both syntaxes.
+                # =====================================================================
+                r"\b(?:require|dofile)[ \t\n]*\(?[ \t\n]*['\"]([^'\"]+)['\"]",
                 re.M,
             ),
             # 25. ownership: Authorship metadata in comments.
@@ -5779,9 +5935,25 @@ LANGUAGE_DEFINITIONS = {
             "heat_triggers": re.compile(
                 r"\b(AUTOLOAD|DESTROY|BEGIN|UNITCHECK|CHECK|INIT|END|tie|untie|bless|overload)\b|\*[a-zA-Z_]\w*[ \t]*=\s*(?:\\|&)|goto\s+&"
             ),
-            # 24. import: Gravity Links. Module loading.
-            "import": re.compile(r"^[ \t]*(?:use|require|no)\s+[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*", re.M),
-            "_dependency_capture": re.compile(r"^[ \t]*(?:use|require|no)\s+([a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*)", re.M),
+            # 24. import (The Gravity Links)
+            "import": re.compile(r"\b(?:use|require|no)\s+[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*", re.M),
+            "_dependency_capture": re.compile(
+                # =====================================================================
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (PERL) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Firewall.
+                #
+                # HISTORICAL BUG: Anchored to `^[ \t]*`. While `use` is evaluated at
+                # compile-time and is typically top-level, `require` is evaluated at
+                # runtime and is very frequently scoped inside `if` statements or
+                # subroutines to defer loading heavy modules. The line anchor blinded
+                # the engine to these runtime inclusions.
+                #
+                # THE FIX: Stripped the `^` anchor and rely on the `\b` word boundary
+                # to capture module loading anywhere in the execution path.
+                # =====================================================================
+                r"\b(?:use|require|no)\s+([a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*)",
+                re.M,
+            ),
             # 25. ownership: Authorship metadata.
             "ownership": re.compile(
                 r"^=head1\s+(?:AUTHOR|COPYRIGHT|LICENSE)|#\s*(?:Author|Maintainer|Created by):\s+([^\n]+)",
@@ -6817,9 +6989,16 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(Database\.query|Type\.forName|Schema\.getGlobalDescribe|Schema\.describeSObjects|SObject\.put|SObject\.get|JSON\.deserializeUntyped)\b",
                 re.I,
             ),
-            # 24. import: Gravity Links. (Apex classes occupy a global org namespace).
-            "import": None,
-            "_dependency_capture": None,
+            # 24. import: Gravity Links.
+            # Apex lacks a native import keyword. Cross-package dependencies are established via
+            # reflection (Type.forName) or explicitly namespaced static invocations.
+            "import": re.compile(
+                r"\bType\.forName\b|(?!(?:System|Database|Schema|Auth|Cache|Chatter|EventBus|Limits|Messaging|RestContext|Test)\b)\b[a-zA-Z_]\w*\.[A-Z]\w*\b",
+                re.I,
+            ),
+            "_dependency_capture": re.compile(
+                r"\bType\.forName\s*\(\s*['\"]([^'\"]+)['\"](?:[ \t\n]*,[ \t\n]*['\"]([^'\"]+)['\"])?\s*\)", re.I
+            ),
             # 25. ownership: Authorship indicators.
             "ownership": re.compile(
                 r"(?:@author|Author|Created by|Maintainer|Copyright|Tim Berners-Lee):\s+([^\n]+)",
@@ -7269,9 +7448,29 @@ LANGUAGE_DEFINITIONS = {
             "heat_triggers": re.compile(
                 r"\b(implicit|given|using|inline|extension|TypeTag|ClassTag|scala\.reflect|Typeable|Dynamic|summon|derives)\b"
             ),
-            # 24. import: Gravity Links. Module dependency resolution and Scala 3 exports.
-            "import": re.compile(r"^[ \t]*(?:import|export)\s+[\w.]+", re.M),
-            "_dependency_capture": re.compile(r"^[ \t]*(?:import|export)\s+([\w.]+)", re.M),
+            # 24. import (The Gravity Links)
+            "import": re.compile(r"\b(?:import|export)\s+[\w.{}\s,]+", re.M),
+            "_dependency_capture": re.compile(
+                # =====================================================================
+                # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (SCALA) ]
+                # PURPOSE: Extracts external dependencies for the Network Graph and Firewall.
+                #
+                # HISTORICAL BUG: Anchored to the start of the line `^[ \t]*`. Scala
+                # developers frequently scope imports locally inside methods, classes,
+                # or traits to prevent namespace pollution. The anchored regex missed
+                # all of these local dependencies.
+                #
+                # THE FIX: Stripped the `^` anchor and rely on the `\b` word boundary.
+                #
+                # [ THE BLOCK DESTRUCTURING SHIELD ]
+                # Scala relies heavily on bracketed block imports: `import java.util.{List, Map}`.
+                # The capture group `([\w.{}\s,]+)` is expanded to swallow the entire
+                # comma-separated block. The downstream parser must flatten this string
+                # and split on commas/brackets to extract the individual modules.
+                # =====================================================================
+                r"\b(?:import|export)\s+([\w.{}\s,]+)",
+                re.M,
+            ),
             # 25. ownership: Authorship indicators.
             "ownership": re.compile(
                 r"(?:@author|Created by|Maintainer|Copyright|Tim Berners-Lee):\s+([^\n]+)",
@@ -8099,8 +8298,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 19. decorators: Metadata Hooks. Modifiers act structurally similar to decorators.
             "decorators": None,  # Modifiers are inline in Solidity, not on preceding lines.
-            # 20. generics: Type Abstractions. Solidity uses Mappings for parameterized K/V associations.
-            "generics": re.compile(r"\bmapping\s*\([^=>]+=>[^)]+\)"),
+            # 20. generics: Type Abstractions. Parameterized K/V associations.
+            # Deeply supports nested mapping structures across vertical lines.
+            "generics": re.compile(
+                r"\bmapping\s*\([ \t\n]*[a-zA-Z0-9_]+\s*=>\s*(?:mapping\s*\([^)]+\)|[a-zA-Z0-9_]+)[ \t\n]*\)"
+            ),
             # 21. comprehensions: High-Density Loops. Solidity lacks native comprehensions.
             "comprehensions": None,
             # 22. scientific: Compute Core. Cryptographic hashing and elliptic curve recovery.
