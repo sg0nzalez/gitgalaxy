@@ -157,7 +157,7 @@ def _init_worker(
             "prism": Prism(comm_defs, lang_defs, parent_logger=worker_logger),
             "splicer_cache": splicer_cache,
             "word_tokenizer": re.compile(r"\b\w+\b"),
-            # --- NEW: Boot the physics engines into worker memory ---
+            # --- NEW: Boot the Analysis Engines into worker memory ---
             "chronometer": Chronometer(root, parent_logger=worker_logger),
             "signal": SignalProcessor(aperture_config=config, parent_logger=worker_logger),
             "security": SecurityLens(policy=active_policy),
@@ -198,7 +198,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     splicer_cache = _worker_state["splicer_cache"]
     tokenizer = _worker_state["word_tokenizer"]
 
-    # --- NEW: Extract the physics engines from worker memory ---
+    # --- NEW: Extract the Analysis Engines from worker memory ---
     chronometer = _worker_state["chronometer"]
     signal_engine = _worker_state["signal"]  # Renamed to avoid shadowing 'import signal'
     security = _worker_state["security"]
@@ -239,7 +239,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                     if binary_threats:
                         logger.critical(f"🚨 X-RAY TRIGGERED: Weaponized binary detected at '{rel_path}'!")
 
-                        # Supernova Promotion: Forge a synthetic star and force it into the visible galaxy
+                        # Threat Escalation: Forge a synthetic star and force it into the visible galaxy
                         from gitgalaxy.physics.signal_processor import SignalProcessor
 
                         hit_vector = [0] * len(SignalProcessor.SIGNAL_SCHEMA)
@@ -281,8 +281,8 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                 except Exception as e:
                     logger.debug(f"X-Ray failed on '{rel_path}': {e}")
 
-            # If no threats found, or it wasn't a binary, dump to Dark Matter as usual
-            observation["status"] = "singularity"
+            # If no threats found, or it wasn't a binary, dump to Excluded Artifacts as usual
+            observation["status"] = "parser_bypass"
             observation["reason"] = reason
             observation["size_bytes"] = size_bytes
             observation["processing_time"] = time.time() - t_start
@@ -308,7 +308,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
 
         filter_res = aperture.is_in_scope(full_path_str, content=content_buffer, has_intent=has_prior)
         if not filter_res["is_in_scope"]:
-            observation["status"] = "singularity"
+            observation["status"] = "parser_bypass"
             observation["reason"] = filter_res["reason"]
             observation["processing_time"] = time.time() - t_start
             return observation
@@ -347,7 +347,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             is_supported = lang_id in lang_defs or is_inert
 
             if lang_id in ("undeterminable", "unknown") or not is_supported:
-                observation["status"] = "singularity"
+                observation["status"] = "parser_bypass"
                 observation["reason"] = f"Unsupported Format (.{lang_id})"
                 observation["identity_confidence"] = detection_result.get("intensity", 0.0)
                 observation["processing_time"] = time.time() - t_start
@@ -455,25 +455,22 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                                     if clean_module:
                                         raw_imports.add(clean_module)
                     except Exception:
-                        pass
+                        logging.exception("Import extraction failed for language '%s'.", lang_id)
 
-                # 2. ---> NEW: Extract Named Imports (TS/JS/Python) <---
-                try:
-                    # Captures 'import { a, b }' and 'from x import a, b'
-                    import_blocks = re.findall(
-                        r"(?:import\s+\{([^}]+)\}|from\s+[\w.]+\s+import\s+([^({\n]+))",
-                        content_buffer,
-                    )
-                    for block in import_blocks:
-                        for match in block:
-                            if match:
-                                # Split by comma, handle 'as' aliases
-                                for token in match.split(","):
-                                    clean_token = token.split(" as ")[0].strip()
+                # 2. Extract Named Tokens dynamically via Language Standards
+                named_token_regex = lang_defs.get(lang_id, {}).get("rules", {}).get("_named_token_capture")
+                if named_token_regex:
+                    try:
+                        for match in named_token_regex.finditer(content_buffer):
+                            extracted_group = next((g for g in match.groups() if g), None)
+                            if extracted_group:
+                                # Split by comma and strip 'as' aliases to isolate the pure token
+                                for token in extracted_group.split(","):
+                                    clean_token = re.split(r"\s+as\s+", token)[0].strip()
                                     if clean_token:
                                         named_tokens.add(clean_token)
-                except Exception:
-                    pass
+                    except Exception:
+                        logging.exception("Named token extraction failed for language '%s'.", lang_id)
 
             if is_file_profiling:
                 phase_times["6_Import_Regex"] = time.perf_counter() - t_imports
@@ -496,7 +493,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
         except TimeoutError:
             # The bomb went off anywhere in Phase 3 through 7!
             logger.warning(f"⏳ TIMEOUT GUILLOTINE: '{rel_path}' exceeded 15s. Banishing to Singularity.")
-            observation["status"] = "singularity"
+            observation["status"] = "parser_bypass"
             observation["reason"] = "Unparsable (Structural Saturation / Global Regex Timeout)"
             observation["size_bytes"] = filter_res.get("size_bytes", 0)
             observation["identity_confidence"] = detection_result.get("intensity", 0.0)
@@ -557,7 +554,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
 
 # ==============================================================================
 # GitGalaxy Phase 3: Pipeline Orchestrator (The GalaxyScope)
-# Strategy v6.2 Protocol: Bayesian Optics & Singularity Bypasses
+# Strategy v6.2 Protocol: Bayesian Optics & Parser Bypasses
 # ==============================================================================
 
 
@@ -608,7 +605,7 @@ class Orchestrator:
         # State Arrays
         self.census: Set[str] = set()
         self.stem_map: Dict[str, str] = {}
-        self.cryolink: Dict[str, Dict[str, Any]] = {}
+        self.ram_cache: Dict[str, Dict[str, Any]] = {}
         self.parsed_files: List[Dict[str, Any]] = []
         self.unparsable_files: List[Dict[str, Any]] = []
         self.anomalies: List[Dict[str, str]] = []
@@ -674,7 +671,7 @@ class Orchestrator:
             # PHASE 0: Radar & Pre-Flight
             t_phase = time.time()
             self.guidestar.align_telescope()
-            self._ignite_radar()
+            self._build_file_census()
             logger.info(f"⏱️ MACRO-CLOCK [Phase 0 - Radar]: {time.time() - t_phase:.2f}s")
 
             # PHASE 1: Workers & IPC Transfer
@@ -708,8 +705,8 @@ class Orchestrator:
 
             # PHASE 4: Audit Verification
             t_phase = time.time()
-            repository_graph, audit_singularity = self.auditor.audit(self.parsed_files)
-            total_unparsable = self.unparsable_files + audit_singularity
+            repository_graph, unparsable_audits = self.auditor.audit(self.parsed_files)
+            total_unparsable = self.unparsable_files + unparsable_audits
             logger.info(f"⏱️ MACRO-CLOCK [Phase 4 - Auditor]: {time.time() - t_phase:.2f}s")
 
             # PHASE 5: 3D Cartography
@@ -931,7 +928,7 @@ class Orchestrator:
         finally:
             self.cleanup()
 
-    def _ignite_radar(self):
+    def _build_file_census(self):
         """Phase 0: Building the Census via Git Authority with Fallback."""
         try:
             raw_output = subprocess.check_output(
@@ -977,7 +974,7 @@ class Orchestrator:
                     self.ext_tally[ext] = self.ext_tally.get(ext, 0) + 1
                     self.ext_tally[name] = self.ext_tally.get(name, 0) + 1
                 else:
-                    # Route directly to Dark Matter, bypassing the Multi-Processing pool
+                    # Route directly to Excluded Artifacts, bypassing the Multi-Processing pool
                     self.unparsable_files.append(
                         {
                             "path": rel_path,
@@ -1092,7 +1089,7 @@ class Orchestrator:
                         status = res["status"]
 
                         if status == "success":
-                            self.cryolink[rel_path] = res["data"]
+                            self.ram_cache[rel_path] = res["data"]
 
                             if self.config.get("FILE_SPEED"):
                                 p_times = res.get("phase_times", {})
@@ -1125,9 +1122,9 @@ class Orchestrator:
                                             "SPLICING SPEED: 5,000 file sample reached. Halting regex telemetry (Global file speeds still tracking)."
                                         )
 
-                        elif status == "singularity":
+                        elif status == "parser_bypass":
                             logger.debug(
-                                f"SINGULARITY_BYPASS: '{rel_path}' lacks structural integrity. Relegating to Dark Matter."
+                                f"SINGULARITY_BYPASS: '{rel_path}' lacks structural integrity. Relegating to Excluded Artifacts."
                             )
                             self.unparsable_files.append(
                                 {
@@ -1273,7 +1270,7 @@ class Orchestrator:
 
         external_imports_tally = {}  # <--- NEW: Track external dependencies
 
-        for rel_path, meta in self.cryolink.items():
+        for rel_path, meta in self.ram_cache.items():
             raw_imports = meta.get("raw_imports", set())
             for raw_import in raw_imports:
 
@@ -1415,16 +1412,16 @@ class Orchestrator:
                     )
 
                     # Inject the threat directly into the file's equations before Phase 2
-                    if "equations" not in self.cryolink[rel_path]:
-                        self.cryolink[rel_path]["equations"] = {}
+                    if "equations" not in self.ram_cache[rel_path]:
+                        self.ram_cache[rel_path]["equations"] = {}
 
-                    self.cryolink[rel_path]["equations"]["sec_homoglyphs"] = (
-                        self.cryolink[rel_path]["equations"].get("sec_homoglyphs", 0) + 1
+                    self.ram_cache[rel_path]["equations"]["sec_homoglyphs"] = (
+                        self.ram_cache[rel_path]["equations"].get("sec_homoglyphs", 0) + 1
                     )
 
-                    if "metadata" not in self.cryolink[rel_path]:
-                        self.cryolink[rel_path]["metadata"] = {}
-                    self.cryolink[rel_path]["metadata"][
+                    if "metadata" not in self.ram_cache[rel_path]:
+                        self.ram_cache[rel_path]["metadata"] = {}
+                    self.ram_cache[rel_path]["metadata"][
                         "alert"
                     ] = f"TYPOSQUATTING THREAT: '{orphan_imp}' mimics '{anchor_imp}'"
 
@@ -1435,7 +1432,7 @@ class Orchestrator:
             logger.warning(f"Intercepted {typosquat_hits} typosquatting attempts via repository baseline analysis.")
 
         # Evict memory before Pass 2
-        for rel_path, meta in self.cryolink.items():
+        for rel_path, meta in self.ram_cache.items():
             if "popularity_hits" in meta:
                 del meta["popularity_hits"]
 
@@ -1448,7 +1445,7 @@ class Orchestrator:
         # Tally the languages in every folder to find the dominant ecosystem
         # ==============================================================
         folder_tallies = {}
-        for rel_path, meta in self.cryolink.items():
+        for rel_path, meta in self.ram_cache.items():
             folder = str(Path(rel_path).parent)
             lang = meta.get("lang_id", "unknown")
 
@@ -1470,7 +1467,7 @@ class Orchestrator:
         # ---> NEW: BUILD GLOBAL TOKEN TRACKER <---
         # ==============================================================
         self.used_tokens = set()
-        for meta in self.cryolink.values():
+        for meta in self.ram_cache.values():
             self.used_tokens.update(meta.get("named_tokens", []))
         # ==============================================================
 
@@ -1480,7 +1477,7 @@ class Orchestrator:
         # directly to the production functions they verify.
         # ==============================================================
         logger.info("PASS_2: Extracting Test Coverage Mapping...")
-        test_coverage_map = self.network_sensor.extract_test_coverage_mapping(list(self.cryolink.values()))
+        test_coverage_map = self.network_sensor.extract_test_coverage_mapping(list(self.ram_cache.values()))
         # ==============================================================
 
         # ==============================================================
@@ -1488,7 +1485,7 @@ class Orchestrator:
         # Aggregate markdown heuristics to upgrade the doc_umbrella shields
         # ==============================================================
         instructional_multipliers = {}
-        for rel_path, meta in self.cryolink.items():
+        for rel_path, meta in self.ram_cache.items():
             if meta.get("lang_id") == "markdown":
                 folder = str(Path(rel_path).parent).replace("\\", "/")
                 if folder == ".":
@@ -1511,7 +1508,7 @@ class Orchestrator:
                     instructional_multipliers[folder] = multiplier
 
         # Apply the multiplier to the existing doc_umbrellas
-        for rel_path, meta in self.cryolink.items():
+        for rel_path, meta in self.ram_cache.items():
             folder = str(Path(rel_path).parent).replace("\\", "/")
             if folder == ".":
                 folder = "__root__"
@@ -1522,7 +1519,7 @@ class Orchestrator:
                 meta["metadata"]["doc_umbrella"] = min(base_shield * mult, 1.0)
         # ==============================================================
 
-        for rel_path, meta in self.cryolink.items():
+        for rel_path, meta in self.ram_cache.items():
             loc = meta.get("coding_loc", 0)
             total_loc += loc
             # Identify if the file lives in a test folder or is a test file
@@ -1539,7 +1536,7 @@ class Orchestrator:
         )
         # -----------------------------------------------
 
-        for rel_path, meta in self.cryolink.items():
+        for rel_path, meta in self.ram_cache.items():
 
             # ---> NEW: INJECT THE FOLDER CONTEXT FOR THE SIGNAL PROCESSOR <---
             folder = str(Path(rel_path).parent)
@@ -1596,7 +1593,7 @@ class Orchestrator:
             # Pass the mapped test coverage data to the risk engine
             meta["test_coverage_map"] = test_coverage_map.get(rel_path, {})
 
-            # The physics engine natively handles the Exposed Secret and Documentation bypass protocols.
+            # The Analysis Engine natively handles the Exposed Secret and Documentation bypass protocols.
             # We unconditionally route to the Signal Processor so it can execute the 18-point math.
             forensic_result = self.processor.calculate_risk_vector(
                 meta, meta.get("equations", {}), umbrella_bonus=umbrella_bonus
@@ -1665,12 +1662,12 @@ class Orchestrator:
             )
 
         # ==================================================================
-        # THE SECRETS SUPERNOVA INJECTION (Synthetic Visualization)
-        # Pull critical leaks out of Dark Matter and force them onto the map
+        # THE SECRETS Threat Escalation (Synthetic Visualization)
+        # Pull critical leaks out of Excluded Artifacts and force them onto the map
         # ==================================================================
         leaks = [cand for cand in self.unparsable_files if "CRITICAL LEAK" in cand.get("reason", "")]
 
-        # Remove them from Dark Matter so they aren't double-counted in the summary
+        # Remove them from Excluded Artifacts so they aren't double-counted in the summary
         self.unparsable_files = [
             cand for cand in self.unparsable_files if "CRITICAL LEAK" not in cand.get("reason", "")
         ]
@@ -1679,7 +1676,7 @@ class Orchestrator:
 
         for leak in leaks:
             rel_path = leak["path"]
-            logger.critical(f"Supernova Injection: Forcing {rel_path} onto the 3D Map!")
+            logger.critical(f"Threat Escalation: Forcing {rel_path} onto the 3D Map!")
 
             synthetic_star = {
                 "name": Path(rel_path).name,
@@ -1709,8 +1706,8 @@ class Orchestrator:
             self.parsed_files.append(synthetic_star)
 
         # ==================================================================
-        # THE NEURAL SUPERNOVA INJECTION (Local AI Weights)
-        # Pull model weights out of Dark Matter, parse headers, and map them
+        # THE NEURAL Threat Escalation (Local AI Weights)
+        # Pull model weights out of Excluded Artifacts, parse headers, and map them
         # ==================================================================
         models = [cand for cand in self.unparsable_files if "AI MODEL WEIGHTS" in cand.get("reason", "")]
         self.unparsable_files = [
@@ -1981,17 +1978,17 @@ class Orchestrator:
 
         try:
             # 1. Inject the surviving state
-            self.cryolink = ram_cache
+            self.ram_cache = ram_cache
             for d_file in deleted:
-                if d_file in self.cryolink:
-                    del self.cryolink[d_file]
+                if d_file in self.ram_cache:
+                    del self.ram_cache[d_file]
 
             # 2. Rebuild the Census & Ext Tally from the surviving RAM
             self.census = set()
             self.ext_tally = {}
             self.stem_map = {}
 
-            for rel_path in self.cryolink.keys():
+            for rel_path in self.ram_cache.keys():
                 stem = Path(rel_path).stem.lower()
                 ext = Path(rel_path).suffix.lower()
                 name = Path(rel_path).name.lower()
@@ -2014,7 +2011,7 @@ class Orchestrator:
             self._first_pass_extraction()
 
             # 5. The Ripple Effect (Recalculate Blast Radius for ALL files)
-            self.stem_map = {f: f for f in self.cryolink.keys()}
+            self.stem_map = {f: f for f in self.ram_cache.keys()}
             self._calculate_galactic_popularity()
             self._second_pass_relational()
 
@@ -2022,12 +2019,12 @@ class Orchestrator:
             self.parsed_files, network_macro = self.network_sensor.map_ecosystem(self.parsed_files)
 
             # 6. Audit Verification & ML Threat Inference
-            repository_graph, audit_singularity = self.auditor.audit(self.parsed_files)
+            repository_graph, unparsable_audits = self.auditor.audit(self.parsed_files)
             if repository_graph:
                 repository_graph = self.model_auditor.audit_galaxy(repository_graph)
 
             # 7. Synthesis and Database Forging
-            summary = self.processor.summarize_galaxy_metrics(repository_graph, audit_singularity)
+            summary = self.processor.summarize_galaxy_metrics(repository_graph, unparsable_audits)
             summary["network_macro"] = network_macro
             session_meta = {
                 "engine": f"GitGalaxy Scope v{self.version} (Delta Mode)",
@@ -2045,7 +2042,7 @@ class Orchestrator:
 
             self.db_recorder.record_mission(
                 parsed_files=repository_graph,
-                unparsable_files=audit_singularity,
+                unparsable_files=unparsable_audits,
                 summary=summary,
                 session_meta=session_meta,
                 output_path=db_output_path,
