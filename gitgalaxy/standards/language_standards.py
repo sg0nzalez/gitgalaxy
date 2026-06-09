@@ -387,6 +387,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:__import__|importlib\.import_module)\s*\(\s*['\"]([a-zA-Z0-9_.]+)['\"]",  # Group 3: __import__('X')
                 re.M,
             ),
+            "_named_token_capture": re.compile(r"^[ \t]*from\s+[\w.]+\s+import\s+([^({\n]+)", re.M),
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
@@ -668,9 +669,9 @@ LANGUAGE_DEFINITIONS = {
                 # We enforce `[ \t\n]*` near the `from` and inside the `require()` parentheses to safely
                 # leap across vertical multi-line destructured imports (e.g., `import \n { \n Component \n } \n from`).
                 # =====================================================================
-                r"\b(?:import|export)\b[^;]*?\bfrom[ \t\n]*['\"]([^'\"]+)['\"]|\b(?:require|import)[ \t\n]*\([ \t\n]*['\"]([^'\"]+)['\"]",
-                re.M,
-            ),
+                r"(?:import|export)\b[^;]*?\bfrom\s*['\"]([^'\"]+)['\"]|\b(?:require|import)\s*\(\s*['\"]([^'\"]+)['\"]",
+                re.M,),
+            "_named_token_capture": re.compile(r"(?:import|export)\s+\{([^}]+)\}", re.M),
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"(?:@author|Created by)\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
@@ -941,6 +942,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:import(?:[ \t\n]+type)?|export(?:[ \t\n]+type)?)\b[^;]*?\bfrom[ \t\n]*['\"]([^'\"]+)['\"]|\b(?:require|import)[ \t\n]*\([ \t\n]*['\"]([^'\"]+)['\"]",
                 re.M,
             ),
+            "_named_token_capture": re.compile(r"(?:import(?:[ \t\n]+type)?|export(?:[ \t\n]+type)?)\s+\{([^}]+)\}", re.M),
             # 25. ownership (The Authorship)
             "ownership": re.compile(r"(?:@author|Created by)\s+(.*)", re.I),
             # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
