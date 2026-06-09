@@ -455,7 +455,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                                     if clean_module:
                                         raw_imports.add(clean_module)
                     except Exception:
-                        pass
+                        logging.exception("Import extraction failed for language '%s'.", lang_id)
 
                 # 2. Extract Named Tokens dynamically via Language Standards
                 named_token_regex = lang_defs.get(lang_id, {}).get("rules", {}).get("_named_token_capture")
@@ -470,7 +470,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                                     if clean_token:
                                         named_tokens.add(clean_token)
                     except Exception:
-                        pass
+                        logging.exception("Named token extraction failed for language '%s'.", lang_id)
 
             if is_file_profiling:
                 phase_times["6_Import_Regex"] = time.perf_counter() - t_imports
