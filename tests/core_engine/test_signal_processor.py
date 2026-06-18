@@ -1,5 +1,5 @@
 import pytest
-from gitgalaxy.physics.signal_processor import SignalProcessor
+from gitgalaxy.metrics.signal_processor import SignalProcessor
 
 
 @pytest.fixture
@@ -1197,7 +1197,7 @@ def test_signal_processor_sigmoid_overflow(physics_engine):
 # ==============================================================================
 def test_signal_processor_standalone_init_and_silo():
     """Ensures the processor initializes without a parent logger and handles 0-commit silo math."""
-    from gitgalaxy.physics.signal_processor import SignalProcessor
+    from gitgalaxy.metrics.signal_processor import SignalProcessor
 
     # Test standalone initialization
     standalone_engine = SignalProcessor(parent_logger=None)

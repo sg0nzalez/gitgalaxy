@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
-from gitgalaxy.physics.signal_processor import SignalProcessor
+from gitgalaxy.metrics.signal_processor import SignalProcessor
 
 
 class TestZeroDependencyMode(unittest.TestCase):

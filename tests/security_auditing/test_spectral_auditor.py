@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch
 
 # Adjust this import to match your project structure
-from gitgalaxy.physics.spectral_auditor import SpectralAuditor
+from gitgalaxy.metrics.spectral_auditor import SpectralAuditor
 
 # ==============================================================================
 # MOCK HARDWARE CALIBRATION
