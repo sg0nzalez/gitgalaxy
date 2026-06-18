@@ -1,7 +1,6 @@
 import json
 import sqlite3
 import pytest
-from pathlib import Path
 from unittest.mock import patch
 from gitgalaxy.recorders.llm_recorder import LLMRecorder
 
