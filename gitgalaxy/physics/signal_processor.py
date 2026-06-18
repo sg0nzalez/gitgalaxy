@@ -898,6 +898,7 @@ class SignalProcessor:
 
             telemetry_payload = {
                 "archetype": global_archetype,
+                "encapsulation_ratio": round(encapsulation_ratio, 3),
                 "global_drift": global_drift,
                 "archetype_fingerprint": arch_fingerprint,
                 "local_archetype": local_archetype,
