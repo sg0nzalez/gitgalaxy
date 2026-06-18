@@ -98,7 +98,9 @@ class GuideStarLens:
         """Returns the Bayesian Prior for a given file path based on strict, pattern, or sector match."""
         path_obj = Path(path)
         filename = path_obj.name
-        rel_path = str(path_obj.relative_to(self.root) if path_obj.is_absolute() else path_obj).replace("\\", "/")
+        rel_path = str(
+            path_obj.relative_to(self.root) if path_obj.is_absolute() else path_obj
+        ).replace("\\", "/")
 
         # 1. Check direct filename match (e.g., 'main.py')
         prior = self.priors.get(filename)
@@ -111,7 +113,9 @@ class GuideStarLens:
         if not prior:
             for pattern, pat_prior in self.pattern_priors.items():
                 # Test against both the raw filename and the relative path
-                if fnmatch.fnmatch(filename, pattern) or fnmatch.fnmatch(rel_path, pattern):
+                if fnmatch.fnmatch(filename, pattern) or fnmatch.fnmatch(
+                    rel_path, pattern
+                ):
                     prior = pat_prior
                     break
 
@@ -154,7 +158,9 @@ class GuideStarLens:
             "source_proof": proof,
         }
 
-    def _inject_pattern_prior(self, pattern: str, lang: str, confidence: float, proof: str):
+    def _inject_pattern_prior(
+        self, pattern: str, lang: str, confidence: float, proof: str
+    ):
         """Safely updates the pattern prior map with wildcard evidence."""
         if not pattern:
             return
@@ -204,7 +210,9 @@ class GuideStarLens:
             elif filename in ("pyproject.toml", "Cargo.toml", "requirements.txt"):
                 self._parse_toml_style_manifest(path, lang)
         except Exception as e:
-            self.logger.debug(f"GuideStar: Deep inspection failed for '{filename}': {e}")
+            self.logger.debug(
+                f"GuideStar: Deep inspection failed for '{filename}': {e}"
+            )
 
     def _detect_ai_ecosystem(self, content: str, filename: str):
         """Scans manifest files for explicit AI/LLM orchestrators or tensor frameworks."""
@@ -225,9 +233,13 @@ class GuideStarLens:
 
         found = [kw for kw in ai_keywords if kw in content.lower()]
         if found:
-            self.logger.info(f"🧠 AI ECOSYSTEM DETECTED: Found {found} in {filename}. Flagging repository archetype.")
+            self.logger.info(
+                f"🧠 AI ECOSYSTEM DETECTED: Found {found} in {filename}. Flagging repository archetype."
+            )
             # We inject a synthetic prior so the downstream pipeline knows this is an AI repo
-            self._inject_prior("__galaxy_brain__.ai", "json", 1.0, f"AI Ecosystem Lock ({found[0]})")
+            self._inject_prior(
+                "__galaxy_brain__.ai", "json", 1.0, f"AI Ecosystem Lock ({found[0]})"
+            )
 
     def _parse_package_json(self, path: Path):
         """Extracts 'main', 'bin', and 'scripts' from Node/JS manifests."""
@@ -247,7 +259,9 @@ class GuideStarLens:
                 # Binary targets
                 bins = data.get("bin", {})
                 if isinstance(bins, str):
-                    self._inject_prior(bins, "javascript", 0.95, "Manifest Binary (package.json:bin)")
+                    self._inject_prior(
+                        bins, "javascript", 0.95, "Manifest Binary (package.json:bin)"
+                    )
                 elif isinstance(bins, dict):
                     for b_path in bins.values():
                         self._inject_prior(
@@ -280,12 +294,16 @@ class GuideStarLens:
                 content = f.read()
 
                 # Strategy 1: Find variable assignments like SRCS = main.c ...
-                matches = re.findall(r"(?:SRCS|SOURCES|FILES|TARGET)\s*[+:]?=\s*(.*)", content, re.I)
+                matches = re.findall(
+                    r"(?:SRCS|SOURCES|FILES|TARGET)\s*[+:]?=\s*(.*)", content, re.I
+                )
                 for m in matches:
                     files = m.split()
                     for f in files:
                         if "." in f:  # Heuristic for a filename
-                            self._inject_prior(f, "unknown", 0.85, "Manifest Source (Makefile)")
+                            self._inject_prior(
+                                f, "unknown", 0.85, "Manifest Source (Makefile)"
+                            )
 
                 # Strategy 2: Find target lines like 'build: main.o'
                 targets = re.findall(r"^([a-zA-Z0-9_\-]+)\s*:", content, re.M)
@@ -309,7 +327,9 @@ class GuideStarLens:
 
                 for m in matches:
                     if "/" in m or "." in m:
-                        self._inject_prior(m, lang, 0.95, f"Manifest Roadmap ({path.name})")
+                        self._inject_prior(
+                            m, lang, 0.95, f"Manifest Roadmap ({path.name})"
+                        )
         except Exception:
             pass
 
@@ -328,8 +348,12 @@ class GuideStarLens:
             if prefix.strip() == "./":
                 predicted_lang = "unknown"
 
-            self.logger.debug(f"GuideStar: Contextual hint found via execution trigger: '{filename}'")
-            self._inject_prior(filename, predicted_lang, 0.85, f"Execution Trigger ({prefix_clean})")
+            self.logger.debug(
+                f"GuideStar: Contextual hint found via execution trigger: '{filename}'"
+            )
+            self._inject_prior(
+                filename, predicted_lang, 0.85, f"Execution Trigger ({prefix_clean})"
+            )
 
     # ==============================================================================
     # EXPLICIT AUTHORITY (The .gitattributes Scout)
@@ -383,7 +407,9 @@ class GuideStarLens:
                             )
 
         except Exception as e:
-            self.logger.debug(f"GuideStar: Deep inspection failed for .gitattributes: {e}")
+            self.logger.debug(
+                f"GuideStar: Deep inspection failed for .gitattributes: {e}"
+            )
 
     # ==============================================================================
     # EVASION TACTICS (The .gitignore Scout)
@@ -431,7 +457,9 @@ class GuideStarLens:
                             )
 
         except Exception as e:
-            self.logger.debug(f"GuideStar: Evasion inspection failed for .gitignore: {e}")
+            self.logger.debug(
+                f"GuideStar: Evasion inspection failed for .gitignore: {e}"
+            )
 
     # ==============================================================================
     # KNOWLEDGE ANCHORS (The Documentation Scout)
@@ -461,7 +489,10 @@ class GuideStarLens:
             dir_path = Path(root_dir)
 
             # Skip known black holes to avoid wasting I/O
-            if any(part in self._gs_config.get("BLACK_HOLES", set()) for part in dir_path.parts):
+            if any(
+                part in self._gs_config.get("BLACK_HOLES", set())
+                for part in dir_path.parts
+            ):
                 continue
 
             local_shield_mass = 0
@@ -490,5 +521,5 @@ class GuideStarLens:
 
                 self.doc_umbrellas[rel_dir] = round(shield_strength, 3)
                 self.logger.debug(
-                    f"GuideStar: Projected {shield_strength*100:.1f}% Documentation Shield over '{rel_dir}'"
+                    f"GuideStar: Projected {shield_strength * 100:.1f}% Documentation Shield over '{rel_dir}'"
                 )

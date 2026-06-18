@@ -1,5 +1,4 @@
 import unittest
-import time
 import pytest
 import re
 import multiprocessing as mp
@@ -48,7 +47,6 @@ def _fuzz_chunk(tasks_chunk, status_queue):
 
 
 class TestProductionRegexSecurity:
-
     def test_production_regex_redos_immunity(self):
         """
         Extracts every single regex from the production standards and blasts them
@@ -109,7 +107,9 @@ class TestProductionRegexSecurity:
             p.join()
 
         if vulnerable:
-            pytest.fail(f"🔥 SECURITY BREACH: ReDoS vulnerability detected! Regex hung on:\n{vulnerable}")
+            pytest.fail(
+                f"🔥 SECURITY BREACH: ReDoS vulnerability detected! Regex hung on:\n{vulnerable}"
+            )
 
 
 if __name__ == "__main__":

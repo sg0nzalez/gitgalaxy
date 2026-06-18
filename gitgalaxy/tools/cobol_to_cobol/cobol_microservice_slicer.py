@@ -10,7 +10,9 @@ import re
 from pathlib import Path
 
 
-def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = None, orphaned_vars: set = None):
+def slice_business_logic(
+    filepath: Path, initial_var: str, dead_paras: set = None, orphaned_vars: set = None
+):
     """
     Recursively tracks a variable and its aliases through the AST.
     Utilizes shared IR context to prevent hallucinating logic inside dead code.
@@ -136,21 +138,27 @@ def main():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
 
-    print(f"🔪 GitGalaxy Slicer hunting aliases for [{args.var.upper()}] in {target_path.name}...\n")
+    print(
+        f"🔪 GitGalaxy Slicer hunting aliases for [{args.var.upper()}] in {target_path.name}...\n"
+    )
 
     # When run in standalone CLI mode, it won't have the IR RAM context,
     # but the function signature safely defaults to empty sets.
     result = slice_business_logic(target_path, args.var)
 
     if not result:
-        print(f"⚠️ Variable {args.var.upper()} is never mutated in the PROCEDURE DIVISION.")
+        print(
+            f"⚠️ Variable {args.var.upper()} is never mutated in the PROCEDURE DIVISION."
+        )
         sys.exit(0)
 
     logic_slice, aliases = result
 
     if isinstance(aliases, dict) and "ORPHANED_MEMORY" in aliases.values():
         print("==========================================================")
-        print(f" 🪦 ABORTED: Variable [{args.var.upper()}] is mathematically dead memory.")
+        print(
+            f" 🪦 ABORTED: Variable [{args.var.upper()}] is mathematically dead memory."
+        )
         print("==========================================================")
         sys.exit(0)
 

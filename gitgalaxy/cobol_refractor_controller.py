@@ -133,7 +133,9 @@ class IRStateManager:
 # ==============================================================================
 
 
-def process_payload(filepath: Path, state_manager: IRStateManager, target_var: str = None) -> dict:
+def process_payload(
+    filepath: Path, state_manager: IRStateManager, target_var: str = None
+) -> dict:
     """Processes a single COBOL payload through the enriched, shared-state pipeline."""
     print(f" ⚙️ Analyzing {filepath.name}...")
     program_id = filepath.stem
@@ -152,17 +154,23 @@ def process_payload(filepath: Path, state_manager: IRStateManager, target_var: s
     # Check for the Corporate Header stamp
     header_file = filepath.parent / "corporate_header.txt"
     if header_file.exists():
-        ir["metadata"]["corporate_header"] = header_file.read_text(encoding="utf-8", errors="ignore")
+        ir["metadata"]["corporate_header"] = header_file.read_text(
+            encoding="utf-8", errors="ignore"
+        )
 
     try:
-        ir["metadata"]["loc"] = len(filepath.read_text(encoding="utf-8", errors="ignore").splitlines())
+        ir["metadata"]["loc"] = len(
+            filepath.read_text(encoding="utf-8", errors="ignore").splitlines()
+        )
     except Exception:
         return ir
 
     # --- PHASE 0: PRE-PROCESSING (Sanitizing the code) ---
     was_patched = patch_lexical_traps(filepath)
     if was_patched:
-        print(f"   ↳ [!] Lexical Patcher applied to {filepath.name} (NEXT SENTENCE neutralized)")
+        print(
+            f"   ↳ [!] Lexical Patcher applied to {filepath.name} (NEXT SENTENCE neutralized)"
+        )
 
     # --- PHASE 1: RECONNAISSANCE & ANALYSIS ---
 
@@ -239,7 +247,9 @@ def main():
 
     enforce_licensing_guard("COBOL Refractor (The Legacy Forge)")
 
-    parser = argparse.ArgumentParser(description="GitGalaxy COBOL Refractor Controller (v4)")
+    parser = argparse.ArgumentParser(
+        description="GitGalaxy COBOL Refractor Controller (v4)"
+    )
     parser.add_argument("target", help="The legacy repository or directory to scan")
     parser.add_argument(
         "--var",
@@ -305,7 +315,9 @@ def main():
 
         # Write JSON IR Dump for downstream visualizers
         ir_dump_file = ir_dir / f"{file_path.stem}_ir.json"
-        safe_ir = json.loads(json.dumps(ir_state, default=lambda o: list(o) if isinstance(o, set) else o))
+        safe_ir = json.loads(
+            json.dumps(ir_state, default=lambda o: list(o) if isinstance(o, set) else o)
+        )
         ir_dump_file.write_text(json.dumps(safe_ir, indent=2))
 
         # Write JCL Artifacts
@@ -317,7 +329,9 @@ def main():
         # Write Schema Artifacts
         if ir_state["generation"].get("schemas"):
             schema_output = schema_dir / f"{file_path.stem}_schema.sql"
-            schema_output.write_text(ir_state["generation"]["schemas"]["sql"], encoding="utf-8")
+            schema_output.write_text(
+                ir_state["generation"]["schemas"]["sql"], encoding="utf-8"
+            )
             json_output = schema_dir / f"{file_path.stem}_schema.json"
             json_output.write_text(
                 json.dumps(ir_state["generation"]["schemas"]["json"], indent=2),
@@ -330,7 +344,9 @@ def main():
             slice_data = ir_state["generation"]["microservice"]
             if slice_data.get("business_rules"):
                 slice_output = slice_dir / f"{file_path.stem}_slice.json"
-                slice_output.write_text(json.dumps(slice_data, indent=2), encoding="utf-8")
+                slice_output.write_text(
+                    json.dumps(slice_data, indent=2), encoding="utf-8"
+                )
                 master_scaffold_stats["slices_extracted"] += 1
 
         # Aggregate Graveyard Stats
@@ -344,7 +360,9 @@ def main():
         lineage = ir_state["analysis"].get("lineage")
         if lineage and lineage.get("unresolved_calls"):
             for call in lineage["unresolved_calls"]:
-                master_honesty_flags.append(f"[{file_path.name}] Unresolved Dynamic CALL to: {call}")
+                master_honesty_flags.append(
+                    f"[{file_path.name}] Unresolved Dynamic CALL to: {call}"
+                )
 
         system_limits = ir_state["analysis"].get("honesty_flags")
         if system_limits:
@@ -370,32 +388,56 @@ def main():
         f.write("----------------------------------------------------------\n")
         f.write(f"  • Files Scanned           : {len(cobol_files)}\n")
         f.write(f"  • State Manager Mode      : {ir_mode}\n")
-        f.write(f"  • Unused Memory Addresses : {master_graveyard_stats['orphaned_vars']} orphaned variables\n")
-        f.write(f"  • Unreachable Logic Blocks: {master_graveyard_stats['dead_paras']} phantom paragraphs\n")
-        f.write(f"  ✂️ Estimated Bloat Removed: ~{master_graveyard_stats['loc_saved']} Lines of Code\n\n")
+        f.write(
+            f"  • Unused Memory Addresses : {master_graveyard_stats['orphaned_vars']} orphaned variables\n"
+        )
+        f.write(
+            f"  • Unreachable Logic Blocks: {master_graveyard_stats['dead_paras']} phantom paragraphs\n"
+        )
+        f.write(
+            f"  ✂️ Estimated Bloat Removed: ~{master_graveyard_stats['loc_saved']} Lines of Code\n\n"
+        )
 
         f.write("[2] ZERO-TRUST JCL ARCHITECTURE\n")
         f.write("----------------------------------------------------------\n")
         f.write(f"  • Programs Audited           : {audit_metrics['audited']}\n")
-        f.write(f"  • Original Legacy LOC        : {audit_metrics['original_loc']} lines\n")
-        f.write(f"  • GitGalaxy Zero-Trust LOC   : {audit_metrics['forged_loc']} lines\n")
-        f.write(f"  📉 Total Code Bloat Removed  : {audit_metrics.get('bloat_reduction_pct', 0)}%\n")
-        f.write(f"  🛡️ Over-Permissioned I/O     : {audit_metrics['excess_dds_blocked']} physical files secured\n\n")
+        f.write(
+            f"  • Original Legacy LOC        : {audit_metrics['original_loc']} lines\n"
+        )
+        f.write(
+            f"  • GitGalaxy Zero-Trust LOC   : {audit_metrics['forged_loc']} lines\n"
+        )
+        f.write(
+            f"  📉 Total Code Bloat Removed  : {audit_metrics.get('bloat_reduction_pct', 0)}%\n"
+        )
+        f.write(
+            f"  🛡️ Over-Permissioned I/O     : {audit_metrics['excess_dds_blocked']} physical files secured\n\n"
+        )
 
         f.write("[3] GENERATED CLOUD SCAFFOLDING\n")
         f.write("----------------------------------------------------------\n")
-        f.write(f"  • PostgreSQL DDLs & JSON Schemas Forged : {master_scaffold_stats['schemas_forged']}\n")
-        f.write(f"  • Zero-Trust Emulator JCLs Generated    : {master_scaffold_stats['jcls_forged']}\n")
-        f.write(f"  • Isolated Microservice Slices Extracted: {master_scaffold_stats['slices_extracted']}\n\n")
+        f.write(
+            f"  • PostgreSQL DDLs & JSON Schemas Forged : {master_scaffold_stats['schemas_forged']}\n"
+        )
+        f.write(
+            f"  • Zero-Trust Emulator JCLs Generated    : {master_scaffold_stats['jcls_forged']}\n"
+        )
+        f.write(
+            f"  • Isolated Microservice Slices Extracted: {master_scaffold_stats['slices_extracted']}\n\n"
+        )
 
         f.write("[4] ⚠️ MANUAL INTERVENTION AUDIT (HONESTY PROTOCOL)\n")
         f.write("----------------------------------------------------------\n")
         f.write(f"  • AI Agent Job Tickets Generated : {agent_jobs_created}\n\n")
 
         if not master_honesty_flags:
-            f.write("  ✅ No structural anomalies detected. DAG is highly deterministic.\n")
+            f.write(
+                "  ✅ No structural anomalies detected. DAG is highly deterministic.\n"
+            )
         else:
-            f.write("  The following files contain structural anomalies that require architectural review:\n")
+            f.write(
+                "  The following files contain structural anomalies that require architectural review:\n"
+            )
             for flag in master_honesty_flags:
                 f.write(f"  [!] {flag}\n")
         f.write("\n==========================================================\n")

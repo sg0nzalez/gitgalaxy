@@ -1,4 +1,3 @@
-import pytest
 from gitgalaxy.tools.cobol_to_java.cobol_to_java_service_forge import (
     generate_service_skeleton,
 )
@@ -54,9 +53,11 @@ def test_service_skeleton_dag_resolver():
     Java CamelCase so the downstream AI Agent knows exactly what to auto-wire.
     """
     # 1. Generate the code using the mock IR
-    generated_java = generate_service_skeleton(MOCK_IR_STATE, "com.gitgalaxy.modernized")
+    generated_java = generate_service_skeleton(
+        MOCK_IR_STATE, "com.gitgalaxy.modernized"
+    )
 
     # 2. Compare against the Golden Image
-    assert (
-        generated_java.strip() == GOLDEN_SERVICE_SKELETON.strip()
-    ), "Service Forge drifted from the Golden Image! Did the CamelCase/Hyphen parsing break?"
+    assert generated_java.strip() == GOLDEN_SERVICE_SKELETON.strip(), (
+        "Service Forge drifted from the Golden Image! Did the CamelCase/Hyphen parsing break?"
+    )

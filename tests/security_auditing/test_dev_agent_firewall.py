@@ -24,7 +24,9 @@ def test_black_hole_detection():
     result = firewall.evaluate_ecosystem(mock_files)
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
-    assert guardrails["is_agentic_black_hole"] is True, "Failed to detect the Agentic Black Hole!"
+    assert guardrails["is_agentic_black_hole"] is True, (
+        "Failed to detect the Agentic Black Hole!"
+    )
     assert any("Black Hole detected" in warning for warning in guardrails["warnings"])
 
 
@@ -43,7 +45,9 @@ def test_hitl_mandate_detection():
             "token_mass": 1000,
             "max_big_o": 1,
             "risk_vector": [100, 50, 60],  # ☢️ Sum = 210 (> 200 threshold)
-            "telemetry": {"network_metrics": {"normalized_blast_radius": 1.5}},  # ☢️ > 1.0 threshold
+            "telemetry": {
+                "network_metrics": {"normalized_blast_radius": 1.5}
+            },  # ☢️ > 1.0 threshold
         }
     ]
 
@@ -51,7 +55,9 @@ def test_hitl_mandate_detection():
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
     assert guardrails["requires_hitl"] is True, "Failed to enforce the HITL Mandate!"
-    assert any("Human-in-the-Loop required" in warning for warning in guardrails["warnings"])
+    assert any(
+        "Human-in-the-Loop required" in warning for warning in guardrails["warnings"]
+    )
 
 
 # ==============================================================================
@@ -76,7 +82,9 @@ def test_hallucination_zone_detection():
     result = firewall.evaluate_ecosystem(mock_files)
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
-    assert guardrails["hallucination_zone"] is True, "Failed to detect the Hallucination Zone!"
+    assert guardrails["hallucination_zone"] is True, (
+        "Failed to detect the Hallucination Zone!"
+    )
     assert any("Hallucination Zone" in warning for warning in guardrails["warnings"])
 
 
@@ -103,7 +111,9 @@ def test_silent_mutation_risk_detection():
     result = firewall.evaluate_ecosystem(mock_files)
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
-    assert guardrails.get("silent_mutation_risk") is True, "Failed to detect Silent Mutation Risk!"
+    assert guardrails.get("silent_mutation_risk") is True, (
+        "Failed to detect Silent Mutation Risk!"
+    )
     assert any("Silent Mutation Risk" in warning for warning in guardrails["warnings"])
 
 

@@ -1,8 +1,6 @@
 import pytest
 import numpy as np
-import pandas as pd
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # We patch the schemas before importing so the Auditor doesn't fail on boot
 MOCK_SCHEMAS = {"SIGNAL_SCHEMA": ["danger", "io", "flux", "safety", "graveyard"]}
@@ -115,7 +113,9 @@ def test_audit_galaxy_ml_inference(mock_xgb_class, mock_stars):
     # Predict probabilities for 2 files across 5 classes (0=Safe, 1=Botnet, 2=Trojan, etc)
     # File 1: 99% confident it's a Botnet (Class 1)
     # File 2: 99% confident it's Safe Code (Class 0)
-    mock_model.predict_proba.return_value = np.array([[0.01, 0.99, 0.0, 0.0, 0.0], [0.99, 0.01, 0.0, 0.0, 0.0]])
+    mock_model.predict_proba.return_value = np.array(
+        [[0.01, 0.99, 0.0, 0.0, 0.0], [0.99, 0.01, 0.0, 0.0, 0.0]]
+    )
 
     auditor = SecurityAuditor()
     auditor.model = mock_model  # Inject the mock model
@@ -130,8 +130,14 @@ def test_audit_galaxy_ml_inference(mock_xgb_class, mock_stars):
     # 3. Assert Shadow Patch Override (main.py has structural_mass > 0.5)
     # Even though the model predicted Class 1 (Botnet), the Shadow Patch forces it to Class 2 (Trojan/Stealer)
     assert main_star["is_ml_threat"] is True
-    assert main_star["telemetry"]["domain_context"]["AI Threat Class"] == "Stealer / Trojan"
-    assert "SHADOW PATCH: Hash mutated" in main_star["telemetry"]["domain_context"]["alert"]
+    assert (
+        main_star["telemetry"]["domain_context"]["AI Threat Class"]
+        == "Stealer / Trojan"
+    )
+    assert (
+        "SHADOW PATCH: Hash mutated"
+        in main_star["telemetry"]["domain_context"]["alert"]
+    )
 
     # 4. Assert Safe File (utils.py)
     assert utils_star["is_ml_threat"] is False

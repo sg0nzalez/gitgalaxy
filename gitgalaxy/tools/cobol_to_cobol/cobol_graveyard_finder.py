@@ -29,7 +29,9 @@ def resolve_copybooks(content: str, source_path: Path) -> str:
         for ext in [".cpy", ".cbl", ".cob", ".CPY"]:
             cpy_file = source_path.parent / f"{copy_name}{ext}"
             if cpy_file.exists():
-                cpy_content = cpy_file.read_text(encoding="utf-8", errors="ignore").upper()
+                cpy_content = cpy_file.read_text(
+                    encoding="utf-8", errors="ignore"
+                ).upper()
 
                 # --- THE SHAPESHIFTER FIX ---
                 # If a REPLACING clause exists, parse the ==OLD== BY ==NEW== pairs and apply them
@@ -43,7 +45,9 @@ def resolve_copybooks(content: str, source_path: Path) -> str:
                     for old_val, new_val in pairs:
                         # Use negative lookarounds so we don't accidentally replace partial words with hyphens
                         cpy_content = re.sub(
-                            r"(?<![A-Z0-9_\-])" + re.escape(old_val) + r"(?![A-Z0-9_\-])",
+                            r"(?<![A-Z0-9_\-])"
+                            + re.escape(old_val)
+                            + r"(?![A-Z0-9_\-])",
                             new_val,
                             cpy_content,
                         )

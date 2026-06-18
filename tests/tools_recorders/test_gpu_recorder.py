@@ -3,7 +3,6 @@ from gitgalaxy.recorders.gpu_recorder import GPURecorder
 
 
 class TestGPURecorderEviction(unittest.TestCase):
-
     def test_destructive_ram_eviction(self):
         """
         Verifies Stage 3.3: Destructive RAM Eviction.
@@ -23,7 +22,9 @@ class TestGPURecorderEviction(unittest.TestCase):
             for i in range(5)
         ]
 
-        mock_unparsable = [{"path": f"bin/payload_{i}.dll", "reason": "Binary"} for i in range(2)]
+        mock_unparsable = [
+            {"path": f"bin/payload_{i}.dll", "reason": "Binary"} for i in range(2)
+        ]
 
         # Verify they actually have data before we start
         self.assertEqual(len(mock_parsed_files), 5)
@@ -43,7 +44,9 @@ class TestGPURecorderEviction(unittest.TestCase):
         # =====================================================================
 
         # A) Did it actually build the payload successfully?
-        self.assertIn("galaxy", result, "GPU Recorder failed to build the galaxy payload.")
+        self.assertIn(
+            "galaxy", result, "GPU Recorder failed to build the galaxy payload."
+        )
         self.assertTrue(
             len(result["galaxy"]["paths"]) == 5,
             "GPU Recorder missed files in the output.",

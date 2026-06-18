@@ -1,8 +1,6 @@
 import pytest
 import json
 import sys
-import os
-from pathlib import Path
 from unittest.mock import patch
 
 from gitgalaxy.tools.compliance.sbom_generator import UniversalManifestSlicer, main
@@ -158,7 +156,9 @@ def test_sbom_generator_system_exits(tmp_path):
 # ==============================================================================
 @patch("gitgalaxy.tools.compliance.sbom_generator.SecurityLens")
 @patch("gitgalaxy.tools.compliance.sbom_generator.LanguageDetector")
-def test_zero_trust_sbom_generation_anomalies(mock_detector_class, mock_security_class, tmp_path):
+def test_zero_trust_sbom_generation_anomalies(
+    mock_detector_class, mock_security_class, tmp_path
+):
     """Proves the physical audit detects malware, missing files, and survives OS exceptions."""
     project_dir = tmp_path / "target_project"
     project_dir.mkdir()
@@ -245,7 +245,9 @@ def test_zero_trust_sbom_clean_run(mock_detector_class, mock_security_class, tmp
     mock_sec_instance.scan_content.return_value = {"counts": {"entropy": 0.0}}
     mock_det_instance.inspect.return_value = {"anomaly_flags": []}
 
-    with patch.object(sys, "argv", ["sbom_generator.py", str(project_dir), "--out", "clean_bom.json"]):
+    with patch.object(
+        sys, "argv", ["sbom_generator.py", str(project_dir), "--out", "clean_bom.json"]
+    ):
         main()
 
     bom_file = tmp_path / "clean_project_clean_bom.json"

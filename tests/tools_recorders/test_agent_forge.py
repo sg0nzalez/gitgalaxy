@@ -1,4 +1,3 @@
-import pytest
 from gitgalaxy.tools.cobol_to_java.cobol_to_java_agent_forge import (
     generate_java_agent_ticket,
 )
@@ -64,6 +63,9 @@ def test_llm_hallucination_prevention():
     # We must prove this strip logic works so the LLM doesn't get confused by internal bracket tags
     assert len(context["architectural_warnings"]) == 2
     assert (
-        context["architectural_warnings"][0] == "Do not use Java floats for currency, use BigDecimal."
+        context["architectural_warnings"][0]
+        == "Do not use Java floats for currency, use BigDecimal."
     )  # The [CRITICAL] tag should be stripped!
-    assert context["architectural_warnings"][1] == "This module assumes EBCDIC encoding."
+    assert (
+        context["architectural_warnings"][1] == "This module assumes EBCDIC encoding."
+    )

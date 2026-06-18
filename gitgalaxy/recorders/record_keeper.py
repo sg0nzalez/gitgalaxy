@@ -21,7 +21,11 @@ class RecordKeeper:
     """
 
     def __init__(self, parent_logger: Optional[logging.Logger] = None):
-        self.logger = parent_logger.getChild("record_keeper") if parent_logger else logging.getLogger("record_keeper")
+        self.logger = (
+            parent_logger.getChild("record_keeper")
+            if parent_logger
+            else logging.getLogger("record_keeper")
+        )
 
         schemas = RECORDING_SCHEMAS
         self.RISK_SCHEMA = schemas.get("RISK_SCHEMA", [])
@@ -127,7 +131,9 @@ class RecordKeeper:
         commit_hash = git_audit.get("commit_hash", "Unknown")
 
         db_file = Path(output_path)
-        self.logger.debug(f"Record Keeper: Forging native SQLite database -> {db_file.name}")
+        self.logger.debug(
+            f"Record Keeper: Forging native SQLite database -> {db_file.name}"
+        )
 
         conn = sqlite3.connect(db_file)
         # ---> THE SPEED FIX: Write-Ahead Logging & Relaxed Disk Sync
@@ -139,7 +145,9 @@ class RecordKeeper:
 
         # 1. DYNAMIC SCHEMA GENERATION
         risk_cols = [f"risk_{r.replace('-', '_')} REAL" for r in self.RISK_SCHEMA]
-        hit_cols = [f"{self.SHORT_KEY_MAP.get(h, h)} INTEGER" for h in self.SIGNAL_SCHEMA]
+        hit_cols = [
+            f"{self.SHORT_KEY_MAP.get(h, h)} INTEGER" for h in self.SIGNAL_SCHEMA
+        ]
 
         cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS repo_data (
@@ -305,8 +313,12 @@ class RecordKeeper:
         """)
 
         # ---> NEW: INDEXES TO PREVENT CASCADE DELETE HANGS <---
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_class_file_id ON class_data(file_id);")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_function_file_id ON function_data(file_id);")
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_class_file_id ON class_data(file_id);"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_function_file_id ON function_data(file_id);"
+        )
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS dark_matter_data (
@@ -383,13 +395,19 @@ class RecordKeeper:
                     func_z_max = max(z_scores)
                     func_z_mean = statistics.mean(z_scores)
                     func_z_median = statistics.median(z_scores)
-                    pct_z_above_5 = (sum(1 for c in complexities if c >= 5) / func_count) * 100.0
-                    pct_z_above_15 = (sum(1 for c in complexities if c >= 15) / func_count) * 100.0
+                    pct_z_above_5 = (
+                        sum(1 for c in complexities if c >= 5) / func_count
+                    ) * 100.0
+                    pct_z_above_15 = (
+                        sum(1 for c in complexities if c >= 15) / func_count
+                    ) * 100.0
 
             func_internal_density = (avg_comp / avg_loc) if avg_loc > 0 else 0.0
 
             logic_loc_denom = max(
-                int(file_data.get("coding_loc", 1) * tel.get("control_flow_ratio", 0.0)),
+                int(
+                    file_data.get("coding_loc", 1) * tel.get("control_flow_ratio", 0.0)
+                ),
                 1,
             )
             import_count = len(file_data.get("raw_imports", []))
@@ -399,8 +417,14 @@ class RecordKeeper:
                 "AI Threat Confidence",
                 tel.get("domain_context", {}).get("AI Threat Score", "0.0%"),
             )
-            ai_threat = float(str(ai_threat_conf_str).replace("%", "")) if ai_threat_conf_str else 0.0
-            ai_threat_class = tel.get("domain_context", {}).get("AI Threat Class", "Safe")
+            ai_threat = (
+                float(str(ai_threat_conf_str).replace("%", ""))
+                if ai_threat_conf_str
+                else 0.0
+            )
+            ai_threat_class = tel.get("domain_context", {}).get(
+                "AI Threat Class", "Safe"
+            )
             encapsulation_ratio = float(tel.get("encapsulation_ratio", 1.0))
 
             rv = file_data.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
@@ -436,7 +460,12 @@ class RecordKeeper:
             elif lang in ("json", "yaml", "toml", "xml", "ini", "csv", "properties"):
                 agg_config_files += 1
 
-            if "/test" in path_str or "test_" in path_str or "_test" in path_str or ".test." in path_str:
+            if (
+                "/test" in path_str
+                or "test_" in path_str
+                or "_test" in path_str
+                or ".test." in path_str
+            ):
                 agg_test_files += 1
 
             # --- SECURITY EXTRACTIONS ---
@@ -461,7 +490,11 @@ class RecordKeeper:
             ecosystem_role = net_mets.get("ecosystem_role", "Unknown")
 
             # ---> FIXED: EXTRACT CLASS COUNT FOR THE FILE <---
-            class_idx = self.SIGNAL_SCHEMA.index("class_start") if "class_start" in self.SIGNAL_SCHEMA else -1
+            class_idx = (
+                self.SIGNAL_SCHEMA.index("class_start")
+                if "class_start" in self.SIGNAL_SCHEMA
+                else -1
+            )
             class_count = hv[class_idx] if class_idx >= 0 and class_idx < len(hv) else 0
 
             # Meta and Big-O additions
@@ -610,7 +643,9 @@ class RecordKeeper:
                 func_hits = [int(raw_hv.get(h, 0)) for h in self.SIGNAL_SCHEMA]
 
                 parent_class_name = func.get("parent_class_name")
-                parent_class_id = class_id_map.get(parent_class_name) if parent_class_name else None
+                parent_class_id = (
+                    class_id_map.get(parent_class_name) if parent_class_name else None
+                )
 
                 all_func_rows.append(
                     [
@@ -629,7 +664,11 @@ class RecordKeeper:
                         int(func.get("db_complexity", 0)),
                         str(func.get("docstring", ""))[:2000],
                         json.dumps(func.get("calls_out_to", [])),
-                        (int(func.get("token_mass")) if func.get("token_mass") is not None else None),
+                        (
+                            int(func.get("token_mass"))
+                            if func.get("token_mass") is not None
+                            else None
+                        ),
                     ]
                     + func_hits
                 )
@@ -647,7 +686,11 @@ class RecordKeeper:
             )
 
         # 3. REPO DATA INSERTION
-        class_start_idx = self.SIGNAL_SCHEMA.index("class_start") if "class_start" in self.SIGNAL_SCHEMA else -1
+        class_start_idx = (
+            self.SIGNAL_SCHEMA.index("class_start")
+            if "class_start" in self.SIGNAL_SCHEMA
+            else -1
+        )
         total_classes = agg_hits[class_start_idx] if class_start_idx >= 0 else 0
 
         macro_info = summary.get("repo_macro_species", {})
@@ -656,10 +699,14 @@ class RecordKeeper:
         total_files = len(parsed_files)
         total_unparsable = len(unparsable_files)
 
-        avg_encapsulation = (agg_encapsulation / total_files) if total_files > 0 else 1.0
+        avg_encapsulation = (
+            (agg_encapsulation / total_files) if total_files > 0 else 1.0
+        )
         avg_imports = (agg_import_count / total_files) if total_files > 0 else 0.0
 
-        typosquat_count = summary.get("typosquat_hits", summary.get("summary", {}).get("typosquat_hits", 0))
+        typosquat_count = summary.get(
+            "typosquat_hits", summary.get("summary", {}).get("typosquat_hits", 0)
+        )
         net_macro = summary.get("network_macro", {})
         audits = summary.get("ecosystem_audits", {})
 
@@ -743,7 +790,11 @@ class RecordKeeper:
         # 5. FOLDER-LEVEL ROLLUP (MATERIALIZED PATH AGGREGATION)
         # ==============================================================================
         folder_stats = {}
-        debt_idx = self.RISK_SCHEMA.index("tech_debt") if "tech_debt" in self.RISK_SCHEMA else -1
+        debt_idx = (
+            self.RISK_SCHEMA.index("tech_debt")
+            if "tech_debt" in self.RISK_SCHEMA
+            else -1
+        )
 
         for file_data in parsed_files:
             file_path = file_data.get("path", "")
@@ -798,13 +849,23 @@ class RecordKeeper:
         # Calculate Domain Averages and Insert
         folder_rows = []
         for f_path, stats in folder_stats.items():
-            avg_cog = sum(stats["cog_loads"]) / len(stats["cog_loads"]) if stats["cog_loads"] else 0.0
+            avg_cog = (
+                sum(stats["cog_loads"]) / len(stats["cog_loads"])
+                if stats["cog_loads"]
+                else 0.0
+            )
             max_cog = max(stats["cog_loads"]) if stats["cog_loads"] else 0.0
 
-            avg_debt = sum(stats["tech_debts"]) / len(stats["tech_debts"]) if stats["tech_debts"] else 0.0
+            avg_debt = (
+                sum(stats["tech_debts"]) / len(stats["tech_debts"])
+                if stats["tech_debts"]
+                else 0.0
+            )
             max_debt = max(stats["tech_debts"]) if stats["tech_debts"] else 0.0
 
-            avg_churn = sum(stats["churns"]) / len(stats["churns"]) if stats["churns"] else 0.0
+            avg_churn = (
+                sum(stats["churns"]) / len(stats["churns"]) if stats["churns"] else 0.0
+            )
 
             folder_rows.append(
                 (

@@ -6,7 +6,6 @@ from gitgalaxy.physics.signal_processor import SignalProcessor
 
 
 class TestZeroDependencyMode(unittest.TestCase):
-
     @patch("gitgalaxy.core.network_risk_sensor.HAS_NETWORKX", False)
     def test_fallback_does_not_crash_signal_processor(self):
         """

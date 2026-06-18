@@ -18,7 +18,11 @@ class NeuralAuditor:
     """
 
     def __init__(self, parent_logger: logging.Logger = None):
-        self.logger = parent_logger.getChild("neural_auditor") if parent_logger else logging.getLogger("neural_auditor")
+        self.logger = (
+            parent_logger.getChild("neural_auditor")
+            if parent_logger
+            else logging.getLogger("neural_auditor")
+        )
 
     def audit_model(self, file_path: str) -> Dict[str, Any]:
         """Routes the binary to the correct header parser."""
@@ -58,7 +62,9 @@ class NeuralAuditor:
 
             # Anti-Hallucination: Prevent malicious files from claiming a 100GB header
             if header_size > 100 * 1024 * 1024:
-                raise ValueError(f"Safetensors header is suspiciously large: {header_size} bytes")
+                raise ValueError(
+                    f"Safetensors header is suspiciously large: {header_size} bytes"
+                )
 
             # 2. Read the JSON header
             header_json_bytes = f.read(header_size)
@@ -66,7 +72,9 @@ class NeuralAuditor:
 
             # 3. Extract Metadata
             metadata = header.get("__metadata__", {})
-            architecture = metadata.get("architecture", metadata.get("format", "Unknown Transformer"))
+            architecture = metadata.get(
+                "architecture", metadata.get("format", "Unknown Transformer")
+            )
 
             # 4. Calculate Parameters (Sum of the product of all tensor shapes)
             total_params = 0

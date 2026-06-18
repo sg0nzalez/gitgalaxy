@@ -28,10 +28,16 @@ class NetworkRiskSensor:
     """
 
     def __init__(self, parent_logger: Optional[logging.Logger] = None):
-        self.logger = parent_logger.getChild("network_sensor") if parent_logger else logging.getLogger("network_sensor")
+        self.logger = (
+            parent_logger.getChild("network_sensor")
+            if parent_logger
+            else logging.getLogger("network_sensor")
+        )
         self.RISK_SCHEMA = RECORDING_SCHEMAS.get("RISK_SCHEMA", [])
 
-    def extract_test_coverage_mapping(self, files: List[Dict[str, Any]]) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+    def extract_test_coverage_mapping(
+        self, files: List[Dict[str, Any]]
+    ) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
         """
         Maps function calls from test files to their imported production targets.
         Returns a dictionary mapping: production_file_path -> { production_function_name: [test_function_data] }
@@ -53,14 +59,19 @@ class NetworkRiskSensor:
             low_path = path.lower()
 
             # Structural heuristic for test files
-            is_test = any(x in low_path for x in ["/test/", "/tests/", "test_", "_test", ".spec.", ".test."])
+            is_test = any(
+                x in low_path
+                for x in ["/test/", "/tests/", "test_", "_test", ".spec.", ".test."]
+            )
             if not is_test:
                 continue
 
             # Identify which production files this test file imports
             target_paths = set()
             for imp in f.get("raw_imports", []):
-                target_token = imp[0] if isinstance(imp, tuple) and len(imp) == 2 else imp
+                target_token = (
+                    imp[0] if isinstance(imp, tuple) and len(imp) == 2 else imp
+                )
                 target_path = resolution_map.get(target_token)
 
                 if target_path and target_path != path:
@@ -80,7 +91,9 @@ class NetworkRiskSensor:
                     "impact": test_func.get("impact", 0.0),
                     "target_count": target_count,
                     "test_hits": test_func.get("hit_vector", {}).get("test", 0),
-                    "test_skip_hits": test_func.get("hit_vector", {}).get("test_skip", 0),
+                    "test_skip_hits": test_func.get("hit_vector", {}).get(
+                        "test_skip", 0
+                    ),
                     "decorators": test_func.get("hit_vector", {}).get("decorators", 0),
                 }
 
@@ -95,7 +108,9 @@ class NetworkRiskSensor:
 
         return coverage_map
 
-    def map_ecosystem(self, stars: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    def map_ecosystem(
+        self, stars: List[Dict[str, Any]]
+    ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Builds the directed graph and calculates multi-dimensional risk vectors.
         Modifies the 'telemetry' dictionary of each star in place.
@@ -103,7 +118,9 @@ class NetworkRiskSensor:
         if not HAS_NETWORKX:
             return self._fallback_map_ecosystem(stars)
 
-        self.logger.info(f"Network Risk Sensor: Initializing Directed Graph for {len(stars)} nodes...")
+        self.logger.info(
+            f"Network Risk Sensor: Initializing Directed Graph for {len(stars)} nodes..."
+        )
 
         G = nx.DiGraph()
 
@@ -131,7 +148,9 @@ class NetworkRiskSensor:
                 risk_vector=s.get("risk_vector", [0.0] * len(self.RISK_SCHEMA)),
                 max_big_o=max_big_o,
                 is_recursive=is_recursive,
-                db_complexity=(max([sat.get("db_complexity", 0) for sat in sats]) if sats else 0),
+                db_complexity=(
+                    max([sat.get("db_complexity", 0) for sat in sats]) if sats else 0
+                ),
             )
 
         # 2. Wire the Edges (File-to-File Level 1 & Entity Level 2)
@@ -170,13 +189,17 @@ class NetworkRiskSensor:
             # THE FIX: Closeness Centrality has no built-in sampling.
             # Drop the bypass threshold from 5000 to 1500 to prevent minute-long hangs.
             if len(G.nodes()) > 1500:
-                self.logger.warning("Graph too massive for exact Closeness Centrality. Bypassing.")
+                self.logger.warning(
+                    "Graph too massive for exact Closeness Centrality. Bypassing."
+                )
                 closeness = {n: 0.0 for n in G.nodes()}
             else:
                 closeness = nx.closeness_centrality(G)
 
         except Exception as e:
-            self.logger.warning(f"Network math failed to converge, defaulting to 0: {e}")
+            self.logger.warning(
+                f"Network math failed to converge, defaulting to 0: {e}"
+            )
             pagerank = {n: 0.0 for n in G.nodes()}
             betweenness = {n: 0.0 for n in G.nodes()}
             closeness = {n: 0.0 for n in G.nodes()}
@@ -217,7 +240,9 @@ class NetworkRiskSensor:
             systemic_threat_vector = []
             for local_risk in local_risk_vector:
                 # Systemic Threat = Blast Radius * Local Risk
-                systemic_threat_vector.append(round(pr_normalized * (local_risk / 100.0), 3))
+                systemic_threat_vector.append(
+                    round(pr_normalized * (local_risk / 100.0), 3)
+                )
 
             # --- Algorithmic Network Bottleneck Detection ---
             max_big_o = G.nodes[path].get("max_big_o", 1)
@@ -266,7 +291,9 @@ class NetworkRiskSensor:
                 # A. Modularity (Spaghetti vs Microservice)
                 try:
                     if len(U) > 5000:
-                        self.logger.warning("Graph too massive for Modularity. Bypassing.")
+                        self.logger.warning(
+                            "Graph too massive for Modularity. Bypassing."
+                        )
                         macro_metrics["modularity"] = 0.0
                     else:
                         # THE FIX: Attempt Louvain (blazing fast), fallback to Greedy (slow)
@@ -275,14 +302,18 @@ class NetworkRiskSensor:
                         except AttributeError:
                             communities = community.greedy_modularity_communities(U)
 
-                        macro_metrics["modularity"] = round(community.modularity(U, communities), 4)
+                        macro_metrics["modularity"] = round(
+                            community.modularity(U, communities), 4
+                        )
                 except Exception:
                     pass
 
                 # B. Assortativity (Resiliency)
                 try:
                     assort = nx.degree_assortativity_coefficient(G)
-                    macro_metrics["assortativity"] = round(assort, 4) if not math.isnan(assort) else 0.0
+                    macro_metrics["assortativity"] = (
+                        round(assort, 4) if not math.isnan(assort) else 0.0
+                    )
                 except Exception:
                     pass
 
@@ -297,28 +328,38 @@ class NetworkRiskSensor:
                 # D. Average Shortest Path (Coupling Distance)
                 try:
                     if len(U) > 5000:
-                        self.logger.warning("Graph too massive for Avg Path Length. Bypassing.")
+                        self.logger.warning(
+                            "Graph too massive for Avg Path Length. Bypassing."
+                        )
                         macro_metrics["avg_path_length"] = 0.0
                     else:
                         largest_cc = max(nx.connected_components(U), key=len)
                         subgraph = U.subgraph(largest_cc)
-                        macro_metrics["avg_path_length"] = round(nx.average_shortest_path_length(subgraph), 4)
+                        macro_metrics["avg_path_length"] = round(
+                            nx.average_shortest_path_length(subgraph), 4
+                        )
                 except Exception:
                     pass
 
                 # E. Articulation Points (Shatter Risk)
                 try:
-                    macro_metrics["articulation_points"] = len(list(nx.articulation_points(U)))
+                    macro_metrics["articulation_points"] = len(
+                        list(nx.articulation_points(U))
+                    )
                 except Exception:
                     pass
 
             except Exception as e:
                 self.logger.warning(f"Macro network math failed: {e}")
 
-        self.logger.info("Network Risk Sensor: Vector Mathematics & Graph Topology Complete.")
+        self.logger.info(
+            "Network Risk Sensor: Vector Mathematics & Graph Topology Complete."
+        )
         return stars, macro_metrics
 
-    def _fallback_map_ecosystem(self, stars: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    def _fallback_map_ecosystem(
+        self, stars: List[Dict[str, Any]]
+    ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         self.logger.warning(
             "[!] 'networkx' not found. Operating in Zero-Dependency Mode. Using linear counting for Ecosystem Roles."
         )
@@ -341,7 +382,9 @@ class NetworkRiskSensor:
         for s in stars:
             curr_path = s.get("path", "")
             for imp in s.get("raw_imports", []):
-                target_token = imp[0] if isinstance(imp, tuple) and len(imp) == 2 else imp
+                target_token = (
+                    imp[0] if isinstance(imp, tuple) and len(imp) == 2 else imp
+                )
                 if target_token in resolution_map:
                     target_path = resolution_map[target_token]
                     if target_path != curr_path:

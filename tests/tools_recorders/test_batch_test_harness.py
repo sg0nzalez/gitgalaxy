@@ -1,7 +1,6 @@
 import pytest
 import subprocess
 import sys
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 # Import your orchestrator script
@@ -62,7 +61,9 @@ def test_maven_failure_path(mock_run, mock_env):
     """
     # 1. Create two distinct mock objects
     success_mock = MagicMock(returncode=0, stdout="OK", stderr="")
-    failure_mock = MagicMock(returncode=1, stdout="[ERROR] COMPILATION ERROR", stderr="Fatal flaw in Java")
+    failure_mock = MagicMock(
+        returncode=1, stdout="[ERROR] COMPILATION ERROR", stderr="Fatal flaw in Java"
+    )
 
     # 2. Use side_effect to return them in sequence (Success, Success, Fail)
     mock_run.side_effect = [success_mock, success_mock, failure_mock]

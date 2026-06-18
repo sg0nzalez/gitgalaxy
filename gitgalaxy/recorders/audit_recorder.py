@@ -33,7 +33,11 @@ class AuditRecorder:
     def __init__(self, parent_logger=None):
         import logging
 
-        self.logger = parent_logger.getChild("audit_recorder") if parent_logger else logging.getLogger("audit_recorder")
+        self.logger = (
+            parent_logger.getChild("audit_recorder")
+            if parent_logger
+            else logging.getLogger("audit_recorder")
+        )
 
         # --- DYNAMIC SCHEMA FETCH ---
         schemas = getattr(config, "RECORDING_SCHEMAS", {})
@@ -92,7 +96,9 @@ class AuditRecorder:
             "Analysis Context": {
                 "Engine Identity": session_meta.get("engine", "GitGalaxy Scope v6.2.0"),
                 "Target Root Name": session_meta.get("target", "Unknown"),
-                "Absolute Project Path": session_meta.get("target_directory", "Unknown"),
+                "Absolute Project Path": session_meta.get(
+                    "target_directory", "Unknown"
+                ),
                 "Analysis ISO Timestamp": session_meta.get("timestamp"),
                 "Total Scan Duration": f"{session_meta.get('duration_seconds', 0.0)} seconds",
             },
@@ -100,7 +106,9 @@ class AuditRecorder:
                 "Active Branch": git_audit.get("branch", "N/A"),
                 "Commit Hash (SHA-1)": git_audit.get("commit_hash", "N/A"),
                 "Remote Origin URL": git_audit.get("remote_url", "Local/Disconnected"),
-                "Last Code Integration Date": git_audit.get("latest_commit_date", "Unknown"),
+                "Last Code Integration Date": git_audit.get(
+                    "latest_commit_date", "Unknown"
+                ),
             },
         }
 
@@ -109,7 +117,9 @@ class AuditRecorder:
         exposure_labels = schemas.get("EXPOSURE_LABELS", {})
 
         # Pre-calculate labels for vectors to avoid repeating work in the loop
-        risk_labels = [exposure_labels.get(k, self.format_label(k)) for k in self.RISK_SCHEMA]
+        risk_labels = [
+            exposure_labels.get(k, self.format_label(k)) for k in self.RISK_SCHEMA
+        ]
         hit_labels = [self.format_label(k) for k in self.HIT_SCHEMA]
 
         # --- NEW DIRECTORY GROUP SORTING & HIERARCHY ---
@@ -147,7 +157,9 @@ class AuditRecorder:
 
             # --- THE ULTIMATE UPSTREAM BYPASS FIX ---
             doc_languages = {"markdown", "plaintext", "rst", "text", "md"}
-            if lang_raw in doc_languages and len(file_data.get("risk_vector", [])) < len(self.RISK_SCHEMA):
+            if lang_raw in doc_languages and len(
+                file_data.get("risk_vector", [])
+            ) < len(self.RISK_SCHEMA):
                 # Inject 18-point synthetic Risk Blanket
                 file_data["risk_vector"] = [
                     0.0,
@@ -171,7 +183,9 @@ class AuditRecorder:
                 ]
                 telemetry["control_flow_ratio"] = 0.0
                 if not file_data.get("file_impact"):
-                    file_data["file_impact"] = round(max(file_data.get("total_loc", 1) / 50.0, 1.0), 2)
+                    file_data["file_impact"] = round(
+                        max(file_data.get("total_loc", 1) / 50.0, 1.0), 2
+                    )
 
             # --- SYSTEM LEVEL FIX: Dynamic Identity Block ---
             identity_block = {
@@ -190,7 +204,9 @@ class AuditRecorder:
                         display_key = "Museum Entry"
                     identity_block[display_key] = custom_val
 
-            identity_block["Lock Tier"] = file_data.get("lock_tier", telemetry.get("identity_lock_tier", 4))
+            identity_block["Lock Tier"] = file_data.get(
+                "lock_tier", telemetry.get("identity_lock_tier", 4)
+            )
             identity_block["Identity Proof"] = telemetry.get(
                 "identity_source_proof", file_data.get("source_proof", "Discovery")
             )
@@ -201,7 +217,9 @@ class AuditRecorder:
 
             # --- THE FACTION INTERCEPTOR ---
             exposures_dict = {}
-            for label, v in zip(risk_labels, file_data.get("risk_vector") or [0.0] * len(risk_labels)):
+            for label, v in zip(
+                risk_labels, file_data.get("risk_vector") or [0.0] * len(risk_labels)
+            ):
                 if label == "Civil War Exposure":
                     if v == 0.0:
                         exposures_dict[label] = "Team Tabs"
@@ -210,7 +228,9 @@ class AuditRecorder:
                     elif v == 50.0:
                         exposures_dict[label] = "Neutral / Deadlocked"
                     else:
-                        exposures_dict[label] = f"Mixed ({100-v:.1f}% Tabs / {v:.1f}% Spaces)"
+                        exposures_dict[label] = (
+                            f"Mixed ({100 - v:.1f}% Tabs / {v:.1f}% Spaces)"
+                        )
                 else:
                     exposures_dict[label] = f"{round(v, 2)}%"
 
@@ -218,12 +238,16 @@ class AuditRecorder:
             arch = telemetry.get("archetype", "Unknown Archetype")
             if d_name not in folder_archetype_counts:
                 folder_archetype_counts[d_name] = {}
-            folder_archetype_counts[d_name][arch] = folder_archetype_counts[d_name].get(arch, 0) + 1
+            folder_archetype_counts[d_name][arch] = (
+                folder_archetype_counts[d_name].get(arch, 0) + 1
+            )
 
             # ---> NEW: FORMAT MITIGATIONS <---
             mitigation_data = telemetry.get("mitigation_telemetry", {})
             formatted_mitigations = {
-                key.replace("_", " ").title(): f"{val} instances" for key, val in mitigation_data.items() if val > 0
+                key.replace("_", " ").title(): f"{val} instances"
+                for key, val in mitigation_data.items()
+                if val > 0
             }
 
             # Assemble the file profile
@@ -238,14 +262,22 @@ class AuditRecorder:
                     "Repository Archetype": arch,
                     "Repository Drift (Z-Score)": telemetry.get("global_drift", 0.0),
                     "Repository Fingerprint": (
-                        {k: round(v, 3) for k, v in telemetry.get("archetype_fingerprint", {}).items()}
+                        {
+                            k: round(v, 3)
+                            for k, v in telemetry.get(
+                                "archetype_fingerprint", {}
+                            ).items()
+                        }
                         if isinstance(telemetry.get("archetype_fingerprint"), dict)
                         else {}
                     ),
                     "File Archetype": telemetry.get("local_archetype", "N/A"),
                     "File Drift (Z-Score)": telemetry.get("local_drift", 0.0),
                     "File Fingerprint": (
-                        {k: round(v, 3) for k, v in telemetry.get("local_fingerprint", {}).items()}
+                        {
+                            k: round(v, 3)
+                            for k, v in telemetry.get("local_fingerprint", {}).items()
+                        }
                         if isinstance(telemetry.get("local_fingerprint"), dict)
                         else {}
                     ),
@@ -258,15 +290,21 @@ class AuditRecorder:
                     "Raw Churn Frequency": telemetry.get("raw_churn_freq", 0.0),
                     "Author Distribution": telemetry.get("author_distribution", 0.0),
                     "Ownership Entropy": telemetry.get("ownership_entropy", 0.0),
-                    "Raw Cognitive Density": telemetry.get("densities", {}).get("cog_raw", 0.0),
+                    "Raw Cognitive Density": telemetry.get("densities", {}).get(
+                        "cog_raw", 0.0
+                    ),
                 },
                 "4. Risk Exposures": exposures_dict,
                 "5. Function Analysis": [
                     {
                         "Function Name": func.get("name", "Unknown"),
-                        "Structural Impact": func.get("impact", func.get("magnitude", 0.0)),
+                        "Structural Impact": func.get(
+                            "impact", func.get("magnitude", 0.0)
+                        ),
                         "Lines of Code (LOC)": func.get("loc", 0),
-                        "Control Flow Branches": func.get("branch", func.get("branch_count", 0)),
+                        "Control Flow Branches": func.get(
+                            "branch", func.get("branch_count", 0)
+                        ),
                         "Input Parameters": func.get("args", func.get("args_count", 0)),
                         "Control Flow Ratio": f"{round((func.get('control_flow_ratio') or func.get('cf_ratio') or 0.0) * 100, 1)}%",
                         "Start Line": func.get("start_line", 0),
@@ -279,24 +317,29 @@ class AuditRecorder:
                     formatted_mitigations if formatted_mitigations else "None Detected"
                 ),
                 "7. Structural DNA (Net Mitigated Signals)": {
-                    label: v for label, v in zip(hit_labels, file_data.get("hit_vector") or [0] * len(hit_labels))
+                    label: v
+                    for label, v in zip(
+                        hit_labels, file_data.get("hit_vector") or [0] * len(hit_labels)
+                    )
                 },
                 # ---> THE 4 DEPENDENCY METRICS (Read cleanly from RAM) <---
                 "8. Dependency Network": {
-                    "Direct Upstream (Fragility)": file_data.get("dependency_network", {}).get(
-                        "direct_upstream", len(file_data.get("raw_imports", []))
-                    ),
-                    "Direct Downstream (Blast Radius)": file_data.get("dependency_network", {}).get(
-                        "direct_downstream", telemetry.get("popularity", 0)
-                    ),
-                    "Total Upstream (Absolute Fragility)": file_data.get("dependency_network", {}).get(
-                        "total_upstream", 0
-                    ),
-                    "Total Downstream (Absolute Blast Radius)": file_data.get("dependency_network", {}).get(
-                        "total_downstream", 0
-                    ),
+                    "Direct Upstream (Fragility)": file_data.get(
+                        "dependency_network", {}
+                    ).get("direct_upstream", len(file_data.get("raw_imports", []))),
+                    "Direct Downstream (Blast Radius)": file_data.get(
+                        "dependency_network", {}
+                    ).get("direct_downstream", telemetry.get("popularity", 0)),
+                    "Total Upstream (Absolute Fragility)": file_data.get(
+                        "dependency_network", {}
+                    ).get("total_upstream", 0),
+                    "Total Downstream (Absolute Blast Radius)": file_data.get(
+                        "dependency_network", {}
+                    ).get("total_downstream", 0),
                 },
-                "9. Extracted Dependencies": sorted(list(file_data.get("raw_imports", []))),
+                "9. Extracted Dependencies": sorted(
+                    list(file_data.get("raw_imports", []))
+                ),
             }
 
             # Map the file into its parent directory group
@@ -316,7 +359,9 @@ class AuditRecorder:
                 # Calculate percentages and sort highest to lowest
                 fingerprint = {
                     name: f"{round((count / folder_files) * 100.0, 1)}%"
-                    for name, count in sorted(arch_counts.items(), key=lambda x: x[1], reverse=True)
+                    for name, count in sorted(
+                        arch_counts.items(), key=lambda x: x[1], reverse=True
+                    )
                 }
 
                 # Reconstruct the dictionary so the Fingerprint sits cleanly at the top of the JSON
@@ -340,7 +385,11 @@ class AuditRecorder:
 
             # Physically weighs the file on disk if the pipeline dropped the byte count
             try:
-                actual_size = os.path.getsize(abs_path) if abs_path.exists() else unparsable.get("size_bytes", 0)
+                actual_size = (
+                    os.path.getsize(abs_path)
+                    if abs_path.exists()
+                    else unparsable.get("size_bytes", 0)
+                )
             except Exception:
                 actual_size = unparsable.get("size_bytes", 0)
 
@@ -348,15 +397,21 @@ class AuditRecorder:
                 {
                     "Path": rel_path,
                     "Forensic Category": "Excluded Artifact",
-                    "Diagnostic Reason": unparsable.get("reason", "Engine Shielding (Format Excluded)"),
+                    "Diagnostic Reason": unparsable.get(
+                        "reason", "Engine Shielding (Format Excluded)"
+                    ),
                     "Size": f"{actual_size} bytes",
                     "Identity Confidence": f"{round(unparsable.get('identity_confidence', 0.0) * 100, 1)}%",
-                    "Discovery Proof": unparsable.get("identity_source_proof", "Radar Scan"),
+                    "Discovery Proof": unparsable.get(
+                        "identity_source_proof", "Radar Scan"
+                    ),
                 }
             )
 
         # 3.2 Append optically bypassed artifacts to the local output list
-        for anon_path in summary.get("unparsable_files", {}).get("unparsable_artifacts", []):
+        for anon_path in summary.get("unparsable_files", {}).get(
+            "unparsable_artifacts", []
+        ):
             pretty_unparsable.append(
                 {
                     "Path": anon_path,
@@ -421,8 +476,16 @@ class AuditRecorder:
         }
 
         # Safe index lookups
-        risk_indices = {k: self.RISK_SCHEMA.index(k) for k in sec_risk_mapping.keys() if k in self.RISK_SCHEMA}
-        hit_indices = {k: self.HIT_SCHEMA.index(k) for k in sec_hit_mapping.keys() if k in self.HIT_SCHEMA}
+        risk_indices = {
+            k: self.RISK_SCHEMA.index(k)
+            for k in sec_risk_mapping.keys()
+            if k in self.RISK_SCHEMA
+        }
+        hit_indices = {
+            k: self.HIT_SCHEMA.index(k)
+            for k in sec_hit_mapping.keys()
+            if k in self.HIT_SCHEMA
+        }
 
         # Sweep the files for security anomalies
         for file_data in parsed_files:
@@ -464,7 +527,9 @@ class AuditRecorder:
                     mapping = sec_risk_mapping[r_key]
                     if score >= mapping["threshold"]:
                         label = mapping["label"]
-                        vuln_exposures[label]["Critical Files"].append({"Path": path, "Score": f"{score:.1f}%"})
+                        vuln_exposures[label]["Critical Files"].append(
+                            {"Path": path, "Score": f"{score:.1f}%"}
+                        )
                         vuln_exposures[label]["Artifacts Flagged"] += 1
 
             # Aggregate the raw threat hits
@@ -478,10 +543,14 @@ class AuditRecorder:
 
         # --- THE FALSE POSITIVE FIX: Decouple Active Threats from Surface Risks ---
         # 1. Count actual malicious regex hits (ignoring the _description string)
-        malicious_hits_total = sum(v for k, v in raw_threat_hits.items() if isinstance(v, int))
+        malicious_hits_total = sum(
+            v for k, v in raw_threat_hits.items() if isinstance(v, int)
+        )
 
         # 2. Check for explicit malware
-        has_malware = vuln_exposures["Hidden Malware Risk Exposure"]["Artifacts Flagged"] > 0
+        has_malware = (
+            vuln_exposures["Hidden Malware Risk Exposure"]["Artifacts Flagged"] > 0
+        )
         has_secrets = vuln_exposures["Secrets Risk Exposure"]["Artifacts Flagged"] > 0
 
         # ---> NEW: SORT AND FORMAT THE AI HITLIST <---
@@ -498,7 +567,9 @@ class AuditRecorder:
         # 3. Tiered Status Routing (AI IS NOW THE SUPREME AUTHORITY)
         if ml_threat_files:
             audit_status = "AI_CONFIRMED_MALWARE_DETECTED"
-        elif quarantined_files or has_malware or has_secrets or malicious_hits_total > 0:
+        elif (
+            quarantined_files or has_malware or has_secrets or malicious_hits_total > 0
+        ):
             audit_status = "CRITICAL_THREATS_DETECTED (Rule-Based)"
         elif any(v["Artifacts Flagged"] > 0 for v in vuln_exposures.values()):
             audit_status = "ELEVATED_SURFACE_RISK"
@@ -533,16 +604,22 @@ class AuditRecorder:
             # New V6.3 Nested Structure
             if "ml_clusters" in global_fingerprint:
                 pretty_global_fingerprint["Active Execution Logic (ML Clusters)"] = {
-                    k: f"{v['pct']}% ({v['count']} files)" for k, v in global_fingerprint["ml_clusters"].items()
+                    k: f"{v['pct']}% ({v['count']} files)"
+                    for k, v in global_fingerprint["ml_clusters"].items()
                 }
             if "static_mass" in global_fingerprint:
-                pretty_global_fingerprint["Inert Structural Mass (Static Categories)"] = {
-                    k: f"{v['pct']}% ({v['count']} files)" for k, v in global_fingerprint["static_mass"].items()
+                pretty_global_fingerprint[
+                    "Inert Structural Mass (Static Categories)"
+                ] = {
+                    k: f"{v['pct']}% ({v['count']} files)"
+                    for k, v in global_fingerprint["static_mass"].items()
                 }
         else:
             # Legacy Fallback
             pretty_global_fingerprint = (
-                {k: f"{v}%" for k, v in global_fingerprint.items()} if global_fingerprint else "No archetypes detected."
+                {k: f"{v}%" for k, v in global_fingerprint.items()}
+                if global_fingerprint
+                else "No archetypes detected."
             )
 
         summary["Global Architectural Fingerprint"] = pretty_global_fingerprint
@@ -572,7 +649,9 @@ class AuditRecorder:
         try:
             with open(target_path, "w", encoding="utf-8") as f:
                 json.dump(mission_audit, f, indent=4, ensure_ascii=False)
-            self.logger.info(f"Audit Success: Forensic manifest sealed -> {target_path}")
+            self.logger.info(
+                f"Audit Success: Forensic manifest sealed -> {target_path}"
+            )
         except Exception as e:
             self.logger.error(f"Audit Write Error: {e}")
 
@@ -583,7 +662,9 @@ def decode_galaxy(input_path, output_path=None):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="GitGalaxy v6.2.0 Astrograph Auditor CLI")
+    parser = argparse.ArgumentParser(
+        description="GitGalaxy v6.2.0 Astrograph Auditor CLI"
+    )
     parser.add_argument("input", help="Path to columnar galaxy.json")
     parser.add_argument("--out", help="Optional output path")
     args = parser.parse_args()

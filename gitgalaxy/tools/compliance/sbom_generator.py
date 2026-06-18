@@ -56,7 +56,11 @@ class UniversalManifestSlicer:
                         if line and not line.startswith("#"):
                             clean_name = re.split(r"[=><~]", line)[0].strip()
                             # Get version if explicitly defined, else 'latest'
-                            version = line.split("==")[1].strip() if "==" in line else "latest"
+                            version = (
+                                line.split("==")[1].strip()
+                                if "==" in line
+                                else "latest"
+                            )
                             deps[clean_name] = version
 
             elif filename == "Cargo.toml":
@@ -64,14 +68,18 @@ class UniversalManifestSlicer:
                 with open(manifest_path, "r", encoding="utf-8") as f:
                     content = f.read()
                     # Universal regex to grab [dependencies] blocks
-                    dep_blocks = re.findall(r"\[(?:dev-)?dependencies\](.*?)(\n\[|$)", content, re.DOTALL)
+                    dep_blocks = re.findall(
+                        r"\[(?:dev-)?dependencies\](.*?)(\n\[|$)", content, re.DOTALL
+                    )
                     for block, _ in dep_blocks:
                         for line in block.splitlines():
                             line = line.strip()
                             if line and not line.startswith("#") and "=" in line:
                                 pkg_name = line.split("=")[0].strip()
                                 pkg_name = line.split("=")[0].strip()
-                                deps[pkg_name] = "latest"  # Simplified version extraction
+                                deps[pkg_name] = (
+                                    "latest"  # Simplified version extraction
+                                )
 
             elif filename == "go.mod":
                 ecosystem = "golang"
@@ -103,7 +111,9 @@ class UniversalManifestSlicer:
                         if line.startswith("gem "):
                             parts = line.split(",")
                             pkg_name = parts[0].replace("gem", "").strip(" '\"")
-                            version = parts[1].strip(" '\"") if len(parts) > 1 else "latest"
+                            version = (
+                                parts[1].strip(" '\"") if len(parts) > 1 else "latest"
+                            )
                             deps[pkg_name] = version
 
             elif filename == "pom.xml":
@@ -125,7 +135,9 @@ class UniversalManifestSlicer:
         return ecosystem, deps
 
     @staticmethod
-    def locate_physical_package(target_path: Path, pkg_name: str, ecosystem: str) -> Path:
+    def locate_physical_package(
+        target_path: Path, pkg_name: str, ecosystem: str
+    ) -> Path:
         """Hunts for the physical location of a package within the project bounds."""
         if ecosystem == "npm":
             target = target_path / "node_modules" / pkg_name
@@ -146,7 +158,9 @@ class UniversalManifestSlicer:
                         if "site-packages" in root:
                             # Case-insensitive match for the package folder
                             for d in dirs:
-                                if d.lower() == safe_pkg_name or d.lower().startswith(f"{safe_pkg_name}-"):
+                                if d.lower() == safe_pkg_name or d.lower().startswith(
+                                    f"{safe_pkg_name}-"
+                                ):
                                     return Path(root) / d
 
         elif ecosystem == "golang":
@@ -216,7 +230,9 @@ def main():
         "Gemfile",
         "pom.xml",
     ]
-    found_manifests = [target_path / m for m in manifest_targets if (target_path / m).exists()]
+    found_manifests = [
+        target_path / m for m in manifest_targets if (target_path / m).exists()
+    ]
 
     if not found_manifests:
         print("⚠️  No supported manifests found in the root directory.")
@@ -228,7 +244,9 @@ def main():
         if not packages:
             continue
 
-        print(f"\n🔎 Auditing {len(packages)} {ecosystem.upper()} dependencies from {manifest.name}...")
+        print(
+            f"\n🔎 Auditing {len(packages)} {ecosystem.upper()} dependencies from {manifest.name}..."
+        )
 
         for pkg_name, pkg_version in packages.items():
             trust_status = "VERIFIED_SAFE"
@@ -238,7 +256,9 @@ def main():
 
             if not pkg_path:
                 trust_status = "UNVERIFIED_MISSING_ON_DISK"
-                anomaly_notes.append("Package declared in manifest but not found locally.")
+                anomaly_notes.append(
+                    "Package declared in manifest but not found locally."
+                )
                 total_missing += 1
             else:
                 # Physical Audit (Max 5 core files to maintain velocity)
@@ -253,7 +273,9 @@ def main():
 
                         file_path = Path(root) / file
                         try:
-                            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                            with open(
+                                file_path, "r", encoding="utf-8", errors="ignore"
+                            ) as f:
                                 content = f.read(8192)
 
                             sec_results = security.scan_content(content, 100)
@@ -289,7 +311,9 @@ def main():
                         {"name": "gitgalaxy:trust_status", "value": trust_status},
                         {
                             "name": "gitgalaxy:anomaly_notes",
-                            "value": (" | ".join(anomaly_notes) if anomaly_notes else "None"),
+                            "value": (
+                                " | ".join(anomaly_notes) if anomaly_notes else "None"
+                            ),
                         },
                     ],
                 }
@@ -337,7 +361,9 @@ def main():
     print(f" Spoofed / Infected   : {total_anomalies}")
     print("-" * 75)
     if total_anomalies > 0:
-        print(f" ❌ ALERT: {total_anomalies} dependencies failed physical structural verification.")
+        print(
+            f" ❌ ALERT: {total_anomalies} dependencies failed physical structural verification."
+        )
     else:
         print(" ✅ SUCCESS: Mathematical verification complete. SBOM sealed.")
     print("=" * 75 + "\n")

@@ -11,7 +11,9 @@ from gitgalaxy.physics.spectral_auditor import SpectralAuditor
 # have active logic sensors (preventing them from passing through the Inert Gate).
 
 MOCK_LANG_DEFS = {
-    "cpp": {"rules": {"branch": 1, "args": 1, "linear": 1, "pointers": 1, "memory_alloc": 1}},
+    "cpp": {
+        "rules": {"branch": 1, "args": 1, "linear": 1, "pointers": 1, "memory_alloc": 1}
+    },
     "python": {"rules": {"branch": 1, "args": 1, "linear": 1}},
 }
 
@@ -53,8 +55,12 @@ def test_auditor_consensus_engine(auditor):
 
     mystery_file = next((f for f in verified if f["path"] == "mystery.cpp"), None)
     assert mystery_file is not None
-    assert mystery_file["lang_id"] == "cpp", "Failed to inherit the ecosystem consensus!"
-    assert mystery_file["telemetry"]["identity_lock_tier"] == 2, "Failed to elevate the lock tier!"
+    assert mystery_file["lang_id"] == "cpp", (
+        "Failed to inherit the ecosystem consensus!"
+    )
+    assert mystery_file["telemetry"]["identity_lock_tier"] == 2, (
+        "Failed to elevate the lock tier!"
+    )
 
 
 # ==============================================================================
@@ -98,7 +104,9 @@ def test_auditor_supernova_guard(auditor):
             "lang_id": "cpp",
             "coding_loc": 40,
             "equations": {"branch": 200, "linear": 100},
-            "telemetry": {"identity_lock_tier": 0},  # <--- CHANGE TO 0 (Bypass Orphan Guard)
+            "telemetry": {
+                "identity_lock_tier": 0
+            },  # <--- CHANGE TO 0 (Bypass Orphan Guard)
         }
     ]
 
@@ -106,7 +114,9 @@ def test_auditor_supernova_guard(auditor):
 
     assert len(verified) == 0
     assert len(unparsable) == 1
-    assert "Supernova Guard" in unparsable[0]["reason"], "Failed to trigger the Supernova Guard!"
+    assert "Supernova Guard" in unparsable[0]["reason"], (
+        "Failed to trigger the Supernova Guard!"
+    )
 
 
 # ==============================================================================
@@ -132,7 +142,9 @@ def test_auditor_quarantine_guard(auditor):
 
     assert len(verified) == 1, "Quarantine Guard failed to save the malicious file!"
     assert len(unparsable) == 0
-    assert verified[0].get("is_quarantined") is True, "Failed to inject the quarantine flag!"
+    assert verified[0].get("is_quarantined") is True, (
+        "Failed to inject the quarantine flag!"
+    )
 
 
 # ==============================================================================
@@ -150,7 +162,9 @@ def test_auditor_orphan_guard(auditor):
             "lang_id": "python",
             "coding_loc": 10,
             "equations": {"branch": 5},
-            "telemetry": {"identity_lock_tier": 3},  # <--- CHANGE TO 3 (Survives Gate 0, Dies to Orphan Guard)
+            "telemetry": {
+                "identity_lock_tier": 3
+            },  # <--- CHANGE TO 3 (Survives Gate 0, Dies to Orphan Guard)
         }
     ]
 
@@ -158,5 +172,7 @@ def test_auditor_orphan_guard(auditor):
         verified, unparsable = auditor.audit(files)
 
     assert len(verified) == 1
-    assert verified[0]["lang_id"] == "plaintext", "Orphan Guard failed to strip the hallucinated language!"
+    assert verified[0]["lang_id"] == "plaintext", (
+        "Orphan Guard failed to strip the hallucinated language!"
+    )
     assert "Orphan Guard Fallback" in verified[0]["telemetry"]["identity_source_proof"]

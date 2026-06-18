@@ -1,7 +1,4 @@
-import pytest
 import logging
-import os
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from gitgalaxy.physics.chronometer import Chronometer
@@ -124,7 +121,9 @@ def test_hybrid_log_scan_and_escalator(mock_popen, mock_run, tmp_path):
         assert chrono.author_map["src/main.py"]["Alice"] == 1
 
         # Verify the ignored hash skipped the subsequent file
-        assert "src/utils.py" not in chrono.entropy_map, "Failed to skip ignored commit hash!"
+        assert "src/utils.py" not in chrono.entropy_map, (
+            "Failed to skip ignored commit hash!"
+        )
 
 
 # ==============================================================================

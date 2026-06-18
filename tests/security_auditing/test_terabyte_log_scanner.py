@@ -56,7 +56,9 @@ def test_scanner_json_handshake_and_extraction(tmp_path):
 
     assert "PGM_ALPHA executed successfully" in results_content
     assert "PGM_BETA encountered warning 04" in results_content
-    assert "System boot sequence initialized" not in results_content, "Noise slipped through the binary filter!"
+    assert "System boot sequence initialized" not in results_content, (
+        "Noise slipped through the binary filter!"
+    )
 
     # B) Verify the Telemetry Sidecar
     sidecar_file = work_dir / "dynamic_telemetry.json"
@@ -66,7 +68,9 @@ def test_scanner_json_handshake_and_extraction(tmp_path):
     counts = telemetry.get("execution_counts", {})
 
     # PGM_ALPHA appeared twice, PGM_BETA appeared once
-    assert counts.get("PGM_ALPHA") == 2, "Mathematical aggregation failed for PGM_ALPHA!"
+    assert counts.get("PGM_ALPHA") == 2, (
+        "Mathematical aggregation failed for PGM_ALPHA!"
+    )
     assert counts.get("PGM_BETA") == 1, "Mathematical aggregation failed for PGM_BETA!"
 
 
@@ -116,7 +120,7 @@ def test_scanner_manual_keyword_override(tmp_path):
 
     target_log = work_dir / "app.log"
     target_log.write_text(
-        "Line 1: ERROR 500\n" "Line 2: SUCCESS 200\n" "Line 3: ERROR 404\n",
+        "Line 1: ERROR 500\nLine 2: SUCCESS 200\nLine 3: ERROR 404\n",
         encoding="utf-8",
     )
 

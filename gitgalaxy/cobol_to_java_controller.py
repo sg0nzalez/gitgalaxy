@@ -74,7 +74,9 @@ def format_java_header(header_text: str) -> str:
 
 def generate_mock_service(subroutine_name: str, package_name: str) -> str:
     """Forges a dummy @Service interface to satisfy Spring DI for missing external dependencies."""
-    camel_name = "".join(word.capitalize() for word in subroutine_name.replace("-", "_").split("_"))
+    camel_name = "".join(
+        word.capitalize() for word in subroutine_name.replace("-", "_").split("_")
+    )
     return f"""package {package_name}.service;
 
 import org.springframework.stereotype.Service;
@@ -104,9 +106,15 @@ def main():
     enforce_licensing_guard("COBOL-to-Java Translator (The Legacy Forge)")
 
     parser = argparse.ArgumentParser(description="GitGalaxy COBOL to Java Controller")
-    parser.add_argument("clean_room", help="Path to the generated gitgalaxy_clean_[TIMESTAMP] directory")
-    parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")
-    parser.add_argument("--header", default="header.txt", help="Path to the custom header text file")
+    parser.add_argument(
+        "clean_room", help="Path to the generated gitgalaxy_clean_[TIMESTAMP] directory"
+    )
+    parser.add_argument(
+        "--pkg", default="com.gitgalaxy.modernized", help="Base Java package name"
+    )
+    parser.add_argument(
+        "--header", default="header.txt", help="Path to the custom header text file"
+    )
     args = parser.parse_args()
 
     clean_room_path = Path(args.clean_room).resolve()
@@ -114,7 +122,10 @@ def main():
         print(f"Error: Target clean room {clean_room_path} does not exist.")
         sys.exit(1)
 
-    java_out_dir = clean_room_path.parent / f"{clean_room_path.name.replace('clean', 'java_spring')}"
+    java_out_dir = (
+        clean_room_path.parent
+        / f"{clean_room_path.name.replace('clean', 'java_spring')}"
+    )
     if java_out_dir.exists():
         shutil.rmtree(java_out_dir)
 
@@ -150,25 +161,33 @@ def main():
 
     # Generate application.yml
     yml_content = generate_application_yml(artifact_id=artifact_id)
-    (java_dirs["resources"] / "application.yml").write_text(yml_content, encoding="utf-8")
+    (java_dirs["resources"] / "application.yml").write_text(
+        yml_content, encoding="utf-8"
+    )
     stats["config_files"] += 1
 
     # Generate Application Main Class
     main_class_content = generate_main_class(args.pkg, app_class_name)
     if java_header:
         main_class_content = java_header + main_class_content
-    (java_dirs["base_pkg"] / f"{app_class_name}Application.java").write_text(main_class_content, encoding="utf-8")
+    (java_dirs["base_pkg"] / f"{app_class_name}Application.java").write_text(
+        main_class_content, encoding="utf-8"
+    )
     stats["config_files"] += 1
 
     # --- NEW: Generate EBCDIC Decoder Utility ---
     decoder_content = generate_decoder_util(args.pkg)
     if java_header:
         decoder_content = java_header + decoder_content
-    (java_dirs["util"] / "EbcdicDecoderUtil.java").write_text(decoder_content, encoding="utf-8")
+    (java_dirs["util"] / "EbcdicDecoderUtil.java").write_text(
+        decoder_content, encoding="utf-8"
+    )
     stats["config_files"] += 1
     # -------------------------------------------
 
-    print("  [+] Forged Build System: pom.xml, application.yml, Main Class, DecoderUtil")
+    print(
+        "  [+] Forged Build System: pom.xml, application.yml, Main Class, DecoderUtil"
+    )
 
     # 2. Forge JPA Entities from Schemas
     schema_dir = clean_room_path / "02_cloud_schemas"
@@ -179,7 +198,10 @@ def main():
                 java_code = generate_java_entity(schema, args.pkg)
                 if java_header:
                     java_code = java_header + java_code
-                class_name = "".join(word.capitalize() for word in schema.get("title", "Entity").split("_"))
+                class_name = "".join(
+                    word.capitalize()
+                    for word in schema.get("title", "Entity").split("_")
+                )
 
                 # Apply the exact same reserved word sanitization to the file name
                 reserved_classes = {
@@ -208,7 +230,11 @@ def main():
         for ir_file in ir_dir.glob("*_ir.json"):
             try:
                 ir_state = json.loads(ir_file.read_text(encoding="utf-8"))
-                raw_prog_id = ir_state.get("metadata", {}).get("file_name", "Unknown").split(".")[0]
+                raw_prog_id = (
+                    ir_state.get("metadata", {})
+                    .get("file_name", "Unknown")
+                    .split(".")[0]
+                )
 
                 # 🛡️ Prevent collision with Spring Boot's @Service annotation AND handle empty names
                 if not raw_prog_id or raw_prog_id.strip() == "":
@@ -220,7 +246,9 @@ def main():
                 ir_state.setdefault("metadata", {})["file_name"] = raw_prog_id + ".cbl"
 
                 # Ensure file names are perfectly camel-cased with no hyphens for this controller
-                safe_file_name = "".join(word.capitalize() for word in raw_prog_id.split("-"))
+                safe_file_name = "".join(
+                    word.capitalize() for word in raw_prog_id.split("-")
+                )
 
                 # 3A. Generate the @Service Skeleton
                 service_code = generate_service_skeleton(ir_state, args.pkg)
@@ -232,11 +260,17 @@ def main():
 
                 # 3B. Generate the @RestController
                 lineage = ir_state.get("analysis", {}).get("lineage", {})
-                if lineage and (lineage.get("inputs") or lineage.get("outputs") or lineage.get("unresolved_calls")):
+                if lineage and (
+                    lineage.get("inputs")
+                    or lineage.get("outputs")
+                    or lineage.get("unresolved_calls")
+                ):
                     java_code = generate_rest_controller(ir_state, args.pkg)
                     if java_header:
                         java_code = java_header + java_code
-                    out_path_ctrl = java_dirs["controller"] / f"{safe_file_name}Controller.java"
+                    out_path_ctrl = (
+                        java_dirs["controller"] / f"{safe_file_name}Controller.java"
+                    )
                     out_path_ctrl.write_text(java_code, encoding="utf-8")
                     stats["controllers"] += 1
                     print(f"  [+] Forged API   : {safe_file_name}Controller.java")
@@ -248,14 +282,18 @@ def main():
                     if not sub or not sub.strip():
                         continue
 
-                    safe_sub_name = "".join(word.capitalize() for word in sub.replace("-", "_").split("_"))
+                    safe_sub_name = "".join(
+                        word.capitalize() for word in sub.replace("-", "_").split("_")
+                    )
 
                     # If it stripped down to nothing, skip it to prevent writing "Service.java"
                     if not safe_sub_name:
                         continue
 
                     # Ensure we don't accidentally overwrite a real service if it was already generated
-                    out_path_mock = java_dirs["service"] / f"{safe_sub_name}Service.java"
+                    out_path_mock = (
+                        java_dirs["service"] / f"{safe_sub_name}Service.java"
+                    )
                     if not out_path_mock.exists():
                         mock_code = generate_mock_service(sub, args.pkg)
                         if java_header:
@@ -274,7 +312,11 @@ def main():
                 slice_data = json.loads(slice_file.read_text(encoding="utf-8"))
                 prog_id = slice_file.name.split("_")[0]
                 ir_file = ir_dir / f"{prog_id}_ir.json"
-                ir_state = json.loads(ir_file.read_text(encoding="utf-8")) if ir_file.exists() else None
+                ir_state = (
+                    json.loads(ir_file.read_text(encoding="utf-8"))
+                    if ir_file.exists()
+                    else None
+                )
 
                 ticket_json = generate_java_agent_ticket(slice_data, prog_id, ir_state)
                 out_path = java_dirs["agent_jobs"] / f"{prog_id}_java_service_job.json"

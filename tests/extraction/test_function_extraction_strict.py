@@ -1,5 +1,4 @@
 import pytest
-import re
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
 
 # ==============================================================================
@@ -409,7 +408,9 @@ EXTRACTION_CASES = {
             ("TargetFunc :: Maybe String", "TargetFunc"),
         ],
         "invalid": ["data TargetFunc", "class TargetFunc", "newtype TargetFunc"],
-        "pathological": [("TargetFunc \n :: \n Maybe \n ( \n Int \n -> \n Int \n )", "TargetFunc")],
+        "pathological": [
+            ("TargetFunc \n :: \n Maybe \n ( \n Int \n -> \n Int \n )", "TargetFunc")
+        ],
     },
     "lua": {
         "valid": [
@@ -454,7 +455,6 @@ EXTRACTION_CASES = {
 
 
 class TestFunctionExtraction:
-
     @pytest.mark.parametrize("lang_id", EXTRACTION_CASES.keys())
     def test_positive_function_extraction(self, lang_id):
         """
@@ -472,22 +472,26 @@ class TestFunctionExtraction:
 
         for payload, expected_name in cases["valid"]:
             match = pattern.search(payload)
-            assert match is not None, f"[{lang_id}] Iron Wall Blocked Valid Function: '{payload}'"
+            assert match is not None, (
+                f"[{lang_id}] Iron Wall Blocked Valid Function: '{payload}'"
+            )
 
             # If the regex uses capture groups (like C#, C++, Rust, Swift), verify the exact group.
             if pattern.groups > 0:
                 captured_groups = [g for g in match.groups() if g is not None]
-                assert len(captured_groups) > 0, f"[{lang_id}] Regex matched but captured nothing!"
-                assert (
-                    expected_name in captured_groups
-                ), f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}' from '{payload}'"
+                assert len(captured_groups) > 0, (
+                    f"[{lang_id}] Regex matched but captured nothing!"
+                )
+                assert expected_name in captured_groups, (
+                    f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}' from '{payload}'"
+                )
 
             # If the regex relies on positive lookaheads without groups (like Python, JS, TS),
             # verify the matched substring safely contains the name.
             else:
-                assert expected_name in match.group(
-                    0
-                ), f"[{lang_id}] Matched string {match.group(0)} failed to contain target '{expected_name}'"
+                assert expected_name in match.group(0), (
+                    f"[{lang_id}] Matched string {match.group(0)} failed to contain target '{expected_name}'"
+                )
 
     @pytest.mark.parametrize("lang_id", EXTRACTION_CASES.keys())
     def test_negative_function_extraction(self, lang_id):
@@ -505,9 +509,9 @@ class TestFunctionExtraction:
 
         for payload in cases["invalid"]:
             match = pattern.search(payload)
-            assert (
-                match is None
-            ), f"[{lang_id}] 👻 GHOST SATELLITE HALLUCINATED! Erroneously spawned a function from: '{payload}'"
+            assert match is None, (
+                f"[{lang_id}] 👻 GHOST SATELLITE HALLUCINATED! Erroneously spawned a function from: '{payload}'"
+            )
 
     @pytest.mark.parametrize("lang_id", EXTRACTION_CASES.keys())
     def test_pathological_function_extraction(self, lang_id):
@@ -526,15 +530,19 @@ class TestFunctionExtraction:
 
         for payload, expected_name in cases["pathological"]:
             match = pattern.search(payload)
-            assert match is not None, f"[{lang_id}] 💥 Engine choked on pathological formatting: '{payload}'"
+            assert match is not None, (
+                f"[{lang_id}] 💥 Engine choked on pathological formatting: '{payload}'"
+            )
 
             if pattern.groups > 0:
                 captured_groups = [g for g in match.groups() if g is not None]
-                assert len(captured_groups) > 0, f"[{lang_id}] Matched but captured nothing!"
-                assert (
-                    expected_name in captured_groups
-                ), f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}'"
+                assert len(captured_groups) > 0, (
+                    f"[{lang_id}] Matched but captured nothing!"
+                )
+                assert expected_name in captured_groups, (
+                    f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}'"
+                )
             else:
-                assert expected_name in match.group(
-                    0
-                ), f"[{lang_id}] Matched string failed to contain target '{expected_name}'"
+                assert expected_name in match.group(0), (
+                    f"[{lang_id}] Matched string failed to contain target '{expected_name}'"
+                )

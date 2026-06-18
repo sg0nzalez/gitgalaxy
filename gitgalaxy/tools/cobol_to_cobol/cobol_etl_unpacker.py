@@ -92,13 +92,15 @@ def unpack_comp3(raw_bytes: bytes, decimals: int) -> float:
     return -value if is_negative else value
 
 
-def unpack_ebcdic_file(binary_filepath: Path, schema_filepath: Path, output_filepath: Path):
+def unpack_ebcdic_file(
+    binary_filepath: Path, schema_filepath: Path, output_filepath: Path
+):
     """Slices the mainframe binary file according to the calculated layout."""
     try:
         schema_json = json.loads(schema_filepath.read_text(encoding="utf-8"))
     except Exception as e:
         print(f"Error loading schema: {e}")
-        return
+        return 0
 
     layout = calculate_byte_layout(schema_json)
     record_length = sum(field["bytes"] for field in layout)
@@ -164,8 +166,12 @@ def main():
 
     enforce_licensing_guard("ETL Unpacker (The Data Bridge)")
 
-    parser = argparse.ArgumentParser(description="GitGalaxy ETL Unpacker (EBCDIC to CSV)")
-    parser.add_argument("binary_file", help="The raw EBCDIC binary file from the mainframe")
+    parser = argparse.ArgumentParser(
+        description="GitGalaxy ETL Unpacker (EBCDIC to CSV)"
+    )
+    parser.add_argument(
+        "binary_file", help="The raw EBCDIC binary file from the mainframe"
+    )
     parser.add_argument("schema_file", help="The GitGalaxy generated _schema.json file")
     parser.add_argument("--out", type=str, help="Optional: Custom output CSV path")
     args = parser.parse_args()

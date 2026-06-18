@@ -336,6 +336,11 @@ APERTURE_CONFIG = {
     "MAX_LINE_LENGTH": 500,
     "MINIFICATION_SCAN_LIMIT": 50,
     "MAX_FILE_SIZE_MB": 50,
+    "VENDOR_MINIFICATION_PATHS": [
+        "/vendor/",
+        "/node_modules/",
+        "/bower_components/",
+    ],
     # --- 5. Spectral Band Definitions ---
     "BANDS": {
         "RADIO": "ignored_system_or_hidden_file",
@@ -443,7 +448,9 @@ COMMENT_DEFINITIONS = {
         "std_c": {"delimiters": ["//", "/*", "*/"]},
         "nested_c": {"delimiters": ["//", "/*", "*/"]},
         "pure_hash": {"delimiters": ["#"]},
-        "hybrid_hash": {"delimiters": ["#", "<#", "#>", "=begin", "=end", "=pod", "=cut"]},
+        "hybrid_hash": {
+            "delimiters": ["#", "<#", "#>", "=begin", "=end", "=pod", "=cut"]
+        },
         "hybrid_dash": {"delimiters": ["--", "--[[", "]]", "{-", "-}"]},
         "polyglot": {"delimiters": ["//", "/*", "*/", "#"]},
         "positional": {"delimiters": ["*>", "!", "C", "*", "D"]},
@@ -579,3 +586,23 @@ STATIC_ARCHETYPES = {
 PROJECT_STORIES = {
     # You can add your repository-specific lore and UI story payloads here later.
 }
+
+# ------------------------------------------------------------------------------
+# 10. TEST NAMING CONVENTIONS (Sibling Candidates)
+# Consumed by: galaxyscope.py
+# ------------------------------------------------------------------------------
+TEST_NAMING_CONVENTIONS = [
+    # Node / Python / Ruby / Go conventions
+    "{stem} test",
+    "test {stem}",
+    "{stem}.test",
+    "{stem} spec",
+    "spec {stem}",
+    "{stem}.spec",
+    # Java / C# / Enterprise conventions
+    "{stem}test",
+    "test{stem}",
+    "{stem}tests",
+    "{stem}testcase",
+    "{stem}spec",
+]

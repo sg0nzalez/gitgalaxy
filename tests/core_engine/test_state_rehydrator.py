@@ -1,6 +1,5 @@
 import pytest
 import sqlite3
-from pathlib import Path
 
 # Adjust this import to match your actual directory structure
 from gitgalaxy.core.state_rehydrator import StateRehydrator
@@ -45,11 +44,17 @@ def mock_db(tmp_path):
 
     # Insert Mock Data: Repo History
     # Older commit
-    cursor.execute("INSERT INTO repo_data VALUES ('test_repo', 'hash_old_123', 1600000000)")
+    cursor.execute(
+        "INSERT INTO repo_data VALUES ('test_repo', 'hash_old_123', 1600000000)"
+    )
     # Newer commit (This should be the one selected!)
-    cursor.execute("INSERT INTO repo_data VALUES ('test_repo', 'hash_new_456', 1700000000)")
+    cursor.execute(
+        "INSERT INTO repo_data VALUES ('test_repo', 'hash_new_456', 1700000000)"
+    )
     # Different repo entirely
-    cursor.execute("INSERT INTO repo_data VALUES ('other_repo', 'hash_other_789', 1800000000)")
+    cursor.execute(
+        "INSERT INTO repo_data VALUES ('other_repo', 'hash_other_789', 1800000000)"
+    )
 
     # Insert Mock Data: File Physics for the newer commit
     cursor.execute("""
@@ -101,11 +106,15 @@ def test_rehydrator_successful_load(mock_db):
 
     # 1. Assert Temporal Accuracy
     assert result is not None
-    assert result["commit_hash"] == "hash_new_456", "Failed to select the most recent commit!"
+    assert result["commit_hash"] == "hash_new_456", (
+        "Failed to select the most recent commit!"
+    )
 
     # 2. Assert the cryolink dictionary structure is perfectly mapped
     cryolink = result["cryolink"]
-    assert "src/main.py" in cryolink, "Failed to map the file path as the dictionary key!"
+    assert "src/main.py" in cryolink, (
+        "Failed to map the file path as the dictionary key!"
+    )
 
     file_node = cryolink["src/main.py"]
     assert file_node["lang_id"] == "python"

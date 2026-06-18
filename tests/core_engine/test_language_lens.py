@@ -1,7 +1,7 @@
 import pytest
 import importlib
 import re
-from pathlib import Path
+from unittest.mock import patch
 
 from gitgalaxy.standards import language_lens
 from gitgalaxy.standards.language_lens import LanguageDetector
@@ -52,12 +52,16 @@ def isolated_detector():
         "c": {
             "extensions": [".c", ".h"],
             "lexical_family": "std_c",
-            "rules": {"main": re.compile(r"int\s+main")},  # <-- The engine needs a rule to detect C!
+            "rules": {
+                "main": re.compile(r"int\s+main")
+            },  # <-- The engine needs a rule to detect C!
         },
         "objective-c": {
             "extensions": [".m", ".h"],
             "lexical_family": "std_c",
-            "rules": {"interface": re.compile(r"@interface\s+")},  # Needed for Spectral Scan score
+            "rules": {
+                "interface": re.compile(r"@interface\s+")
+            },  # Needed for Spectral Scan score
         },
         "html": {"extensions": [".html"], "lexical_family": "xml_angle"},
         "javascript": {"extensions": [".js"], "lexical_family": "std_c"},
@@ -96,7 +100,9 @@ def isolated_detector():
     detector.PROSE_ANCHORS = {"README"}
     detector.DISQUALIFIERS = {}
 
-    detector.comment_defs = {"mechanical_families": {"std_c": {"delimiters": ["//", "/*"]}}}
+    detector.comment_defs = {
+        "mechanical_families": {"std_c": {"delimiters": ["//", "/*"]}}
+    }
 
     detector.HANDSHAKE_REGISTRY = [
         {
@@ -116,11 +122,17 @@ def isolated_detector():
 def test_identity_crisis_trap(isolated_detector):
     """Proves the engine catches files lying about their identity."""
     # A file claiming to be Python, but executing as Bash
-    result = isolated_detector.inspect(file_path="test_malicious_xyz.py", content_sample="#!/bin/bash\nrm -rf /")
+    result = isolated_detector.inspect(
+        file_path="test_malicious_xyz.py", content_sample="#!/bin/bash\nrm -rf /"
+    )
 
-    assert result["lang_id"] == "undeterminable", "Failed to strip identity from conflicting file!"
+    assert result["lang_id"] == "undeterminable", (
+        "Failed to strip identity from conflicting file!"
+    )
     assert result["lock_tier"] == 5, "Failed to apply Tier 5 Absolute Distrust!"
-    assert any("Identity Masking" in flag for flag in result["anomaly_flags"]), "Failed to cache the security anomaly!"
+    assert any("Identity Masking" in flag for flag in result["anomaly_flags"]), (
+        "Failed to cache the security anomaly!"
+    )
 
 
 # ==============================================================================
@@ -165,7 +177,9 @@ def test_tier_3_spectral_scan(isolated_detector):
     # .m files collide (Obj-C vs MATLAB). Provide no gravity, forcing a syntax read.
     content = "#import <Foundation/Foundation.h>\n@interface MyClass : NSObject\n@end"
 
-    result = isolated_detector.inspect(file_path="test_code_xyz.m", content_sample=content, ext_tally={})
+    result = isolated_detector.inspect(
+        file_path="test_code_xyz.m", content_sample=content, ext_tally={}
+    )
 
     assert result["lock_tier"] == 4, "Spectral resolution should occur at Tier 4!"
     assert result["lang_id"] == "objective-c"
@@ -179,9 +193,14 @@ def test_tier_4_deep_space_discovery(isolated_detector):
     import os
 
     # Needs > 20 lines to trigger Tier 4. We inject C-style comments and structure.
-    content = f"// C-style comment{os.linesep}" * 25 + f"int main() {{ return 0; }}{os.linesep}" * 5
+    content = (
+        f"// C-style comment{os.linesep}" * 25
+        + f"int main() {{ return 0; }}{os.linesep}" * 5
+    )
 
-    result = isolated_detector.inspect(file_path="unknown_binary_xyz", content_sample=content)
+    result = isolated_detector.inspect(
+        file_path="unknown_binary_xyz", content_sample=content
+    )
 
     # It should isolate 'std_c' as the comment family and find one of the C-family languages
     assert result["lang_id"] in ["c", "cpp", "objective-c", "javascript"]
@@ -193,13 +212,19 @@ def test_tier_4_deep_space_discovery(isolated_detector):
 # ==============================================================================
 def test_hybrid_language_detection(isolated_detector):
     """Proves the Handshake Registry can identify injected scripts."""
-    content = "<html>\n<body>\n<script>\nconsole.log('test');\n</script>\n</body>\n</html>"
+    content = (
+        "<html>\n<body>\n<script>\nconsole.log('test');\n</script>\n</body>\n</html>"
+    )
 
-    result = isolated_detector.inspect(file_path="test_index_xyz.html", content_sample=content)
+    result = isolated_detector.inspect(
+        file_path="test_index_xyz.html", content_sample=content
+    )
 
     assert result["lang_id"] == "html"
     assert len(result["lang_mix"]) > 0
-    assert any(mix["id"] == "javascript" for mix in result["lang_mix"]), "Failed to extract nested JavaScript!"
+    assert any(mix["id"] == "javascript" for mix in result["lang_mix"]), (
+        "Failed to extract nested JavaScript!"
+    )
 
 
 # ==============================================================================
@@ -207,14 +232,12 @@ def test_hybrid_language_detection(isolated_detector):
 # ==============================================================================
 def test_prose_and_metadata_anchors(isolated_detector):
     """Proves specific filenames bypass standard code physics."""
-    result = isolated_detector.inspect(file_path="README-TEST.md", content_sample="# Welcome to my project\n")
+    result = isolated_detector.inspect(
+        file_path="README-TEST.md", content_sample="# Welcome to my project\n"
+    )
 
     assert result["lang_id"] == "markdown"
     assert result["lock_tier"] == 1
-
-
-from unittest.mock import patch
-from gitgalaxy.standards.language_lens import FocusingError
 
 
 # ==============================================================================
@@ -227,7 +250,9 @@ def test_focusing_error_hardware_failure(mock_open, isolated_detector):
     with pytest.raises(Exception) as exc_info:
         isolated_detector.inspect("locked_system_file.py")
 
-    assert type(exc_info.value).__name__ == "FocusingError", "Failed to catch FocusingError!"
+    assert type(exc_info.value).__name__ == "FocusingError", (
+        "Failed to catch FocusingError!"
+    )
     assert "Failed to focus lens" in str(exc_info.value)
 
 
@@ -245,7 +270,9 @@ def test_safe_wrapper_stripping(isolated_detector):
     res_unknown = isolated_detector.inspect("data.tar.gz", "binary data")
 
     assert res_dotfile["lock_tier"] >= 2, ".bashrc should not lock via extension"
-    assert res_wrapped["lang_id"] == "shell", "Failed to extract .sh from .template wrapper!"
+    assert res_wrapped["lang_id"] == "shell", (
+        "Failed to extract .sh from .template wrapper!"
+    )
     # The engine gracefully accepts unknown extensions as Exo-Species at Tier 1.7!
     assert res_unknown["lang_id"] == "gz"
 
@@ -274,7 +301,9 @@ def test_local_ecosystem_gravity_and_toxic_pruning(mock_iterdir, isolated_detect
 
     # The .h extension is contested. The local directory is C++, but the global
     # tally has C files AND a toxic C disqualifier.
-    lang, dominance = isolated_detector._evaluate_ecosystem_gravity("src/header.h", ".h", global_tally)
+    lang, dominance = isolated_detector._evaluate_ecosystem_gravity(
+        "src/header.h", ".h", global_tally
+    )
 
     assert lang == "cpp", "Failed to prioritize Local C++ gravity over global tally!"
     assert dominance >= 0.70
@@ -285,7 +314,9 @@ def test_local_ecosystem_gravity_and_toxic_pruning(mock_iterdir, isolated_detect
 # ==============================================================================
 def test_legacy_focus_gateway(isolated_detector):
     """Proves the legacy wrapper yields 'plaintext' for low-signal files."""
-    lang, intensity, fam = isolated_detector.focus("unknown_file", "a")  # 'a' is too short to generate > 0.25 intensity
+    lang, intensity, fam = isolated_detector.focus(
+        "unknown_file", "a"
+    )  # 'a' is too short to generate > 0.25 intensity
 
     assert lang == "plaintext"
     assert intensity == 0.40
@@ -302,9 +333,9 @@ def test_hybrid_string_ignorance(isolated_detector):
     res = isolated_detector.inspect("index.html", content)
 
     assert "lang_mix" in res
-    assert any(
-        mix["id"] == "javascript" for mix in res["lang_mix"]
-    ), "Failed to ignore string contents while mapping hybrid boundaries!"
+    assert any(mix["id"] == "javascript" for mix in res["lang_mix"]), (
+        "Failed to ignore string contents while mapping hybrid boundaries!"
+    )
 
 
 # ==============================================================================
@@ -326,12 +357,18 @@ def test_tier_4_macro_and_handicaps(mock_time, isolated_detector):
 
     # Payload: 20+ lines to trigger Tier 4. Lots of C macros.
     # We add 10 `int main` hits to ensure C brutally defeats C++ in the density margin.
-    c_payload = "// C file\n" * 15 + "#define FOO 1\n#include <stdio.h>\n" * 5 + "int main() {}\n" * 10
+    c_payload = (
+        "// C file\n" * 15
+        + "#define FOO 1\n#include <stdio.h>\n" * 5
+        + "int main() {}\n" * 10
+    )
     res_c = isolated_detector.inspect("no_extension_file", c_payload)
 
     # Payload: ABAP. The engine should hit the `regex_hits *= 0.7` handicap
     abap_payload = "// ABAP file\n" * 15 + "REPORT ZTEST.\n" * 5
     res_abap = isolated_detector.inspect("no_extension_file2", abap_payload)
 
-    assert res_c["lang_id"] == "c", "Failed to apply macro density boost and tie-breaker!"
+    assert res_c["lang_id"] == "c", (
+        "Failed to apply macro density boost and tie-breaker!"
+    )
     assert res_abap["lang_id"] == "abap", "Failed to identify ABAP despite handicap!"

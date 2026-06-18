@@ -1,6 +1,5 @@
 import pytest
 import sys
-from pathlib import Path
 from unittest.mock import patch
 
 import gitgalaxy.tools.supply_chain_security.vault_sentinel as sentinel_module
@@ -11,7 +10,9 @@ import gitgalaxy.tools.supply_chain_security.vault_sentinel as sentinel_module
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.vault_sentinel.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.vault_sentinel.ApertureFilter")
-def test_sentinel_denylist_blocking(mock_aperture_class, mock_security_class, tmp_path, monkeypatch):
+def test_sentinel_denylist_blocking(
+    mock_aperture_class, mock_security_class, tmp_path, monkeypatch
+):
     """
     Proves that files matching the DENYLIST_PATTERNS are instantly blocked
     and trigger a fatal exit without needing a deep content scan.
@@ -38,7 +39,9 @@ def test_sentinel_denylist_blocking(mock_aperture_class, mock_security_class, tm
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.vault_sentinel.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.vault_sentinel.ApertureFilter")
-def test_sentinel_content_breach(mock_aperture_class, mock_security_class, tmp_path, monkeypatch):
+def test_sentinel_content_breach(
+    mock_aperture_class, mock_security_class, tmp_path, monkeypatch
+):
     """
     Proves that seemingly benign files are deeply scanned, and if the SecurityLens
     detects private_info, it successfully crashes the build.
@@ -58,14 +61,18 @@ def test_sentinel_content_breach(mock_aperture_class, mock_security_class, tmp_p
 
     repo_dir = tmp_path / "deepscan_repo"
     repo_dir.mkdir()
-    (repo_dir / "database_config.py").write_text("AWS_KEY = 'AKIAIOSFODNN7EXAMPLE'", encoding="utf-8")
+    (repo_dir / "database_config.py").write_text(
+        "AWS_KEY = 'AKIAIOSFODNN7EXAMPLE'", encoding="utf-8"
+    )
 
     test_args = ["vault_sentinel.py", str(repo_dir)]
     with patch.object(sys, "argv", test_args):
         with pytest.raises(SystemExit) as exc:
             sentinel_module.main()
 
-        assert exc.value.code == 1, "Sentinel failed to crash the build on a hardcoded secret!"
+        assert exc.value.code == 1, (
+            "Sentinel failed to crash the build on a hardcoded secret!"
+        )
 
 
 # ==============================================================================
@@ -73,7 +80,9 @@ def test_sentinel_content_breach(mock_aperture_class, mock_security_class, tmp_p
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.vault_sentinel.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.vault_sentinel.ApertureFilter")
-def test_sentinel_allowlist_bypass(mock_aperture_class, mock_security_class, tmp_path, monkeypatch):
+def test_sentinel_allowlist_bypass(
+    mock_aperture_class, mock_security_class, tmp_path, monkeypatch
+):
     """
     Proves that if a file is explicitly inside an ALLOWLIST_PATH, it completely
     bypasses both Denylist crashes and Content Scan crashes.
@@ -105,4 +114,6 @@ def test_sentinel_allowlist_bypass(mock_aperture_class, mock_security_class, tmp
         with patch.object(sys, "argv", test_args):
             sentinel_module.main()
     except SystemExit:
-        pytest.fail("The Allowlist Bypass failed! A whitelisted test key crashed the build.")
+        pytest.fail(
+            "The Allowlist Bypass failed! A whitelisted test key crashed the build."
+        )

@@ -6,7 +6,9 @@
 # ==============================================================================
 
 
-def generate_java_agent_ticket(slice_json: dict, prog_id: str, ir_state: dict = None) -> dict:
+def generate_java_agent_ticket(
+    slice_json: dict, prog_id: str, ir_state: dict = None
+) -> dict:
     """Forges a structured JSON task ticket for Java service generation."""
     target_var = slice_json.get("target_var", "UNKNOWN")
     rules = slice_json.get("business_rules", [])
@@ -34,7 +36,9 @@ def generate_java_agent_ticket(slice_json: dict, prog_id: str, ir_state: dict = 
         "context": {
             "business_rules_to_translate": formatted_rules,
             "external_dependencies": unresolved_calls,
-            "architectural_warnings": [a.split("]", 1)[-1].strip() if "]" in a else a for a in honesty_flags],
+            "architectural_warnings": [
+                a.split("]", 1)[-1].strip() if "]" in a else a for a in honesty_flags
+            ],
         },
         "system_prompt": (
             "You are a strict, deterministic code translator. You must implement the provided "

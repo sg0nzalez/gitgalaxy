@@ -16,7 +16,11 @@ class AIAppSecSensor:
     """
 
     def __init__(self, parent_logger=None):
-        self.logger = parent_logger.getChild("appsec_sensor") if parent_logger else logging.getLogger("appsec_sensor")
+        self.logger = (
+            parent_logger.getChild("appsec_sensor")
+            if parent_logger
+            else logging.getLogger("appsec_sensor")
+        )
 
     def hunt_threats(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info("AI AppSec Sensor: Hunting for Agentic Vulnerabilities...")
@@ -37,8 +41,12 @@ class AIAppSecSensor:
 
             # Security DNA
             sec_danger = telemetry.get("sec_danger", 0) > 0  # eval, exec, subprocess
-            sec_secrets = telemetry.get("sec_secrets", 0) > 0  # Hardcoded keys/env access
-            safety_density = telemetry.get("safety_density", 1.0)  # Defensive programming (try/catch, regex)
+            sec_secrets = (
+                telemetry.get("sec_secrets", 0) > 0
+            )  # Hardcoded keys/env access
+            safety_density = telemetry.get(
+                "safety_density", 1.0
+            )  # Defensive programming (try/catch, regex)
 
             appsec_report = {
                 "is_rce_funnel": False,

@@ -1,5 +1,4 @@
 import pytest
-import re
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
 
 # ==============================================================================
@@ -283,7 +282,6 @@ CLASS_EXTRACTION_CASES = {
 
 
 class TestClassExtraction:
-
     @pytest.mark.parametrize("lang_id", CLASS_EXTRACTION_CASES.keys())
     def test_positive_class_extraction(self, lang_id):
         """
@@ -300,18 +298,22 @@ class TestClassExtraction:
 
         for payload, expected_name in cases["valid"]:
             match = pattern.search(payload)
-            assert match is not None, f"[{lang_id}] Iron Wall Blocked Valid Entity: '{payload}'"
+            assert match is not None, (
+                f"[{lang_id}] Iron Wall Blocked Valid Entity: '{payload}'"
+            )
 
             if pattern.groups > 0:
                 captured_groups = [g for g in match.groups() if g is not None]
-                assert len(captured_groups) > 0, f"[{lang_id}] Regex matched but captured nothing!"
-                assert (
-                    expected_name in captured_groups
-                ), f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}' from '{payload}'"
+                assert len(captured_groups) > 0, (
+                    f"[{lang_id}] Regex matched but captured nothing!"
+                )
+                assert expected_name in captured_groups, (
+                    f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}' from '{payload}'"
+                )
             else:
-                assert expected_name in match.group(
-                    0
-                ), f"[{lang_id}] Matched string {match.group(0)} failed to contain target '{expected_name}'"
+                assert expected_name in match.group(0), (
+                    f"[{lang_id}] Matched string {match.group(0)} failed to contain target '{expected_name}'"
+                )
 
     @pytest.mark.parametrize("lang_id", CLASS_EXTRACTION_CASES.keys())
     def test_negative_class_extraction(self, lang_id):
@@ -329,9 +331,9 @@ class TestClassExtraction:
 
         for payload in cases["invalid"]:
             match = pattern.search(payload)
-            assert (
-                match is None
-            ), f"[{lang_id}] 👻 GHOST PLANET HALLUCINATED! Erroneously spawned an entity from: '{payload}'"
+            assert match is None, (
+                f"[{lang_id}] 👻 GHOST PLANET HALLUCINATED! Erroneously spawned an entity from: '{payload}'"
+            )
 
     @pytest.mark.parametrize("lang_id", CLASS_EXTRACTION_CASES.keys())
     def test_pathological_class_extraction(self, lang_id):
@@ -350,15 +352,19 @@ class TestClassExtraction:
 
         for payload, expected_name in cases["pathological"]:
             match = pattern.search(payload)
-            assert match is not None, f"[{lang_id}] 💥 Engine choked on pathological formatting: '{payload}'"
+            assert match is not None, (
+                f"[{lang_id}] 💥 Engine choked on pathological formatting: '{payload}'"
+            )
 
             if pattern.groups > 0:
                 captured_groups = [g for g in match.groups() if g is not None]
-                assert len(captured_groups) > 0, f"[{lang_id}] Matched but captured nothing!"
-                assert (
-                    expected_name in captured_groups
-                ), f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}'"
+                assert len(captured_groups) > 0, (
+                    f"[{lang_id}] Matched but captured nothing!"
+                )
+                assert expected_name in captured_groups, (
+                    f"[{lang_id}] Captured dirty modifiers {captured_groups} instead of clean name '{expected_name}'"
+                )
             else:
-                assert expected_name in match.group(
-                    0
-                ), f"[{lang_id}] Matched string failed to contain target '{expected_name}'"
+                assert expected_name in match.group(0), (
+                    f"[{lang_id}] Matched string failed to contain target '{expected_name}'"
+                )

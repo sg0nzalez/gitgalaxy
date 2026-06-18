@@ -106,7 +106,10 @@ def test_package_lock_namespace_hijacking(parser, tmp_path):
 
     # Suspicious registries should be mapped so the firewall can block them
     assert "dirty-pkg" in result
-    assert result["dirty-pkg"] == "[https://evil-registry.com/dirty-pkg.tgz](https://evil-registry.com/dirty-pkg.tgz)"
+    assert (
+        result["dirty-pkg"]
+        == "[https://evil-registry.com/dirty-pkg.tgz](https://evil-registry.com/dirty-pkg.tgz)"
+    )
 
 
 # ==============================================================================
@@ -131,7 +134,9 @@ def test_requirements_txt_parsing(parser, tmp_path):
 
     # Injections map the full string to ensure the firewall catches the URL
     assert (
-        result["git+[https://github.com/hacker/malware.git](https://github.com/hacker/malware.git)"]
+        result[
+            "git+[https://github.com/hacker/malware.git](https://github.com/hacker/malware.git)"
+        ]
         == "git+[https://github.com/hacker/malware.git](https://github.com/hacker/malware.git)"
     )
     assert result["file:///etc/passwd"] == "file:///etc/passwd"

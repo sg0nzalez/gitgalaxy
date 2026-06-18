@@ -1,6 +1,5 @@
 import pytest
 import sys
-from pathlib import Path
 from unittest.mock import patch
 
 # IMPORTANT: Adjust this path to match exactly where your file is located
@@ -36,13 +35,21 @@ def test_system_limits_regex_and_comments(tmp_path):
     anomalies = limit_reporter.scan_system_limits(cobol_file)
 
     # 3. Assertions
-    assert len(anomalies) == 3, "Failed to catch all 3 active anomalies or failed to ignore the comment!"
+    assert len(anomalies) == 3, (
+        "Failed to catch all 3 active anomalies or failed to ignore the comment!"
+    )
 
     # Join into a single string to easily assert the formatted output
     output_str = "\n".join(anomalies)
 
-    assert "Line 0006] CRITICAL LIMIT" in output_str and "dynamically rewritten" in output_str
-    assert "Line 0008] CRITICAL LIMIT" in output_str and "Asynchronous error routing" in output_str
+    assert (
+        "Line 0006] CRITICAL LIMIT" in output_str
+        and "dynamically rewritten" in output_str
+    )
+    assert (
+        "Line 0008] CRITICAL LIMIT" in output_str
+        and "Asynchronous error routing" in output_str
+    )
     assert "Line 0009] HIGH LIMIT" in output_str and "Macro substitution" in output_str
 
 
@@ -83,7 +90,9 @@ def test_system_limits_cli_directory_traversal(tmp_path, capsys):
     (repo_dir / "PGM1.cbl").write_text("           ALTER P1 TO P2.\n", encoding="utf-8")
 
     # File 2: Infected .cob file
-    (repo_dir / "PGM2.cob").write_text("           COPY A REPLACING B.\n", encoding="utf-8")
+    (repo_dir / "PGM2.cob").write_text(
+        "           COPY A REPLACING B.\n", encoding="utf-8"
+    )
 
     # File 3: Irrelevant file (should be ignored)
     (repo_dir / "readme.txt").write_text("ALTER P1 TO P2.\n", encoding="utf-8")
@@ -102,7 +111,9 @@ def test_system_limits_cli_directory_traversal(tmp_path, capsys):
     captured = capsys.readouterr()
 
     # Verify the results
-    assert "scanning 2 files" in captured.out, "Failed to properly filter .cbl and .cob files!"
+    assert "scanning 2 files" in captured.out, (
+        "Failed to properly filter .cbl and .cob files!"
+    )
     assert "PGM1.cbl : Line 0001" in captured.out
     assert "PGM2.cob : Line 0001" in captured.out
     assert "WARNING: Found 2 structural anomalies" in captured.out

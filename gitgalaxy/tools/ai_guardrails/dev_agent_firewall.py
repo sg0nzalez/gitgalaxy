@@ -12,15 +12,23 @@ class DevAgentFirewall:
     """
 
     def __init__(self, parent_logger=None):
-        self.logger = parent_logger.getChild("guardrails") if parent_logger else logging.getLogger("guardrails")
+        self.logger = (
+            parent_logger.getChild("guardrails")
+            if parent_logger
+            else logging.getLogger("guardrails")
+        )
 
-    def evaluate_ecosystem(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def evaluate_ecosystem(
+        self, parsed_files: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         self.logger.info("Executing Agentic Firewall & Token Physics Checks...")
 
         for file_data in parsed_files:
             token_mass = file_data.get("token_mass", 0)
             network_metrics = file_data.get("telemetry", {}).get("network_metrics", {})
-            risk_vector = file_data.get("risk_vector", [])  # Assuming standard 0-100 risk scores
+            risk_vector = file_data.get(
+                "risk_vector", []
+            )  # Assuming standard 0-100 risk scores
 
             # Extract relevant physics safely handling None values from Zero-Dependency Mode
             pagerank = network_metrics.get("normalized_blast_radius") or 0.0
