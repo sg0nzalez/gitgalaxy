@@ -3,7 +3,7 @@ import re
 from unittest.mock import patch
 
 # Adjust this import to match your project structure
-from gitgalaxy.core.prism import Prism, PrismError
+from gitgalaxy.core.prism import Prism
 
 # ==============================================================================
 # MOCK MATRIX CALIBRATION
