@@ -1,6 +1,6 @@
 # ==============================================================================
 # GitGalaxy
-# Phase 7.8: The Neural Auditor (LLM Weight Inspection)
+# Phase 7.8: Tensor Scanner (AI Artifact Inspection)
 # ==============================================================================
 import json
 import struct
@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 
-class NeuralAuditor:
+class TensorScanner:
     """
     Surgically inspects massive AI model binaries (.safetensors, .gguf)
     without loading them into RAM. Extracts parameter counts, quantization,
@@ -19,9 +19,9 @@ class NeuralAuditor:
 
     def __init__(self, parent_logger: logging.Logger = None):
         self.logger = (
-            parent_logger.getChild("neural_auditor")
+            parent_logger.getChild("tensor_scanner")
             if parent_logger
-            else logging.getLogger("neural_auditor")
+            else logging.getLogger("tensor_scanner")
         )
 
     def audit_model(self, file_path: str) -> Dict[str, Any]:
@@ -40,7 +40,7 @@ class NeuralAuditor:
                     "quantization": "Unknown",
                 }
         except Exception as e:
-            self.logger.warning(f"Neural Auditor failed to parse {file_path}: {e}")
+            self.logger.warning(f"Tensor Scanner failed to parse {file_path}: {e}")
             return {
                 "architecture": "Corrupted/Unknown",
                 "parameters": "Error",
@@ -53,14 +53,27 @@ class NeuralAuditor:
         [8 bytes (uint64 little-endian) = N] -> [N bytes of JSON metadata] -> [Binary Tensor Data]
         """
         with open(file_path, "rb") as f:
-            # 1. Read the first 8 bytes to get the header size
+            # ==================================================================
+            # DEFENSIVE ARCHITECTURE: O(1) Memory Footprint
+            # We explicitly do NOT use `torch.load()` or `safetensors.safe_open()`.
+            # Loading a 70B parameter model into RAM would instantly trigger an 
+            # OOM (Out of Memory) kill in CI/CD pipelines. By only reading the 
+            # first 8 bytes to extract the JSON header size, we keep the memory 
+            # footprint microscopic.
+            # ==================================================================
             header_size_bytes = f.read(8)
             if len(header_size_bytes) < 8:
                 raise ValueError("File too small to be a valid safetensors file.")
 
             header_size = struct.unpack("<Q", header_size_bytes)[0]
 
-            # Anti-Hallucination: Prevent malicious files from claiming a 100GB header
+            # ==================================================================
+            # DEFENSIVE ARCHITECTURE: Denial of Service (DoS) / Memory Bomb Guard
+            # A malicious actor could craft a tiny safetensor file that claims its 
+            # JSON header is 500GB. When Python attempts to read those bytes, it 
+            # causes a catastrophic memory exhaustion attack. We hard-cap the read 
+            # buffer at 100MB to mathematically guarantee pipeline survival.
+            # ==================================================================
             if header_size > 100 * 1024 * 1024:
                 raise ValueError(
                     f"Safetensors header is suspiciously large: {header_size} bytes"
@@ -86,7 +99,7 @@ class NeuralAuditor:
             return {
                 "architecture": architecture,
                 "parameters": self._format_params(total_params),
-                "quantization": "fp16/bf16 (Standard Safetensors)",  # Safetensors are usually unquantized base models
+                "quantization": "fp16/bf16 (Standard Safetensors)",
                 "raw_param_count": total_params,
             }
 
@@ -94,15 +107,20 @@ class NeuralAuditor:
         """
         GGUF format:
         [4 bytes Magic 'GGUF'] -> [uint32 Version] -> [uint64 Tensor Count] -> [uint64 KV Count] -> [KV Pairs]
-        Extracting the exact KV pairs in pure Python requires walking the binary structs.
-        For safety and speed, we read a chunk and look for known ASCII keys.
         """
         with open(file_path, "rb") as f:
             magic = f.read(4)
             if magic != b"GGUF":
                 raise ValueError("Invalid GGUF magic number.")
 
-            # Read the first 1MB of the file where the metadata KV pairs live
+            # ==================================================================
+            # DEFENSIVE ARCHITECTURE: Algorithmic Complexity Guard
+            # The GGUF format uses a deeply nested binary tree for KV pairs.
+            # Writing a pure Python binary tree walker introduces a massive risk of 
+            # infinite loops (ReDoS equivalents) if the parsed file is malformed.
+            # Instead, we read a flat 1MB chunk and extract known ASCII signatures. 
+            # This guarantees an O(1) time complexity and O(1) space complexity.
+            # ==================================================================
             chunk = f.read(1024 * 1024)
             chunk_str = chunk.decode("ascii", errors="ignore")
 
@@ -115,8 +133,6 @@ class NeuralAuditor:
             elif "qwen" in chunk_str.lower():
                 arch = "Qwen Architecture"
 
-            # GGUF models usually include their parameter count and quantization in the filename or standard KV pairs
-            # Since walking the GGUF binary tree natively is complex, we use heuristic string matching for the audit
             quant_match = "Unknown Quantization"
             if "Q4_K" in chunk_str or "q4_k" in file_path.lower():
                 quant_match = "4-Bit (Q4_K)"

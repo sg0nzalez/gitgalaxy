@@ -13,22 +13,21 @@ from gitgalaxy.core.prism import Prism
 
 MOCK_COMMENT_DEFS = {
     "mechanical_families": {
-        "std_c": {"delimiters": ["//", "/*", "*/"]},
-        "pure_hash": {"delimiters": ["#"]},
-        "singular": {"delimiters": []},  # Relies on hardcoded regex in Scanner
-        "nested_c": {"delimiters": ["//", "/*", "*/"]},
-        "positional": {"delimiters": []},
+        "c_style_comment": {"delimiters": ["//", "/*", "*/"]},
+        "single_line_only": {"delimiters": ["#"]},
+        "recursive_c_style": {"delimiters": ["//", "/*", "*/"]},
+        "column_sensitive": {"delimiters": []},
     }
 }
 
 MOCK_LANG_DEFS = {
-    "c": {"lexical_family": "std_c"},
-    "python": {"lexical_family": "pure_hash"},
-    "rust": {"lexical_family": "nested_c"},
-    "cobol": {"lexical_family": "positional"},
+    "c": {"lexical_family": "c_style_comment"},
+    "python": {"lexical_family": "single_line_only"},
+    "rust": {"lexical_family": "recursive_c_style"},
+    "cobol": {"lexical_family": "column_sensitive"},
     "markdown": {"lexical_family": "prose"},
     "html": {"lexical_family": "xml"},
-    "php": {"lexical_family": "std_c"},
+    "php": {"lexical_family": "c_style_comment"},
 }
 
 
@@ -194,7 +193,7 @@ def test_prism_format_and_xml_bypass(prism_engine):
 # ==============================================================================
 def test_prism_php_string_extraction(prism_engine):
     """Proves PHP Heredoc and large strings are stripped to the documentation stream."""
-    prism_engine.languages["php"] = {"lexical_family": "std_c"}
+    prism_engine.languages["php"] = {"lexical_family": "c_style_comment"}
     prism_engine.PHP_HEREDOC_PATTERN = re.compile(r"<<<EOT[\s\S]*?EOT;", re.M)
     prism_engine.PHP_MULTILINE_STRING = re.compile(r"'(?:\\'|[^'])*'", re.M)
 
@@ -250,9 +249,9 @@ def test_prism_regex_matrix_calibration_edge_cases():
 
     # 1. Primary Branches (Full Delimiter Sets)
     primary_families = {
-        "hybrid_hash": {"delimiters": ["#", "<#", "#>"]},
-        "hybrid_dash": {"delimiters": ["--", html_open, html_close, "{-", "-}"]},
-        "polyglot": {"delimiters": ["//", "/*", "*/", "#"]},
+        "single_line_only": {"delimiters": ["#", "<#", "#>"]},
+        "multi_style_dash": {"delimiters": ["--", html_open, html_close, "{-", "-}"]},
+        "embedded_syntax": {"delimiters": ["//", "/*", "*/", "#"]},
         "empty_delim": {"delimiters": []},
     }
 
@@ -261,15 +260,15 @@ def test_prism_regex_matrix_calibration_edge_cases():
         language_definitions={},
     )
 
-    assert "hybrid_hash" in engine_primary.REGEX_MATRIX
-    assert "hybrid_dash" in engine_primary.REGEX_MATRIX
-    assert re.escape("{-") in engine_primary.REGEX_MATRIX["hybrid_dash"].pattern
-    assert "polyglot" in engine_primary.REGEX_MATRIX
+    assert "single_line_only" in engine_primary.REGEX_MATRIX
+    assert "multi_style_dash" in engine_primary.REGEX_MATRIX
+    assert re.escape("{-") in engine_primary.REGEX_MATRIX["multi_style_dash"].pattern
+    assert "embedded_syntax" in engine_primary.REGEX_MATRIX
 
     # 2. Fallback Branches (Partial Delimiter Sets)
     fallback_families = {
-        "hybrid_dash": {"delimiters": ["--", html_open, html_close]},
-        "polyglot": {"delimiters": ["//", "/*", "*/"]},
+        "multi_style_dash": {"delimiters": ["--", html_open, html_close]},
+        "embedded_syntax": {"delimiters": ["//", "/*", "*/"]},
     }
 
     engine_fallback = Prism(
@@ -277,6 +276,6 @@ def test_prism_regex_matrix_calibration_edge_cases():
         language_definitions={},
     )
 
-    assert "hybrid_dash" in engine_fallback.REGEX_MATRIX
+    assert "multi_style_dash" in engine_fallback.REGEX_MATRIX
 
     # We check if the safely escaped version of '

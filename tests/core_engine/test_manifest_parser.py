@@ -15,10 +15,13 @@ def parser():
 
 
 # ==============================================================================
-# 1. package.json Tests (Aliasing & Local Spoofing)
+# 1. package.json Tests (Aliasing & Direct URI Resolution)
 # ==============================================================================
 def test_package_json_npm_aliasing(parser, tmp_path):
-    """Verifies that npm: aliases and scoped aliases are correctly dereferenced."""
+    """
+    Verifies that npm: aliases and scoped aliases are correctly dereferenced to their
+    true upstream package names to ensure accurate vulnerability tracking.
+    """
     pkg_file = tmp_path / "package.json"
     pkg_file.write_text(
         json.dumps(
@@ -32,20 +35,23 @@ def test_package_json_npm_aliasing(parser, tmp_path):
         )
     )
 
-    result = parser.build_translation_map([str(pkg_file)])
+    resolution_map = parser.build_resolution_map([str(pkg_file)])
 
-    assert "lodash" in result
-    assert result["lodash"] == "malicious-lodash"
+    assert "lodash" in resolution_map
+    assert resolution_map["lodash"] == "malicious-lodash"
 
-    assert "express" in result
-    assert result["express"] == "@hacker-scope/express-shadow"
+    assert "express" in resolution_map
+    assert resolution_map["express"] == "@hacker-scope/express-shadow"
 
-    # Standard packages shouldn't be added to the translation map by package.json
-    assert "react" not in result
+    # Standard packages shouldn't be added to the resolution map by package.json
+    assert "react" not in resolution_map
 
 
-def test_package_json_git_and_file_spoofing(parser, tmp_path):
-    """Verifies that direct file system or git repository overrides are flagged."""
+def test_package_json_direct_uri_resolution(parser, tmp_path):
+    """
+    Verifies that direct file system or git repository overrides are flagged.
+    These bypass Subresource Integrity (SRI) checks and are massive supply chain risks.
+    """
     pkg_file = tmp_path / "package.json"
     pkg_file.write_text(
         json.dumps(
@@ -59,28 +65,40 @@ def test_package_json_git_and_file_spoofing(parser, tmp_path):
         )
     )
 
-    result = parser.build_translation_map([str(pkg_file)])
+    resolution_map = parser.build_resolution_map([str(pkg_file)])
 
-    assert result["jest"] == "github:evil/jest"
-    assert result["mocha"] == "file:./local-malware.js"
-    assert result["eslint"] == "git+https://evil.com/eslint.git"
+    assert resolution_map["jest"] == "github:evil/jest"
+    assert resolution_map["mocha"] == "file:./local-malware.js"
+    assert resolution_map["eslint"] == "git+https://evil.com/eslint.git"
 
 
 def test_package_json_invalid_json(parser, tmp_path):
-    """Ensures the parser degrades gracefully without crashing if the manifest is corrupted."""
+    """Ensures the parser degrades gracefully without crashing if the structural definition is corrupted."""
     pkg_file = tmp_path / "package.json"
     pkg_file.write_text("{ THIS IS INVALID JSON ]")
 
     # Should not throw an exception, just return an empty map
-    result = parser.build_translation_map([str(pkg_file)])
-    assert result == {}
+    resolution_map = parser.build_resolution_map([str(pkg_file)])
+    assert resolution_map == {}
+
+
+def test_package_json_empty_dependencies(parser, tmp_path):
+    """Proves the parser does not crash when a manifest lacks dependency blocks entirely."""
+    pkg_file = tmp_path / "package.json"
+    pkg_file.write_text(json.dumps({"name": "my-app", "version": "1.0.0"}))
+
+    resolution_map = parser.build_resolution_map([str(pkg_file)])
+    assert resolution_map == {}, "Parser hallucinated dependencies from an empty block!"
 
 
 # ==============================================================================
-# 2. package-lock.json Tests (Namespace Hijacking)
+# 2. package-lock.json Tests (Registry Spoofing)
 # ==============================================================================
-def test_package_lock_namespace_hijacking(parser, tmp_path):
-    """Verifies that external, non-NPM registry resolutions are intercepted."""
+def test_package_lock_registry_spoofing(parser, tmp_path):
+    """
+    Verifies that external, non-NPM registry resolutions are intercepted.
+    Neutralizes attacks where internal packages are hijacked to point to malicious domains.
+    """
     lock_file = tmp_path / "package-lock.json"
 
     lock_file.write_text(
@@ -88,94 +106,131 @@ def test_package_lock_namespace_hijacking(parser, tmp_path):
             {
                 "packages": {
                     "node_modules/clean-pkg": {
-                        # Note: Testing against the exact string present in your parser logic
-                        "resolved": "[https://registry.npmjs.org/](https://registry.npmjs.org/)/clean-pkg.tgz"
+                        "resolved": "https://registry.npmjs.org/clean-pkg.tgz"
                     },
                     "node_modules/dirty-pkg": {
-                        "resolved": "[https://evil-registry.com/dirty-pkg.tgz](https://evil-registry.com/dirty-pkg.tgz)"
+                        "resolved": "https://evil-registry.com/dirty-pkg.tgz"
                     },
                 }
             }
         )
     )
 
-    result = parser.build_translation_map([str(lock_file)])
+    resolution_map = parser.build_resolution_map([str(lock_file)])
 
-    # Standard registries should be ignored
-    assert "clean-pkg" not in result
+    # Standard registries should be ignored (trusted baseline)
+    assert "clean-pkg" not in resolution_map
 
-    # Suspicious registries should be mapped so the firewall can block them
-    assert "dirty-pkg" in result
-    assert (
-        result["dirty-pkg"]
-        == "[https://evil-registry.com/dirty-pkg.tgz](https://evil-registry.com/dirty-pkg.tgz)"
-    )
+    # Suspicious registries must be mapped so the supply chain firewall can block them
+    assert "dirty-pkg" in resolution_map
+    assert resolution_map["dirty-pkg"] == "https://evil-registry.com/dirty-pkg.tgz"
 
 
 # ==============================================================================
-# 3. requirements.txt Tests (Injections)
+# 3. requirements.txt Tests (Direct URI References & Constraints)
 # ==============================================================================
-def test_requirements_txt_parsing(parser, tmp_path):
-    """Verifies standard python packages and hostile URL injections are captured."""
+def test_requirements_txt_direct_uri_references(parser, tmp_path):
+    """
+    Verifies standard python packages are indexed and Direct URI references 
+    (which bypass PyPI registry verification) are captured exactly as written.
+    """
     req_file = tmp_path / "requirements.txt"
     req_file.write_text(
         "# This is a comment\n"
         "requests==2.25.1\n"
         "flask>=1.1.0\n"
-        "git+[https://github.com/hacker/malware.git](https://github.com/hacker/malware.git)\n"
+        "git+https://github.com/hacker/malware.git\n"
         "file:///etc/passwd\n"
     )
 
-    result = parser.build_translation_map([str(req_file)])
+    resolution_map = parser.build_resolution_map([str(req_file)])
 
-    # Standard packages map to themselves
-    assert result["requests"] == "requests"
-    assert result["flask"] == "flask"
+    # Standard packages map to themselves to ensure tracking
+    assert resolution_map["requests"] == "requests"
+    assert resolution_map["flask"] == "flask"
 
-    # Injections map the full string to ensure the firewall catches the URL
-    assert (
-        result[
-            "git+[https://github.com/hacker/malware.git](https://github.com/hacker/malware.git)"
-        ]
-        == "git+[https://github.com/hacker/malware.git](https://github.com/hacker/malware.git)"
+    # Direct URI references map the full string to ensure the firewall catches the untrusted URL
+    assert resolution_map["git+https://github.com/hacker/malware.git"] == "git+https://github.com/hacker/malware.git"
+    assert resolution_map["file:///etc/passwd"] == "file:///etc/passwd"
+
+
+def test_requirements_txt_complex_constraints(parser, tmp_path):
+    """
+    Proves the Regex engine correctly extracts the base package name even when 
+    mixed with complex version constraints or environment markers.
+    """
+    req_file = tmp_path / "requirements.txt"
+    req_file.write_text(
+        "Django>=3.0,<4.0\n"
+        "pytest~=7.0\n"
+        "urllib3==1.26.15; python_version >= '3.6'\n"
     )
-    assert result["file:///etc/passwd"] == "file:///etc/passwd"
+
+    resolution_map = parser.build_resolution_map([str(req_file)])
+
+    assert "Django" in resolution_map
+    assert "pytest" in resolution_map
+    assert "urllib3" in resolution_map
 
 
 # ==============================================================================
-# 4. pip.conf Tests (Registry Spoofing)
+# 4. pip.conf Tests (Insecure Protocol Routing)
 # ==============================================================================
 def test_pip_conf_insecure_registry(parser, tmp_path):
-    """Verifies that HTTP or ngrok tunnel registries are instantly flagged."""
+    """
+    Verifies that HTTP (MitM vulnerable) or ngrok tunnel registries are instantly flagged 
+    to prevent Dependency Confusion vulnerabilities.
+    """
     pip_file = tmp_path / "pip.conf"
     pip_file.write_text(
         "[global]\n"
-        "index-url = [http://pypi.org/simple](http://pypi.org/simple)\n"  # Insecure HTTP
-        "extra-index-url = [https://hacker-tunnel.ngrok.io](https://hacker-tunnel.ngrok.io)\n"  # ngrok tunneling
+        "index-url = http://pypi.org/simple\n"  # Insecure HTTP
+        "extra-index-url = https://hacker-tunnel.ngrok.io\n"  # ngrok tunneling
         "trusted-host = pypi.org\n"
     )
 
-    result = parser.build_translation_map([str(pip_file)])
+    resolution_map = parser.build_resolution_map([str(pip_file)])
 
-    # The parser uses a hardcoded key for insecure registries.
-    # It will store the last matched insecure URL in the file.
-    assert "INSECURE_REGISTRY_pip.conf" in result
-    assert "ngrok" in result["INSECURE_REGISTRY_pip.conf"]
+    assert "INSECURE_REGISTRY_pip.conf" in resolution_map
+    assert "ngrok" in resolution_map["INSECURE_REGISTRY_pip.conf"]
+
+
+def test_pip_conf_trusted_registry(parser, tmp_path):
+    """Ensures legitimate HTTPS internal registries (like Artifactory) do not trigger false positives."""
+    pip_file = tmp_path / "pip.conf"
+    pip_file.write_text(
+        "[global]\n"
+        "index-url = https://artifactory.internal.company.com/api/pypi/simple\n"
+    )
+
+    resolution_map = parser.build_resolution_map([str(pip_file)])
+
+    assert "INSECURE_REGISTRY_pip.conf" not in resolution_map, "Trusted registry falsely flagged as insecure!"
 
 
 # ==============================================================================
-# 5. Global Monorepo Tests (Multiple Files)
+# 5. Global Monorepo Tests
 # ==============================================================================
 def test_multiple_manifests_simultaneously(parser, tmp_path):
-    """Verifies the parser can handle a monorepo setup with multiple formats at once."""
+    """Verifies the parser can handle a monorepo setup with multiple manifest formats at once."""
     pkg_file = tmp_path / "package.json"
     req_file = tmp_path / "requirements.txt"
 
     pkg_file.write_text(json.dumps({"dependencies": {"lodash": "npm:evil-lodash"}}))
     req_file.write_text("numpy==1.20.0")
 
-    result = parser.build_translation_map([str(pkg_file), str(req_file)])
+    resolution_map = parser.build_resolution_map([str(pkg_file), str(req_file)])
 
-    assert len(result) == 2
-    assert result["lodash"] == "evil-lodash"
-    assert result["numpy"] == "numpy"
+    assert len(resolution_map) == 2
+    assert resolution_map["lodash"] == "evil-lodash"
+    assert resolution_map["numpy"] == "numpy"
+
+
+def test_unsupported_manifest_bypass(parser, tmp_path):
+    """Proves the parser gracefully skips unrelated files without crashing the loop."""
+    random_file = tmp_path / "docker-compose.yml"
+    random_file.write_text("version: '3.8'\nservices:\n  app:\n    image: node:18")
+
+    resolution_map = parser.build_resolution_map([str(random_file)])
+    
+    assert resolution_map == {}, "Parser hallucinated resolutions from an unsupported file type!"

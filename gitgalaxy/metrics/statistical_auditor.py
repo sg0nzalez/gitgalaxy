@@ -18,22 +18,18 @@ import math
 # ==============================================================================
 
 
-class SpectralAuditor:
+class StatisticalAuditor:
     """
-    The GitGalaxy Spectral Auditor.
+    GitGalaxy Statistical Auditor.
 
-    PURPOSE: Performs the 3rd-gate sanity check to catch Linguistic Drift and
-    Data Dumps using species-specific statistical outliers and the 50/0 Law.
+    PURPOSE: Acts as the 3rd-gate quality control filter to catch structural anomalies 
+    and data dumps using language-specific Median Absolute Deviation (MAD) outliers 
+    and explicit hard-floor density checks.
 
-    PHILOSOPHY: Holds Bayesian predictions to account. If a file acts as a
-    statistical outlier compared to its peers, the focus is lost and it is
-    banished to the Singularity, regardless of its initial metadata claims.
-
-    ARCHITECTURE (v6.2.0):
-    1. Bayesian Accountability: Logs when high-confidence priors are refuted.
-    2. Polyglot Baseline Defense: Bypasses strict MAD checks for highly blended files.
-    3. Inert Dark Matter: Relegated files are stripped to a lightweight schema.
-    4. Vestigial Cleanup: Spatial geometry is deferred entirely to the Cartographer.
+    ARCHITECTURE:
+    1. Heuristic Consensus: Resolves ambiguous file extensions (.h, .m) based on repo-wide trends.
+    2. Polyglot Baseline Defense: Bypasses strict statistical checks for heavily blended files.
+    3. Noise Rejection: Outliers are stripped of logic claims and moved to the exclusion queue.
     """
 
     def __init__(
@@ -43,15 +39,14 @@ class SpectralAuditor:
     ):
         """Initializes the statistical auditor and synchronizes telemetry."""
 
-        # --- TELEMETRY SYNC ---
         if parent_logger:
-            self.logger = parent_logger.getChild("auditor")
+            self.logger = parent_logger.getChild("statistical_auditor")
             self.logger.setLevel(parent_logger.level)
         else:
-            self.logger = logging.getLogger("auditor")
+            self.logger = logging.getLogger("statistical_auditor")
             self.logger.setLevel(logging.INFO)
 
-        self.logger.debug("Initializing Spectral Auditor (Statistical Gating)...")
+        self.logger.debug("Initializing Statistical Auditor (Data Quality Gating)...")
 
         # Save the language definitions so we can check for execution geometry later
         self.lang_defs = lang_defs or {}
@@ -99,11 +94,11 @@ class SpectralAuditor:
         import os  # Required for extension splitting in Consensus Engine
 
         if not parsed_files:
-            self.logger.debug("Spectral Audit skipped: Empty file roster provided.")
+            self.logger.debug("Statistical Audit skipped: Empty file roster provided.")
             return [], []
 
         self.logger.info(
-            f"Powering up planetary sensor grid. Scanning {len(parsed_files)} celestial bodies for structural anomalies..."
+            f"Scanning {len(parsed_files)} artifacts for structural anomalies and data dumps..."
         )
 
         total_files = max(len(parsed_files), 1)
@@ -114,32 +109,36 @@ class SpectralAuditor:
 
         verified_files, unparsable_files = [], []
 
-        # =================================================================
-        # GATE 0: EMPIRICAL BAYES LOOP-BACK (The Consensus Engine)
-        # =================================================================
-        confident_core = []
-        ambiguous_pen = []
+        # ======================================================================
+        # DEFENSIVE ARCHITECTURE: Heuristic Extension Consensus
+        # Certain file extensions (like .h or .m) are ambiguous across languages 
+        # (C vs C++ vs Objective-C). If the regex parser lacked high confidence, 
+        # we check the macro-state of the repository. If 80% of the repository's 
+        # confidently parsed .h files are C++, we force the ambiguous file to align.
+        # ======================================================================
+        confident_artifacts = []
+        ambiguous_artifacts = []
 
         # 1. The Triage
-        for s in parsed_files:
-            telemetry = s.get("telemetry", {})
-            tier = telemetry.get("identity_lock_tier", s.get("lock_tier", 4))
-            proof = telemetry.get("identity_source_proof", s.get("source_proof", ""))
+        for artifact in parsed_files:
+            telemetry = artifact.get("telemetry", {})
+            tier = telemetry.get("identity_lock_tier", artifact.get("lock_tier", 4))
+            proof = telemetry.get("identity_source_proof", artifact.get("source_proof", ""))
 
             # If the engine had to guess, or confidence was terrible, hold it back.
             if tier >= 4 or "Collision" in proof:
-                ambiguous_pen.append(s)
+                ambiguous_artifacts.append(artifact)
             else:
-                confident_core.append(s)
+                confident_artifacts.append(artifact)
 
         # 2. Build the Ecosystem Consensus Map
         # Structure: { ".ext": { "lang1": count, "lang2": count } }
         consensus_map: Dict[str, Dict[str, int]] = {}
         global_lang_counts: Dict[str, int] = {}
 
-        for s in confident_core:
-            ext = os.path.splitext(s.get("path", ""))[1].lower()
-            lang = s.get("lang_id")
+        for artifact in confident_artifacts:
+            ext = os.path.splitext(artifact.get("path", ""))[1].lower()
+            lang = artifact.get("lang_id")
 
             if lang:
                 global_lang_counts[lang] = global_lang_counts.get(lang, 0) + 1
@@ -151,9 +150,9 @@ class SpectralAuditor:
 
         # 3. The Heuristic Loop-Back
         resolved_count = 0
-        for s in ambiguous_pen:
-            ext = os.path.splitext(s.get("path", ""))[1].lower()
-            current_lang = s.get("lang_id", "unknown")
+        for artifact in ambiguous_artifacts:
+            ext = os.path.splitext(artifact.get("path", ""))[1].lower()
+            current_lang = artifact.get("lang_id", "unknown")
 
             if ext in consensus_map:
                 lang_counts = consensus_map[ext]
@@ -166,20 +165,18 @@ class SpectralAuditor:
 
                     # If the winner claims >= 80% of the confident files, it is the Ecosystem Truth.
                     if (winner_count / total_for_ext) >= 0.80:
-                        s["lang_id"] = winner_lang
-                        if "telemetry" not in s:
-                            s["telemetry"] = {}
-                        s["telemetry"]["identity_source_proof"] = (
+                        artifact["lang_id"] = winner_lang
+                        if "telemetry" not in artifact:
+                            artifact["telemetry"] = {}
+                        artifact["telemetry"]["identity_source_proof"] = (
                             f"Heuristic Loop-Back (Consensus: {winner_lang})"
                         )
-                        s["telemetry"]["identity_lock_tier"] = (
-                            2  # Elevate it to a strong Ecosystem Lock
-                        )
+                        artifact["telemetry"]["identity_lock_tier"] = 2  # Elevate it to a strong Ecosystem Lock
 
                         self.logger.debug(
-                            f"[Consensus] Resolved ambiguous '{s.get('name')}': {current_lang} -> {winner_lang}"
+                            f"[Consensus] Resolved ambiguous '{artifact.get('name')}': {current_lang} -> {winner_lang}"
                         )
-                        confident_core.append(s)
+                        confident_artifacts.append(artifact)
                         resolved_count += 1
                         continue
 
@@ -195,85 +192,74 @@ class SpectralAuditor:
                 # If there is ANY C-family presence in the confident core, give the header to the dominant one.
                 if sum(c_counts.values()) > 0:
                     winner_lang = max(c_counts, key=c_counts.get)
-                    s["lang_id"] = winner_lang
+                    artifact["lang_id"] = winner_lang
 
-                    if "telemetry" not in s:
-                        s["telemetry"] = {}
-                    s["telemetry"]["identity_source_proof"] = (
+                    if "telemetry" not in artifact:
+                        artifact["telemetry"] = {}
+                    artifact["telemetry"]["identity_source_proof"] = (
                         f"Heuristic Loop-Back (Global C-Family Dominance: {winner_lang})"
                     )
-                    s["telemetry"]["identity_lock_tier"] = 2
+                    artifact["telemetry"]["identity_lock_tier"] = 2
 
                     self.logger.debug(
-                        f"[Consensus] Global C-Family Tie-Breaker triggered for '{s.get('name')}': Defaulting to {winner_lang}."
+                        f"[Consensus] Global C-Family Tie-Breaker triggered for '{artifact.get('name')}': Defaulting to {winner_lang}."
                     )
-                    confident_core.append(s)
+                    confident_artifacts.append(artifact)
                     resolved_count += 1
                     continue
 
             # If we reach here, the file was ambiguous and the ecosystem couldn't save it.
             # Banish it to unparsable_files immediately to prevent hallucinations.
-
             reason = "Unresolved Ambiguity (Tier 4 Fallback failed Ecosystem Consensus)"
-            unparsable_files.append(self._format_for_singularity(s, reason))
+            unparsable_files.append(self._format_for_exclusion(artifact, reason))
 
         if resolved_count > 0:
             self.logger.info(
-                f"Consensus Engine Override: Stabilized {resolved_count} fluctuating signatures into known orbits."
+                f"Consensus Engine: Stabilized {resolved_count} ambiguous extensions based on repository trends."
             )
         # =================================================================
 
         by_lang: Dict[str, List[Dict[str, Any]]] = {}
 
         # 4. Group artifacts by linguistic species for localized statistics
-        # Note: We now iterate over 'confident_core' instead of raw 'stars'
-        for s in confident_core:
-            lid = s.get("lang_id", "undeterminable")
+        for artifact in confident_artifacts:
+            lid = artifact.get("lang_id", "undeterminable")
             if lid not in by_lang:
                 by_lang[lid] = []
-            by_lang[lid].append(s)
+            by_lang[lid].append(artifact)
 
         # 5. Process each species independently
         for lid, group in by_lang.items():
             if lid in ("undeterminable", "unknown"):
-                for s in group:
+                for artifact in group:
                     unparsable_files.append(
-                        self._format_for_singularity(
-                            s, "Already Dark Matter (Pre-Audit)"
+                        self._format_for_exclusion(
+                            artifact, "Pre-filtered Noise (Pre-Audit)"
                         )
                     )
                 self.logger.debug(
-                    f"[{lid}] Bypassed {len(group)} artifacts (already Dark Matter)."
+                    f"[{lid}] Bypassed {len(group)} artifacts (already excluded)."
                 )
                 continue
 
-            # =================================================================
-            # THE DYNAMIC AUDITABILITY CHECK (Code vs. Structure vs. Data)
-            # =================================================================
+            # ==================================================================
+            # DEFENSIVE ARCHITECTURE: Dynamic Auditability Check
+            # Prevent pure data files (YAML, JSON, CSV) from triggering the 
+            # statistical outliers by checking if their language definition 
+            # even contains executable logic signals.
+            # ==================================================================
             is_inert = False
-            _is_structural = False
 
             if hasattr(self, "lang_defs") and lid in self.lang_defs:
                 rules = self.lang_defs[lid].get("rules", {})
 
                 # POSITIVE COUNT: How many actual, active logic sensors exist?
-                # .get(key) safely handles "space-efficient" dictionaries by returning None
                 active_signals = sum(
                     1 for key in self.SIGNAL_KEYS if rules.get(key) is not None
                 )
-                total_signals = len(self.SIGNAL_KEYS)
 
-                # 1. THE INERT MATTER GATE (0 active signals)
-                # e.g., MLIR, Proto, Plaintext, YAML, CSV.
                 if active_signals == 0:
                     is_inert = True
-
-                # 2. THE STRUCTURAL GATE (Lacks the "Full" Regex Scan)
-                # e.g., HTML, CSS, Makefile, Dockerfile.
-                # If a language is missing ~25% or more of its sensors (like pointers,
-                # memory allocation, or closures), it is Structural, not Turing-complete.
-                elif active_signals <= (total_signals * 0.75):
-                    _is_structural = True
             else:
                 is_inert = True  # Unknown/Undefined languages are inert by default
 
@@ -281,64 +267,63 @@ class SpectralAuditor:
             if is_inert:
                 verified_files.extend(group)
                 self.logger.debug(
-                    f"[{lid}] Bypassed {len(group)} artifact(s) (Dynamic Inert Matter: 0 Signals)."
+                    f"[{lid}] Bypassed {len(group)} artifact(s) (Inert Data Format: 0 Active Signals)."
                 )
                 continue
 
-            # =================================================================
-            # GATE C: THE ECOSYSTEM ORPHAN GUARD
-            # =================================================================
-            # If a language only has a tiny presence (<= orphan_threshold) in the galaxy...
+            # ==================================================================
+            # GATE C: LOW-SAMPLE THRESHOLD GUARD
+            # ==================================================================
+            # If a language only has a tiny presence (<= orphan_threshold) in the repo...
             if len(group) <= orphan_threshold:
-                # FIX: Require an absolute Tier 0 Convergent Lock for orphans to survive.
+                # Require an absolute Tier 0 Convergent Lock for orphans to survive.
                 # If ALL files in this tiny group are Tier 1 or worse (> 0), banish them.
                 all_weak_claims = all(
-                    s.get("telemetry", {}).get(
-                        "identity_lock_tier", s.get("lock_tier", 4)
+                    artifact.get("telemetry", {}).get(
+                        "identity_lock_tier", artifact.get("lock_tier", 4)
                     )
                     > 0
-                    for s in group
+                    for artifact in group
                 )
 
                 if all_weak_claims:
-                    relegation_reason = f"Ecosystem Orphan (Population {len(group)}). Reverting to plaintext."
+                    relegation_reason = f"Statistically Insignificant Sample (Population {len(group)}). Reverting to plaintext."
                     self.logger.warning(f"[{lid}] {relegation_reason}")
 
-                    for s in group:
+                    for artifact in group:
                         # Strip the hallucination, keep the mass visible in the 3D map
-                        s["lang_id"] = "plaintext"
-                        s["telemetry"]["identity_source_proof"] = (
-                            "Orphan Guard Fallback"
+                        artifact["lang_id"] = "plaintext"
+                        artifact["telemetry"]["identity_source_proof"] = (
+                            "Low-Sample Guard Fallback"
                         )
-                        s["equations"] = {}  # Inert matter has no logic equations
-                        verified_files.append(s)
+                        artifact["equations"] = {}  # Inert matter has no logic equations
+                        verified_files.append(artifact)
                     continue
 
-            # =================================================================
-
-            # --- GATE D: STATISTICAL OUTLIER DETECTION (The 50/0 Law) ---
-
+            # ==================================================================
+            # GATE D: STATISTICAL OUTLIER DETECTION (MAD & Density Floors)
+            # ==================================================================
             rhos = []
 
-            # Calculate logic density (rho) for all stars in this language
-            for s in group:
+            # Calculate logic density (rho) for all artifacts in this language
+            for artifact in group:
                 try:
-                    equations = s.get("equations", {})
+                    equations = artifact.get("equations", {})
                     signal_hits = sum(equations.get(k, 0) for k in self.SIGNAL_KEYS)
                     # Denominator MUST be total physical lines to detect 'hollowness'
                     total_physical_loc = max(
-                        s.get("total_loc", s.get("coding_loc", 1)), 1
+                        artifact.get("total_loc", artifact.get("coding_loc", 1)), 1
                     )
-                    s["_rho"] = signal_hits / total_physical_loc
+                    artifact["_rho"] = signal_hits / total_physical_loc
 
                     # Polyglot Defense: Only add pure files to the statistical baseline
-                    if not self._is_highly_blended(s):
-                        rhos.append(s["_rho"])
+                    if not self._is_highly_blended(artifact):
+                        rhos.append(artifact["_rho"])
                 except Exception as e:
                     self.logger.warning(
-                        f"Failed to calculate signal density for '{s.get('name', 'unknown')}': {e}"
+                        f"Failed to calculate signal density for '{artifact.get('name', 'unknown')}': {e}"
                     )
-                    s["_rho"] = 0.0
+                    artifact["_rho"] = 0.0
                     rhos.append(0.0)
 
             # --- GATE D.1: STATISTICAL READINESS CHECK ---
@@ -347,11 +332,11 @@ class SpectralAuditor:
 
             # 2. Confidence Anchor (At least one file with C > 0.85)
             has_anchor = any(
-                s.get("telemetry", {}).get(
-                    "identity_confidence", s.get("intensity", 0.0)
+                artifact.get("telemetry", {}).get(
+                    "identity_confidence", artifact.get("intensity", 0.0)
                 )
                 > 0.85
-                for s in group
+                for artifact in group
             )
 
             use_stats = has_mass and has_anchor
@@ -377,52 +362,52 @@ class SpectralAuditor:
                         )
                 except statistics.StatisticsError as e:
                     self.logger.warning(
-                        f"[{lid}] Statistical failure during MAD calculation: {e}. Falling back to 50/0 Law only."
+                        f"[{lid}] Statistical failure during MAD calculation: {e}. Falling back to Zero-Density Thresholds only."
                     )
                     use_stats = False
             else:
                 self.logger.debug(
-                    f"[{lid}] Baseline skipped (N={len(rhos)}, Anchor={has_anchor}). Defaulting to 50/0 Law."
+                    f"[{lid}] Baseline skipped (N={len(rhos)}, Anchor={has_anchor}). Defaulting to Zero-Density Thresholds."
                 )
 
             relegated_count = 0
-            necrotic_count = 0
+            dead_code_count = 0
 
-            # 3. Evaluate each star against the baseline
-            for s in group:
-                rho = s.pop("_rho", 0.0)
+            # 3. Evaluate each artifact against the baseline
+            for artifact in group:
+                rho = artifact.pop("_rho", 0.0)
                 is_outlier = False
                 relegation_reason = ""
 
-                loc = s.get("coding_loc", 0)
-                name = s.get("name", "unknown")
-                path = s.get("path", "unknown")
-                is_blended = self._is_highly_blended(s)
-                is_minified = s.get("is_minified", False)
+                loc = artifact.get("coding_loc", 0)
+                name = artifact.get("name", "unknown")
+                path = artifact.get("path", "unknown")
+                is_blended = self._is_highly_blended(artifact)
+                is_minified = artifact.get("is_minified", False)
 
-                # Extract Bayesian telemetry from Phase 1 OR fallback to root meta keys
-                telemetry = s.get("telemetry", {})
-                lock_tier = telemetry.get("identity_lock_tier", s.get("lock_tier", 4))
+                # Extract telemetry from Phase 1 OR fallback to root meta keys
+                telemetry = artifact.get("telemetry", {})
+                lock_tier = telemetry.get("identity_lock_tier", artifact.get("lock_tier", 4))
                 source_proof = telemetry.get(
-                    "identity_source_proof", s.get("source_proof", "Discovery")
+                    "identity_source_proof", artifact.get("source_proof", "Discovery")
                 )
                 confidence = telemetry.get(
-                    "identity_confidence", s.get("intensity", 0.0)
+                    "identity_confidence", artifact.get("intensity", 0.0)
                 )
 
-                # THE 50/0 LAW: Hard Floor check for data dumps disguised as code
+                # ZERO-DENSITY THRESHOLD: Hard Floor check for data dumps disguised as code
                 if loc > 50 and rho == 0 and not is_minified:
                     is_outlier = True
-                    relegation_reason = f"50/0 Law (LOC: {loc}, Signals: 0)"
+                    relegation_reason = f"Zero-Density Threshold (LOC: {loc}, Signals: 0)"
 
-                # ---> NEW: THE SUPERNOVA GUARD (Impossible Density Law) <---
+                # ---> NEW: PACKED PAYLOAD GUARD (Impossible Density Law) <---
                 # Normal human code rarely sustains > 1.5 logic hits per physical line.
                 # If a file sustains > 3.0 across 30+ lines, it is mathematically guaranteed
                 # to be minified, obfuscated, or packed with embedded binaries.
                 elif loc > 30 and rho > 3.0 and not is_minified:
                     is_outlier = True
                     relegation_reason = (
-                        f"Supernova Guard (Impossible Density: {rho:.2f} hits/line)"
+                        f"Packed Payload Guard (Impossible Density: {rho:.2f} hits/line)"
                     )
 
                 # THE ROBUST Z-SCORE (MAD)
@@ -430,7 +415,7 @@ class SpectralAuditor:
                 elif use_stats and not is_blended:
                     mi = (0.6745 * (rho - median_rho)) / mad
 
-                    # 4. Bayesian Threshold Gating (T_adj = -3.5 * Ci)
+                    # 4. Probabilistic Threshold Gating (T_adj = -3.5 * Ci)
                     t_adj = -5 * max(
                         confidence, 0.1
                     )  # Floor confidence to prevent 0 threshold
@@ -443,70 +428,69 @@ class SpectralAuditor:
 
                 # 4. Routing logic for Outliers
                 if is_outlier:
-                    if self._is_necrotic(s):
-                        # SPEC ALIGNMENT: Grant Reprieve from Relegation without mutating lang_id
-                        s["is_necrotic"] = True
+                    if self._is_dead_code(artifact):
+                        # SPEC ALIGNMENT: Grant Bypass without mutating lang_id
+                        artifact["is_necrotic"] = True
                         self.logger.debug(
-                            f"[{lid}] Necrosis Guard: '{name}' failed audit ({relegation_reason}) but granted a Reprieve from Relegation."
+                            f"[{lid}] Dead Code Guard: '{name}' failed audit ({relegation_reason}) but granted a Bypass Exclusion."
                         )
-                        verified_files.append(s)
-                        necrotic_count += 1
+                        verified_files.append(artifact)
+                        dead_code_count += 1
 
-                    elif self._is_threat(s):
-                        # --- THE QUARANTINE GUARD ---
+                    elif self._is_threat(artifact):
+                        # --- ACTIVE THREAT QUARANTINE ---
                         # If a file is heavily obfuscated malware, its standard logic density will crash to 0,
                         # making it look like a data dump. This guard explicitly saves it from the trash
                         # and forces it onto the map so the auditor can see the threat.
-                        s["is_quarantined"] = True
+                        artifact["is_quarantined"] = True
                         self.logger.critical(
-                            f"[{lid}] 🚨 QUARANTINE GUARD ACTIVATED: '{name}' failed structural audit ({relegation_reason}) but contains ACTIVE THREAT SIGNATURES. Forcing to Visible Map!"
+                            f"[{lid}] 🚨 THREAT QUARANTINE: '{name}' failed structural audit ({relegation_reason}) but contains ACTIVE THREAT SIGNATURES. Forcing to Visible Map!"
                         )
-                        verified_files.append(s)
-                        # We treat it as visible so it passes down to the Signal Processor and GPU Recorder
+                        verified_files.append(artifact)
 
                     else:
-                        # --- BAYESIAN ACCOUNTABILITY ---
+                        # --- CLASSIFICATION REFUTATION ---
                         # If the file had a strong prior (Tier 0 or 1), hold the prediction to account.
                         if lock_tier <= 1:
                             self.logger.warning(
-                                f"BAYESIAN REFUTATION: '{path}' was claimed as '{lid}' via {source_proof} (Tier {lock_tier}), "
-                                f"but its Intent Density is an outlier ({relegation_reason}). Focus lost."
+                                f"CLASSIFICATION REFUTATION: '{path}' was claimed as '{lid}' via {source_proof} (Tier {lock_tier}), "
+                                f"but its Intent Density is an outlier ({relegation_reason}). Rejected."
                             )
                         elif loc > 1000:
                             # SIZE-AWARE WARNING: If a massive file is dropped, alert the engineer.
                             self.logger.warning(
-                                f"Massive Data Dump Relegated: '{path}' (LOC: {loc}) stripped to unparsable. Reason: {relegation_reason}"
+                                f"Massive Data Dump Excluded: '{path}' (LOC: {loc}) stripped to unparsable. Reason: {relegation_reason}"
                             )
                         else:
                             self.logger.debug(
-                                f"[{lid}] Relegated: '{name}' stripped to unparsable. Reason: {relegation_reason}"
+                                f"[{lid}] Excluded: '{name}' stripped to unparsable. Reason: {relegation_reason}"
                             )
 
-                        # Format it as Inert Dark Matter to save memory and ensure schema consistency
+                        # Format it as Noise to save memory and ensure schema consistency
                         unparsable_files.append(
-                            self._format_for_singularity(s, relegation_reason)
+                            self._format_for_exclusion(artifact, relegation_reason)
                         )
                         relegated_count += 1
                 else:
-                    verified_files.append(s)
+                    verified_files.append(artifact)
 
-            if relegated_count > 0 or necrotic_count > 0:
+            if relegated_count > 0 or dead_code_count > 0:
                 self.logger.info(
-                    f"[{lid}] Audit complete: {relegated_count} relegated to unparsable, {necrotic_count} flagged as Necrosis."
+                    f"[{lid}] Audit complete: {relegated_count} relegated to Exclusion Queue, {dead_code_count} flagged as Dead Code."
                 )
 
         self.logger.info(
-            f"Anomaly sweep concluded | Stable Files Mapped: {len(verified_files)} | Collapsed to Unparsable: {len(unparsable_files)}"
+            f"Anomaly sweep concluded | Stable Files Mapped: {len(verified_files)} | Collapsed to Exclusion Queue: {len(unparsable_files)}"
         )
         return verified_files, unparsable_files
 
-    def _is_highly_blended(self, star: Dict[str, Any]) -> bool:
+    def _is_highly_blended(self, artifact: Dict[str, Any]) -> bool:
         """Determines if a file is a Polyglot where the primary language is < 80% of the mass."""
-        lang_mix = star.get("lang_mix", [])
+        lang_mix = artifact.get("lang_mix", [])
         if not lang_mix:
             return False
 
-        primary_lang = star.get("lang_id")
+        primary_lang = artifact.get("lang_id")
         for mix in lang_mix:
             if mix.get("id") == primary_lang:
                 # If the primary language makes up less than 80% of the file, it's blended.
@@ -514,65 +498,65 @@ class SpectralAuditor:
 
         return True  # Primary language wasn't even in the mix (Extreme anomaly)
 
-    def _is_necrotic(self, star: Dict[str, Any]) -> bool:
-        """Determines if a star is dead matter using literature ratios."""
+    def _is_dead_code(self, artifact: Dict[str, Any]) -> bool:
+        """Determines if an artifact is predominantly dead code or comments."""
         try:
-            doc_loc = star.get("doc_loc", 0)
-            coding_loc = max(star.get("coding_loc", 1), 1)
+            doc_loc = artifact.get("doc_loc", 0)
+            coding_loc = max(artifact.get("coding_loc", 1), 1)
 
             # Condition 1: Massive comment-to-code ratio (5-to-1)
             if doc_loc > (coding_loc * 5):
                 return True
 
-            eq = star.get("equations", {})
-            total_signals = sum(eq.values())
+            equations = artifact.get("equations", {})
+            total_signals = sum(equations.values())
 
             # Condition 2: Over 50% of the active signals are commented-out structural logic
-            if total_signals > 0 and eq.get("graveyard", 0) > (total_signals * 0.5):
+            if total_signals > 0 and equations.get("graveyard", 0) > (total_signals * 0.5):
                 return True
 
         except Exception as e:
-            self.logger.debug(f"Necrosis evaluation failed safely: {e}")
+            self.logger.debug(f"Dead code evaluation failed safely: {e}")
 
         return False
 
-    def _format_for_singularity(
-        self, star: Dict[str, Any], reason: str
+    def _format_for_exclusion(
+        self, artifact: Dict[str, Any], reason: str
     ) -> Dict[str, Any]:
         """
-        Formats an audited star to match the Orchestrator's Pre-Refraction Dark Matter schema.
-        This ensures mathematical inertia and prevents the JSON archive from bloating.
+        Formats an audited artifact to match the Orchestrator's Exclusion Queue schema.
+        This ensures structural inertia and prevents the JSON archive from bloating.
         """
-        telemetry = star.get("telemetry", {})
+        telemetry = artifact.get("telemetry", {})
 
         return {
-            "path": star.get("path", "unknown"),
+            "path": artifact.get("path", "unknown"),
             "reason": reason,
-            "size_bytes": star.get("size_bytes", 0),
-            # Preserve Bayesian Optics for Phase 8 SBOM Traceability
-            "failed_claim": star.get("lang_id", "unknown"),
+            "size_bytes": artifact.get("size_bytes", 0),
+            # Preserve Phase 1 Telemetry for SBOM Traceability
+            "failed_claim": artifact.get("lang_id", "unknown"),
             "identity_confidence": telemetry.get(
-                "identity_confidence", star.get("intensity", 0.0)
+                "identity_confidence", artifact.get("intensity", 0.0)
             ),
             "identity_lock_tier": telemetry.get(
-                "identity_lock_tier", star.get("lock_tier", 4)
+                "identity_lock_tier", artifact.get("lock_tier", 4)
             ),
             "identity_source_proof": telemetry.get(
-                "identity_source_proof", star.get("source_proof", "Discovery")
+                "identity_source_proof", artifact.get("source_proof", "Discovery")
             ),
         }
 
-    def _is_threat(self, star: Dict[str, Any]) -> bool:
+    def _is_threat(self, artifact: Dict[str, Any]) -> bool:
         """
-        Determines if a star contains active security threat signatures.
+        Determines if an artifact contains active security threat signatures.
         Used by the Quarantine Guard to prevent obfuscated malware from
-        using its low structural density to hide in the Dark Matter trash pile.
+        using its low structural density to hide in the Noise Exclusion Queue.
         """
         try:
-            eq = star.get("equations", {})
+            equations = artifact.get("equations", {})
 
             # Sum the mass of all keys starting with 'sec_'
-            threat_mass = sum(val for key, val in eq.items() if key.startswith("sec_"))
+            threat_mass = sum(val for key, val in equations.items() if key.startswith("sec_"))
 
             # If the file has even a single threat signature, it cannot be discarded.
             if threat_mass > 0:

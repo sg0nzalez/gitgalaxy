@@ -247,19 +247,20 @@ class ScopeParsingRegistry:
 # ------------------------------------------------------------------------------
 
 
-class OpticalDetector:
+class StructuralExtractor:
     """
-    The GitGalaxy Optical Detector (Primary Logic & Function Extractor).
+    GitGalaxy Structural Extractor (Primary Heuristic Logic & Function Mapper).
 
-    PURPOSE: Scans the executable logic stream to extract bounded functions, 
-    calculate cyclomatic complexity, and detect structural threat signatures.
+    PURPOSE: Performs AST-less analysis of executable logic streams to extract 
+    functional nodes, calculate complexity, and detect structural security signatures.
 
-    DEFENSIVE ARCHITECTURE (Why Regex over AST?):
-    We are visualizing functional intent, not rigid syntax. Standard AST parsers 
-    fail instantly on syntax errors, missing dependencies, or embedded languages. 
-    By utilizing a Fluid State Counter and bounded O(1) string masking, this detector 
-    achieves full polyglot extraction at ~100,000 LOC/sec with complete ReDoS immunity.
-
+    DEFENSIVE ARCHITECTURE (Lexical Heuristics vs. AST Parsing):
+    AST parsers often fail when encountering non-standard syntax, legacy dialects, 
+    or partially-broken codebases. This extractor utilizes Fluid State Counters 
+    and O(1) lexical masking to achieve high-fidelity node extraction at 
+    ~100,000 LOC/sec, maintaining high performance without requiring 
+    fully-compilable source code.
+    
     ARCHITECTURE:
     1. Fluid State Counter: Dynamically swaps regex registries mid-file for embedded languages.
     2. Bucket Continuation: Accumulates secondary language hits into the primary vector.
@@ -309,7 +310,7 @@ class OpticalDetector:
 
         lang_config = self.languages.get(self.primary_lang_id, {})
         self.primary_rules = lang_config.get("rules", {})
-        self.primary_family = lang_config.get("lexical_family", "std_c")
+        self.primary_family = lang_config.get("lexical_family", "c_style_comment")
 
         self.assembly_returns = re.compile(
             r"\b(?:TC\s+Q|TCF\s+Q|RETURN|RESUME|RELINT|RET|RTS|JMP\s+LR|BLR|END-PERFORM|END-IF|GOBACK|EXIT)\b",
@@ -340,7 +341,7 @@ class OpticalDetector:
                 self.languages = LANGUAGE_DEFINITIONS
                 lang_config = self.languages.get(self.primary_lang_id, {})
                 self.primary_rules = lang_config.get("rules", {})
-                self.primary_family = lang_config.get("lexical_family", "std_c")
+                self.primary_family = lang_config.get("lexical_family", "c_style_comment")
 
                 self.logger.warning(
                     f"[AUTO-HEAL] Re-injected LANGUAGE_DEFINITIONS for '{self.primary_lang_id}'"
@@ -1304,7 +1305,7 @@ class OpticalDetector:
         for (lang_id, code, offset), spatial_map in zip(segments, segment_spatial_maps):
             lang_config = self.languages.get(lang_id, {})
             rules = lang_config.get("rules", {})
-            family = lang_config.get("lexical_family", "std_c")
+            family = lang_config.get("lexical_family", "c_style_comment")
 
             optical_mode = ScopeParsingRegistry.get_mode(lang_id)
 
@@ -1327,17 +1328,18 @@ class OpticalDetector:
                 if not func_start:
                     continue
 
+                # Routed via formal Lexical Family taxonomy
                 if lang_id in (
                     "assembly",
                     "agc_assembly",
                     "cobol",
                     "fortran",
-                ) or family in ("singular", "positional"):
+                ) or family in ("column_sensitive"):
                     mode_name = "Mode_A_Labels"
                     sats, impact = self._slice_by_labels(
                         code, rules, offset, spatial_map
                     )
-                elif family in ("pure_hash", "hybrid_hash") or lang_id in (
+                elif family in ("single_line_only", "multi_style_dash") or lang_id in (
                     "python",
                     "yaml",
                 ):
@@ -1457,7 +1459,7 @@ class OpticalDetector:
         rules: Dict[str, Any],
         offset: int,
         spatial_map: Dict[str, List[int]],
-        family: str = "std_c",
+        family: str = "c_style_comment",
     ) -> Tuple[List[FunctionNode], float]:
         """[INTEGRATION MODE B] - Global Recursive Scope Analysis (C-Family & Lisp)."""
         satellites = []
@@ -1473,8 +1475,9 @@ class OpticalDetector:
             return [], 0.0
 
         # Dynamically set scope bounds based on lexical family
-        opener = "(" if family == "lisp_semi" else "{"
-        closer = ")" if family == "lisp_semi" else "}"
+        # Mapping 'lisp_style' (formerly 'lisp_semi') to parenthesis-based scope parsing
+        opener = "(" if family == "lisp_style" else "{"
+        closer = ")" if family == "lisp_style" else "}"
 
         # 1. High-Performance C-Backed Shield Function
         def fast_shield(m):
@@ -1489,7 +1492,7 @@ class OpticalDetector:
 
         # 2. The Single-Pass Lexer (Massive I/O Reduction)
         # Combines strings and comments into ONE scan to prevent memory-copy thrashing.
-        if family == "lisp_semi":
+        if family == "lisp_style":
             combined_pattern = r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|;[^\n]*|#\|.*?\|#'
         else:
             # THE FIX: Unrolled the C# verbatim string loop using Friedl's optimization

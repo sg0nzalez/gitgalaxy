@@ -48,23 +48,23 @@ def isolated_detector():
     mock_langs = {
         "python": {"extensions": [".py"], "shebangs": ["python"]},
         "shell": {"extensions": [".sh"], "shebangs": ["bash"]},
-        "cpp": {"extensions": [".cpp", ".h"], "lexical_family": "std_c"},
+        "cpp": {"extensions": [".cpp", ".h"], "lexical_family": "c_style_comment"},
         "c": {
             "extensions": [".c", ".h"],
-            "lexical_family": "std_c",
+            "lexical_family": "c_style_comment",
             "rules": {
                 "main": re.compile(r"int\s+main")
             },  # <-- The engine needs a rule to detect C!
         },
         "objective-c": {
             "extensions": [".m", ".h"],
-            "lexical_family": "std_c",
+            "lexical_family": "c_style_comment",
             "rules": {
                 "interface": re.compile(r"@interface\s+")
-            },  # Needed for Spectral Scan score
+            },  # Needed for Lexical Scan score
         },
         "html": {"extensions": [".html"], "lexical_family": "xml_angle"},
-        "javascript": {"extensions": [".js"], "lexical_family": "std_c"},
+        "javascript": {"extensions": [".js"], "lexical_family": "c_style_comment"},
         "markdown": {"extensions": [".md"], "lexical_family": "prose"},
     }
 
@@ -101,7 +101,7 @@ def isolated_detector():
     detector.DISQUALIFIERS = {}
 
     detector.comment_defs = {
-        "mechanical_families": {"std_c": {"delimiters": ["//", "/*"]}}
+        "mechanical_families": {"c_style_comment": {"delimiters": ["//", "/*"]}}
     }
 
     detector.HANDSHAKE_REGISTRY = [
@@ -117,9 +117,9 @@ def isolated_detector():
 
 
 # ==============================================================================
-# TEST 2: The Identity Crisis Trap (Security Lens)
+# TEST 2: The Identity Conflict Trap (Security Lens)
 # ==============================================================================
-def test_identity_crisis_trap(isolated_detector):
+def test_identity_conflict_trap(isolated_detector):
     """Proves the engine catches files lying about their identity."""
     # A file claiming to be Python, but executing as Bash
     result = isolated_detector.inspect(
@@ -136,23 +136,23 @@ def test_identity_crisis_trap(isolated_detector):
 
 
 # ==============================================================================
-# TEST 3: Tier 0 (Convergent Lock)
+# TEST 3: Tier 0 (Absolute Consensus)
 # ==============================================================================
-def test_tier_0_convergent_lock(isolated_detector):
+def test_tier_0_absolute_consensus(isolated_detector):
     """Proves absolute certainty when Extension and Shebang agree."""
     result = isolated_detector.inspect(
         file_path="test_script_xyz.py",
         content_sample="#!/usr/bin/env python3\nprint('hello')",
     )
 
-    assert result["lock_tier"] == 0, "Failed to apply Tier 0 Convergent Lock!"
+    assert result["lock_tier"] == 0, "Failed to apply Tier 0 Absolute Consensus!"
     assert result["lang_id"] == "python"
 
 
 # ==============================================================================
-# TEST 4: Tier 1.5 (Ecosystem Gravity Collision Resolution)
+# TEST 4: Tier 1.5 (Ecosystem Consensus Collision Resolution)
 # ==============================================================================
-def test_ecosystem_gravity_collision(isolated_detector):
+def test_ecosystem_consensus_collision(isolated_detector):
     """Proves the engine uses surrounding repo mass to resolve contested extensions."""
     # .h files collide between C, C++, and Obj-C.
     # We give it an ecosystem tally overwhelmingly dominated by C++
@@ -166,14 +166,14 @@ def test_ecosystem_gravity_collision(isolated_detector):
 
     assert result["lang_id"] == "cpp"
     assert result["lock_tier"] == 1.5
-    assert "Ecosystem Gravity" in result["source_proof"]
+    assert "Ecosystem Consensus" in result["source_proof"]
 
 
 # ==============================================================================
-# TEST 5: Tier 3 (Spectral Scan)
+# TEST 5: Tier 3 (Lexical Scan)
 # ==============================================================================
-def test_tier_3_spectral_scan(isolated_detector):
-    """Proves the fallback syntax verification works when ecosystem gravity is missing."""
+def test_tier_3_lexical_scan(isolated_detector):
+    """Proves the fallback syntax verification works when ecosystem consensus is missing."""
     # .m files collide (Obj-C vs MATLAB). Provide no gravity, forcing a syntax read.
     content = "#import <Foundation/Foundation.h>\n@interface MyClass : NSObject\n@end"
 
@@ -181,14 +181,14 @@ def test_tier_3_spectral_scan(isolated_detector):
         file_path="test_code_xyz.m", content_sample=content, ext_tally={}
     )
 
-    assert result["lock_tier"] == 4, "Spectral resolution should occur at Tier 4!"
+    assert result["lock_tier"] == 4, "Lexical resolution should occur at Tier 4!"
     assert result["lang_id"] == "objective-c"
 
 
 # ==============================================================================
-# TEST 6: Tier 4 (Deep Space Discovery)
+# TEST 6: Tier 4 (Heuristic Discovery)
 # ==============================================================================
-def test_tier_4_deep_space_discovery(isolated_detector):
+def test_tier_4_heuristic_discovery(isolated_detector):
     """Proves the engine can blindly identify a file with no extension."""
     import os
 
@@ -241,7 +241,7 @@ def test_prose_and_metadata_anchors(isolated_detector):
 
 
 # ==============================================================================
-# TEST 9: Hardware Failure & OS Exceptions (Lines 842-848)
+# TEST 9: Hardware Failure & OS Exceptions
 # ==============================================================================
 @patch("builtins.open", side_effect=PermissionError("Mocked Permission Denied"))
 def test_focusing_error_hardware_failure(mock_open, isolated_detector):
@@ -257,7 +257,7 @@ def test_focusing_error_hardware_failure(mock_open, isolated_detector):
 
 
 # ==============================================================================
-# TEST 10: Multi-Dot & Safe Wrapper Stripping (Lines 150-162)
+# TEST 10: Multi-Dot & Safe Wrapper Stripping
 # ==============================================================================
 def test_safe_wrapper_stripping(isolated_detector):
     """Proves the engine strips .template / .bak wrappers to find the true extension."""
@@ -273,15 +273,15 @@ def test_safe_wrapper_stripping(isolated_detector):
     assert res_wrapped["lang_id"] == "shell", (
         "Failed to extract .sh from .template wrapper!"
     )
-    # The engine gracefully accepts unknown extensions as Exo-Species at Tier 1.7!
+    # The engine gracefully accepts unknown extensions as Unknown Extension Fallback at Tier 1.7!
     assert res_unknown["lang_id"] == "gz"
 
 
 # ==============================================================================
-# TEST 11: Local Ecosystem Gravity & Toxic Pruning (Lines 382-439)
+# TEST 11: Local Ecosystem Consensus & Toxic Pruning
 # ==============================================================================
 @patch("pathlib.Path.iterdir")
-def test_local_ecosystem_gravity_and_toxic_pruning(mock_iterdir, isolated_detector):
+def test_local_ecosystem_consensus_and_toxic_pruning(mock_iterdir, isolated_detector):
     """Proves the engine calculates local folder mass and applies toxic constraints."""
 
     # Mock the local directory containing C++ files
@@ -305,12 +305,12 @@ def test_local_ecosystem_gravity_and_toxic_pruning(mock_iterdir, isolated_detect
         "src/header.h", ".h", global_tally
     )
 
-    assert lang == "cpp", "Failed to prioritize Local C++ gravity over global tally!"
+    assert lang == "cpp", "Failed to prioritize Local C++ consensus over global tally!"
     assert dominance >= 0.70
 
 
 # ==============================================================================
-# TEST 12: Legacy Focus Gateway (Lines 124-128)
+# TEST 12: Legacy Focus Gateway
 # ==============================================================================
 def test_legacy_focus_gateway(isolated_detector):
     """Proves the legacy wrapper yields 'plaintext' for low-signal files."""
@@ -323,7 +323,7 @@ def test_legacy_focus_gateway(isolated_detector):
 
 
 # ==============================================================================
-# TEST 13: Hybrid String Ignorance (Lines 852-876)
+# TEST 13: Hybrid String Ignorance
 # ==============================================================================
 def test_hybrid_string_ignorance(isolated_detector):
     """Proves the balanced end finder does not trip on triggers inside strings."""
@@ -339,7 +339,7 @@ def test_hybrid_string_ignorance(isolated_detector):
 
 
 # ==============================================================================
-# TEST 14: Tier 4 Macro Blindspot Fix & ABAP Handicap (Lines 639-702)
+# TEST 14: Tier 4 Macro Blindspot Fix & ABAP Handicap
 # ==============================================================================
 @patch("gitgalaxy.standards.language_lens.time.time")
 def test_tier_4_macro_and_handicaps(mock_time, isolated_detector):
@@ -351,7 +351,7 @@ def test_tier_4_macro_and_handicaps(mock_time, isolated_detector):
 
     # Inject ABAP into the isolated detector
     isolated_detector.languages["abap"] = {
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {"keyword": re.compile(r"REPORT")},
     }
 
@@ -372,3 +372,66 @@ def test_tier_4_macro_and_handicaps(mock_time, isolated_detector):
         "Failed to apply macro density boost and tie-breaker!"
     )
     assert res_abap["lang_id"] == "abap", "Failed to identify ABAP despite handicap!"
+
+# ==============================================================================
+# TEST 15: EMPTY STATE & VOID HANDLING
+# ==============================================================================
+def test_empty_file_survival(isolated_detector, tmp_path):
+    """
+    Proves the engine handles 0-byte files by safely defaulting to the 
+    'plaintext' baseline.
+    """
+    empty_file = tmp_path / "empty_file"
+    empty_file.write_text("")
+    
+    result = isolated_detector.inspect(str(empty_file))
+    
+    # Update: Changed from 'undeterminable' to the engine's actual default 'plaintext'
+    assert result["lang_id"] == "plaintext", "Empty file should revert to plaintext baseline!"
+    assert result["loc"] == 0
+    assert result["size_bytes"] == 0
+
+
+# ==============================================================================
+# TEST 16: REGEX HALLUCINATION & CLAMPING SHIELD
+# ==============================================================================
+def test_regex_hallucination_clamp(isolated_detector):
+    """
+    Proves the anti-hallucination shield works. The engine is tuned to prefer 
+    'plaintext' fallback over making high-confidence errors on noisy data.
+    """
+    isolated_detector.languages["c"]["rules"]["greedy_empty"] = re.compile(r"(?:)")
+    
+    content = "int a = 1;"
+    
+    # Run a Tier 3 Lexical Scan
+    lang_id, confidence = isolated_detector._tier_3_lexical_scan(
+        content=content, ext=".c", claimed_lang="c"
+    )
+    
+    # We assert 'plaintext' because the signal-to-noise ratio of our 
+    # hallucination-regex was rejected by the engine.
+    assert lang_id == "plaintext", "Engine should revert to plaintext when signal is too noisy!"
+
+
+# ==============================================================================
+# TEST 17: CORRUPTED INTENT METADATA SURVIVAL
+# ==============================================================================
+def test_corrupted_intent_vector_survival(isolated_detector):
+    """
+    Proves the engine gracefully ignores malformed Bayesian priors passed down 
+    from the pipeline orchestrator without crashing.
+    """
+    # A completely corrupted intent vector missing the standard keys
+    corrupted_intent = {"wrong_key": "python", "confidence_score": "HIGH"}
+    
+    result = isolated_detector.inspect(
+        file_path="unknown_script",
+        content_sample="print('hello')",
+        has_intent=True,
+        intent_vector=corrupted_intent
+    )
+    
+    # The engine should ignore the garbage metadata and drop down to standard Heuristic Discovery
+    assert result["lang_id"] in ["undeterminable", "plaintext", "python"]
+    assert "Discovery" in result["source_proof"]

@@ -16,7 +16,7 @@ from gitgalaxy.standards import analysis_lens as config
 
 # ==============================================================================
 # GitGalaxy Phase 10: LLM Recorder (The AI Translation Layer)
-# Strategy v6.3.0 Protocol: Token Density, Distribution Physics & RAG Graphs
+# Strategy v6.3.0 Protocol: Token Density, Distribution Physics & Context Graphs
 # ==============================================================================
 
 
@@ -27,7 +27,7 @@ class LLMRecorder:
     FEATURES:
     1. Statistical Physics: Calculates Min/Max/Mean/Median/Mode for all risks.
     2. Syntactic Bottlenecks: Isolates I/O and Dependency choke points.
-    3. God Functions: Ranks top 10 satellites by individual magnitude.
+    3. High-Impact Functions: Ranks top 10 functions by structural magnitude.
     4. Relational Knowledge Graph: Builds a SQLite DB for autonomous agents.
     5. Markdown Brief: Token-compressed text for standard LLM context windows.
     """
@@ -45,10 +45,10 @@ class LLMRecorder:
         self.RISK_SCHEMA = schemas.get("RISK_SCHEMA", [])
         self.SIGNAL_SCHEMA = schemas.get("SIGNAL_SCHEMA", [])
 
-    def _parse_threat_score(self, star: Dict) -> Tuple[float, str]:
+    def _parse_threat_score(self, artifact: Dict) -> Tuple[float, str]:
         """Safely extracts and converts the AI threat score string to a float."""
         score_str = (
-            star.get("telemetry", {})
+            artifact.get("telemetry", {})
             .get("domain_context", {})
             .get("AI Threat Score", "0.0%")
         )
@@ -73,13 +73,12 @@ class LLMRecorder:
         target_name = session_meta.get("target", "unknown_project")
         safe_dir = Path(output_dir)
 
-        # Use safe_dir instead of base_dir!
         output_path_md = safe_dir / f"{target_name}_galaxy_llm.md"
         output_path_db = safe_dir / f"{target_name}_galaxy_graph.sqlite"
 
         self.logger.info(f"Initiating LLM Artifact Generation for '{target_name}'...")
 
-        # --- REVERSE DEPENDENCY RESOLUTION (Calculated once for both outputs) ---
+        # --- REVERSE DEPENDENCY RESOLUTION ---
         resolution_map = {}
         for s in parsed_files:
             path = s.get("path", "")
@@ -106,14 +105,11 @@ class LLMRecorder:
                         inbound_set_map[target_path].add(curr)
                         outbound_set_map[curr].add(target_path)
 
-        # Cast back to standard dictionaries of lists for downstream compatibility
         inbound_map = {k: list(v) for k, v in inbound_set_map.items()}
-        outbound_map = {k: list(v) for k, v in outbound_set_map.items()}
 
-        # 1. Build the Relational Knowledge Graph
+        # 1. Build the Relational Knowledge Graph (SQLite)
         self._generate_sqlite_graph(
             parsed_files,
-            unparsable_files,
             summary,
             session_meta,
             output_path_db,
@@ -127,15 +123,13 @@ class LLMRecorder:
             summary,
             session_meta,
             forensic_report,
-            inbound_map,
-            outbound_map,
         )
 
         try:
             with open(output_path_md, "w", encoding="utf-8") as f:
                 f.write(md_content)
             self.logger.info(
-                f"AI Mission Complete:\n -> Markdown: {output_path_md}\n -> SQLite: {output_path_db}"
+                f"AI Artifact Generation Complete:\n -> Markdown: {output_path_md}\n -> SQLite: {output_path_db}"
             )
         except Exception as e:
             self.logger.error(f"Failed to seal LLM brief: {e}", exc_info=True)
@@ -147,8 +141,6 @@ class LLMRecorder:
         summary: Dict[str, Any],
         session_meta: Dict[str, Any],
         forensic_report: Dict[str, Any],
-        inbound_map: Dict[str, List[str]],
-        outbound_map: Dict[str, List[str]],
     ) -> str:
         """Constructs a high-density, context-rich Markdown brief for LLM agents."""
         target = session_meta.get("target", "Project")
@@ -162,7 +154,7 @@ class LLMRecorder:
         lines = []
         lines.append(f"# ARCHITECTURAL_BRIEF: {target}")
         lines.append(
-            "> INSTRUCTION: Deterministic Syntactic Physics. Base architectural insights on Mass, DNA, and Risk overlays.\n"
+            "> INSTRUCTION: Deterministic Syntactic Analysis. Base architectural insights on Mass, Extracted Signatures, and Risk overlays.\n"
         )
 
         # --- 0. FORENSIC TRACEABILITY ---
@@ -194,7 +186,7 @@ class LLMRecorder:
             )
             lines.append("")
 
-        # ---> NEW: HARVEST AI THREAT SCORES & CREATE BILLBOARD <---
+        # ---> HARVEST AI THREAT SCORES <---
         ml_threats = []
         for s in parsed_files:
             score_val, score_str = self._parse_threat_score(s)
@@ -205,119 +197,118 @@ class LLMRecorder:
 
         lines.append("## 0.5 AI THREAT AUDIT STATUS")
         if ml_threats:
-            lines.append("> **🚨 AI_CONFIRMED_MALWARE_DETECTED**")
+            lines.append("> **🚨 ML_CONFIRMED_THREAT_DETECTED**")
             lines.append(
-                f"> XGBoost Structural DNA model identified {len(ml_threats)} malicious artifacts."
+                f"> XGBoost Structural Signatures model identified {len(ml_threats)} malicious artifacts."
             )
         else:
-            lines.append("> **✅ SECURE_NO_MALWARE_DETECTED**")
-            lines.append("> XGBoost Structural DNA model found no malicious artifacts.")
+            lines.append("> **✅ SECURE_NO_THREATS_DETECTED**")
+            lines.append("> XGBoost Structural Signatures model found no malicious artifacts.")
         lines.append("")
 
         # --- 1. CRITICAL SYSTEM INSTRUCTIONS & LEXICON ---
         lines.append("## 1. SYSTEM ROLE & PHILOSOPHY")
-        lines.append("> Code is art. Logic is art. Systems engineering is art.")
         lines.append(
-            "> You are analyzing software architecture through the lens of GitGalaxy. GitGalaxy acts as a Rosetta Stone for code complexity, translating the non-visual architecture of repositories into measurable metrics."
+            "> You are analyzing software architecture through the lens of GitGalaxy Static Application Security Testing (SAST). GitGalaxy translates the non-visual architecture of repositories into measurable technical metrics."
         )
         lines.append("> ")
         lines.append("> **CORE DIRECTIVES:**")
         lines.append(
-            "> 1. **Measure Risk, Not Quality:** Do not judge. We do not assess 'Bad Code'; we measure Risk Exposure (e.g., Cognitive Load Exposure). Frame all insights as blameless, objective observations. High risk highlights where the architecture might be drifting into dangerous territory, not incompetence."
+            "> 1. **Measure Risk, Not Quality:** Do not judge. We measure Risk Exposure (e.g., Cognitive Load Exposure). Frame all insights as blameless, objective observations. High risk highlights where the architecture might be drifting into fragile territory, not developer incompetence."
         )
         lines.append(
-            "> 2. **The Physical Reality Rule:** Base your analysis strictly on the provided Structural DNA (regex hit counts). Do not hallucinate meaning."
+            "> 2. **The Physical Reality Rule:** Base your analysis strictly on the provided Structural Signatures (regex hit counts). Do not hallucinate meaning."
         )
         lines.append(
             "> 3. **Risk vs. Defense:** Code is a balance. A file with high `flux` (state mutation) is risky unless balanced by `freeze_hits` (immutability). High `danger` is brittle unless wrapped in `safety`."
         )
         lines.append("> ")
-        lines.append("> **THE STRUCTURAL DNA LEXICON:**")
+        lines.append("> **THE STRUCTURAL SIGNATURE LEXICON:**")
         lines.append(
             "> * **Structure & Mass:** `branch` (splits), `linear` (paths), `args` (coupling), `func_start` (entry points)."
         )
         lines.append(
-            "> * **Risk & Volatility:** `danger` (catastrophic triggers), `flux` (state mutation), `graveyard` (dead code), `safety_neg` (bypassing types)."
+            "> * **Risk & Volatility:** `danger` (dynamic execution), `flux` (state mutation), `graveyard` (commented-out logic), `safety_neg` (security bypasses)."
         )
         lines.append(
-            "> * **Architecture & Domain:** `io` (external latency), `concurrency` (async orchestration), `api` (public surface), `import` (dependencies)."
+            "> * **Architecture & Domain:** `io` (network latency), `concurrency` (async orchestration), `api` (public surface), `import` (dependencies)."
         )
         lines.append(
-            "> * **Defensive Guardrails:** `Error & Exception handling, `freeze_hits` (immutability), `cleanup` (state destruction)."
+            "> * **Defensive Guardrails:** `safety` (Error handling), `freeze_hits` (immutability), `cleanup` (state destruction)."
         )
 
         # --- 2. 13-POINT RISK PHYSICS (THE EQUATIONS) ---
         lines.append("## 2. THE 13-POINT RISK EXPOSURE PHYSICS (EQUATIONS & CONTEXT)")
         lines.append(
-            "> **How the Physics Engine Calculates Risk Exposure (Lower Risk 0 - Higher Risk Exposure 100%):**"
+            "> **How the SAST Engine Calculates Risk Exposure (Lower Risk 0 - Higher Risk Exposure 100%):**"
         )
         lines.append(
             "> Most scores use a Sigmoid curve based on density (Hits / LOC) to prevent massive files from mathematically hiding their flaws."
         )
         lines.append("> ")
         lines.append(
-            "> 1. **Cognitive Load Exposure:** Measures the mental effort required for a developer to read and understand the file. `Density(Branches + (Flux * 2) + Async/Danger)` mitigated by `Doc Coverage`. High scores indicate a high density of decision-making, conditional branching, and complex state management packed into a small area."
+            "> 1. **Cognitive Load Exposure:** Measures the mental effort required for a developer to read and understand the file. `Density(Branches + (Flux * 2) + Async/Danger)` mitigated by `Doc Coverage`."
         )
         lines.append(
-            "> 2. **Error & Exception Risk Exposure:** Measures structural integrity and resilience against runtime errors. `Net Exposure = (Danger + Safety_Neg + Flux) - (Safety + Tests + Docs)`. High scores mean risky operations (dynamic execution, type bypasses, unhandled mutations) exceed defensive guardrails (try/catch blocks, type checks, assertions). **Breach Cap:** If danger density is too high, the score is mathematically floored to a high-risk state regardless of defense. A value of near 30 is near minimum floor as gitgalaxy tests for testing file pairs, testing folders but not actually their contents."
+            "> 2. **Error & Exception Risk Exposure:** Measures structural integrity and resilience against runtime errors. `Net Exposure = (Danger + Safety_Neg + Flux) - (Safety + Tests + Docs)`."
         )
         lines.append(
-            "> 3. **Tech Debt Exposure:** Measures the density of developer-annotated structural stress. `Density(TODOs [1x] + FIXMEs/Hacks [3x] + Empty Stubs [0.5x])`. High scores indicate a high volume of temporary workarounds, fragile logic, and incomplete implementations relative to the file size."
+            "> 3. **Tech Debt Exposure:** Measures the density of developer-annotated structural stress. `Density(TODOs [1x] + FIXMEs/Hacks [3x] + Empty Stubs [0.5x])`."
         )
         lines.append(
-            "> 4. **Verification Risk Exposure:** Evaluates test coverage by comparing a function's structural complexity against the scope of the tests validating it. The engine calculates a function's base complexity and mathematically reduces it using an asymptotic dampener powered by internal assertions and external test tethers. High scores (100% risk) indicate massive, load-bearing architecture operating with near-zero internal assertions or external test coverage."
+            "> 4. **Verification Risk Exposure:** Evaluates test coverage by comparing a function's structural complexity against the scope of the tests validating it."
         )
         lines.append(
-            "> 5. **API Risk Exposure:** Measures the public surface area of a module. `Ratio(API Hits / Total Functions & Classes)`. Weighted by logarithmic volume. High scores indicate that a large percentage of the file's functions and classes are explicitly exported or publicly accessible by external systems."
+            "> 5. **API Risk Exposure:** Measures the public surface area of a module. `Ratio(API Hits / Total Functions & Classes)`."
         )
         lines.append(
-            "> 6. **Concurrency Risk Exposure:** Measures the density of asynchronous operations, threading, and parallel execution logic. `Density(Async/Thread Hits)`. High scores indicate a high risk of race conditions, deadlocks, and complex execution timing issues."
+            "> 6. **Concurrency Risk Exposure:** Measures the density of asynchronous operations, threading, and parallel execution logic."
         )
         lines.append(
-            "> 7. **State Flux Risk Exposure:** Measures the frequency of data mutation and variable reassignment. `Density(State Mutations / LOC)`. High scores indicate unstable data states with constant side-effects, making state tracking difficult and unpredictable."
+            "> 7. **State Flux Risk Exposure:** Measures the frequency of data mutation and variable reassignment."
         )
         lines.append(
-            "> 8. **Graveyard (commented out code):** Measures the presence of abandoned, commented-out logic blocks. `Density(Commented-out Code / LOC)`. High scores indicate messy refactoring trails that create visual clutter and confusion for maintainers."
+            "> 8. **Graveyard (commented out code):** Measures the presence of abandoned, commented-out logic blocks."
         )
         lines.append(
-            "> 9. **Spec Match Risk Exposure:** Measures how closely code aligns with formal specifications or architectural requirements. `Inverse Ratio(Spec Hits / Total Functions)`. 100% Risk means no functions are tagged to a specification (undocumented exploratory logic); 0% means all logic is explicitly anchored to documented requirements."
+            "> 9. **Spec Match Risk Exposure:** Measures how closely code aligns with formal specifications or architectural requirements."
         )
         lines.append(
-            "> 10. **Stability:** Measures the recency of edits relative to the repository's entire lifespan. `Ratio(Seconds from Last Edit / Total Repo Lifespan)`. 100% Risk = Edited very recently; 0% Risk = Untouched for a long period."
+            "> 10. **Stability:** Measures the recency of edits relative to the repository's entire lifespan."
         )
         lines.append(
-            "> 11. **Deep Churn:** Measures the historical volatility and frequency of modification. `(Commits / sqrt(Age in Weeks))`. Normalized globally so the file with the most commits relative to its age is always 100%, indicating a constant hotspot for changes."
+            "> 11. **Deep Churn:** Measures the historical volatility and frequency of modification."
         )
         lines.append(
-            "> 12. **Documentation Risk Exposure:** Measures the lack of structured documentation and ownership metadata. `Inverse Density(Doc Hits + Ownership / LOC)`. High risk means the file contains complex logic but lacks explanatory comments or structured metadata tags (like JSDoc) for developers."
+            "> 12. **Documentation Risk Exposure:** Measures the lack of structured documentation and ownership metadata."
         )
         lines.append(
-            "> 13. **Civil War - DONT MENTION:** Measures formatting consistency regarding indentation. 0% = File is in pure Tabs, 100% = File is in Pure Spaces, 50% = Mixed indentation. (Provided for human context, not a functional risk) DO NOT MENTION THIS ONE ."
+            "> 13. **Indentation Consistency:** Measures formatting alignment (Tabs vs. Spaces). Provided for codebase standardization context, not a functional risk."
         )
         lines.append("> ")
         lines.append("> **--- THE SECURITY & VULNERABILITY LENS ---**")
         lines.append(
-            "> 14. **Obfuscation & Evasion Risk (obscured_payload):** Measures the density of obfuscated logic, packed strings, and non-standard encoding. High scores indicate code that is structurally evading human readability or static analysis."
+            "> 14. **Obfuscation & Evasion Risk:** Measures the density of obfuscated logic, packed strings, and non-standard encoding."
         )
         lines.append(
-            "> 15. **Destructive Execution Surface (logic_bomb):** Measures condition-heavy execution leading to destructive OS, memory, or process commands. High scores indicate a weaponizable surface where logic could easily be hijacked for sabotage."
+            "> 15. **Logic Bomb / Sabotage Risk:** Measures condition-heavy execution leading to destructive OS, memory, or process commands."
         )
         lines.append(
-            "> 16. **Injection Surface Risk Exposure (injection_surface):** Measures external network/I/O input flowing directly into dynamic execution contexts without safety nets (XSS, SQLi, RCE)."
+            "> 16. **Injection Surface Risk Exposure:** Measures external network/I/O input flowing directly into dynamic execution contexts (XSS, SQLi, RCE)."
         )
         lines.append(
-            "> 17. **Memory Corruption Risk Exposure (memory_corruption):** Measures the density of raw pointer math, manual memory allocations, and forceful casts without mitigations (Buffer Overflows, UAF). Primarily affects C/C++/Rust."
+            "> 17. **Memory Corruption Risk Exposure:** Measures the density of raw pointer math and manual memory allocations (Buffer Overflows, UAF)."
         )
         lines.append(
-            "> 18. **Secrets Risk Exposure (secrets_risk):** Measures the presence of hardcoded credentials (RHS assignments) exposed to logs, globals, or graveyard code. Any score > 0 is a critical alert."
+            "> 18. **Secrets Risk Exposure:** Measures the presence of hardcoded credentials exposed to logs or globals."
         )
         lines.append("> ")
         lines.append("> **--- STRUCTURAL MAGNITUDE (NOT RISK) ---**")
         lines.append(
-            "> **19. Function Magnitude (Impact Score):** Measures the physical footprint and 'heaviness' of a specific function. `((BranchHits + 1) * (Args + 1) + (0.05 * LOC)) * 10`. **This is NOT a risk score.** It measures the volume of decision-making, parameter coupling, and length. High impact means the function is a load-bearing 'Main Character' in the logic."
+            "> **19. Function Magnitude (Impact Score):** Measures the physical footprint and 'heaviness' of a specific function. `((BranchHits + 1) * (Args + 1) + (0.05 * LOC)) * 10`. This is NOT a risk score."
         )
         lines.append(
-            "> **20. File Magnitude (Total Mass):** Measures the total gravitational pull of a file. `Sum(Function Impacts) + API + Concurrency + Flux + (LOC / 50)`. **This is NOT a risk score.** A massive file simply means it is a heavily connected, structurally dense hub, whereas a lightweight file is a simple utility or config."
+            "> **20. File Magnitude (Total Mass):** Measures the total gravitational pull of a file. `Sum(Function Impacts) + API + Concurrency + Flux + (LOC / 50)`. This is NOT a risk score."
         )
         lines.append("")
 
@@ -326,9 +317,9 @@ class LLMRecorder:
         lines.append("| Metric | Value |")
         lines.append("|---|---|")
         lines.append(f"| Total Artifacts | {sum_data.get('total_files', 0)} |")
-        lines.append(f"| Visible Matter (Scanned) | {visible_count} |")
+        lines.append(f"| Analyzed Artifacts (Scanned) | {visible_count} |")
         lines.append(
-            f"| Dark Matter (Non-scanned - binaries, images, extensions without definitions) | {total_excluded} |"
+            f"| Excluded Artifacts (Unparsable data, binaries, unsupported formats) | {total_excluded} |"
         )
         lines.append(f"| Total LOC | {sum_data.get('total_loc', 0)} |")
         lines.append(f"| Volatility Index | {sum_data.get('volatility_index', 0.0)} |")
@@ -378,13 +369,13 @@ class LLMRecorder:
                 )
         lines.append("")
 
-        # --- 4.5 REPOSITORY MACRO-SPECIES (THE OVERARCHING PURPOSE) ---
-        lines.append("## 4.5 REPOSITORY MACRO-SPECIES (GLOBAL ARCHITECTURE)")
+        # --- 4.5 REPOSITORY ECOSYSTEM BASELINE ---
+        lines.append("## 4.5 REPOSITORY ECOSYSTEM BASELINE (GLOBAL ARCHITECTURE)")
         macro = summary.get("repo_macro_species", {})
         macro_name = macro.get("name", "Unclassified")
         z_score = macro.get("z_score", 0.0)
 
-        lines.append(f"> **Assigned Macro-Species:** `{macro_name}`")
+        lines.append(f"> **Assigned Ecosystem Baseline:** `{macro_name}`")
         lines.append(f"> **Architectural Drift Z-Score:** `{z_score}`")
 
         if z_score > 2.0:
@@ -401,7 +392,7 @@ class LLMRecorder:
             )
         lines.append("")
 
-        lines.append("## 4.6 MICRO-SPECIES (FILE ARCHETYPES & STATIC MASS)")
+        lines.append("## 4.6 FILE ARCHETYPES & STATIC MASS")
         fingerprint = summary.get("ecosystem_fingerprint", {})
         ml_clusters = fingerprint.get("ml_clusters", {})
         static_mass = fingerprint.get("static_mass", {})
@@ -422,29 +413,8 @@ class LLMRecorder:
                 lines.append(f"| {arch} | {data['count']} | {data['pct']}% |")
             lines.append("")
 
-        # --- 4.7 AI & DATA TOPOLOGY ---
-        ai_top = summary.get("ai_topology", {})
-        if ai_top:
-            lines.append("## 4.7 AI & MACHINE LEARNING TOPOLOGY")
-            lines.append(
-                f"> **Classification:** `{ai_top.get('classification', 'Unknown')}`"
-            )
-            for insight in ai_top.get("insights", []):
-                lines.append(f"> - {insight}")
-            lines.append("")
-
-        data_top = summary.get("data_topology", {})
-        if data_top:
-            lines.append("## 4.8 DATA TOPOLOGY & RELATIONAL GRAVITY")
-            lines.append(
-                f"> **Classification:** `{data_top.get('classification', 'Unknown')}`"
-            )
-            for insight in data_top.get("insights", []):
-                lines.append(f"> - {insight}")
-            lines.append("")
-
-        # --- 5. DARK MATTER ---
-        lines.append("## 5. DARK MATTER (Non-scanned items ARTIFACTS)")
+        # --- 5. EXCLUDED ARTIFACTS ---
+        lines.append("## 5. EXCLUDED ARTIFACTS (Unparsable or Shielded Files)")
         lines.append(f"*Total Excluded Artifacts: {total_excluded}*\n")
 
         comp_breakdown = summary.get("unparsable_files", {}).get(
@@ -459,26 +429,13 @@ class LLMRecorder:
                     safe_rsn = (
                         rsn.replace("Unparsable", "Unrecognized Syntax")
                         .replace("Structural Saturation", "Dense Structure")
-                        .replace("Necrosis", "Optical Bypass")
+                        .replace("Necrosis", "Parser Bypass")
                         .replace("Blocked", "Excluded")
                     )
                     clean_reasons.append(f"{count}x {safe_rsn.strip()}")
 
                 reason_str = ", ".join(clean_reasons)
                 lines.append(f"- `{ext}`: {reason_str}")
-        else:
-            legacy_breakdown = summary.get("unparsable_files", {}).get("breakdown", {})
-            sing_items = []
-            for k, v in sorted(
-                legacy_breakdown.items(),
-                key=lambda x: x[1] if isinstance(x[1], int) else 0,
-                reverse=True,
-            ):
-                if isinstance(v, int) and v > 0:
-                    safe_k = k.replace("unparsable", "optical_bypass")
-                    sing_items.append(f"`{safe_k}`:{v}")
-            lines.append(" | ".join(sing_items))
-
         lines.append("")
 
         # --- 6. RISK DISTRIBUTIONS ---
@@ -490,7 +447,7 @@ class LLMRecorder:
         exposure_labels = schemas.get("EXPOSURE_LABELS", {})
 
         for i, risk_slug in enumerate(self.RISK_SCHEMA):
-            # THE FIX: Explicitly banish Civil War from the LLM context
+            # Skip the non-risk formatting stat
             if risk_slug == "civil_war":
                 continue
 
@@ -520,10 +477,9 @@ class LLMRecorder:
                 lines.append(f"| {risk_label} | - | - | - | - | - |")
         lines.append("")
 
-        # --- 7. SYNTACTIC BOTTLE-NECKS & DEPENDENCIES ---
+        # --- 7. ARCHITECTURAL CHOKE POINTS & DEPENDENCIES ---
         lines.append("## 7. ARCHITECTURAL CHOKE POINTS & DEPENDENCIES")
 
-        # 7.A: I/O Bottlenecks
         io_idx = self.SIGNAL_SCHEMA.index("io") if "io" in self.SIGNAL_SCHEMA else -1
         if io_idx >= 0:
             top_io = sorted(
@@ -542,7 +498,6 @@ class LLMRecorder:
                 )
             lines.append("")
 
-        # 7.B: Structural Pillars (Imported By)
         pillars = sorted(
             parsed_files,
             key=lambda x: x.get("telemetry", {}).get("popularity", 0),
@@ -561,7 +516,6 @@ class LLMRecorder:
             lines.append(f"{rank}. **{name}** (`{path}`) — {count} inbound connections")
         lines.append("")
 
-        # 7.C: Orchestrators (Imports)
         orchestrators = sorted(
             parsed_files,
             key=lambda x: (
@@ -590,21 +544,19 @@ class LLMRecorder:
 
         import heapq
 
-        # --- 8. GOD FUNCTIONS (THE FUNCTIONS) ---
-        lines.append("## 8. FUNCTION HITLIST (Heaviest Functions)")
+        # --- 8. CORE FUNCTION HITLIST ---
+        lines.append("## 8. CORE FUNCTION HITLIST (Heaviest Functions)")
         lines.append(
             "> *Note: The 'Impact' metric below represents Structural Magnitude (complexity, arguments, and length), NOT operational risk. These are the load-bearing pillars of the logic.*\n"
         )
 
-        # Flatten without deep-copying memory using a lightweight Tuple
-        all_sats = []
+        all_functions = []
         for s in parsed_files:
             file_path = s.get("path", "Unknown")
-            for sat in s.get("functions", []):
-                all_sats.append((sat, file_path))
+            for func in s.get("functions", []):
+                all_functions.append((func, file_path))
 
-        # O(N) extraction of the Top 10 (Faster than sorting the entire array)
-        top_impact = heapq.nlargest(10, all_sats, key=lambda x: x[0].get("impact", 0))
+        top_impact = heapq.nlargest(10, all_functions, key=lambda x: x[0].get("impact", 0))
 
         if top_impact:
             for f, file_path in top_impact:
@@ -618,30 +570,28 @@ class LLMRecorder:
                     )
                     lines.append(f"  * *Intent:* {clean_doc}")
         else:
-            lines.append("*No complex satellites detected.*")
+            lines.append("*No complex functions detected.*")
         lines.append("")
 
-        # --- 8.5 ALGORITHMIC & DATABASE BOTTLENECKS ---
         lines.append("## 8.5 ALGORITHMIC & DATABASE BOTTLENECKS")
         lines.append(
             "> Highlights the most computationally expensive and database-heavy functions across the repository.\n"
         )
 
-        # THE FIX: x[0] accesses the dictionary inside the new (sat, file_path) tuple
         sorted_by_big_o = sorted(
-            all_sats,
+            all_functions,
             key=lambda x: (x[0].get("is_recursive", False), x[0].get("big_o_depth", 1)),
             reverse=True,
         )
-        complex_sats = [
+        complex_functions = [
             s
             for s in sorted_by_big_o
             if s[0].get("is_recursive", False) or s[0].get("big_o_depth", 1) > 2
         ]
 
-        if complex_sats:
+        if complex_functions:
             lines.append("### Highest Time Complexity (Big-O)")
-            for f, file_path in complex_sats[:10]:
+            for f, file_path in complex_functions[:10]:
                 o_str = (
                     "O(2^N) [Recursive]"
                     if f.get("is_recursive", False)
@@ -657,13 +607,13 @@ class LLMRecorder:
             lines.append("")
 
         sorted_by_db = sorted(
-            all_sats, key=lambda x: x[0].get("db_complexity", 0), reverse=True
+            all_functions, key=lambda x: x[0].get("db_complexity", 0), reverse=True
         )
-        db_sats = [s for s in sorted_by_db if s[0].get("db_complexity", 0) > 0]
+        db_functions = [s for s in sorted_by_db if s[0].get("db_complexity", 0) > 0]
 
-        if db_sats:
+        if db_functions:
             lines.append("### Highest Data Gravity (Database Complexity)")
-            for f, file_path in db_sats[:10]:
+            for f, file_path in db_functions[:10]:
                 lines.append(
                     f"- `{f.get('name')}` (@ `{file_path}`) -> DB Complexity: **{f.get('db_complexity', 0)}**"
                 )
@@ -676,21 +626,21 @@ class LLMRecorder:
             lines.append("")
 
         # --- 9. DIRECTORY GROUPS ---
-        lines.append("## 9. DIRECTORY GROUPS (Top 10 Heaviest Folders)")
-        constellations = summary.get("directory_groups", {})
-        if constellations:
+        lines.append("## 9. DIRECTORY GROUPS (Top 10 Heaviest Modules)")
+        dir_groups = summary.get("directory_groups", {})
+        if dir_groups:
             lines.append(
                 "| Folder Path | Files | Total Mass | Avg Cog Load | Avg Debt |"
             )
             lines.append("|---|---|---|---|---|")
 
-            sorted_consts = sorted(
-                constellations.items(),
+            sorted_groups = sorted(
+                dir_groups.items(),
                 key=lambda x: x[1].get("total_mass", 0.0),
                 reverse=True,
             )[:10]
 
-            for c_name, c_data in sorted_consts:
+            for c_name, c_data in sorted_groups:
                 mass = c_data.get("total_mass", 0.0)
                 count = c_data.get("file_count", 0)
                 exposures = c_data.get("avg_exposures", {})
@@ -704,7 +654,6 @@ class LLMRecorder:
         # --- 10. TARGETED RISK VECTORS ---
         lines.append("## 10. TARGETED RISK VECTORS (Top 5 by Exposure)")
 
-        # Tech Debt Hitlist
         debt_idx = (
             self.RISK_SCHEMA.index("tech_debt")
             if "tech_debt" in self.RISK_SCHEMA
@@ -724,7 +673,6 @@ class LLMRecorder:
                             f"- `{s.get('path')}` -> **{s.get('risk_vector')[debt_idx]}%** Exposure"
                         )
 
-        # State Flux (Volatility) Hitlist
         flux_idx = (
             self.RISK_SCHEMA.index("state_flux")
             if "state_flux" in self.RISK_SCHEMA
@@ -744,7 +692,6 @@ class LLMRecorder:
                             f"- `{s.get('path')}` -> **{s.get('risk_vector')[flux_idx]}%** Exposure"
                         )
 
-        # Design Slop (Orphans & Duplicates) Hitlist
         orphan_idx = (
             self.SIGNAL_SCHEMA.index("design_slop_orphans")
             if "design_slop_orphans" in self.SIGNAL_SCHEMA
@@ -757,7 +704,6 @@ class LLMRecorder:
         )
 
         if orphan_idx >= 0 and dup_idx >= 0:
-            # Sort by total slop (orphans + duplicates)
             high_slop = sorted(
                 [
                     s
@@ -792,20 +738,19 @@ class LLMRecorder:
         lines.append("## 10.5 AI THREAT INTELLIGENCE (XGBoost)")
         if ml_threats:
             lines.append(
-                "> **CRITICAL THREATS DETECTED.** The following files possess the structural DNA of known malware.\n"
+                "> **CRITICAL THREATS DETECTED.** The following files possess the structural signatures of known vulnerabilities.\n"
             )
-            # Show top 10% of threats, or at least the top 10
             cutoff = max(10, int(len(ml_threats) * 0.10))
             for i, (s, val, string_val) in enumerate(ml_threats[:cutoff]):
                 lines.append(
                     f"{i + 1}. **`{s.get('path')}`** -> AI Confidence: **{string_val}**"
                 )
         else:
-            lines.append("*No files met the threshold for malicious structural DNA.*")
+            lines.append("*No files met the threshold for malicious structural signatures.*")
         lines.append("")
 
         # --- 10.6 CRITICAL VULNERABILITY EXPOSURES (RULE-BASED) ---
-        lines.append("## 10.6 WEAPONIZABLE SURFACE EXPOSURES (RULE-BASED LENS)")
+        lines.append("## 10.6 WEAPONIZABLE SURFACE EXPOSURES (RULE-BASED SAST)")
         lines.append(
             "> Secondary Evidence: The following files tripped specific static threat signatures. Use these to explain *why* the XGBoost model flagged the files above.\n"
         )
@@ -963,16 +908,15 @@ class LLMRecorder:
         lines.append("")
 
         # ==============================================================================
-        # --- 11. CUMULATIVE RISK HITLIST (NEW) ---
+        # --- 11. CUMULATIVE RISK HITLIST ---
         # ==============================================================================
         lines.append("## 11. CUMULATIVE RISK HITLIST (Top 10 Highest Risk Files)")
         lines.append(
-            "> Cumulative Risk is the sum of all individual risk exposures (excluding Civil War). These files represent the highest multi-dimensional technical debt and architectural fragility.\n"
+            "> Cumulative Risk is the sum of all individual risk exposures. These files represent the highest multi-dimensional technical debt and architectural fragility.\n"
         )
 
         cumulative_risks = forensic_report.get("cumulative_risk", {}).get("highest", [])
         if cumulative_risks:
-            # Create a fast-lookup map to pull detailed file stats by path
             file_map = {f.get("path"): f for f in parsed_files}
 
             for rank, cr in enumerate(cumulative_risks[:10], 1):
@@ -980,7 +924,6 @@ class LLMRecorder:
                 c_val = cr.get("value")
                 s = file_map.get(p)
 
-                # Fallback if the star object is somehow missing
                 if not s:
                     lines.append(f"### {rank}. `{p}` -> Cumulative Risk: **{c_val}**")
                     continue
@@ -999,7 +942,6 @@ class LLMRecorder:
                     f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%"
                 )
 
-                # Dynamically calculate the top 4 risk drivers pushing this file's score up
                 file_risks = []
                 for i, r_val in enumerate(rv):
                     if (
@@ -1018,7 +960,6 @@ class LLMRecorder:
                     f"- **Primary Risk Drivers:** {', '.join(top_file_risks) if top_file_risks else 'None'}"
                 )
 
-                # Fetch the top 3 heaviest functions in this specific file
                 sats = sorted(
                     s.get("functions", []),
                     key=lambda x: x.get("impact", 0),
@@ -1037,9 +978,9 @@ class LLMRecorder:
             lines.append("")
 
         # ==============================================================================
-        # --- 12. VISIBLE MATTER HITLIST (Top 25 Heaviest Files) ---
+        # --- 12. SCANNED ARTIFACTS HITLIST (Top 25 Heaviest Files) ---
         # ==============================================================================
-        lines.append("## 12. VISIBLE MATTER HITLIST (Top 25 Heaviest Files)")
+        lines.append("## 12. SCANNED ARTIFACTS HITLIST (Top 25 Heaviest Files)")
         lines.append(
             "> *Note: 'Mass' represents the file's total Structural Magnitude and gravitational pull within the system. It is independent of its Risk Profile. High mass implies high structural importance and centralization.*\n"
         )
@@ -1048,7 +989,6 @@ class LLMRecorder:
             parsed_files, key=lambda x: x.get("file_impact", 0.0), reverse=True
         )[:25]
 
-        # DNA Bucketing Sets
         structure_keys = {"branch", "linear", "args", "func_start", "class_start"}
         risk_keys = {
             "danger",
@@ -1074,11 +1014,9 @@ class LLMRecorder:
             cog = rv[0] if len(rv) > 0 else 0.0
             debt = rv[2] if len(rv) > 2 else 0.0
 
-            # Extract advanced telemetry
             lock_tier = s.get("lock_tier", tel.get("identity_lock_tier", 4))
             purpose = tel.get("domain_context", {}).get("purpose", "")
 
-            # ---> NEW: INJECT AI SCORE INTO FILE HEADER <---
             ai_score_val, ai_score_str = self._parse_threat_score(s)
             threat_flag = (
                 f" | 🚨 AI THREAT: {ai_score_str}"
@@ -1088,7 +1026,7 @@ class LLMRecorder:
 
             lines.append(f"### `{p}` ({l} | Tier {lock_tier}{threat_flag})")
             if purpose:
-                lines.append(f"> **Stated Purpose:** *{purpose}*")
+                lines.append(f"> **System Purpose:** *{purpose}*")
 
             arch = tel.get("archetype", "Unknown Archetype")
             g_drift = tel.get("global_drift", "N/A")
@@ -1119,7 +1057,6 @@ class LLMRecorder:
                 f"- **Risk Profile:** Cognitive Load ({cog}%), Tech Debt ({debt}%)"
             )
 
-            # Bucket the DNA Hits
             hv = s.get("hit_vector", [])
             struct_hits, risk_hits, arch_hits, def_hits = [], [], [], []
 
@@ -1136,7 +1073,6 @@ class LLMRecorder:
                     elif key in defense_keys:
                         def_hits.append(hit_string)
 
-            # --- Add this right below your DNA bucketing lines ---
             sats = sorted(
                 s.get("functions", []), key=lambda x: x.get("impact", 0), reverse=True
             )[:5]
@@ -1163,7 +1099,6 @@ class LLMRecorder:
                         )
                         lines.append(f"    * *Intent:* {clean_doc}")
 
-            # --- NEW MITIGATION TELEMETRY BLOCK ---
             mitigations = tel.get("mitigation_telemetry", {})
             active_mitigations = {k: v for k, v in mitigations.items() if v > 0}
             if active_mitigations:
@@ -1172,8 +1107,7 @@ class LLMRecorder:
                     clean_key = m_key.replace("_", " ").title()
                     lines.append(f"* *{clean_key}:* {m_val} instances")
 
-            # --- UPDATED STRING LABEL ---
-            lines.append("**Structural DNA (Net Mitigated Signals):**")
+            lines.append("**Structural Signatures (Net Mitigated Signals):**")
             lines.append(
                 f"* *Structure:* {', '.join(struct_hits) if struct_hits else 'None'}"
             )
@@ -1185,7 +1119,6 @@ class LLMRecorder:
             )
             lines.append(f"* *Defense:* {', '.join(def_hits) if def_hits else 'None'}")
 
-            # Dependency Graph Mapping (Named Edges)
             outbound = s.get("raw_imports", [])
             net_mets = tel.get("network_metrics", {})
             in_d = net_mets.get("in_degree", 0)
@@ -1215,9 +1148,9 @@ class LLMRecorder:
             lines.append("")
 
         # ==============================================================================
-        # --- 13. BIAXIAL ANOMALY & ARCHITECTURAL DRIFT ---
+        # --- 13. ARCHITECTURAL DRIFT ANOMALIES & ANTI-PATTERNS ---
         # ==============================================================================
-        lines.append("## 13. BIAXIAL ANOMALY & ARCHITECTURAL DRIFT")
+        lines.append("## 13. ARCHITECTURAL DRIFT ANOMALIES & ANTI-PATTERNS")
         lines.append(
             "> **AI CONTEXT:** Pay close attention to 'Anti-Pattern' files. These files blend in globally (Low Global Drift), but heavily violate the standard conventions of their native programming language (High Local Drift). 'Mixed-Responsibility' files sit perfectly between two global archetypes (Delta <= 0.9 IQR), indicating a violation of the Single Responsibility Principle.\n"
         )
@@ -1228,7 +1161,7 @@ class LLMRecorder:
         for s in parsed_files:
             tel = s.get("telemetry", {})
 
-            # 1. Biaxial Trojan Check
+            # 1. Anti-Pattern Check
             g_drift = tel.get("global_drift", 0.0)
             l_drift = tel.get("local_drift", 0.0)
 
@@ -1246,7 +1179,7 @@ class LLMRecorder:
                         }
                     )
 
-            # 2. Chimeric Global Drift Check
+            # 2. Mixed-Responsibility Architecture Check
             fingerprint = tel.get("archetype_fingerprint", {})
             if len(fingerprint) >= 2:
                 sorted_archs = sorted(fingerprint.items(), key=lambda x: x[1])
@@ -1266,13 +1199,13 @@ class LLMRecorder:
 
         if trojan_files:
             lines.append(
-                "### 🚨 Biaxial Anomalies (Severe Anti-Patterns / Language Violations)"
+                "### 🚨 Severe Anti-Patterns (Language Convention Violations)"
             )
             trojan_files.sort(key=lambda x: x["ratio"], reverse=True)
             for t in trojan_files[:5]:
                 s = t["file_data"]
                 lines.append(
-                    f"- `{s.get('path')}` ({s.get('lang_id', 'UNK').upper()}) | **Biaxial Ratio: {round(t['ratio'], 2)}x**"
+                    f"- `{s.get('path')}` ({s.get('lang_id', 'UNK').upper()}) | **Drift Ratio: {round(t['ratio'], 2)}x**"
                 )
                 lines.append(
                     f"  * **Global Archetype:** `{t['g_arch']}` (Drift: {t['g_drift']} IQR)"
@@ -1291,7 +1224,7 @@ class LLMRecorder:
                 drift_by_cluster[drift["primary"][0]].append(drift)
 
             for cluster_name, files in sorted(drift_by_cluster.items()):
-                lines.append(f"### Refactoring Targets for: {cluster_name}")
+                lines.append(f"### Mixed-Responsibility Refactoring Targets for: {cluster_name}")
                 files.sort(key=lambda x: x["delta"])
 
                 for drift in files[:5]:
@@ -1314,7 +1247,7 @@ class LLMRecorder:
                     top_hits = ", ".join([f"{k}: {v}" for k, v in struct_hits[:4]])
 
                     lines.append(
-                        f"  * Top DNA Signatures: {top_hits if top_hits else 'None'}"
+                        f"  * Top Architectural Signatures: {top_hits if top_hits else 'None'}"
                     )
                 lines.append("")
         else:
@@ -1324,19 +1257,17 @@ class LLMRecorder:
             lines.append("")
 
         # ==============================================================================
-        # --- 13.5 ARCHITECTURAL CHOKE POINTS (The AI Action Matrix) ---
+        # --- 13.5 STRATEGIC REFACTORING TARGETS ---
         # ==============================================================================
         lines.append("## 13.5 STRATEGIC REFACTORING TARGETS (Volatility & Silos)")
         lines.append(
             "> **AI CONTEXT:** Use these intersections to recommend pragmatic next steps. Risk is exponentially worse when combined with high churn (frequent edits) or high silo risk (single points of failure).\n"
         )
 
-        # 1. The Hotspot Matrix (High Risk + High Churn)
         churn_idx = (
             self.RISK_SCHEMA.index("churn") if "churn" in self.RISK_SCHEMA else -1
         )
         if churn_idx >= 0:
-            # Find files with > 50% Churn AND > 50% Cognitive Load or Tech Debt
             cog_idx = self.RISK_SCHEMA.index("cognitive_load")
             debt_idx = self.RISK_SCHEMA.index("tech_debt")
 
@@ -1364,7 +1295,6 @@ class LLMRecorder:
                     )
                 lines.append("")
 
-        # 2. Key Person Dependencies (High Impact + High Silo)
         siloed_pillars = [
             s
             for s in parsed_files
@@ -1398,7 +1328,6 @@ class LLMRecorder:
                 "> **AI CONTEXT:** These metrics cross-multiply Network Graph Theory against Risk Exposure to identify the exact mechanisms of runtime failure.\n"
             )
 
-            # Contagious Mutation
             cm = sys_bots.get("contagious_mutation", [])
             if cm and cm[0]["score"] > 0:
                 lines.append("### ☣️ Contagious Mutation (Betweenness * State Flux)")
@@ -1412,7 +1341,6 @@ class LLMRecorder:
                         )
                 lines.append("")
 
-            # House of Cards
             hoc = sys_bots.get("house_of_cards", [])
             if hoc and hoc[0]["score"] > 0:
                 lines.append("### 🃏 House of Cards (Closeness * Error Risk)")
@@ -1426,12 +1354,11 @@ class LLMRecorder:
                         )
                 lines.append("")
 
-            # Blind Bottleneck
             bb = sys_bots.get("blind_bottleneck", [])
             if bb and bb[0]["score"] > 0:
                 lines.append("### 🙈 Blind Bottlenecks (Blast Radius * Doc Risk)")
                 lines.append(
-                    "These are 'God Nodes' that the entire ecosystem relies upon, but they lack human intent, documentation, or ownership metadata. Modifying them is flying blind.\n"
+                    "These are 'Core Architecture Nodes' that the entire ecosystem relies upon, but they lack human intent, documentation, or ownership metadata. Modifying them is flying blind.\n"
                 )
                 for b in bb:
                     if b["score"] > 0:
@@ -1460,10 +1387,10 @@ class LLMRecorder:
             "> 3. **Security & Vulnerabilities:** Immediately surface any critical threats flagged in the `AI THREAT INTELLIGENCE (XGBoost)` section. If none exist, briefly confirm the repository is secure from recognized structural threats."
         )
         lines.append(
-            "> 4. **Outliers & Extremes:** Focus strictly on statistical anomalies. Highlight files or constellations with massive Cumulative Risk, severe Z-Scores (Architectural Drift), or extreme spikes in individual risk vectors (like State Flux or Cognitive Load). Ignore normal, _healthy code."
+            "> 4. **Outliers & Extremes:** Focus strictly on statistical anomalies. Highlight files or directory groups with massive Cumulative Risk, severe Z-Scores (Architectural Drift), or extreme spikes in individual risk vectors (like State Flux or Cognitive Load). Ignore normal, healthy code."
         )
         lines.append(
-            "> 5. **Recommended Next Steps (Refactoring for Stability):** Provide 2-3 highly specific, pragmatic suggestions focused strictly on reducing outliers. Instruct the user on how to refactor high Z-score files, decouple massive 'God Nodes', or mitigate extreme risk exposures to stabilize the system's architecture."
+            "> 5. **Recommended Next Steps (Refactoring for Stability):** Provide 2-3 highly specific, pragmatic suggestions focused strictly on reducing outliers. Instruct the user on how to refactor high Z-score files, decouple massive central nodes, or mitigate extreme risk exposures to stabilize the system's architecture."
         )
         lines.append("")
 
@@ -1472,13 +1399,12 @@ class LLMRecorder:
     def _generate_sqlite_graph(
         self,
         parsed_files: List[Dict[str, Any]],
-        unparsable_files: List[Dict[str, Any]],
         summary: Dict[str, Any],
         session: Dict[str, Any],
         db_path: Path,
         inbound_map: Dict[str, List[str]],
     ):
-        """Creates a relational database for advanced SQL-based AI analysis and DNA Fingerprinting."""
+        """Creates a relational database for advanced SQL-based AI analysis."""
         try:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
@@ -1500,7 +1426,7 @@ class LLMRecorder:
                         "zero_dependency_mode",
                         "True" if session.get("zero_dependency_mode") else "False",
                     ),
-                    ("repo_macro_species", macro_info.get("name", "Unclassified")),
+                    ("ecosystem_baseline", macro_info.get("name", "Unclassified")),
                     ("repo_z_score", str(macro_info.get("z_score", 0.0))),
                     ("network_modularity", str(net_macro.get("modularity", 0.0))),
                     ("network_assortativity", str(net_macro.get("assortativity", 0.0))),
@@ -1519,15 +1445,15 @@ class LLMRecorder:
                 ],
             )
 
-            cursor.execute("DROP TABLE IF EXISTS stars")
+            cursor.execute("DROP TABLE IF EXISTS artifacts")
             risk_cols = ", ".join([f"{r} REAL" for r in self.RISK_SCHEMA])
             cursor.execute(f"""
-                CREATE TABLE stars (
+                CREATE TABLE artifacts (
                     id INTEGER PRIMARY KEY,
                     path TEXT,
                     filename TEXT,
                     parent_entity TEXT,
-                    constellation TEXT,
+                    directory_group TEXT,
                     language TEXT,
                     lock_tier INTEGER,
                     total_loc INTEGER,
@@ -1545,7 +1471,7 @@ class LLMRecorder:
                     global_drift REAL,
                     local_archetype TEXT,
                     local_drift REAL,
-                    repo_macro_species TEXT,
+                    ecosystem_baseline TEXT,
                     repo_z_score REAL,
                     max_algorithmic_complexity TEXT,
                     max_db_complexity INTEGER,
@@ -1553,9 +1479,9 @@ class LLMRecorder:
                 )
             """)
 
-            cursor.execute("DROP TABLE IF EXISTS constellations")
+            cursor.execute("DROP TABLE IF EXISTS directory_groups")
             cursor.execute("""
-                CREATE TABLE constellations (
+                CREATE TABLE directory_groups (
                     name TEXT PRIMARY KEY,
                     file_count INTEGER,
                     total_mass REAL,
@@ -1566,11 +1492,11 @@ class LLMRecorder:
                 )
             """)
 
-            cursor.execute("DROP TABLE IF EXISTS satellites")
+            cursor.execute("DROP TABLE IF EXISTS functions")
             cursor.execute("""
-                CREATE TABLE satellites (
+                CREATE TABLE functions (
                     id INTEGER PRIMARY KEY,
-                    star_id INTEGER,
+                    artifact_id INTEGER,
                     name TEXT,
                     type_id TEXT,
                     loc INTEGER,
@@ -1580,45 +1506,45 @@ class LLMRecorder:
                     db_complexity INTEGER,
                     docstring TEXT,
                     calls_out_to TEXT,
-                    FOREIGN KEY(star_id) REFERENCES stars(id)
+                    FOREIGN KEY(artifact_id) REFERENCES artifacts(id)
                 )
             """)
 
             cursor.execute("DROP TABLE IF EXISTS dna_hits")
             cursor.execute("""
                 CREATE TABLE dna_hits (
-                    star_id INTEGER,
+                    artifact_id INTEGER,
                     signal_type TEXT,
                     hit_count INTEGER,
-                    FOREIGN KEY(star_id) REFERENCES stars(id)
+                    FOREIGN KEY(artifact_id) REFERENCES artifacts(id)
                 )
             """)
 
             cursor.execute("DROP TABLE IF EXISTS outbound_dependencies")
             cursor.execute("""
                 CREATE TABLE outbound_dependencies (
-                    star_id INTEGER,
+                    artifact_id INTEGER,
                     imported_path TEXT,
-                    FOREIGN KEY(star_id) REFERENCES stars(id)
+                    FOREIGN KEY(artifact_id) REFERENCES artifacts(id)
                 )
             """)
 
             cursor.execute("DROP TABLE IF EXISTS inbound_dependencies")
             cursor.execute("""
                 CREATE TABLE inbound_dependencies (
-                    star_id INTEGER,
+                    artifact_id INTEGER,
                     imported_by_path TEXT,
-                    FOREIGN KEY(star_id) REFERENCES stars(id)
+                    FOREIGN KEY(artifact_id) REFERENCES artifacts(id)
                 )
             """)
 
-            const_meta = summary.get("directory_groups", {})
+            dir_meta = summary.get("directory_groups", {})
 
-            for c_name, c_data in const_meta.items():
+            for c_name, c_data in dir_meta.items():
                 exps = c_data.get("avg_exposures", {})
                 cursor.execute(
                     """
-                    INSERT INTO constellations (name, file_count, total_mass, avg_cognitive_load, avg_error_score, avg_tech_debt, avg_verification)
+                    INSERT INTO directory_groups (name, file_count, total_mass, avg_cognitive_load, avg_error_score, avg_tech_debt, avg_verification)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
@@ -1626,17 +1552,14 @@ class LLMRecorder:
                         c_data.get("file_count", 0),
                         c_data.get("total_mass", 0.0),
                         exps.get("cognitive_load", 0.0),
-                        exps.get(
-                            "safety_score", 0.0
-                        ),  # Keep this as "safety_score" unless you've also renamed the internal dictionary keys upstream
+                        exps.get("safety_score", 0.0),
                         exps.get("tech_debt", 0.0),
                         exps.get("verification", 0.0),
                     ),
                 )
 
-            # Master arrays for batching child records (Massive speed boost)
             all_dna_data = []
-            all_satellites = []
+            all_functions = []
             all_outbound = []
             all_inbound = []
 
@@ -1654,16 +1577,15 @@ class LLMRecorder:
                 repo_z = tel.get("repo_z_score", 0.0)
                 parent_entity = tel.get("domain_context", {}).get("parent_entity", "")
 
-                # 1. Insert star individually to safely retrieve its exact database ID (sid)
                 cursor.execute(
                     f"""
-                    INSERT INTO stars (
-                        path, filename, parent_entity, constellation, language, lock_tier, 
+                    INSERT INTO artifacts (
+                        path, filename, parent_entity, directory_group, language, lock_tier, 
                         total_loc, coding_loc, doc_loc, file_impact,
                         control_flow_ratio, author_distribution, ownership_entropy,
                         raw_churn_freq, cog_raw, ownership, popularity, 
                         archetype, global_drift, local_archetype, local_drift,
-                        repo_macro_species, repo_z_score, max_algorithmic_complexity, max_db_complexity,
+                        ecosystem_baseline, repo_z_score, max_algorithmic_complexity, max_db_complexity,
                         {", ".join(self.RISK_SCHEMA)}
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join(["?"] * len(self.RISK_SCHEMA))})
@@ -1700,7 +1622,6 @@ class LLMRecorder:
 
                 sid = cursor.lastrowid
 
-                # 2. Accumulate DNA Hits
                 hv = file_data.get("hit_vector", [])
                 all_dna_data.extend(
                     [
@@ -1710,10 +1631,9 @@ class LLMRecorder:
                     ]
                 )
 
-                # 3. Accumulate Satellites
                 for func in file_data.get("functions", []):
                     calls_json = json.dumps(func.get("calls_out_to", []))
-                    all_satellites.append(
+                    all_functions.append(
                         (
                             sid,
                             func.get("name"),
@@ -1728,7 +1648,6 @@ class LLMRecorder:
                         )
                     )
 
-                # 4. Accumulate Dependencies
                 raw_imports = file_data.get("raw_imports", [])
                 if raw_imports:
                     all_outbound.extend([(sid, imp) for imp in raw_imports])
@@ -1737,11 +1656,10 @@ class LLMRecorder:
                 if inbound:
                     all_inbound.extend([(sid, imp_by) for imp_by in inbound])
 
-            # 5. Push all accumulated child records to C-backend SQLite at once
             cursor.executemany("INSERT INTO dna_hits VALUES (?, ?, ?)", all_dna_data)
             cursor.executemany(
-                "INSERT INTO satellites (star_id, name, type_id, loc, impact, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                all_satellites,
+                "INSERT INTO functions (artifact_id, name, type_id, loc, impact, big_o_depth, is_recursive, db_complexity, docstring, calls_out_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                all_functions,
             )
             cursor.executemany(
                 "INSERT INTO outbound_dependencies VALUES (?, ?)", all_outbound

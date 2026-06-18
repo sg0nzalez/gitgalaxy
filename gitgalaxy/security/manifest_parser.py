@@ -1,7 +1,8 @@
 # ==============================================================================
 # GitGalaxy - Manifest Parser
-# Purpose: Parses ecosystem manifests and lockfiles to extract cryptographic
-#          realities, neutralizing dependency confusion and alias spoofing.
+# Purpose: Parses ecosystem manifests and lockfiles to extract absolute dependency
+#          resolutions, auditing for Supply Chain Substitution attacks, undocumented
+#          VCS (Version Control System) references, and insecure registry routing.
 # ==============================================================================
 import json
 import logging
@@ -10,6 +11,14 @@ from pathlib import Path
 
 
 class ManifestParser:
+    """
+    Software Supply Chain Security (SSCS) Manifest Parser.
+
+    Audits dependency definitions across ecosystems (NPM, PyPI) to build a deterministic
+    resolution map. By comparing declared dependencies against their actual resolution URLs,
+    this parser identifies namespace hijacking, package aliasing, and insecure registry routing.
+    """
+
     def __init__(self, parent_logger=None):
         self.logger = (
             parent_logger.getChild("manifest_parser")
@@ -17,20 +26,20 @@ class ManifestParser:
             else logging.getLogger("manifest_parser")
         )
 
-        # Matches standard Python packages, dropping version constraints (==, >=, ~)
-        self.py_req_regex = re.compile(r"^([a-zA-Z0-9_\-]+)(?:[=><~].*)?$")
+        # Matches standard Python packages, extracting the base name and dropping version constraints (==, >=, ~)
+        self.python_pkg_regex = re.compile(r"^([a-zA-Z0-9_\-]+)(?:[=><~].*)?$")
 
-        # Matches external Python injections (git+, file://, http)
-        self.py_injection_regex = re.compile(
+        # Matches direct URI references (git, file, http) that bypass PyPI registry verification
+        self.python_direct_uri_regex = re.compile(
             r"^(?:git\+|file:|https?:|hg\+|svn\+|bzr\+)(.*)$"
         )
 
-    def build_translation_map(self, manifest_paths: list) -> dict:
+    def build_resolution_map(self, manifest_paths: list) -> dict:
         """
-        Accepts a list of exact file paths and builds a global O(1) translation
+        Accepts a list of exact file paths and builds a global O(1) dependency resolution
         dictionary by parsing package.json, package-lock.json, and requirements.txt.
         """
-        translation_map = {}
+        resolution_map = {}
 
         for path_str in manifest_paths:
             manifest_path = Path(path_str)
@@ -41,21 +50,25 @@ class ManifestParser:
 
             try:
                 if filename == "package.json":
-                    self._parse_package_json(manifest_path, translation_map)
+                    self._parse_package_json(manifest_path, resolution_map)
                 elif filename == "package-lock.json":
-                    self._parse_package_lock(manifest_path, translation_map)
+                    self._parse_package_lock(manifest_path, resolution_map)
                 elif filename == "requirements.txt":
-                    self._parse_requirements_txt(manifest_path, translation_map)
+                    self._parse_requirements_txt(manifest_path, resolution_map)
                 elif filename in ["pip.conf", ".pypirc", "pip.ini"]:
-                    self._parse_pip_conf(manifest_path, translation_map)
+                    self._parse_pip_conf(manifest_path, resolution_map)
             except Exception as e:
                 self.logger.warning(
-                    f"Manifest Parser: Failed to parse {filename} - {e}"
+                    f"Manifest Parser: Failed to parse structural definition {filename} - {e}"
                 )
 
-        return translation_map
+        return resolution_map
 
-    def _parse_package_json(self, filepath: Path, translation_map: dict):
+    def _parse_package_json(self, filepath: Path, resolution_map: dict):
+        """
+        Parses active NPM dependencies. Normalizes NPM aliases to their upstream package names
+        and flags Direct URI resolutions that bypass Subresource Integrity (SRI) checks.
+        """
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
 
@@ -67,7 +80,8 @@ class ManifestParser:
             if not isinstance(version_string, str):
                 continue
 
-            # 1. NPM Aliasing (npm:real-package@1.0)
+            # 1. NPM Package Aliasing (e.g., "my-alias": "npm:real-package@1.0")
+            # We map the local alias to the true upstream package name for accurate vulnerability mapping.
             if version_string.startswith("npm:"):
                 raw_pkg = version_string[4:]
                 if raw_pkg.startswith("@"):
@@ -76,19 +90,20 @@ class ManifestParser:
                     )
                 else:
                     real_pkg = raw_pkg.split("@")[0]
-                translation_map[alias] = real_pkg
+                resolution_map[alias] = real_pkg
 
-            # 2. Local File / Git Spoofing (file:./malware.js, github:hacker/repo)
+            # 2. Direct URI Resolution (file:./local-lib, github:user/repo)
+            # These dependencies are not fetched from the registry and lack cryptographic hash guarantees.
             elif version_string.startswith(("file:", "github:", "git+", "http")):
-                translation_map[alias] = version_string
+                resolution_map[alias] = version_string
                 self.logger.warning(
-                    f"Manifest Parser: Flagged external/local override for '{alias}' -> {version_string}"
+                    f"Manifest Parser: Flagged Direct URI resolution for '{alias}' -> {version_string}"
                 )
 
-    def _parse_package_lock(self, filepath: Path, translation_map: dict):
+    def _parse_package_lock(self, filepath: Path, resolution_map: dict):
         """
-        Extracts the true resolution URLs from package-lock.json v2/v3.
-        Neutralizes Namespace Hijacking by verifying internal registries.
+        Extracts absolute resolution URLs from package-lock.json v2/v3.
+        Neutralizes Namespace Hijacking by verifying internal packages point to the correct registry.
         """
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -101,18 +116,20 @@ class ManifestParser:
             pkg_name = node_path.split("node_modules/")[-1]
             resolved_url = info.get("resolved", "")
 
-            # If the resolved URL points to a strange domain or a direct Git link, flag it.
+            # DEFENSIVE GUARD: Registry Spoofing
+            # If the resolved URL points to a non-standard domain or a direct Git link, map it 
+            # so the downstream firewall can flag it as an untrusted source.
             if resolved_url and not resolved_url.startswith(
-                "[https://registry.npmjs.org/](https://registry.npmjs.org/)"
+                "https://registry.npmjs.org/"
             ):
-                translation_map[pkg_name] = resolved_url
+                resolution_map[pkg_name] = resolved_url
                 self.logger.info(
-                    f"Manifest Parser: Flagged non-standard resolution for '{pkg_name}' -> {resolved_url}"
+                    f"Manifest Parser: Flagged non-standard registry resolution for '{pkg_name}' -> {resolved_url}"
                 )
 
-    def _parse_requirements_txt(self, filepath: Path, translation_map: dict):
+    def _parse_requirements_txt(self, filepath: Path, resolution_map: dict):
         """
-        Extracts direct packages and flags external source injections in Python.
+        Extracts direct Python packages and flags absolute VCS/URI references.
         """
         with open(filepath, "r", encoding="utf-8") as f:
             for line in f:
@@ -120,28 +137,28 @@ class ManifestParser:
                 if not line or line.startswith("#"):
                     continue
 
-                # Check for direct external injections (git+https://, file://)
-                injection_match = self.py_injection_regex.match(line)
-                if injection_match:
-                    # Map the raw string directly so the firewall flags it as an unknown/external source
-                    translation_map[line] = line
+                # 1. Check for Direct URI References (git+https://, file://)
+                # These bypass PyPI and must be mapped exactly as written to trigger firewall rules.
+                uri_match = self.python_direct_uri_regex.match(line)
+                if uri_match:
+                    resolution_map[line] = line
                     self.logger.warning(
-                        f"Manifest Parser: Flagged Python external injection -> {line}"
+                        f"Manifest Parser: Flagged direct URI reference -> {line}"
                     )
                     continue
 
-                # Standard package capture
-                match = self.py_req_regex.match(line)
+                # 2. Standard package capture
+                match = self.python_pkg_regex.match(line)
                 if match:
                     pkg_name = match.group(1)
-                    # We just ensure the package exists in the map as itself to verify it against the firewall
-                    if pkg_name not in translation_map:
-                        translation_map[pkg_name] = pkg_name
+                    # Initialize the package in the resolution map for downstream tracking
+                    if pkg_name not in resolution_map:
+                        resolution_map[pkg_name] = pkg_name
 
-    def _parse_pip_conf(self, filepath: Path, translation_map: dict):
+    def _parse_pip_conf(self, filepath: Path, resolution_map: dict):
         """
-        Hunts for Dependency Confusion vulnerabilities in Python by auditing
-        index-url and extra-index-url routing in pip.conf or .pypirc.
+        Audits Python configuration files (pip.conf, .pypirc) for Dependency Confusion vulnerabilities
+        caused by insecure protocol routing or untrusted secondary index URLs.
         """
         with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
             for line in f:
@@ -149,7 +166,7 @@ class ManifestParser:
                 if not line or line.startswith(("#", ";")):
                     continue
 
-                # Look for custom registry routing
+                # Look for custom registry routing definitions
                 if (
                     "index-url" in line
                     or "extra-index-url" in line
@@ -159,13 +176,16 @@ class ManifestParser:
                     if len(parts) == 2:
                         url = parts[1].strip()
 
-                        # Flag unencrypted HTTP or suspicious ngrok/local proxies immediately
+                        # DEFENSIVE GUARD: Insecure Protocols & Tunneling
+                        # HTTP connections allow Man-in-the-Middle (MitM) package injection.
+                        # Tunneling services (ngrok) in production configs indicate severe architectural risk.
                         if (
                             url.startswith("http://")
                             or "ngrok" in url
                             or "localtunnel" in url
                         ):
                             self.logger.warning(
-                                f"🚨 Manifest Parser: INSECURE REGISTRY DETECTED -> {url}"
+                                f"🚨 Manifest Parser: INSECURE REGISTRY PROTOCOL DETECTED -> {url}"
                             )
-                            translation_map[f"INSECURE_REGISTRY_{filepath.name}"] = url
+                            # Prefix with INSECURE_REGISTRY so the Supply Chain Firewall can instantly block it
+                            resolution_map[f"INSECURE_REGISTRY_{filepath.name}"] = url

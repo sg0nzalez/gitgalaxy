@@ -1,6 +1,11 @@
 # ==============================================================================
 # GitGalaxy
 # Copyright (c) 2026 Joe Esquibel
+#
+# This source code is licensed under the PolyForm Noncommercial License 1.0.0.
+# You may not use this file except in compliance with the License.
+# A copy of the license can be found in the LICENSE file in the root directory
+# of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
 # ==============================================================================
 import sqlite3
 import json
@@ -13,11 +18,11 @@ from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS
 
 class RecordKeeper:
     """
-    The GitGalaxy Record Keeper (Native SQLite Recorder).
+    SQLite Telemetry Recorder.
 
     PURPOSE: Transforms the live RAM state directly into a highly relational
     SQLite database. Bypasses the need for intermediate JSON parsing and creates
-    a time-series schema perfectly aligned for Master Database aggregation.
+    a time-series schema perfectly aligned for Enterprise Data Warehouse (EDW) aggregation.
     """
 
     def __init__(self, parent_logger: Optional[logging.Logger] = None):
@@ -31,7 +36,7 @@ class RecordKeeper:
         self.RISK_SCHEMA = schemas.get("RISK_SCHEMA", [])
         self.SIGNAL_SCHEMA = schemas.get("SIGNAL_SCHEMA", [])
 
-        # The 5-Pillar Taxonomy Map (Enforces schema consistency)
+        # The Taxonomy Map (Enforces structural schema consistency)
         self.SHORT_KEY_MAP = {
             "branch": "struct_branch",
             "linear": "struct_linear",
@@ -124,7 +129,7 @@ class RecordKeeper:
         session_meta: Dict,
         output_path: str,
     ):
-        """Builds the SQLite database directly from RAM."""
+        """Builds the formal relational SQLite database directly from pipeline RAM state."""
         repo_name = session_meta.get("target", "Unknown")
         git_audit = session_meta.get("git_audit", {})
         commit_date = git_audit.get("latest_commit_date", "Unknown").split("T")[0]
@@ -136,10 +141,12 @@ class RecordKeeper:
         )
 
         conn = sqlite3.connect(db_file)
-        # ---> THE SPEED FIX: Write-Ahead Logging & Relaxed Disk Sync
+        
+        # DEFENSIVE GUARD: Performance & Integrity PRAGMAs
+        # Write-Ahead Logging (WAL) and Relaxed Sync prevent the DB lockups common in parallel I/O.
+        # Enforcing Foreign Keys guarantees isolated deletions don't orphan metadata rows.
         conn.execute("PRAGMA journal_mode = WAL;")
         conn.execute("PRAGMA synchronous = NORMAL;")
-        # Enforce foreign keys so cascading deletes work perfectly
         conn.execute("PRAGMA foreign_keys = ON;")
         cursor = conn.cursor()
 
@@ -156,17 +163,17 @@ class RecordKeeper:
                 commit_date TEXT,
                 commit_hash TEXT,
                 total_files INTEGER,
-                total_dark_matter INTEGER,
+                total_excluded_artifacts INTEGER,
                 total_loc INTEGER,
                 total_coding_loc INTEGER,
                 total_functions INTEGER,
                 total_classes INTEGER,
-                total_doc_files INTEGER,    -- <--- NEW: Markdown, Text, RST
-                total_build_files INTEGER,  -- <--- NEW: Docker, Make, CMake, Shell
-                total_config_files INTEGER, -- <--- NEW: JSON, YAML, TOML, XML
-                total_test_files INTEGER,   -- <--- NEW: Test suites
+                total_doc_files INTEGER,    
+                total_build_files INTEGER,  
+                total_config_files INTEGER, 
+                total_test_files INTEGER,   
                 typosquat_hits INTEGER,
-                macro_species TEXT,
+                ecosystem_baseline TEXT,
                 z_score REAL,
                 avg_encapsulation_ratio REAL,
                 avg_imports_per_file REAL,
@@ -215,7 +222,7 @@ class RecordKeeper:
                 file_path TEXT,
                 parent_entity TEXT,
                 language TEXT,
-                constellation TEXT,
+                directory_group TEXT,
                 total_loc INTEGER,
                 coding_loc INTEGER,
                 structural_mass REAL,
@@ -253,7 +260,7 @@ class RecordKeeper:
                 pct_z_above_15 REAL DEFAULT 0.0, 
                 file_archetype TEXT, 
                 file_fingerprint TEXT,
-                repo_macro_species TEXT,
+                ecosystem_baseline TEXT,
                 repo_z_score REAL,
                 max_algorithmic_complexity TEXT,
                 max_db_complexity INTEGER,
@@ -261,10 +268,10 @@ class RecordKeeper:
                 is_malware INTEGER,
                 has_credentials INTEGER,
                 binary_anomaly INTEGER,
-                glassworm_flag INTEGER,
+                obfuscation_flag INTEGER,
                 token_mass INTEGER DEFAULT 0,
                 financial_read_cost REAL DEFAULT 0.0,
-                agentic_black_hole INTEGER DEFAULT 0,
+                agentic_isolation_risk INTEGER DEFAULT 0,
                 requires_hitl INTEGER DEFAULT 0,
                 appsec_rce_funnel BOOLEAN DEFAULT 0,
                 appsec_god_mode BOOLEAN DEFAULT 0,
@@ -275,6 +282,7 @@ class RecordKeeper:
                 {", ".join(hit_cols)}
             )
         """)
+        
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS class_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -312,7 +320,7 @@ class RecordKeeper:
             )
         """)
 
-        # ---> NEW: INDEXES TO PREVENT CASCADE DELETE HANGS <---
+        # DEFENSIVE GUARD: Indexes to Prevent Cascade Delete Hangs
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_class_file_id ON class_data(file_id);"
         )
@@ -321,7 +329,7 @@ class RecordKeeper:
         )
 
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS dark_matter_data (
+            CREATE TABLE IF NOT EXISTS excluded_artifacts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 repo_name TEXT,
                 commit_hash TEXT,
@@ -332,7 +340,7 @@ class RecordKeeper:
             )
         """)
 
-        # ---> THE IDEMPOTENT WIPE <---
+        # THE IDEMPOTENT WIPE: Ensures delta-scans don't duplicate rows for the same commit
         cursor.execute(
             "DELETE FROM file_data WHERE repo_name = ? AND commit_hash = ?",
             (repo_name, commit_hash),
@@ -350,13 +358,12 @@ class RecordKeeper:
         agg_encapsulation = 0.0
         agg_hits = [0] * len(self.SIGNAL_SCHEMA)
 
-        # ---> NEW: INFRASTRUCTURE COUNTERS <---
         agg_doc_files = 0
         agg_build_files = 0
         agg_config_files = 0
         agg_test_files = 0
 
-        # ---> THE SPEED FIX: Global array for all functions in the repo
+        # PERFORMANCE OPTIMIZATION: Global array for batched executemany inserts
         all_func_rows = []
 
         for file_data in parsed_files:
@@ -375,7 +382,7 @@ class RecordKeeper:
             avg_args = float(sum(args_list) / func_count) if func_count > 0 else 0.0
             func_comp_vector = json.dumps(complexities)
 
-            # Z-SCORE CALCULATOR FOR "GOD FUNCTIONS"
+            # Z-SCORE CALCULATOR FOR STRUCTURAL OUTLIERS
             func_z_max = 0.0
             func_z_mean = 0.0
             func_z_median = 0.0
@@ -442,7 +449,7 @@ class RecordKeeper:
                 if i < len(agg_hits):
                     agg_hits[i] += val
 
-            # ---> NEW: TALLY THE INFRASTRUCTURE <---
+            # Tallying Infrastructure Categories
             lang = file_data.get("lang_id", "unknown").lower()
             path_str = file_data.get("path", "").lower()
 
@@ -469,16 +476,19 @@ class RecordKeeper:
                 agg_test_files += 1
 
             # --- SECURITY EXTRACTIONS ---
-            ai_score = float(
-                file_data.get(
-                    "ai_threat_score",
-                    tel.get("domain_context", {}).get("AI Threat Score", 0.0),
-                )
+            raw_ai_score = file_data.get(
+                "ai_threat_score",
+                tel.get("domain_context", {}).get("AI Threat Score", 0.0),
             )
+            try:
+                ai_score = float(str(raw_ai_score).replace("%", ""))
+            except ValueError:
+                ai_score = 0.0
+
             is_malware = 1 if file_data.get("is_malware", False) else 0
             has_creds = 1 if file_data.get("has_credentials", False) else 0
             bin_anomaly = 1 if file_data.get("binary_anomaly", False) else 0
-            glassworm = 1 if file_data.get("glassworm_flag", False) else 0
+            obfuscation_flag = 1 if file_data.get("glassworm_flag", False) else 0
 
             # --- NETWORK TOPOLOGY EXTRACTION ---
             net_mets = tel.get("network_metrics", {})
@@ -489,7 +499,6 @@ class RecordKeeper:
             producer_ratio = net_mets.get("producer_ratio", 0.0)
             ecosystem_role = net_mets.get("ecosystem_role", "Unknown")
 
-            # ---> FIXED: EXTRACT CLASS COUNT FOR THE FILE <---
             class_idx = (
                 self.SIGNAL_SCHEMA.index("class_start")
                 if "class_start" in self.SIGNAL_SCHEMA
@@ -497,12 +506,11 @@ class RecordKeeper:
             )
             class_count = hv[class_idx] if class_idx >= 0 and class_idx < len(hv) else 0
 
-            # Meta and Big-O additions
             repo_macro = tel.get("repo_macro_species", "Unknown")
             repo_z = tel.get("repo_z_score", 0.0)
             parent_ent = tel.get("domain_context", {}).get("parent_entity", "")
 
-            # --- NEW: AI GUARDRAILS, APPSEC & TOKEN PHYSICS ---
+            # --- AI GUARDRAILS & TOKEN PHYSICS ---
             guardrails = tel.get("ai_guardrails", {})
             appsec = tel.get("ai_appsec", {})
 
@@ -572,7 +580,7 @@ class RecordKeeper:
                 is_malware,
                 has_creds,
                 bin_anomaly,
-                glassworm,
+                obfuscation_flag,
                 file_token_mass,
                 file_read_cost,
                 is_black_hole,
@@ -592,7 +600,7 @@ class RecordKeeper:
             cursor.execute(
                 f"""
                 INSERT INTO file_data (
-                    repo_name, commit_date, commit_hash, file_name, file_path, parent_entity, language, constellation, 
+                    repo_name, commit_date, commit_hash, file_name, file_path, parent_entity, language, directory_group, 
                     total_loc, coding_loc, structural_mass, cog_raw, ownership_entropy, silo_risk, 
                     raw_churn_freq, popularity, import_count, pagerank_score, normalized_blast_radius, betweenness_score, closeness_score, producer_ratio, ecosystem_role,
                     control_flow_ratio, function_count, class_count,
@@ -601,10 +609,10 @@ class RecordKeeper:
                     author, ai_threat_class, ai_threat_confidence, 
                     func_z_max, func_z_mean, func_z_median, pct_z_above_5, pct_z_above_15, 
                     file_archetype, file_fingerprint,
-                    repo_macro_species, repo_z_score,
+                    ecosystem_baseline, repo_z_score,
                     max_algorithmic_complexity, max_db_complexity,
-                    ai_threat_score, is_malware, has_credentials, binary_anomaly, glassworm_flag,
-                    token_mass, financial_read_cost, agentic_black_hole, requires_hitl, appsec_rce_funnel, appsec_god_mode, appsec_exfiltration, hallucination_zone, silent_mutation_risk,
+                    ai_threat_score, is_malware, has_credentials, binary_anomaly, obfuscation_flag,
+                    token_mass, financial_read_cost, agentic_isolation_risk, requires_hitl, appsec_rce_funnel, appsec_god_mode, appsec_exfiltration, hallucination_zone, silent_mutation_risk,
                     {", ".join([f"risk_{r.replace('-', '_')}" for r in self.RISK_SCHEMA])},
                     {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])}
                 ) VALUES ({placeholders})
@@ -614,7 +622,7 @@ class RecordKeeper:
 
             file_id = cursor.lastrowid
 
-            # ---> NEW: 1. Extract and Insert the Classes <---
+            # 1. Extract and Insert Classes
             classes = file_data.get("classes", [])
             class_id_map = {}
 
@@ -637,7 +645,7 @@ class RecordKeeper:
                 )
                 class_id_map[cls.get("name")] = cursor.lastrowid
 
-            # ---> UPDATED: 2. Extract and Accumulate the Functions <---
+            # 2. Extract and Accumulate Functions into Master Array
             for func in functions:
                 raw_hv = func.get("hit_vector", {})
                 func_hits = [int(raw_hv.get(h, 0)) for h in self.SIGNAL_SCHEMA]
@@ -673,7 +681,7 @@ class RecordKeeper:
                     + func_hits
                 )
 
-        # ---> THE SPEED FIX: Push all functions to SQLite at once (OUTSIDE THE FILE LOOP) <---
+        # PERFORMANCE OPTIMIZATION: Execute all accumulated functions in a single transaction loop
         if all_func_rows:
             func_placeholders = ",".join(["?"] * len(all_func_rows[0]))
             cursor.executemany(
@@ -747,9 +755,9 @@ class RecordKeeper:
         cursor.execute(
             f"""
             INSERT OR REPLACE INTO repo_data (
-                repo_name, commit_date, commit_hash, total_files, total_dark_matter, total_loc, total_coding_loc, 
+                repo_name, commit_date, commit_hash, total_files, total_excluded_artifacts, total_loc, total_coding_loc, 
                 total_functions, total_classes, total_doc_files, total_build_files, total_config_files, total_test_files, 
-                typosquat_hits, macro_species, z_score,
+                typosquat_hits, ecosystem_baseline, z_score,
                 avg_encapsulation_ratio, avg_imports_per_file,
                 network_modularity, network_assortativity, network_cyclic_density, network_avg_path_length, network_articulation_points,
                 audit_shadow_apis, audit_binary_anomalies, audit_unknown_packages,
@@ -760,7 +768,7 @@ class RecordKeeper:
             repo_row_data,
         )
 
-        # 4. UNPARSABLE FILES LEDGER INSERTION
+        # 4. EXCLUDED ARTIFACTS INSERTION
         unparsable_rows = []
         for unparsable in unparsable_files:
             path = unparsable.get("path", "")
@@ -779,7 +787,7 @@ class RecordKeeper:
         if unparsable_rows:
             cursor.executemany(
                 """
-                INSERT INTO dark_matter_data 
+                INSERT INTO excluded_artifacts 
                 (repo_name, commit_hash, file_path, extension, exclusion_reason, size_bytes)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
@@ -807,7 +815,6 @@ class RecordKeeper:
                 current_path = f"{current_path}/{part}" if current_path else part
                 paths_to_update.append(current_path)
 
-            # Extract file metrics
             loc = file_data.get("total_loc", 0)
             coding_loc = file_data.get("coding_loc", 0)
             mass = file_data.get("file_impact", 0.0)

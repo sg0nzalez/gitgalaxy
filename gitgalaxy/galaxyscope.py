@@ -30,12 +30,11 @@ from gitgalaxy.core.aperture import ApertureFilter, InaccessibleArtifactError
 from gitgalaxy.core.guidestar_lens import GuideStarLens
 from gitgalaxy.standards.language_lens import LanguageDetector
 from gitgalaxy.core.prism import Prism
-from gitgalaxy.core.detector import OpticalDetector
 from gitgalaxy.core.spatial_mapper import SpatialMapper
 from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
-from gitgalaxy.physics.chronometer import Chronometer
-from gitgalaxy.physics.signal_processor import SignalProcessor
-from gitgalaxy.physics.spectral_auditor import SpectralAuditor
+from gitgalaxy.metrics.chronometer import Chronometer
+from gitgalaxy.metrics.signal_processor import SignalProcessor
+from gitgalaxy.metrics.statistical_auditor import StatisticalAuditor
 from gitgalaxy.tools.network_auditing.full_api_network_map import run_api_audit
 from gitgalaxy.tools.supply_chain_security.binary_anomaly_detector import run_xray_audit
 from gitgalaxy.tools.supply_chain_security.supply_chain_firewall import (
@@ -108,7 +107,7 @@ def _init_worker(
     RAM. This prevents the OS from attempting to pickle/serialize massive compiled regex objects
     across the IPC (Inter-Process Communication) boundary, which would instantly crash the pipeline.
     """
-
+    from gitgalaxy.core.detector import StructuralExtractor as OpticalDetector
     logging.getLogger().setLevel(log_level)
     worker_logger = logging.getLogger("GalaxyScope.Worker")
 
@@ -257,7 +256,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                         )
 
                         # Threat Escalation: Forge a synthetic star and force it into the visible galaxy
-                        from gitgalaxy.physics.signal_processor import SignalProcessor
+                        from gitgalaxy.metrics.signal_processor import SignalProcessor
 
                         hit_vector = [0] * len(SignalProcessor.SIGNAL_SCHEMA)
                         for t_key, t_val in binary_threats.items():
@@ -696,7 +695,7 @@ class Orchestrator:
         self.processor = SignalProcessor(aperture_config=config, parent_logger=logger)
 
         # Third-Gate gatekeeper identifying and dropping un-parseable data dumps
-        self.auditor = SpectralAuditor(parent_logger=logger)
+        self.auditor = StatisticalAuditor(parent_logger=logger)
 
         # Constructs the physical import DAG and calculates PageRank/Blast Radius
         self.network_sensor = NetworkRiskSensor(parent_logger=logger)
@@ -924,7 +923,7 @@ class Orchestrator:
             if repository_graph:
                 # Pass the Shadow Patch flag to the Security Auditor
                 is_shadow_patch = self.config.get("SHADOW_PATCH_DETECTED", False)
-                repository_graph = self.model_auditor.audit_galaxy(
+                repository_graph = self.model_auditor.audit_repository(
                     repository_graph, is_shadow_patch=is_shadow_patch
                 )
             logger.info(
@@ -950,7 +949,7 @@ class Orchestrator:
             # 2. Build the global translation map
             from gitgalaxy.security.manifest_parser import ManifestParser
 
-            alias_map = ManifestParser(parent_logger=logger).build_translation_map(
+            alias_map = ManifestParser(parent_logger=logger).build_resolution_map(
                 manifest_paths
             )
 
@@ -1903,7 +1902,7 @@ class Orchestrator:
                             func["usage_status"] = 0
             # =================================================================
 
-            meta["temporal_telemetry"] = self.chronometer.get_temporal_signals(rel_path)
+            meta["temporal_telemetry"] = self.chronometer.get_file_history_metrics(rel_path)
             meta["authors"] = meta["temporal_telemetry"].get("authors", {})
             stem = Path(rel_path).stem.lower()
 
@@ -2017,7 +2016,7 @@ class Orchestrator:
             if "CRITICAL LEAK" not in cand.get("reason", "")
         ]
 
-        from gitgalaxy.physics.signal_processor import SignalProcessor
+        from gitgalaxy.metrics.signal_processor import SignalProcessor
 
         for leak in leaks:
             rel_path = leak["path"]
@@ -2060,6 +2059,7 @@ class Orchestrator:
             for cand in self.unparsable_files
             if "AI MODEL WEIGHTS" in cand.get("reason", "")
         ]
+        
         self.unparsable_files = [
             cand
             for cand in self.unparsable_files
@@ -2067,9 +2067,9 @@ class Orchestrator:
         ]
 
         if models:
-            from gitgalaxy.physics.neural_auditor import NeuralAuditor
+            from gitgalaxy.metrics.tensor_scanner import TensorScanner
 
-            neural_auditor = NeuralAuditor(parent_logger=logger)
+            tensor_scanner = TensorScanner(parent_logger=logger)
 
             for model in models:
                 rel_path = model["path"]
@@ -2077,11 +2077,11 @@ class Orchestrator:
                 full_path_str = str(self.root / rel_path)
 
                 logger.info(
-                    f"🧠 NEURAL SUPERNOVA: Auditing local model weights for {rel_path}..."
+                    f"🧠 TENSOR SCAN: Auditing local model weights for {rel_path}..."
                 )
 
                 # Perform the zero-RAM binary header audit
-                audit_results = neural_auditor.audit_model(full_path_str)
+                audit_results = tensor_scanner.audit_model(full_path_str)
 
                 # Model weights are incredibly dense. We give them a massive file_impact (Gravity).
                 # 1 GB = ~100.0 Gravity points, capped at 10,000 to prevent breaking the 3D renderer.
@@ -2098,7 +2098,7 @@ class Orchestrator:
                     "hit_vector": [0] * len(SignalProcessor.SIGNAL_SCHEMA),
                     "file_impact": max(gravity_mass, 500.0),  # Minimum massive gravity
                     "telemetry": {
-                        "ownership": "Neural Auditor",
+                        "ownership": "Tensor Scanner",
                         "domain_context": {
                             "alert": "LOCAL MODEL WEIGHTS DETECTED",
                             "architecture": audit_results["architecture"],
@@ -2106,7 +2106,7 @@ class Orchestrator:
                             "quantization": audit_results["quantization"],
                             "size_gb": f"{size_bytes / (1024**3):.2f} GB",
                         },
-                        "identity_source_proof": "Neural Auditor Header Extraction",
+                        "identity_source_proof": "Tensor Scanner Header Extraction",
                         "identity_lock_tier": 0,
                     },
                 }
@@ -2419,7 +2419,7 @@ class Orchestrator:
             # 6. Audit Verification & ML Threat Inference
             repository_graph, unparsable_audits = self.auditor.audit(self.parsed_files)
             if repository_graph:
-                repository_graph = self.model_auditor.audit_galaxy(repository_graph)
+                repository_graph = self.model_auditor.audit_repository(repository_graph)
 
             # 7. Synthesis and Database Forging
             summary = self.processor.summarize_galaxy_metrics(

@@ -1,15 +1,15 @@
 import logging
 from unittest.mock import patch, MagicMock
 
-from gitgalaxy.physics.chronometer import Chronometer
+from gitgalaxy.metrics.chronometer import Chronometer
 
 
 # ==============================================================================
-# TEST 1: NO GIT FALLBACK & OS WALK (Lines 45-46, 74-95, 295-296)
+# TEST 1: NO GIT FALLBACK & OS WALK
 # ==============================================================================
-@patch("gitgalaxy.physics.chronometer.subprocess.run")
-@patch("gitgalaxy.physics.chronometer.os.walk")
-@patch("gitgalaxy.physics.chronometer.os.path.getmtime")
+@patch("gitgalaxy.metrics.chronometer.subprocess.run")
+@patch("gitgalaxy.metrics.chronometer.os.walk")
+@patch("gitgalaxy.metrics.chronometer.os.path.getmtime")
 def test_chronometer_no_git_fallback(mock_getmtime, mock_walk, mock_run, tmp_path):
     """Proves the chronometer gracefully falls back to OS Walk if Git is missing."""
     # Simulate Git binary not found
@@ -20,19 +20,19 @@ def test_chronometer_no_git_fallback(mock_getmtime, mock_walk, mock_run, tmp_pat
     # Provide fake modification times to establish boundaries
     mock_getmtime.side_effect = [1000.0, 2000.0, 1000.0, 2000.0]
 
-    # Initialize without a parent logger to trigger the root logger fallback (Lines 45-46)
+    # Initialize without a parent logger to trigger the root logger fallback
     chrono = Chronometer(tmp_path)
 
-    assert not chrono.is_resilient, "Failed to degrade to non-resilient OS mode!"
+    assert not chrono.is_git_enabled, "Failed to degrade to non-git OS mode!"
     assert chrono.repo_min_time == 1000.0, "Failed to set min boundary from OS walk!"
     assert chrono.repo_max_time == 2000.0, "Failed to set max boundary from OS walk!"
     assert "file1.txt" in chrono.mtime_map, "Failed to map files via OS fallback!"
 
 
 # ==============================================================================
-# TEST 2: GIT BOUNDARY SURVEY (Lines 106-146)
+# TEST 2: GIT BOUNDARY SURVEY
 # ==============================================================================
-@patch("gitgalaxy.physics.chronometer.subprocess.run")
+@patch("gitgalaxy.metrics.chronometer.subprocess.run")
 def test_chronometer_git_boundaries(mock_run, tmp_path):
     """Proves the boundary scanner correctly extracts min/max times from git logs."""
 
@@ -57,16 +57,16 @@ def test_chronometer_git_boundaries(mock_run, tmp_path):
     mock_run.side_effect = git_side_effect
 
     # Block the actual Popen log streaming so we just test the boundaries
-    with patch("gitgalaxy.physics.chronometer.subprocess.Popen"):
+    with patch("gitgalaxy.metrics.chronometer.subprocess.Popen"):
         chrono = Chronometer(tmp_path, parent_logger=logging.getLogger("test"))
 
-    assert chrono.is_resilient, "Failed to verify Git hardware!"
+    assert chrono.is_git_enabled, "Failed to verify Git binary!"
     assert chrono.repo_max_time == 5000.0, "Failed to extract Max Time!"
     assert chrono.repo_min_time == 1000.0, "Failed to extract Min Time via rev-list!"
 
 
 # ==============================================================================
-# TEST 3: IGNORED REVS LOADING (Lines 150-164)
+# TEST 3: IGNORED REVS LOADING
 # ==============================================================================
 def test_load_ignored_revs(tmp_path):
     """Proves the sensor strips cosmetic commits from the churn math."""
@@ -74,7 +74,7 @@ def test_load_ignored_revs(tmp_path):
     ignore_file.write_text("# This is a cosmetic styling commit\nabc123\ndef456\n")
 
     # Bypass the initialization sequence so we can test the specific method
-    with patch.object(Chronometer, "_calibrate_temporal_field"):
+    with patch.object(Chronometer, "_initialize_history_scan"):
         chrono = Chronometer(tmp_path)
         ignored = chrono._load_ignored_revs()
 
@@ -84,11 +84,11 @@ def test_load_ignored_revs(tmp_path):
 
 
 # ==============================================================================
-# TEST 4: LOG ESCALATOR EDGE CASES (Lines 172-217, 248-249, 261-262, 270, 273)
+# TEST 4: LOG STREAM EDGE CASES
 # ==============================================================================
-@patch("gitgalaxy.physics.chronometer.subprocess.run")
-@patch("gitgalaxy.physics.chronometer.subprocess.Popen")
-def test_hybrid_log_scan_and_escalator(mock_popen, mock_run, tmp_path):
+@patch("gitgalaxy.metrics.chronometer.subprocess.run")
+@patch("gitgalaxy.metrics.chronometer.subprocess.Popen")
+def test_scan_git_history_and_stream(mock_popen, mock_run, tmp_path):
     """Proves the Popen stream handles quoted paths, skipped hashes, and empty lines."""
     # 1. Mock ls-files
     mock_run.return_value = MagicMock(stdout="src/main.py\nsrc/utils.py\n")
@@ -106,55 +106,55 @@ def test_hybrid_log_scan_and_escalator(mock_popen, mock_run, tmp_path):
     mock_process.stdout = mock_stdout
     mock_popen.return_value = mock_process
 
-    with patch.object(Chronometer, "_calibrate_temporal_field"):
+    with patch.object(Chronometer, "_initialize_history_scan"):
         chrono = Chronometer(tmp_path)
-        chrono.is_resilient = True
+        chrono.is_git_enabled = True
         chrono.repo_max_time = 5000
 
         # Inject our ignored hash
         with patch.object(chrono, "_load_ignored_revs", return_value={"hash_ignored"}):
-            chrono._ignite_hybrid_log_scan()
+            chrono._scan_git_history()
 
         # Verify the quoted path was stripped and mapped
-        assert "src/main.py" in chrono.entropy_map, "Failed to strip quotes from path!"
-        assert chrono.entropy_map["src/main.py"] == 1
+        assert "src/main.py" in chrono.churn_map, "Failed to strip quotes from path!"
+        assert chrono.churn_map["src/main.py"] == 1
         assert chrono.author_map["src/main.py"]["Alice"] == 1
 
         # Verify the ignored hash skipped the subsequent file
-        assert "src/utils.py" not in chrono.entropy_map, (
+        assert "src/utils.py" not in chrono.churn_map, (
             "Failed to skip ignored commit hash!"
         )
 
 
 # ==============================================================================
-# TEST 5: TEMPORAL SIGNAL HANDOVER (Lines 311-317, 324-337)
+# TEST 5: METRICS HANDOVER
 # ==============================================================================
-@patch("gitgalaxy.physics.chronometer.os.path.getmtime")
-def test_get_temporal_signals(mock_getmtime, tmp_path):
+@patch("gitgalaxy.metrics.chronometer.os.path.getmtime")
+def test_get_file_history_metrics(mock_getmtime, tmp_path):
     """Proves the Handover method returns cache hits and falls back cleanly."""
-    with patch.object(Chronometer, "_calibrate_temporal_field"):
+    with patch.object(Chronometer, "_initialize_history_scan"):
         chrono = Chronometer(tmp_path)
         chrono.repo_min_time = 100
         chrono.repo_max_time = 500
-        chrono.is_resilient = True
+        chrono.is_git_enabled = True
 
         # Pre-mapped file (Cache Hit)
         chrono.mtime_map["mapped.py"] = 300.0
-        chrono.entropy_map["mapped.py"] = 5
+        chrono.churn_map["mapped.py"] = 5
         chrono.author_map["mapped.py"] = {"Alice": 5}
 
-        sig1 = chrono.get_temporal_signals("mapped.py")
+        sig1 = chrono.get_file_history_metrics("mapped.py")
         assert sig1["commit_count"] == 5
         assert sig1["mtime"] == 300.0
 
         # Unmapped file -> Falls back to live OS check
         mock_getmtime.return_value = 400.0
-        sig2 = chrono.get_temporal_signals("unmapped.py")
+        sig2 = chrono.get_file_history_metrics("unmapped.py")
         assert sig2["commit_count"] == 0
         assert sig2["mtime"] == 400.0
         mock_getmtime.assert_called_once()
 
         # Unmapped ghost file -> Falls back to repo_max_time if OS throws OSError
         mock_getmtime.side_effect = OSError()
-        sig3 = chrono.get_temporal_signals("ghost.py")
+        sig3 = chrono.get_file_history_metrics("ghost.py")
         assert sig3["mtime"] == 500
