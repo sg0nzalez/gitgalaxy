@@ -1,9 +1,6 @@
-import os
-import sys
 import json
 import yaml
 import pytest
-from pathlib import Path
 from unittest.mock import patch
 
 from gitgalaxy.tools.network_auditing.full_api_network_map import (

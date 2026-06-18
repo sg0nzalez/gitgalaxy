@@ -1,7 +1,6 @@
 import pytest
 import importlib
 import re
-from pathlib import Path
 
 from gitgalaxy.standards import language_lens
 from gitgalaxy.standards.language_lens import LanguageDetector
@@ -241,7 +240,6 @@ def test_prose_and_metadata_anchors(isolated_detector):
 
 
 from unittest.mock import patch
-from gitgalaxy.standards.language_lens import FocusingError
 
 
 # ==============================================================================

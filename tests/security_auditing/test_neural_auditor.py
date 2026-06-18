@@ -1,7 +1,6 @@
 import pytest
 import json
 import struct
-from pathlib import Path
 
 # Adjust this import to match your project structure
 from gitgalaxy.physics.neural_auditor import NeuralAuditor

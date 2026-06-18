@@ -1,8 +1,6 @@
 import pytest
 import json
 import sys
-import os
-from pathlib import Path
 from unittest.mock import patch
 
 from gitgalaxy.tools.compliance.sbom_generator import UniversalManifestSlicer, main

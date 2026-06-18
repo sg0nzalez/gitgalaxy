@@ -1,4 +1,3 @@
-import pytest
 from gitgalaxy.tools.cobol_to_java.cobol_to_java_agent_forge import (
     generate_java_agent_ticket,
 )

@@ -1,7 +1,4 @@
-import pytest
 import logging
-import os
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from gitgalaxy.physics.chronometer import Chronometer

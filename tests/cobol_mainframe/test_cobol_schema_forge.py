@@ -1,5 +1,3 @@
-import pytest
-from pathlib import Path
 
 # IMPORTANT: Adjust this path to match exactly where your file is located
 import gitgalaxy.tools.cobol_to_cobol.cobol_schema_forge as forge_module

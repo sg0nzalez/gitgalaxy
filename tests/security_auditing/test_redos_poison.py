@@ -1,5 +1,4 @@
 import unittest
-import time
 import pytest
 import re
 import multiprocessing as mp

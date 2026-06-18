@@ -1,8 +1,6 @@
 import pytest
 import numpy as np
-import pandas as pd
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # We patch the schemas before importing so the Auditor doesn't fail on boot
 MOCK_SCHEMAS = {"SIGNAL_SCHEMA": ["danger", "io", "flux", "safety", "graveyard"]}

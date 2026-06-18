@@ -1,8 +1,7 @@
-import os
 import sys
 import pytest
 import importlib
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import gitgalaxy.tools.supply_chain_security.binary_anomaly_detector as xray_module
 

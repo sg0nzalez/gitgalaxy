@@ -1,6 +1,4 @@
 import os
-import pytest
-import datetime
 from unittest.mock import patch, mock_open
 
 from gitgalaxy.licensing import _validate_offline_key, enforce_licensing_guard

@@ -1,5 +1,4 @@
 import pytest
-import re
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
 
 # ==============================================================================
