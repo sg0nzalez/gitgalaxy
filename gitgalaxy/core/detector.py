@@ -1475,37 +1475,26 @@ class StructuralExtractor:
             return [], 0.0
 
         # Dynamically set scope bounds based on lexical family
-        # Mapping 'lisp_style' (formerly 'lisp_semi') to parenthesis-based scope parsing
-        opener = "(" if family == "lisp_style" else "{"
-        closer = ")" if family == "lisp_style" else "}"
+        # We now consistently use curly braces for standard block-style languages.
+        opener, closer = "{", "}"
+        if lang_id == "lisp":
+            opener, closer = "(", ")"
 
         # 1. High-Performance C-Backed Shield Function
         def fast_shield(m):
             text = m.group(0)
             if "\n" not in text:
                 return " " * len(text)
-
-            # --- THE FIX: C-Optimized String Manipulation ---
-            # Replaces the character-by-character regex grind with native split/join.
-            # Instantly blanks massive Doxygen blocks without destroying line-counts.
             return "\n".join(" " * len(line) for line in text.split("\n"))
 
         # 2. The Single-Pass Lexer (Massive I/O Reduction)
-        # Combines strings and comments into ONE scan to prevent memory-copy thrashing.
-        if family == "lisp_style":
-            combined_pattern = r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|;[^\n]*|#\|.*?\|#'
-        else:
-            # THE FIX: Unrolled the C# verbatim string loop using Friedl's optimization
-            # `[^"]*(?:""[^"]*)*` to guarantee O(N) linear performance on massive test strings.
-            combined_pattern = r'""".*?"""|@"[^"]*(?:""[^"]*)*"|R"([a-zA-Z0-9_]*)\(.*?\)\1"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|//[^\n]*|/\*.*?\*/'
+        # We use the generic shield pattern for all brace-style and c-style families
+        combined_pattern = r'""".*?"""|@"[^"]*(?:""[^"]*)*"|R"([a-zA-Z0-9_]*)\(.*?\)\1"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|//[^\n]*|/\*.*?\*/'
             
         safe_code = re.sub(combined_pattern, fast_shield, code, flags=re.DOTALL)
 
         # 3. Macro Shields (Strictly Gated to C-Family)
         if lang_id in ("c", "cpp", "objective-c", "cs", "swift"):
-            # --- FAST O(N) PREPROCESSOR STATE MACHINE ---
-            # Replaces the ReDoS-vulnerable regexes with a single-pass linear scanner.
-            # Properly handles nested #if blocks and multi-line \ macros in OS-level codebases.
             lines = safe_code.splitlines(keepends=True)
             in_dead_branch = False
             dead_nesting_depth = 0
@@ -1515,129 +1504,80 @@ class StructuralExtractor:
                 line = lines[i]
                 stripped = line.lstrip()
 
-                # A) Handle Multi-line Macro Continuation
                 if in_multiline_macro:
-                    lines[i] = (
-                        " " * (len(line) - 1) + "\n"
-                        if line.endswith("\n")
-                        else " " * len(line)
-                    )
+                    lines[i] = (" " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line))
                     if not stripped.rstrip(" \t\r\n").endswith("\\"):
                         in_multiline_macro = False
                     continue
 
-                # B) Handle Preprocessor Directives
                 if stripped.startswith("#"):
                     if stripped.startswith("#if"):
-                        if in_dead_branch:
+                        if in_dead_branch: 
                             dead_nesting_depth += 1
                     elif stripped.startswith(("#else", "#elif")):
-                        if not in_dead_branch and dead_nesting_depth == 0:
+                        if not in_dead_branch and dead_nesting_depth == 0: 
                             in_dead_branch = True
                     elif stripped.startswith("#endif"):
                         if in_dead_branch:
-                            if dead_nesting_depth > 0:
+                            if dead_nesting_depth > 0: 
                                 dead_nesting_depth -= 1
-                            else:
+                            else: 
                                 in_dead_branch = False
 
                     if stripped.startswith("#define"):
-                        if stripped.rstrip(" \t\r\n").endswith("\\"):
+                        if stripped.rstrip(" \t\r\n").endswith("\\"): 
                             in_multiline_macro = True
 
-                    # Always blank the directive itself to prevent floating syntax
-                    lines[i] = (
-                        " " * (len(line) - 1) + "\n"
-                        if line.endswith("\n")
-                        else " " * len(line)
-                    )
+                    lines[i] = (" " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line))
                     continue
 
-                # C) Blank Dead Branch Content
                 if in_dead_branch:
-                    lines[i] = (
-                        " " * (len(line) - 1) + "\n"
-                        if line.endswith("\n")
-                        else " " * len(line)
-                    )
+                    lines[i] = (" " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line))
 
             safe_code = "".join(lines)
 
         last_end_idx = 0
-
-        # --- FAST O(N) LINE TRACKER ---
         current_line_count = offset + 1
         last_counted_idx = 0
 
         for match_idx, match in enumerate(matches):
-            if len(satellites) >= self.MAX_SATELLITES:
+            if len(satellites) >= self.MAX_SATELLITES: 
                 break
 
             start_idx = match.start()
-            if start_idx < last_end_idx:
+            if start_idx < last_end_idx: 
                 continue
 
-            next_match_start = (
-                matches[match_idx + 1].start()
-                if match_idx + 1 < len(matches)
-                else len(code)
-            )
+            next_match_start = matches[match_idx + 1].start() if match_idx + 1 < len(matches) else len(code)
             search_limit = min(next_match_start, start_idx + 2000)
 
-            # Find the opening brace/paren instantly using the shielded code
             brace_idx = safe_code.find(opener, start_idx, search_limit)
-            if brace_idx == -1:
+            if brace_idx == -1: 
                 continue
 
-            # Find the balanced end using the fast string
             end_idx = self._find_balanced_end(safe_code, brace_idx, opener, closer)
-
-            # Extract the raw payload using the original code, preserving all strings/comments
             block = code[start_idx:end_idx].strip()
-            if not block:
+            if not block: 
                 continue
 
-            raw_name = (
-                match.group(match.lastindex) if match.lastindex else match.group(0)
-            )
-            if raw_name is None:
-                raw_name = match.group(0)
-
-            # ---> ADD THIS STEP A INTERCEPT! <---
-            # If it's a test macro, pass the FULL match string (which includes the parentheses)
+            raw_name = match.group(match.lastindex) if match.lastindex else match.group(0)
             if any(m in raw_name for m in ["BOOST_", "TEST", "TEST_F", "TEST_CASE"]):
                 raw_name = match.group(0)
 
             name = self._extract_name(raw_name)
-
-            # --- FAST O(N) LINE TRACKER ---
-            # Only count the newlines since the last match, preventing O(N^2) quadratic scanning
             current_line_count += code.count("\n", last_counted_idx, start_idx)
             last_counted_idx = start_idx
-            start_line = current_line_count
-
-            loc = block.count("\n") + 1
-            end_line = start_line + loc - 1
-
+            
             sat, mag = self._calculate_block_metrics(
-                name,
-                block,
-                loc,
-                start_line,
-                end_line,
-                rules,
-                start_idx,
-                end_idx,
-                spatial_map,
+                name, block, block.count("\n") + 1, current_line_count,
+                current_line_count + block.count("\n"), rules, start_idx, end_idx, spatial_map,
             )
-
             satellites.append(sat)
             sum_fxn_impact += mag
-
             last_end_idx = end_idx
 
         return satellites, sum_fxn_impact
-
+    
     def _slice_by_indentation(
         self,
         code: str,
