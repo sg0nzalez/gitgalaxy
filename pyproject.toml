@@ -101,3 +101,10 @@ testpaths = [
 markers = [
     "smoke: quick core engine tests for CI/CD pipelines",
 ]
+
+[tool.ruff]
+# Ignore legacy/messy fixture code so it doesn't pollute linting results
+exclude = [
+    "tests/fixtures/*",
+]
+line-length = 120
