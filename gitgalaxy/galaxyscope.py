@@ -215,9 +215,9 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
 
     # --- NEW: Extract the Analysis Engines from worker memory ---
     chronometer = _worker_state["chronometer"]
-    signal_engine = _worker_state[
+    _unused_signal_engine = _worker_state[
         "signal"
-    ]  # Renamed to avoid shadowing 'import signal'
+    ]  # Kept for worker-state validation; intentionally unused
     security = _worker_state["security"]
     # -----------------------------------------------------------
 
