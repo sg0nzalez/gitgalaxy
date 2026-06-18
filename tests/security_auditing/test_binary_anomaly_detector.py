@@ -7,7 +7,7 @@ import gitgalaxy.tools.supply_chain_security.binary_anomaly_detector as xray_mod
 
 
 # ==============================================================================
-# TEST 1: The Routing Matrix (Denylist vs Allowlist vs Test Folders)
+# TEST 1: Path Filtering Logic (Denylist vs Allowlist vs Extensions)
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.ApertureFilter")
@@ -19,7 +19,7 @@ def test_xray_routing_matrix(
     monkeypatch.setattr(xray_module, "ALLOWLIST_PATHS", ["approved_keys/"])
 
     mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
+    mock_aperture._check_ignore_rules.return_value = True
 
     mock_security = mock_security_class.return_value
     mock_security.scan_content.return_value = {
@@ -41,29 +41,20 @@ def test_xray_routing_matrix(
     # File C (Bypass Extension)
     (repo_dir / "compressed.zip").write_text("FAKE_ZIP_DATA", encoding="utf-8")
 
-    # File D (Bypass Test Folder)
-    src_dir = repo_dir / "src"
-    src_dir.mkdir()
-    test_dir = src_dir / "tests"
-    test_dir.mkdir()
-    (test_dir / "mock_payload.dat").write_text(
-        "FAKE_HIGH_ENTROPY_DATA", encoding="utf-8"
-    )
-
     result = xray_module.run_xray_audit(repo_dir)
     assert result["anomalies_found"] == 1, (
-        "The routing matrix failed! Check Denylist/Allowlist math."
+        "Path filtering logic failed! Verify Denylist and Allowlist evaluation."
     )
 
 
 # ==============================================================================
-# TEST 2: The Deep Scan Threat Identification
+# TEST 2: Deep Content Inspection (Magic Bytes & High Entropy)
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.ApertureFilter")
 def test_xray_deep_scan_threats(mock_aperture_class, mock_security_class, tmp_path):
     mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
+    mock_aperture._check_ignore_rules.return_value = True
 
     repo_dir = tmp_path / "deep_scan_repo"
     repo_dir.mkdir()
@@ -93,18 +84,18 @@ def test_xray_deep_scan_threats(mock_aperture_class, mock_security_class, tmp_pa
 
     result = xray_module.run_xray_audit(repo_dir)
     assert result["anomalies_found"] == 1, (
-        "Failed to flag magic byte mismatch or high entropy!"
+        "Failed to flag magic byte mismatch or high entropy structural anomaly."
     )
 
 
 # ==============================================================================
-# TEST 3: The Shebang Shield
+# TEST 3: Expected Execution Header Exception
 # ==============================================================================
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.SecurityLens")
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.ApertureFilter")
 def test_xray_shebang_shield(mock_aperture_class, mock_security_class, tmp_path):
     mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
+    mock_aperture._check_ignore_rules.return_value = True
 
     repo_dir = tmp_path / "shebang_repo"
     repo_dir.mkdir()
@@ -121,7 +112,7 @@ def test_xray_shebang_shield(mock_aperture_class, mock_security_class, tmp_path)
     }
 
     result = xray_module.run_xray_audit(repo_dir)
-    assert result["anomalies_found"] == 0, "The Shebang Shield failed!"
+    assert result["anomalies_found"] == 0, "Expected execution header bypass failed."
 
 
 # ==============================================================================
@@ -131,7 +122,7 @@ def test_xray_shebang_shield(mock_aperture_class, mock_security_class, tmp_path)
 @patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.ApertureFilter")
 def test_xray_run_audit_exception(mock_aperture_class, mock_security_class, tmp_path):
     mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
+    mock_aperture._check_ignore_rules.return_value = True
 
     repo_dir = tmp_path / "broken_audit"
     repo_dir.mkdir()
@@ -141,12 +132,12 @@ def test_xray_run_audit_exception(mock_aperture_class, mock_security_class, tmp_
         result = xray_module.run_xray_audit(repo_dir)
 
     assert result["anomalies_found"] == 0, (
-        "Failed to gracefully catch exception in run_xray_audit!"
+        "Failed to gracefully catch IO exception in run_xray_audit!"
     )
 
 
 # ==============================================================================
-# TEST 5: CLI Main - Missing Target Trap
+# TEST 5: CLI Main - Missing Target Validation
 # ==============================================================================
 def test_main_missing_target(capsys):
     """Proves the CLI catches invalid directories and exits safely."""
@@ -170,7 +161,7 @@ def test_main_clean_run(
     """Proves a clean repository successfully logs completion without raising SystemExit."""
     monkeypatch.setattr(xray_module, "ALLOWLIST_PATHS", ["approved/"])
     mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
+    mock_aperture._check_ignore_rules.return_value = True
 
     mock_security = mock_security_class.return_value
     mock_security.scan_binary.return_value = {}
@@ -197,7 +188,7 @@ def test_main_clean_run(
 
     captured = capsys.readouterr()
     assert (
-        "ALL CLEAR: No encrypted payloads or binary anomalies detected." in captured.out
+        "[SUCCESS] No obfuscated payloads or binary anomalies detected." in captured.out
     )
     assert "known mock/safe files were bypassed via configuration." in captured.out
 
@@ -210,10 +201,10 @@ def test_main_clean_run(
 def test_main_anomaly_detected(
     mock_aperture_class, mock_security_class, tmp_path, monkeypatch, capsys
 ):
-    """Proves the CLI detects active anomalies, blocks the commit, and logs the triage alert."""
+    """Proves the CLI detects active anomalies, blocks the commit, and logs the blocking action."""
     monkeypatch.setattr(xray_module, "DENYLIST_PATTERNS", ["*.forbidden"])
     mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
+    mock_aperture._check_ignore_rules.return_value = True
 
     repo_dir = tmp_path / "threat_repo_cli"
     repo_dir.mkdir()
@@ -235,8 +226,8 @@ def test_main_anomaly_detected(
 
     assert exc_info.value.code == 1
     captured = capsys.readouterr()
-    assert "TRIAGE ALERT" in captured.out
-    assert "[FORBIDDEN FILE BREACH]" in captured.out
+    assert "[BLOCKING ACTION]" in captured.out
+    assert "[DENYLIST MATCH]" in captured.out
     assert "[ANOMALY DETECTED]" in captured.out
 
 
@@ -248,7 +239,7 @@ def test_main_anomaly_detected(
 def test_main_file_read_exception(mock_aperture_class, mock_security_class, tmp_path):
     """Triggers the generic 'except Exception: pass' inside the deep scan loop of main()."""
     mock_aperture = mock_aperture_class.return_value
-    mock_aperture._check_solar_shield.return_value = True
+    mock_aperture._check_ignore_rules.return_value = True
 
     repo_dir = tmp_path / "broken_main"
     repo_dir.mkdir()
@@ -272,7 +263,7 @@ def test_xray_import_fallback():
     mock_config.APERTURE_CONFIG = {}
     sys.modules["gitgalaxy.standards.gitgalaxy_config"] = mock_config
 
-    # Force a reload to trigger the ImportError bypass block (Lines 24-29)
+    # Force a reload to trigger the ImportError bypass block
     importlib.reload(xray_module)
 
     assert xray_module.ALLOWLIST_PATHS == [], (
@@ -286,3 +277,38 @@ def test_xray_import_fallback():
     if original_config:
         sys.modules["gitgalaxy.standards.gitgalaxy_config"] = original_config
     importlib.reload(xray_module)
+
+
+# ==============================================================================
+# TEST 10: False Positive Mitigation (Test Directory Bypass)
+# ==============================================================================
+@patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.SecurityLens")
+@patch("gitgalaxy.tools.supply_chain_security.binary_anomaly_detector.ApertureFilter")
+def test_xray_test_folder_bypass(mock_aperture_class, mock_security_class, tmp_path, capsys):
+    """Proves that high entropy mock files placed within test directories are safely ignored."""
+    mock_aperture = mock_aperture_class.return_value
+    mock_aperture._check_ignore_rules.return_value = True
+
+    repo_dir = tmp_path / "test_bypass_repo"
+    repo_dir.mkdir()
+
+    # Create a test directory with a mock encrypted payload
+    test_dir = repo_dir / "tests"
+    test_dir.mkdir()
+    mock_payload = test_dir / "mock_encrypted_payload.bin"
+    mock_payload.write_text("HIGH_ENTROPY_DATA", encoding="utf-8")
+
+    mock_security = mock_security_class.return_value
+    mock_security.scan_binary.return_value = {}
+    
+    # Mock returning high entropy for this file
+    mock_security.scan_content.return_value = {
+        "counts": {"entropy": 7.5, "bitwise_hits": 0}
+    }
+
+    with patch("sys.argv", ["xray", str(repo_dir)]):
+        xray_module.main()
+
+    captured = capsys.readouterr()
+    assert "[SUCCESS] No obfuscated payloads or binary anomalies detected." in captured.out
+    assert "known mock/safe files were bypassed via configuration." in captured.out
