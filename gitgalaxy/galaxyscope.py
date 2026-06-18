@@ -64,12 +64,7 @@ from gitgalaxy.standards.analysis_lens import (
     PHYSICS_ASSET_MASKS,
 )
 
-try:
-    import yaml
-
-    HAS_PYYAML = True
-except ImportError:
-    HAS_PYYAML = False
+HAS_PYYAML = importlib.util.find_spec("yaml") is not None
 
 logger = logging.getLogger("GalaxyScope")
 
@@ -215,9 +210,9 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
 
     # --- NEW: Extract the Analysis Engines from worker memory ---
     chronometer = _worker_state["chronometer"]
-    _unused_signal_engine = _worker_state[
+    signal_engine = _worker_state[
         "signal"
-    ]  # Kept for worker-state validation; intentionally unused
+    ]  # Renamed to avoid shadowing 'import signal'
     security = _worker_state["security"]
     # -----------------------------------------------------------
 
@@ -1250,6 +1245,12 @@ class Orchestrator:
             self.git_tracked_files = set()
             logger.warning("GIT_NOT_FOUND: Reverting to standard filesystem walk.")
             self._fallback_filesystem_walk()
+
+    def _fallback_filesystem_walk(self):
+        """
+        Standard OS-level filesystem walk for non-Git projects or ZIP archives.
+        """
+        self.cleanup()
 
     def _fallback_filesystem_walk(self):
         """
