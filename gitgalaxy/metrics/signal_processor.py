@@ -51,7 +51,7 @@ class SignalProcessor:
         aperture_config: Optional[Dict[str, Any]] = None,
         parent_logger: Optional[logging.Logger] = None,
     ):
-        """Initializes the physics engine with forensic constants and telemetry."""
+        """Initializes the signal processing engine with forensic constants and telemetry."""
         if parent_logger:
             self.logger = parent_logger.getChild("processing")
             self.logger.setLevel(parent_logger.level)
@@ -63,23 +63,23 @@ class SignalProcessor:
         self.config = aperture_config or {}
 
         # ======================================================================
-        # 🧠 FETCH THE ML INFERENCE BRAINS (Global & Local)
+        # 🧠 FETCH PRE-TRAINED INFERENCE MODELS (Global & Local)
         # ======================================================================
         # ---> NEW (DYNAMIC) <---
-        ml_brain = getattr(config, "GENERAL_FILE_INFERENCE_MODEL", {})
-        self.SCALER_MEDIANS = ml_brain.get(
+        inference_model = getattr(config, "GENERAL_FILE_INFERENCE_MODEL", {})
+        self.SCALER_MEDIANS = inference_model.get(
             "SCALER_MEDIANS", [0.0] * 100
         )  # Safe fallback size
-        self.SCALER_IQRS = ml_brain.get("SCALER_IQRS", [1.0] * 100)
+        self.SCALER_IQRS = inference_model.get("SCALER_IQRS", [1.0] * 100)
 
         # Dynamically grab whichever ARCHETYPES_K key exists (e.g. ARCHETYPES_K9)
         arch_key = next(
-            (k for k in ml_brain.keys() if k.startswith("ARCHETYPES_K")), None
+            (k for k in inference_model.keys() if k.startswith("ARCHETYPES_K")), None
         )
-        self.GLOBAL_ARCHETYPES = ml_brain.get(arch_key, {}) if arch_key else {}
+        self.GLOBAL_ARCHETYPES = inference_model.get(arch_key, {}) if arch_key else {}
 
-        # ---> NEW: Fetch Language-Specific Micro-Species Brains <---
-        self.LANGUAGE_INFERENCE_BRAINS = getattr(
+        # ---> NEW: Fetch Language-Specific Clustering Models <---
+        self.LANGUAGE_INFERENCE_MODELS = getattr(
             config, "SPECIFIC_FILE_INFERENCE_MODEL", {}
         )
 
@@ -112,8 +112,8 @@ class SignalProcessor:
         self.ECOSYSTEMS = security_profiles.get("ECOSYSTEMS", {})
         self.NATIVE_WEIGHTS = security_profiles.get("NATIVE_WEIGHTS", {})
 
-        # Fetch ALIEN_WEIGHTS dynamically, with a fallback to the hardcoded dictionary
-        self.ALIEN_WEIGHTS = security_profiles.get(
+        # Fetch ECOSYSTEM_MISMATCH_PENALTIES dynamically, with a fallback to the hardcoded dictionary
+        self.ECOSYSTEM_MISMATCH_PENALTIES = security_profiles.get(
             "ALIEN_WEIGHTS",
             {
                 "systems_in_web": {
@@ -137,13 +137,13 @@ class SignalProcessor:
         self.logger.info(
             "Signal Processor Online | Context-Aware Risk Schema & ML Archetypes loaded."
         )
-
+        
     def _classify_archetype(
         self, scaled_vector: List[float], archetypes_dict: Dict[str, List[float]]
     ) -> Tuple[str, float, Dict[str, float]]:
         """
         Dynamically calculates the Euclidean Distance for any provided K-Means dictionary.
-        Returns: Best Match Name, Minimum Distance (Drift), Full Fingerprint.
+        Returns: Best Match Name, Minimum Distance (Drift), Full Feature Fingerprint.
         """
         fingerprint = {}
         best_match = "Unknown Archetype"
@@ -171,8 +171,8 @@ class SignalProcessor:
         self, file_lang: str, folder_lang: str
     ) -> Dict[str, float]:
         """
-        Calculates risk multipliers by comparing a file's language to its neighborhood.
-        Prevents the 'Apollo Paradox' and catches 'Trojan Horse' entities.
+        Calculates risk multipliers by comparing an asset's language to its directory environment.
+        Detects architectural boundary violations and embedded payloads (e.g., C code in a JS directory).
         """
         # Default multipliers if no specific context rules apply
         multipliers = {"memory": 1.0, "logic_bomb": 1.0, "flux": 1.0, "injection": 1.0}
@@ -198,17 +198,17 @@ class SignalProcessor:
         if file_eco == folder_eco:
             return self.NATIVE_WEIGHTS.get(file_eco, multipliers)
 
-        # SCENARIO 2: The Entity is an Alien (Context Mismatch)
-        alien_key = f"{file_eco}_in_{folder_eco}"
-        alien_penalties = self.ALIEN_WEIGHTS.get(alien_key, {})
+        # SCENARIO 2: The Entity is Out-of-Context (Ecosystem Mismatch)
+        mismatch_key = f"{file_eco}_in_{folder_eco}"
+        mismatch_penalties = self.ECOSYSTEM_MISMATCH_PENALTIES.get(mismatch_key, {})
 
-        # Apply standard weights of the file, but overwrite with severe alien penalties
+        # Apply standard weights of the file, but overwrite with severe mismatch penalties
         base_weights = self.NATIVE_WEIGHTS.get(file_eco, multipliers).copy()
-        base_weights.update(alien_penalties)
+        base_weights.update(mismatch_penalties)
 
-        if alien_penalties:
+        if mismatch_penalties:
             self.logger.debug(
-                f"👽 ALIEN ENTITY DETECTED: {file_lang} file hiding in a {folder_eco} neighborhood. Applying severe penalties: {alien_penalties}"
+                f"🚨 CONTEXTUAL MISMATCH DETECTED: {file_lang} asset embedded in a {folder_eco} domain. Applying out-of-bounds security penalties: {mismatch_penalties}"
             )
 
         return base_weights
@@ -234,7 +234,7 @@ class SignalProcessor:
     def calculate_risk_vector(
         self,
         meta: Dict[str, Any],
-        equations: Dict[str, int],
+        raw_signals: Dict[str, int],
         umbrella_bonus: float = 0.0,
     ) -> Dict[str, Any]:
         """Calculates risk exposure, temporal physics, and per-file physical impact."""
@@ -266,7 +266,7 @@ class SignalProcessor:
             ghost_meta = meta.get("metadata", {})
 
             # ==================================================================
-            # THE EXTENSION DECEPTION SENSOR
+            # EXTENSION SPOOFING DETECTOR
             # Punishes files claiming to be inert data but evaluated as executable code
             # ==================================================================
             if ext:
@@ -303,12 +303,12 @@ class SignalProcessor:
 
                 if ext in inert_disguises and lang_id.lower() in executable_langs:
                     self.logger.warning(
-                        f"🚨 DECEPTION DETECTED: {rel_path} claims to be {ext} but executed as {lang_id}!"
+                        f"🚨 SPOOFING DETECTED: {rel_path} claims to be {ext} but executed as {lang_id}!"
                     )
-                    equations["sec_extension_mismatch"] = 1
+                    raw_signals["sec_extension_mismatch"] = 1
 
             # ==================================================================
-            # THE EXPOSED SECRET BYPASS PROTOCOL
+            # CRITICAL SECRETS EXPOSURE OVERRIDE
             # Treat exposed keyfiles as structural vulnerabilities, skipping math
             # ==================================================================
             aperture_cfg = getattr(config, "APERTURE_CONFIG", {})
@@ -366,7 +366,7 @@ class SignalProcessor:
                 }
 
             # ==================================================================
-            # THE MINIFIED / VENDOR TRIPWIRE PROTOCOL
+            # OBFUSCATED / VENDOR ASSET OVERRIDE
             # ==================================================================
             is_minified = meta.get("is_minified", False)
             if is_minified:
@@ -375,14 +375,14 @@ class SignalProcessor:
 
                 # 2. Check for ANY malicious intent (eval, network fetching, etc.)
                 intent_mass = (
-                    equations.get("sec_danger", 0)
-                    + equations.get("sec_io", 0)
-                    + equations.get("sec_safety_neg", 0)
+                    raw_signals.get("sec_danger", 0)
+                    + raw_signals.get("sec_io", 0)
+                    + raw_signals.get("sec_safety_neg", 0)
                 )
 
                 if intent_mass > 0:
                     self.logger.critical(
-                        f"🚨 MINIFIED TRIPWIRE TRIGGERED: {rel_path} contains obscured execution/IO!"
+                        f"🚨 OBFUSCATION DETECTED: {rel_path} contains obscured execution/IO!"
                     )
                     if "obscured_payload" in self.RISK_SCHEMA:
                         blanket_risk_vector[
@@ -399,7 +399,7 @@ class SignalProcessor:
 
                 return {
                     "risk_vector": blanket_risk_vector,
-                    "hit_vector": [equations.get(k, 0) for k in self.SIGNAL_SCHEMA],
+                    "hit_vector": [raw_signals.get(k, 0) for k in self.SIGNAL_SCHEMA],
                     "file_impact": 1.0,  # Minified files don't carry architectural weight
                     "telemetry": {
                         "archetype": getattr(config, "STATIC_ARCHETYPES", {}).get(
@@ -417,7 +417,7 @@ class SignalProcessor:
                 }
 
             # ==================================================================
-            # THE DOCUMENTATION BYPASS PROTOCOL
+            # STATIC LITERATURE OVERRIDE
             # Treat pure literature as static structural assets, skipping logic math
             # ==================================================================
             doc_languages = self.asset_masks.get(
@@ -465,7 +465,7 @@ class SignalProcessor:
                 }
 
             # ==================================================================
-            # 1. ACTIVE PHYSICS ENGINE (For normal executable code)
+            # 1. ACTIVE SIGNAL PROCESSING ENGINE (For normal executable code)
             # ==================================================================
             tier = self._get_tier(lang_id)
             fc = self.TIER_VARS[tier]["fc"]
@@ -482,7 +482,7 @@ class SignalProcessor:
                 f"[{rel_path}] Physics Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc}, Ot: {ot:.2f})"
             )
 
-            hit_vector = [equations.get(key, 0) for key in self.SIGNAL_SCHEMA]
+            hit_vector = [raw_signals.get(key, 0) for key in self.SIGNAL_SCHEMA]
 
             # ------------------------------------------------------------------
             # 1. TEMPORAL PRE-PROCESSING (Raw Extraction)
@@ -499,8 +499,8 @@ class SignalProcessor:
 
             # ---> NEW: THE ENCAPSULATION RATIO <---
             # How much of the file's data is safely locked inside functions?
-            total_vars = equations.get("core_var_decl", 0)
-            global_vars = equations.get("globals", 0)
+            total_vars = raw_signals.get("core_var_decl", 0)
+            global_vars = raw_signals.get("globals", 0)
 
             if total_vars == 0 and global_vars == 0:
                 encapsulation_ratio = 1.0  # Safe by default if no state exists
@@ -649,7 +649,7 @@ class SignalProcessor:
                     "cryptography",
                 } or key.startswith("sec_"):
                     continue
-                raw_hit = equations.get(key, 0)
+                raw_hit = raw_signals.get(key, 0)
                 raw_density = (raw_hit / safe_denom) * 100.0
                 raw_vector.append(math.log1p(raw_density))
 
@@ -688,7 +688,7 @@ class SignalProcessor:
             local_drift = 0.0
             local_fingerprint = {}
 
-            lang_brain = self.LANGUAGE_INFERENCE_BRAINS.get(lang_id.lower())
+            lang_brain = self.LANGUAGE_INFERENCE_MODELS.get(lang_id.lower())
             if lang_brain:
                 lang_medians = lang_brain.get("SCALER_MEDIANS", [])
                 lang_iqrs = lang_brain.get("SCALER_IQRS", [])
@@ -723,8 +723,8 @@ class SignalProcessor:
             # ---> HIGHER-ORDER SYNTHESIS: The OOM (Out of Memory) Bomb <---
             # If O(N^3) or recursive, AND high flux, AND NO lazy_evaluation -> Massive Flux Multiplier
             oom_multiplier = 1.0
-            if (max_big_o >= 3 or has_recursion) and equations.get("flux", 0) > 0:
-                if equations.get("lazy_evaluation", 0) == 0:
+            if (max_big_o >= 3 or has_recursion) and raw_signals.get("flux", 0) > 0:
+                if raw_signals.get("lazy_evaluation", 0) == 0:
                     oom_multiplier = 3.0  # Ticking OOM bomb (Bloating RAM)
                 else:
                     oom_multiplier = 0.5  # Safely streamed (O(1) memory)
@@ -733,20 +733,20 @@ class SignalProcessor:
             # --------------------------------------------------------------
 
             cog_score, cog_raw = self._calc_cog_load(
-                loc, equations, irc, fc, mp_map.get("cog", 1.0), func_gini
+                loc, raw_signals, irc, fc, mp_map.get("cog", 1.0), func_gini
             )
             saf_score = self._calc_safety(
-                loc, equations, irc, fc, mp_map.get("safety", 1.0)
+                loc, raw_signals, irc, fc, mp_map.get("safety", 1.0)
             )
             debt_score = self._calc_tech_debt(
-                loc, equations, irc, mp_map.get("debt", 1.0)
+                loc, raw_signals, irc, mp_map.get("debt", 1.0)
             )
 
             test_score = self._calc_verification(
                 loc,
                 rel_path,
                 meta.get("is_protected", False),
-                equations,
+                raw_signals,
                 ot,
                 fc,
                 mp_map.get("test", 1.0),
@@ -762,7 +762,7 @@ class SignalProcessor:
             doc_score = self._calc_documentation(
                 loc,
                 doc_lines,
-                equations,
+                raw_signals,
                 fc,
                 irc,
                 mp_map.get("doc", 1.0),
@@ -771,7 +771,7 @@ class SignalProcessor:
                 popularity=popularity,
                 silo_exposure=silo_exposure,
             )
-            spec_score = self._calc_spec_alignment(equations, mp_map.get("spec", 1.0))
+            spec_score = self._calc_spec_alignment(raw_signals, mp_map.get("spec", 1.0))
 
             bureaucracy_dampener = min(loc / 15.0, 1.0)
             test_score *= bureaucracy_dampener
@@ -784,25 +784,25 @@ class SignalProcessor:
                 "tech_debt": debt_score,
                 "verification": test_score,
                 "api_exposure": self._calc_api_exposure(
-                    equations, total_loc, popularity
+                    raw_signals, total_loc, popularity
                 ),
                 "concurrency": self._calc_concurrency(
-                    loc, equations, irc, mp_map.get("async", 1.0), functions
+                    loc, raw_signals, irc, mp_map.get("async", 1.0), functions
                 ),
                 "state_flux": self._calc_state_flux(
-                    loc, equations, irc, mp_map.get("flux", 1.0)
+                    loc, raw_signals, irc, mp_map.get("flux", 1.0)
                 ),
                 "graveyard": self._calc_graveyard(
-                    total_loc, equations, mp_map.get("dead", 1.0)
+                    total_loc, raw_signals, mp_map.get("dead", 1.0)
                 ),
                 "spec_match": spec_score,
                 "stability": stability_score,
                 "churn": 0.0,
                 "documentation": doc_score,
-                "civil_war": self._calc_civil_war(equations),
+                "civil_war": self._calc_civil_war(raw_signals),
                 "algorithmic_dos": self._calc_algorithmic_dos(
                     loc,
-                    equations,
+                    raw_signals,
                     mp_map.get("algorithmic_dos", 1.0),
                     functions,
                     popularity,
@@ -810,7 +810,7 @@ class SignalProcessor:
                 # ---> BIAXIAL WEAPONIZATION <---
                 "obscured_payload": self._calc_obscured_payload(
                     loc,
-                    equations,
+                    raw_signals,
                     mp_map.get("obscured", 1.0),
                     global_archetype,
                     global_drift,
@@ -818,7 +818,7 @@ class SignalProcessor:
                 ),
                 "logic_bomb": self._calc_logic_bomb(
                     loc,
-                    equations,
+                    raw_signals,
                     mp_map.get("logic_bomb", 1.0) * eco_mp.get("logic_bomb", 1.0),
                     global_archetype,
                     global_drift,
@@ -827,19 +827,19 @@ class SignalProcessor:
                 ),
                 "injection_surface": self._calc_injection_surface(
                     loc,
-                    equations,
+                    raw_signals,
                     mp_map.get("injection", 1.0) * eco_mp.get("injection", 1.0),
                     global_archetype,
                 ),
                 "memory_corruption": self._calc_memory_corruption(
                     loc,
-                    equations,
+                    raw_signals,
                     mp_map.get("memory", 1.0) * eco_mp.get("memory", 1.0),
                     lang_id,
                     global_archetype,
                 ),
                 "secrets_risk": self._calc_secrets_risk(
-                    loc, equations, mp_map.get("secrets", 1.0)
+                    loc, raw_signals, mp_map.get("secrets", 1.0)
                 ),
             }
 
@@ -854,7 +854,7 @@ class SignalProcessor:
             # 4. CALCULATE FILE IMPACT (The Mass)
             # ------------------------------------------------------------------
             functions = meta.get("functions", [])
-            func_start = equations.get("func_start", 0)
+            func_start = raw_signals.get("func_start", 0)
 
             if functions:
                 sum_function_impacts = sum(f.get("impact", 0) for f in functions)
@@ -863,8 +863,8 @@ class SignalProcessor:
                     temp_branches = 0
                     temp_args = 0
                 else:
-                    temp_branches = equations.get("branch", 0)
-                    temp_args = equations.get("args", 0)
+                    temp_branches = raw_signals.get("branch", 0)
+                    temp_args = raw_signals.get("args", 0)
 
                 temp_signals = temp_branches + temp_args
                 temp_effective_loc = min(loc, (temp_signals + 1) * 10)
@@ -875,9 +875,9 @@ class SignalProcessor:
                     + (0.05 * temp_effective_loc)
                 ) * 10
 
-            api_exposure = equations.get("api", 0)
-            concurrency = equations.get("concurrency", 0)
-            flux = equations.get("flux", 0)
+            api_exposure = raw_signals.get("api", 0)
+            concurrency = raw_signals.get("concurrency", 0)
+            flux = raw_signals.get("flux", 0)
 
             file_mass = (
                 sum_function_impacts + api_exposure + concurrency + flux + (loc / 50.0)
@@ -936,7 +936,7 @@ class SignalProcessor:
             )
             return {
                 "risk_vector": [0.0] * len(self.RISK_SCHEMA),
-                "hit_vector": [equations.get(k, 0) for k in self.SIGNAL_SCHEMA],
+                "hit_vector": [raw_signals.get(k, 0) for k in self.SIGNAL_SCHEMA],
                 "file_impact": max(loc / 50.0, 1.0),
                 "telemetry": {"error": str(e)},
             }
@@ -1299,8 +1299,8 @@ class SignalProcessor:
                 "Deep Learning": dl_total,
             }
 
-        # --- NEW: Repo Macro-Species Calculation ---
-        repo_brain = getattr(config, "GENERAL_REPO_INFERENCE_MODEL", None)
+        # --- NEW: Ecosystem Baseline Clustering (Global Repository Archetype) ---
+        repo_model = getattr(config, "GENERAL_REPO_INFERENCE_MODEL", None)
         repo_macro_data = {
             "name": "Unclassified",
             "id": -1,
@@ -1308,19 +1308,19 @@ class SignalProcessor:
             "raw_drift": 0.0,
         }
 
-        if repo_brain and parsed_files:
+        if repo_model and parsed_files:
             # Rebuild the ratios based purely on the K-Means features
             feature_counts = {
-                feat: archetype_counts.get(feat, 0) for feat in repo_brain["features"]
+                feat: archetype_counts.get(feat, 0) for feat in repo_model["features"]
             }
             live_ratios = [
                 feature_counts[feat] / len(parsed_files)
-                for feat in repo_brain["features"]
+                for feat in repo_model["features"]
             ]
 
             distances = []
-            for i in range(repo_brain["k_clusters"]):
-                centroid = repo_brain["centroids"][f"Cluster {i}"]
+            for i in range(repo_model["k_clusters"]):
+                centroid = repo_model["centroids"][f"Cluster {i}"]
                 dist = math.sqrt(
                     sum((a - b) ** 2 for a, b in zip(live_ratios, centroid))
                 )
@@ -1329,12 +1329,12 @@ class SignalProcessor:
             assigned_idx = distances.index(min(distances))
             raw_drift = distances[assigned_idx]
 
-            z_params = repo_brain["z_score_params"][f"Cluster {assigned_idx}"]
+            z_params = repo_model["z_score_params"][f"Cluster {assigned_idx}"]
             z_score = (raw_drift - z_params["mean"]) / z_params["std"]
 
-            cluster_names = repo_brain.get(
+            cluster_names = repo_model.get(
                 "cluster_names",
-                [f"Cluster {i}" for i in range(repo_brain["k_clusters"])],
+                [f"Cluster {i}" for i in range(repo_model["k_clusters"])],
             )
 
             repo_macro_data = {
@@ -1346,8 +1346,8 @@ class SignalProcessor:
 
             # Inject into parsed_files so security_auditor and gpu_recorder have it in RAM
             for f in parsed_files:
-                f["telemetry"]["repo_macro_species"] = assigned_idx
-                f["telemetry"]["repo_z_score"] = repo_macro_data["z_score"]
+                f["telemetry"]["ecosystem_baseline_cluster"] = assigned_idx
+                f["telemetry"]["ecosystem_z_score"] = repo_macro_data["z_score"]
                 for i, d in enumerate(distances):
                     f["telemetry"][f"dist_to_{i}"] = d
 
@@ -1458,19 +1458,19 @@ class SignalProcessor:
 
         return round(ownership_score, 2)
 
-    def _calc_civil_war(self, eq: Dict[str, int]) -> float:
+    def _calc_civil_war(self, raw_signals: Dict[str, int]) -> float:
         """
-        Calculates Layout Unity (Tabs vs Spaces).
-        0 = Pure Tabs (Green), 100 = Pure Spaces (Yellow), 50 = War Zone (Blue).
+        Calculates Layout Consistency (Tabs vs Spaces).
+        0 = Pure Tabs (Consistent), 100 = Pure Spaces (Consistent), 50 = High Discrepancy.
         """
-        tab_lines = eq.get("indent_tabs", 0)
-        space_lines = eq.get("indent_spaces", 0)
+        tab_lines = raw_signals.get("indent_tabs", 0)
+        space_lines = raw_signals.get("indent_spaces", 0)
 
         l_total = tab_lines + space_lines
 
         # 2. Handle Void States (No indentation at all)
         if l_total == 0:
-            return 50.0  # Default to Neutral Blue
+            return 50.0  # Default to Neutral
 
         # 3. Calculate Space-Ratio (R)
         space_ratio = space_lines / l_total
@@ -1481,7 +1481,7 @@ class SignalProcessor:
     def _calc_cog_load(
         self,
         loc: int,
-        eq: Dict[str, int],
+        raw_signals: Dict[str, int],
         irc: int,
         fc: float,
         mp: float,
@@ -1493,7 +1493,7 @@ class SignalProcessor:
         if safe_loc < 15:
             total_density = sum(
                 [
-                    eq.get(k, 0)
+                    raw_signals.get(k, 0)
                     for k in [
                         "branch",
                         "flux",
@@ -1505,15 +1505,15 @@ class SignalProcessor:
             ) / safe_loc + (irc / safe_loc)
             return 5.0, total_density
 
-        branches = eq.get("branch", 0)
+        branches = raw_signals.get("branch", 0)
         if branches == 0 and safe_loc > 50:
             return 0.0, 0.0
 
         branch_density = branches / safe_loc
-        flux_density = eq.get("flux", 0) / safe_loc
-        concurrency_density = eq.get("concurrency", 0) / safe_loc
-        heat_density = eq.get("heat_triggers", 0) / safe_loc
-        danger_density = eq.get("danger", 0) / safe_loc
+        flux_density = raw_signals.get("flux", 0) / safe_loc
+        concurrency_density = raw_signals.get("concurrency", 0) / safe_loc
+        heat_density = raw_signals.get("heat_triggers", 0) / safe_loc
+        danger_density = raw_signals.get("danger", 0) / safe_loc
 
         clamped_branch = min(branch_density * 1.0, t.get("branch_clamp", 0.5))
         clamped_flux = min(
@@ -1525,7 +1525,7 @@ class SignalProcessor:
             + (danger_density * t.get("danger_mult", 5.0))
         )
 
-        # ---> THE GOD FUNCTION PENALTY <---
+        # ---> GOD OBJECT ANTI-PATTERN PENALTY <---
         # If complexity is heavily skewed into a single massive function (High Gini),
         # reading the file requires jarring mental context switches. Spike the load.
         gini_multiplier = 1.0
@@ -1550,26 +1550,26 @@ class SignalProcessor:
         except OverflowError:
             raw_score = 100.0 if total_density > t.get("sigmoid_offset", 0.75) else 0.0
 
-        doc_coverage = (eq.get("doc", 0) * t.get("doc_mult", 10.0)) / safe_loc
+        doc_coverage = (raw_signals.get("doc", 0) * t.get("doc_mult", 10.0)) / safe_loc
         cooling = max(0.5, 1.0 - (doc_coverage * fc))
 
         return min(raw_score * cooling * mp, 100.0), total_density
 
     def _calc_safety(
-        self, loc: int, eq: Dict[str, int], irc: int, fc: float, mp: float
+        self, loc: int, raw_signals: Dict[str, int], irc: int, fc: float, mp: float
     ) -> float:
         safe_loc = max(loc, 1)
         t = self.risk_tuning.get("safety", {})
 
         attack_hits = (
-            (eq.get("danger", 0) * t.get("danger_weight", 4.0))
-            + (eq.get("safety_neg", 0) * t.get("safety_neg_weight", 1.5))
-            + (eq.get("flux", 0) * t.get("flux_weight", 0.5))
+            (raw_signals.get("danger", 0) * t.get("danger_weight", 4.0))
+            + (raw_signals.get("safety_neg", 0) * t.get("safety_neg_weight", 1.5))
+            + (raw_signals.get("flux", 0) * t.get("flux_weight", 0.5))
         )
         defense_hits = (
-            (eq.get("safety", 0) * self.WEIGHT_DEFENSE)
-            + (eq.get("test", 0) * t.get("test_weight", 0.5))
-            + (eq.get("doc", 0) * t.get("doc_weight", 0.1))
+            (raw_signals.get("safety", 0) * self.WEIGHT_DEFENSE)
+            + (raw_signals.get("test", 0) * t.get("test_weight", 0.5))
+            + (raw_signals.get("doc", 0) * t.get("doc_weight", 0.1))
         )
 
         if attack_hits == 0:
@@ -1589,8 +1589,8 @@ class SignalProcessor:
         except OverflowError:
             score = 100.0 if net_exposure > 0 else 0.0
 
-        danger_density = (eq.get("danger", 0) + eq.get("safety_neg", 0)) / safe_loc
-        if danger_density > t.get("breach_density_min", 0.03) and attack > defense:
+        danger_density = (raw_signals.get("danger", 0) + raw_signals.get("safety_neg", 0)) / safe_loc
+        if danger_density > t.get("vulnerability_density_min", 0.03) and attack > defense:
             floor = min(
                 t.get("breach_floor_max", 80.0),
                 30.0 + (danger_density * t.get("breach_floor_mult", 500.0)),
@@ -1600,16 +1600,16 @@ class SignalProcessor:
         return max(score, 0.0)
 
     def _calc_tech_debt(
-        self, loc: int, eq: Dict[str, int], irc: int, mp: float
+        self, loc: int, raw_signals: Dict[str, int], irc: int, mp: float
     ) -> float:
         t = self.risk_tuning.get("tech_debt", {})
-        good_debt = eq.get("planned_debt", 0)
-        bad_debt = eq.get("fragile_debt", eq.get("keyword_debt", 0))
-        stubs = eq.get("func_empty", 0)
+        good_debt = raw_signals.get("planned_debt", 0)
+        bad_debt = raw_signals.get("fragile_debt", raw_signals.get("keyword_debt", 0))
+        stubs = raw_signals.get("func_empty", 0)
 
-        # --- NEW: UNACKNOWLEDGED DEBT (SLOP) ---
-        orphans = eq.get("design_slop_orphans", 0)
-        duplicates = eq.get("design_slop_duplicates", 0)
+        # --- NEW: UNTRACKED COMPLEXITY (SLOP) ---
+        orphans = raw_signals.get("design_slop_orphans", 0)
+        duplicates = raw_signals.get("design_slop_duplicates", 0)
 
         if (
             good_debt == 0
@@ -1620,7 +1620,7 @@ class SignalProcessor:
         ):
             return 0.0
 
-        # Slop carries a heavier baseline penalty because it is invisible to standard linters
+        # Implicit debt carries a heavier baseline penalty because it is invisible to standard linters
         slop_stress = (orphans * 2.0) + (duplicates * 5.0)
 
         stress = (
@@ -1631,7 +1631,7 @@ class SignalProcessor:
             + slop_stress
         )
 
-        # If there is active slop AND acknowledged debt, they multiply each other's severity
+        # If there is implicit debt AND acknowledged debt, they multiply each other's severity
         if slop_stress > 0 and (good_debt > 0 or bad_debt > 0):
             stress *= 1.5
 
@@ -1651,7 +1651,7 @@ class SignalProcessor:
         self,
         loc: int,
         doc_loc: int,
-        eq: Dict[str, int],
+        raw_signals: Dict[str, int],
         fc: float,
         irc: int,
         mp: float,
@@ -1667,15 +1667,15 @@ class SignalProcessor:
         umbrella_defense = doc_umbrella * 50.0
 
         defense_hits = (
-            (eq.get("doc", 0) * t.get("doc_weight", 1.0))
-            + (eq.get("ownership", 0) * t.get("ownership_weight", 0.5))
+            (raw_signals.get("doc", 0) * t.get("doc_weight", 1.0))
+            + (raw_signals.get("ownership", 0) * t.get("ownership_weight", 0.5))
             + (doc_loc * t.get("doc_loc_weight", 0.33))
             + umbrella_defense
         ) * fc
 
-        # 2. THE RISK (Kinetic Blindness)
-        kinetic_blindness = 0.0
-        api_exposure = eq.get("api", 0) * 2.0
+        # 2. THE RISK (Opaque Execution Risk)
+        opaque_execution = 0.0
+        api_exposure = raw_signals.get("api", 0) * 2.0
 
         if functions:
             for func in functions:
@@ -1684,10 +1684,10 @@ class SignalProcessor:
 
                 # If a load-bearing or deeply nested block lacks a semantic tether
                 if (impact > 50.0 or big_o >= 3) and not func.get("docstring"):
-                    kinetic_blindness += 5.0 + (math.log1p(impact) * (big_o * 0.5))
+                    opaque_execution += 5.0 + (math.log1p(impact) * (big_o * 0.5))
 
-        # Add Implicit Risk Correction (Opacity Tax) to the risk
-        risk_hits = kinetic_blindness + api_exposure + irc
+        # Add Implicit Risk Correction (Maintenance Overhead) to the risk
+        risk_hits = opaque_execution + api_exposure + irc
 
         # 3. UNIVERSAL DENSITY EQUATION
         net_exposure = max(0.0, risk_hits - (defense_hits / 2.0))
@@ -1718,7 +1718,7 @@ class SignalProcessor:
         loc: int,
         rel_path: str,
         is_protected: bool,
-        eq: Dict[str, int],
+        raw_signals: Dict[str, int],
         ot: float,
         fc: float,
         mp: float,
@@ -1764,7 +1764,7 @@ class SignalProcessor:
                     if test.get("test_hits", 0) == 0:
                         continue
 
-                    # Sabotage: Ignore skipped/bypassed tests
+                    # Validation Bypass: Ignore skipped tests
                     if test.get("test_skip_hits", 0) > 0:
                         continue
 
@@ -1785,7 +1785,7 @@ class SignalProcessor:
                 total_untested_impact += untested_impact
 
         # Add file-level danger as raw unverified mass
-        file_level_danger = float(eq.get("danger", 0))
+        file_level_danger = float(raw_signals.get("danger", 0))
         total_untested_impact += file_level_danger
 
         # Step D: Executable Density Normalization & Ecosystem Modifiers
@@ -1825,14 +1825,14 @@ class SignalProcessor:
 
         return min(base_score, 100.0)
 
-    def _calc_graveyard(self, total_loc: float, eq: Dict[str, int], mp: float) -> float:
-        hits = eq.get("graveyard", 0)
+    def _calc_graveyard(self, total_loc: float, raw_signals: Dict[str, int], mp: float) -> float:
+        hits = raw_signals.get("graveyard", 0)
         if hits == 0:
             return 0.0
 
         t = self.risk_tuning.get("graveyard", {})
-        ghost_lines = hits * t.get("hit_mult", 3.0)
-        density = (ghost_lines / max(total_loc, t.get("safe_mass_floor", 50.0))) * 100.0
+        deprecated_lines = hits * t.get("hit_mult", 3.0)
+        density = (deprecated_lines / max(total_loc, t.get("safe_mass_floor", 50.0))) * 100.0
 
         threshold = t.get("threshold_base", 10.0) / max(mp, 0.1)
         try:
@@ -1843,25 +1843,25 @@ class SignalProcessor:
             score = 100.0 if density > threshold else 0.0
 
         return min(score, 100.0)
-
+    
     def _calc_api_exposure(
-        self, eq: dict, total_loc: int, popularity: int = 0
+        self, raw_signals: dict, total_loc: int, popularity: int = 0
     ) -> float:
         """
         YIN: Publicly exposed surfaces (api).
         YANG: Internal/Private boundaries (encapsulation).
         """
-        api_hits = float(eq.get("api", 0))
-        encapsulation = float(eq.get("encapsulation", 0))
+        api_hits = float(raw_signals.get("api", 0))
+        encapsulation = float(raw_signals.get("encapsulation", 0))
 
         if api_hits == 0:
             return 0.0
 
-        # THERMODYNAMIC BALANCE (Ratio): Public / (Public + Private)
+        # NET RISK RATIO: Public / (Public + Private)
         exposure_ratio = api_hits / max(api_hits + encapsulation, 1.0)
 
-        # ---> THE ECHO CHAMBER FIX <---
-        # If a file exposes 50 APIs but has 0 inbound network edges, it's screaming into the void.
+        # ---> ISOLATED NODE ADJUSTMENT <---
+        # If a file exposes 50 APIs but has 0 inbound network edges, it is an isolated node.
         # We dampen the risk. If it has massive popularity, we amplify it.
         network_multiplier = 1.0
         if popularity == 0:
@@ -1877,7 +1877,7 @@ class SignalProcessor:
     def _calc_concurrency(
         self,
         loc: int,
-        eq: Dict[str, int],
+        raw_signals: Dict[str, int],
         irc: int,
         mp: float,
         functions: List[Dict[str, Any]] = None,
@@ -1889,10 +1889,10 @@ class SignalProcessor:
         tuning = self.risk_tuning.get("concurrency", {})
         loc_padding = tuning.get("loc_padding", 150)
 
-        raw_concurrency = float(eq.get("concurrency", 0))
-        sync_locks = float(eq.get("sync_locks", 0))
+        raw_concurrency = float(raw_signals.get("concurrency", 0))
+        sync_locks = float(raw_signals.get("sync_locks", 0))
 
-        # --- THE THREAD STARVATION BOMB ---
+        # --- RESOURCE EXHAUSTION GUARD ---
         # If an individual function has concurrency hits AND terrible Big-O, it spikes the risk.
         starvation_multiplier = 1.0
         if functions:
@@ -1907,7 +1907,7 @@ class SignalProcessor:
                     elif big_o == 2:
                         starvation_multiplier = max(starvation_multiplier, 2.0)
 
-        # THERMODYNAMIC BALANCE: 1 lock mitigates 1.5 thread spawns.
+        # MITIGATION BALANCE: 1 lock mitigates 1.5 thread spawns.
         net_concurrency = max(0.0, raw_concurrency - (sync_locks * 1.5))
 
         if net_concurrency == 0:
@@ -1921,7 +1921,7 @@ class SignalProcessor:
         return self._sigmoid(density, threshold, slope) * 100.0 * mp
 
     def _calc_state_flux(
-        self, loc: int, eq: Dict[str, int], irc: int, mp: float
+        self, loc: int, raw_signals: Dict[str, int], irc: int, mp: float
     ) -> float:
         """
         YIN: State mutation (flux).
@@ -1932,10 +1932,10 @@ class SignalProcessor:
         # THE FIX: Dropped padding to 0 so mutations immediately impact density
         loc_padding = tuning.get("loc_padding", 0)
 
-        raw_flux = float(eq.get("flux", 0))
-        freeze_hits = float(eq.get("freeze_hits", 0))
+        raw_flux = float(raw_signals.get("flux", 0))
+        freeze_hits = float(raw_signals.get("freeze_hits", 0))
 
-        # THERMODYNAMIC BALANCE: Subtract immutability from raw mutation.
+        # MITIGATION BALANCE: Subtract immutability from raw mutation.
         net_volatility = max(0.0, raw_flux - (freeze_hits * 0.5))
 
         if net_volatility == 0:
@@ -1949,13 +1949,13 @@ class SignalProcessor:
 
         return self._sigmoid(density, threshold, slope) * 100.0 * mp
 
-    def _calc_spec_alignment(self, eq: Dict[str, int], mp: float) -> float:
-        entities = max(eq.get("func_start", 0) + eq.get("class_start", 0), 1)
-        ratio = min(eq.get("spec_exposure", 0) / entities, 1.0)
+    def _calc_spec_alignment(self, raw_signals: Dict[str, int], mp: float) -> float:
+        entities = max(raw_signals.get("func_start", 0) + raw_signals.get("class_start", 0), 1)
+        ratio = min(raw_signals.get("spec_exposure", 0) / entities, 1.0)
         return min((1.0 - ratio) * 100.0 * mp, 100.0)
 
     def _sigmoid(self, density: float, threshold: float, slope: float) -> float:
-        """Safely calculates the sigmoid curve, clamping extreme densities."""
+        """Safely calculates the sigmoid curve with overflow protection for extreme densities."""
         try:
             return 1.0 / (1.0 + math.exp(-slope * (density - threshold)))
         except OverflowError:
@@ -1964,7 +1964,7 @@ class SignalProcessor:
     def _calc_obscured_payload(
         self,
         loc: int,
-        eq: Dict[str, int],
+        raw_signals: Dict[str, int],
         mp: float,
         archetype: str,
         global_drift: float,
@@ -1978,31 +1978,31 @@ class SignalProcessor:
         arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("obscured_payload_multiplier", 1.0)
 
-        glassworm = (eq.get("sec_heat_triggers", 0) * 5.0) + (
-            eq.get("sec_bitwise_hits", 0) * 2.0
+        obfuscation_indicators = (raw_signals.get("sec_heat_triggers", 0) * 5.0) + (
+            raw_signals.get("sec_bitwise_hits", 0) * 2.0
         )
-        trojan = eq.get("sec_safety_neg", 0) * 3.0
-        exfiltration = eq.get("sec_io", 0) * 4.0
-        executioner = eq.get("sec_danger", 0) * 5.0
-        poisoning = eq.get("sec_flux", 0) * 3.0
-        shadow_logic = eq.get("sec_graveyard", 0) * 2.0
-        secrets = eq.get("sec_private_info", 0) * 1.5
+        malicious_payload = raw_signals.get("sec_safety_neg", 0) * 3.0
+        exfiltration = raw_signals.get("sec_io", 0) * 4.0
+        rce_indicators = raw_signals.get("sec_danger", 0) * 5.0
+        state_corruption = raw_signals.get("sec_flux", 0) * 3.0
+        dead_code_threat = raw_signals.get("sec_graveyard", 0) * 2.0
+        secrets = raw_signals.get("sec_private_info", 0) * 1.5
 
         # Extension mismatch is proof of active evasion. Assign it a massive 20.0x mass.
-        steganography = (eq.get("sec_shadow_imports", 0) * 10.0) + (
-            eq.get("sec_extension_mismatch", 0) * 20.0
+        evasion_indicators = (raw_signals.get("sec_shadow_imports", 0) * 10.0) + (
+            raw_signals.get("sec_extension_mismatch", 0) * 20.0
         )
 
         # DOWNGRADE: Greek letters in math/science libs are normal. Drop from 10.0 to 1.0.
-        unicode_smuggling = eq.get("sec_homoglyphs", 0) * 1.0
+        homoglyph_threat = raw_signals.get("sec_homoglyphs", 0) * 1.0
 
         # 1. Group the threat vectors into Behavior vs Intent
-        obfuscation_mass = glassworm + shadow_logic + steganography + unicode_smuggling
-        intent_mass = trojan + exfiltration + executioner + poisoning + secrets
+        obfuscation_mass = obfuscation_indicators + dead_code_threat + evasion_indicators + homoglyph_threat
+        intent_mass = malicious_payload + exfiltration + rce_indicators + state_corruption + secrets
 
         # ---> THE AGENTIC / SCIENCE SHIELD <---
         # Forgive scientific/math libraries for having high entropy and weird unicode.
-        science_dampener = 1.0 + (eq.get("scientific", 0) * 2.0)
+        science_dampener = 1.0 + (raw_signals.get("scientific", 0) * 2.0)
         obfuscation_mass = obfuscation_mass / science_dampener
 
         # ---> APPLY THE ARCHETYPE CONTEXT <---
@@ -2017,7 +2017,7 @@ class SignalProcessor:
             elif intent_mass > 0 and obfuscation_mass == 0:
                 total_threat_mass *= 0.10
 
-        # ---> THE BIAXIAL TROJAN SPIKE <---
+        # ---> THE CONTEXTUAL DRIFT ANOMALY <---
         if local_drift > 0 and global_drift > 0:
             drift_delta = local_drift / global_drift
             # If the file blends in globally but violates local language physics
@@ -2026,11 +2026,11 @@ class SignalProcessor:
 
         # ---> NEW: THE PROFESSIONALISM QUOTIENT & CRYPTO SHIELD <---
         # Malware authors don't write 500 lines of documentation or meticulous try/catch blocks.
-        docs_and_safety = (eq.get("doc", 0) * 0.5) + eq.get("safety", 0)
+        docs_and_safety = (raw_signals.get("doc", 0) * 0.5) + raw_signals.get("safety", 0)
         prof_dampener = 1.0 + (docs_and_safety * 0.05)
 
         # Cryptography libraries naturally have high entropy/obfuscation.
-        crypto_dampener = 1.0 + (eq.get("cryptography", 0) * 5.0)
+        crypto_dampener = 1.0 + (raw_signals.get("cryptography", 0) * 5.0)
 
         # Apply the dampeners
         total_threat_mass = (total_threat_mass / prof_dampener) / crypto_dampener
@@ -2059,7 +2059,7 @@ class SignalProcessor:
     def _calc_logic_bomb(
         self,
         loc: int,
-        eq: Dict[str, int],
+        raw_signals: Dict[str, int],
         mp: float,
         archetype: str,
         global_drift: float,
@@ -2074,22 +2074,22 @@ class SignalProcessor:
         arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("logic_bomb_multiplier", 1.0)
 
-        trigger = eq.get("branch", 0) + (eq.get("halt_hits", 0) * 3.0)
+        trigger = raw_signals.get("branch", 0) + (raw_signals.get("halt_hits", 0) * 3.0)
         payload = (
-            (eq.get("bailout_hits", 0) * 2.0)
-            + (eq.get("cleanup", 0) * 1.5)
-            + (eq.get("sec_danger", 0) * 4.0)
+            (raw_signals.get("bailout_hits", 0) * 2.0)
+            + (raw_signals.get("cleanup", 0) * 1.5)
+            + (raw_signals.get("sec_danger", 0) * 4.0)
         )
 
         # ---> THE AGENTIC SHIELD <---
         # AI/Robotics natively use dynamic execution. Dampen the payload if ML math is present.
         agent_dampener = (
             1.0
-            + (eq.get("scientific", 0) * 2.0)
-            + (eq.get("llm_orchestrator", 0) * 3.0)
-            + (eq.get("llm_local_compute", 0) * 2.0)
+            + (raw_signals.get("scientific", 0) * 2.0)
+            + (raw_signals.get("llm_orchestrator", 0) * 3.0)
+            + (raw_signals.get("llm_local_compute", 0) * 2.0)
         )
-        hardware_dampener = 1.0 + (eq.get("hardware_bridge", 0) * 3.0)
+        hardware_dampener = 1.0 + (raw_signals.get("hardware_bridge", 0) * 3.0)
         payload = payload / agent_dampener
         payload = payload / hardware_dampener
 
@@ -2099,26 +2099,26 @@ class SignalProcessor:
         # ---> THE ALGORITHMIC DOS SPIKE (Big-O Vulnerability) <---
         if max_big_o >= 3:
             # 1. API/IO Choke Point (User-Controlled N or Network Latency)
-            attack_surface = eq.get("api", 0) + eq.get("sec_io", 0) + eq.get("io", 0)
+            attack_surface = raw_signals.get("api", 0) + raw_signals.get("sec_io", 0) + raw_signals.get("io", 0)
             dos_mass = attack_surface * (max_big_o**2) * 10.0
 
             # 2. State Flux Bomb (Memory Exhaustion)
-            flux = eq.get("flux", 0) + eq.get("globals", 0)
+            flux = raw_signals.get("flux", 0) + raw_signals.get("globals", 0)
             dos_mass += flux * (max_big_o**2) * 5.0
 
             # 3. The Shielding Dampener (Safety Guardrails)
-            if eq.get("safety", 0) > 0 or eq.get("bailout_hits", 0) > 0:
+            if raw_signals.get("safety", 0) > 0 or raw_signals.get("bailout_hits", 0) > 0:
                 dos_mass *= 0.25  # 75% reduction if guardrails exist
 
             sabotage_mass += dos_mass
 
         # ---> THE TAINT SPIKE <---
         # If the LHS Slicer confirmed data crossed from I/O to Danger, risk is absolute.
-        taint_confirmed = eq.get("sec_tainted_injection", 0)
+        taint_confirmed = raw_signals.get("sec_tainted_injection", 0)
         if taint_confirmed > 0:
             sabotage_mass += taint_confirmed * 500.0
 
-        # ---> THE BIAXIAL TROJAN SPIKE <---
+        # ---> THE CONTEXTUAL DRIFT ANOMALY <---
         if local_drift > 0 and global_drift > 0:
             drift_delta = local_drift / global_drift
             if drift_delta > 1.5:
@@ -2127,7 +2127,7 @@ class SignalProcessor:
         if sabotage_mass == 0:
             return 0.0
 
-        explicit_threats = eq.get("sec_graveyard", 0) + eq.get("sec_heat_triggers", 0)
+        explicit_threats = raw_signals.get("sec_graveyard", 0) + raw_signals.get("sec_heat_triggers", 0)
         if max_big_o >= 3:
             explicit_threats += 1  # Preserve DoS Mass from being zeroed out
 
@@ -2155,9 +2155,9 @@ class SignalProcessor:
             score = 100.0 if density > threshold else 0.0
 
         return min(score * mp, 100.0)
-
+    
     def _calc_injection_surface(
-        self, loc: int, eq: Dict[str, int], mp: float, archetype: str
+        self, loc: int, raw_signals: Dict[str, int], mp: float, archetype: str
     ) -> float:
         """
         Calculates Injection Surface Exposure (XSS, SQLi, RCE, SSTI).
@@ -2167,43 +2167,43 @@ class SignalProcessor:
         arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("injection_surface_multiplier", 1.0)
 
-        input_vectors = eq.get("sec_io", 0) + (eq.get("ssr_boundaries", 0) * 2.0)
-        execution_vectors = (eq.get("sec_danger", 0) * 4.0) + (
-            eq.get("sec_safety_neg", 0) * 2.0
+        input_vectors = raw_signals.get("sec_io", 0) + (raw_signals.get("ssr_boundaries", 0) * 2.0)
+        execution_vectors = (raw_signals.get("sec_danger", 0) * 4.0) + (
+            raw_signals.get("sec_safety_neg", 0) * 2.0
         )
 
-        # ---> THE AGENTIC RCE SPIKE (Prompt Injection to Exec) <---
-        if eq.get("sec_danger", 0) > 0 and (
-            eq.get("llm_orchestrator", 0) > 0 or eq.get("ai_tools", 0) > 0
+        # ---> LLM EXECUTION VULNERABILITY (Prompt Injection to Exec) <---
+        if raw_signals.get("sec_danger", 0) > 0 and (
+            raw_signals.get("llm_orchestrator", 0) > 0 or raw_signals.get("ai_tools", 0) > 0
         ):
             # If an AI can trigger eval/exec/OS commands, it's a massive vulnerability
             execution_vectors *= 10.0
             input_vectors += 5.0  # Treat the LLM itself as a hostile input vector
         else:
-            # ---> THE AGENTIC SHIELD (Standard safe agents) <---
+            # ---> STATIC AI COMPUTE DAMPENER (Standard safe agents) <---
             agent_dampener = (
                 1.0
-                + (eq.get("scientific", 0) * 2.0)
-                + (eq.get("llm_local_compute", 0) * 2.0)
+                + (raw_signals.get("scientific", 0) * 2.0)
+                + (raw_signals.get("llm_local_compute", 0) * 2.0)
             )
             execution_vectors = execution_vectors / agent_dampener
 
         # Hardware bridges natively take external input (usb/serial) and execute it.
-        hardware_dampener = 1.0 + (eq.get("hardware_bridge", 0) * 3.0)
+        hardware_dampener = 1.0 + (raw_signals.get("hardware_bridge", 0) * 3.0)
         execution_vectors = execution_vectors / hardware_dampener
 
         # ---> APPLY THE ARCHETYPE CONTEXT <---
         injection_mass = (input_vectors * execution_vectors) * arch_multiplier
 
-        # ---> THE TAINT SPIKE <---
-        taint_confirmed = eq.get("sec_tainted_injection", 0)
+        # ---> CONFIRMED TAINT VULNERABILITY <---
+        taint_confirmed = raw_signals.get("sec_tainted_injection", 0)
         if taint_confirmed > 0:
             injection_mass += taint_confirmed * 500.0  # Massive gravity spike
 
         if injection_mass == 0:
             return 0.0
 
-        explicit_threats = eq.get("sec_danger", 0) + eq.get("sec_io", 0)
+        explicit_threats = raw_signals.get("sec_danger", 0) + raw_signals.get("sec_io", 0)
         if (
             explicit_threats == 0
             and taint_confirmed == 0
@@ -2232,7 +2232,7 @@ class SignalProcessor:
     def _calc_memory_corruption(
         self,
         loc: int,
-        eq: Dict[str, int],
+        raw_signals: Dict[str, int],
         mp: float,
         lang_id: str = "",
         archetype: str = "",
@@ -2262,23 +2262,23 @@ class SignalProcessor:
             return 0.0
 
         raw_memory_mass = (
-            (eq.get("pointers", 0) * 2.5)
-            + (eq.get("memory_alloc", 0) * 3.0)
-            + (eq.get("inline_asm", 0) * 5.0)
-            + (eq.get("cast_hits", 0) * 1.5)
+            (raw_signals.get("pointers", 0) * 2.5)
+            + (raw_signals.get("memory_alloc", 0) * 3.0)
+            + (raw_signals.get("inline_asm", 0) * 5.0)
+            + (raw_signals.get("cast_hits", 0) * 1.5)
         )
 
         if raw_memory_mass == 0:
             return 0.0
 
-        mitigation_mass = eq.get("cleanup", 0) + (eq.get("safety", 0) * 1.5)
+        mitigation_mass = raw_signals.get("cleanup", 0) + (raw_signals.get("safety", 0) * 1.5)
 
         net_risk = max(raw_memory_mass - mitigation_mass, 0.0) * arch_multiplier
 
         explicit_threats = (
-            eq.get("sec_danger", 0)
-            + eq.get("sec_safety_neg", 0)
-            + eq.get("sec_heat_triggers", 0)
+            raw_signals.get("sec_danger", 0)
+            + raw_signals.get("sec_safety_neg", 0)
+            + raw_signals.get("sec_heat_triggers", 0)
         )
         if explicit_threats == 0 and not getattr(self, "is_paranoid", False):
             net_risk *= 0.05
@@ -2304,30 +2304,30 @@ class SignalProcessor:
 
         return min(score * mp, 100.0)
 
-    def _calc_secrets_risk(self, loc: int, eq: Dict[str, int], mp: float) -> float:
+    def _calc_secrets_risk(self, loc: int, raw_signals: Dict[str, int], mp: float) -> float:
         """
-        Calculates Secrets Risk Exposure (Data Hemorrhage).
+        Calculates Secrets Risk Exposure (Credential Exposure).
         Looks for hardcoded credentials. Trusts the SecurityLens RHS-string sensor.
         """
-        base_leak = eq.get("sec_private_info", 0) * 10.0
+        base_leak = raw_signals.get("sec_private_info", 0) * 10.0
 
         if base_leak == 0:
             return 0.0
 
         careless_amplifiers = (
             1.0
-            + eq.get("print_hits", 0)
-            + eq.get("graveyard", 0)
-            + eq.get("globals", 0)
+            + raw_signals.get("print_hits", 0)
+            + raw_signals.get("graveyard", 0)
+            + raw_signals.get("globals", 0)
         )
 
         # LLM API keys are massive targets. If they are calling APIs without globals, spike the risk.
-        if eq.get("llm_api", 0) > 0 and eq.get("globals", 0) == 0:
+        if raw_signals.get("llm_api", 0) > 0 and raw_signals.get("globals", 0) == 0:
             careless_amplifiers *= 3.0
 
         if (
             not getattr(self, "is_paranoid", False)
-            and eq.get("sec_heat_triggers", 0) == 0
+            and raw_signals.get("sec_heat_triggers", 0) == 0
         ):
             careless_amplifiers = min(careless_amplifiers, 2.0)
 
@@ -2360,13 +2360,13 @@ class SignalProcessor:
     def _calc_algorithmic_dos(
         self,
         loc: int,
-        eq: Dict[str, int],
+        raw_signals: Dict[str, int],
         mp: float,
         functions: List[Dict[str, Any]],
         popularity: int,
     ) -> float:
         """
-        Calculates Algorithmic DoS Exposure based on Big-O depth, data gravity, and network choke points.
+        Calculates Algorithmic DoS Exposure based on Big-O depth, data gravity, and dependency bottlenecks.
         """
         if not functions:
             return 0.0
@@ -2408,7 +2408,7 @@ class SignalProcessor:
 
         # Apply File-Level Network Dampeners/Amplifiers
         network_multiplier = 1.0
-        if popularity == 0 and eq.get("api", 0) == 0:
+        if popularity == 0 and raw_signals.get("api", 0) == 0:
             network_multiplier = 0.10  # Safely isolated orphan
         elif popularity > 0:
             network_multiplier = min(1.0 + (math.log1p(popularity) / 5.0), 3.0)
@@ -2442,7 +2442,7 @@ class SignalProcessor:
         self.logger.info("Generating forensic exposure rankings...")
 
         # ====================================================================
-        # THE ACTIVE LOGIC MASK
+        # THE ACTIVE LOGIC FILTER
         # 1. Define the structural assets that should be invisible to risk rankings
         # ====================================================================
         STRUCTURAL_ASSETS = self.asset_masks.get("STRUCTURAL_ASSETS", set())
@@ -2459,7 +2459,7 @@ class SignalProcessor:
             active_files = parsed_files
 
         # ====================================================================
-        # NEW: CALCULATE CUMULATIVE RISK (Excluding Civil War)
+        # NEW: CALCULATE CUMULATIVE RISK (Excluding Formatting Inconsistency)
         # ====================================================================
         civil_war_idx = (
             self.RISK_SCHEMA.index("civil_war")
@@ -2482,7 +2482,7 @@ class SignalProcessor:
             active_files, key=get_cumulative_risk, reverse=True
         )
 
-        # --- NEW: CALCULATE N-DIMENSIONAL SYSTEMIC BOTTLENECKS ---
+        # --- NEW: CALCULATE SYSTEMIC ARCHITECTURAL BOTTLENECKS ---
         flux_idx = (
             self.RISK_SCHEMA.index("state_flux")
             if "state_flux" in self.RISK_SCHEMA
@@ -2500,9 +2500,9 @@ class SignalProcessor:
         )
 
         bottlenecks = {
-            "contagious_mutation": [],
-            "house_of_cards": [],
-            "blind_bottleneck": [],
+            "cascading_state_mutation": [],
+            "fragile_dependency_chain": [],
+            "undocumented_critical_path": [],
         }
 
         for file_data in active_files:
@@ -2537,7 +2537,7 @@ class SignalProcessor:
                 else 0.0
             )
 
-            bottlenecks["contagious_mutation"].append(
+            bottlenecks["cascading_state_mutation"].append(
                 {
                     "path": p,
                     "score": round(btw * flux_risk, 3),
@@ -2545,7 +2545,7 @@ class SignalProcessor:
                     "flux": flux_risk,
                 }
             )
-            bottlenecks["house_of_cards"].append(
+            bottlenecks["fragile_dependency_chain"].append(
                 {
                     "path": p,
                     "score": round(close * err_risk, 3),
@@ -2553,7 +2553,7 @@ class SignalProcessor:
                     "err": err_risk,
                 }
             )
-            bottlenecks["blind_bottleneck"].append(
+            bottlenecks["undocumented_critical_path"].append(
                 {
                     "path": p,
                     "score": round(pr * doc_risk, 3),
@@ -2562,9 +2562,9 @@ class SignalProcessor:
                 }
             )
 
-        bottlenecks["contagious_mutation"].sort(key=lambda x: x["score"], reverse=True)
-        bottlenecks["house_of_cards"].sort(key=lambda x: x["score"], reverse=True)
-        bottlenecks["blind_bottleneck"].sort(key=lambda x: x["score"], reverse=True)
+        bottlenecks["cascading_state_mutation"].sort(key=lambda x: x["score"], reverse=True)
+        bottlenecks["fragile_dependency_chain"].sort(key=lambda x: x["score"], reverse=True)
+        bottlenecks["undocumented_critical_path"].sort(key=lambda x: x["score"], reverse=True)
 
         # 4. Generate rankings using ONLY the masked `active_files` list
         report = {
@@ -2599,7 +2599,7 @@ class SignalProcessor:
             )
 
         return report
-
+    
     def _get_locational_multipliers(self, path: str) -> Dict[str, float]:
         """Matches path against regex configurations and extracts applicable Modifiers."""
         active_multipliers = {}
