@@ -22,7 +22,7 @@ class AIAppSecSensor:
             else logging.getLogger("appsec_sensor")
         )
 
-def hunt_threats(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def hunt_threats(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info("AI AppSec Sensor: Hunting for Agentic Vulnerabilities...")
 
         for file_data in parsed_files:
