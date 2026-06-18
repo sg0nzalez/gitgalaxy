@@ -25,10 +25,8 @@ class AIAppSecSensor:
     def hunt_threats(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info("AI AppSec Sensor: Hunting for Agentic Vulnerabilities...")
 
-        for file_data in parsed_files:
-            # Extract the raw DNA triggers (assuming they are tallied in 'telemetry')
+        # Extract the raw DNA triggers (assuming they are tallied in 'telemetry')
             telemetry = file_data.get("telemetry", {})
-            _risk_vector = file_data.get("_risk_vector", [])
 
             # Extract specific architectural signals
             ai_orchestrator = telemetry.get("ai_orchestrator", 0) > 0

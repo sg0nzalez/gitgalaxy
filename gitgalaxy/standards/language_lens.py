@@ -480,8 +480,6 @@ class LanguageDetector:
             )
 
             if gravity_lang:
-                _loc_estimate = content_sample.count("\n")
-
                 # Small File Bypass OR Overwhelming Ecosystem Dominance
                 if dominance >= self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70):
                     best_lang = gravity_lang
@@ -885,7 +883,6 @@ class LanguageDetector:
             )
             return "plaintext", 0.40
 
-        _min_outlier_margin = self.thresholds.get("TIER_4_OUTLIER_MARGIN", 1.5)
         loc = max(coding_loc, 1)
         content_len = len(content)
 

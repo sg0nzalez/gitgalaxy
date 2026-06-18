@@ -153,7 +153,6 @@ class LLMRecorder:
         """Constructs a high-density, context-rich Markdown brief for LLM agents."""
         target = session_meta.get("target", "Project")
         sum_data = summary.get("summary", {})
-        _health = summary.get("_health", {})
         comp = summary.get("composition", {})
         git_audit = session_meta.get("git_audit", {})
 
