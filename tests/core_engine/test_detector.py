@@ -4,7 +4,7 @@ import math
 import logging
 from unittest.mock import patch
 
-from gitgalaxy.core.detector import OpticalDetector
+from gitgalaxy.core.detector import StructuralExtractor
 from gitgalaxy.core.spatial_mapper import SpatialMapper
 
 # ==============================================================================
@@ -15,7 +15,7 @@ from gitgalaxy.core.spatial_mapper import SpatialMapper
 
 MOCK_LANG_DEFS = {
     "python": {
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             "func_start": re.compile(
                 r"^[ \t]*def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", re.M
@@ -27,7 +27,7 @@ MOCK_LANG_DEFS = {
         },
     },
     "assembly": {
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             "func_start": re.compile(r"^([a-zA-Z0-9_]+):", re.M),
             "branch": re.compile(r"\b(JNE|JEQ|CALL)\b"),
@@ -35,7 +35,7 @@ MOCK_LANG_DEFS = {
         },
     },
     "c": {
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "func_start": re.compile(
                 r"^[ \t]*\w+\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\)\s*\{", re.M
@@ -54,18 +54,18 @@ MOCK_LANG_DEFS = {
         },
     },
     "sql": {
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {"io": re.compile(r"\b(SELECT|INSERT|UPDATE|DELETE)\b", re.I)},
     },
     "shell": {
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             "branch": re.compile(r"\b(if|case|for|while)\b"),
             "linear": re.compile(r"\b(echo|export|source)\b"),
         },
     },
     "ruby": {
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             "branch": re.compile(r"(?<![:.])\b(if|unless|case|while|until)\b(?!:)"),
             "linear": re.compile(r"(?<![:.])\b(puts|require|include)\b(?!:)"),
@@ -82,7 +82,7 @@ def test_detector_big_o_and_recursion():
     Proves the engine accurately calculates nesting depth based on indentation,
     and flags exponential O(2^N) recursion without building an AST.
     """
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "def calculate_fibonacci(n):\n"
         "    if n <= 1:\n"
@@ -110,7 +110,7 @@ def test_detector_spatial_appsec_correlation():
     Proves the Spatial Map correctly amplifies penalties when an attacker reads
     memory and sends it out to a socket within a 200-character blast radius.
     """
-    opt_detector = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     code = (
         "void malicious_exfiltration_func() {\n"
         "    char buffer[100];\n"
@@ -136,7 +136,7 @@ def test_detector_silencer_region():
     Proves the Spatial Map correctly neutralizes danger signals if a safety wrapper
     exists within the 500-character silencer radius.
     """
-    opt_detector = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     code = (
         "void safe_wrapper() {\n"
         "    // Using strncpy for safety instead of strcpy\n"
@@ -161,7 +161,7 @@ def test_detector_anti_redos_line_limiter():
     Proves that a catastrophic 2000+ character line (e.g., base64 blob) is safely
     blanked out to protect the multiprocessing pool, while preserving the LOC count.
     """
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
 
     # Generate a 2500 character string
     massive_blob = "A" * 2500
@@ -185,7 +185,7 @@ def test_detector_terminator_cleaving():
     Proves Mode E correctly chops SQL payloads by terminators (;) rather than
     braces or indentation scopes.
     """
-    opt_detector = OpticalDetector("sql", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("sql", MOCK_LANG_DEFS)
     code = (
         "SELECT * FROM users\n"
         "WHERE active = 1;\n"
@@ -219,7 +219,7 @@ def test_detector_class_extraction_and_lcom():
     Proves the engine accurately bounds OOP entities, links internal methods,
     and calculates LCOM/State Entanglement without full AST parsing.
     """
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "class UserManager:\n"
         "    def __init__(self):\n"
@@ -252,7 +252,7 @@ def test_detector_atomic_literal_shield():
     Proves the _apply_literal_shield safely blanks complex strings and heredocs
     without destroying physical line geometries.
     """
-    opt_detector = OpticalDetector("ruby", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("ruby", MOCK_LANG_DEFS)
     code = (
         "def query_database\n"
         "  sql = <<-SQL\n"
@@ -279,7 +279,7 @@ def test_detector_orphan_and_duplicate_logic():
     Proves the engine accurately identifies uncalled (orphan) functions
     and duplicated function definitions within a single file.
     """
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "def active_helper():\n"
         "    return True\n"
@@ -310,7 +310,7 @@ def test_detector_c_macro_dead_branch_shield():
     Proves the Mode B Preprocessor Shield successfully blanks out dead
     #ifdef branches and multi-line macro continuations.
     """
-    opt_detector = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     code = (
         "void system_init() {\n"
         "#if defined(DEBUG_MODE)\n"
@@ -338,7 +338,7 @@ def test_detector_mode_d_shell_handshake():
     Proves Mode D correctly identifies scope boundaries using semantic keywords
     (if/fi, for/done) instead of braces, and prevents scope bleeding.
     """
-    opt_detector = OpticalDetector("shell", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("shell", MOCK_LANG_DEFS)
     code = (
         "function backup_db() {\n"
         "    if [ -f $FILE ]; then\n"
@@ -367,7 +367,7 @@ def test_detector_mode_d_ruby_inline_modifier():
     Proves the engine's Ruby inline modifier guard prevents trailing conditionals
     from artificially inflating the scope stack and swallowing the file.
     """
-    opt_detector = OpticalDetector("ruby", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("ruby", MOCK_LANG_DEFS)
     code = (
         "def calculate_risk()\n"
         "    risk_exposure = 100 if user.is_admin?\n"
@@ -398,7 +398,7 @@ def test_detector_mode_c_indentation():
     Proves Mode C correctly tracks Python indentation to close scopes,
     preventing nested functions or trailing text from bleeding into the parent.
     """
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "def parent_process():\n"
         "    print('Starting')\n"
@@ -430,7 +430,7 @@ def test_detector_mode_a_labels():
     Proves Mode A correctly cleaves Assembly and COBOL blocks using greedy
     label matching until the next label or termination instruction.
     """
-    opt_detector = OpticalDetector("assembly", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("assembly", MOCK_LANG_DEFS)
     code = (
         "INIT_SYSTEM:\n"
         "    MOV EAX, 1\n"
@@ -458,7 +458,7 @@ def test_detector_classification_and_wiring():
     Proves the engine extracts outbound function calls (calls_out_to) for Level 3
     topology wiring and accurately classifies function types based on naming heuristics.
     """
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "def save_user_data(user_id):\n"
         "    validate_id(user_id)\n"
@@ -488,7 +488,7 @@ def test_detector_ghost_tether_and_metadata():
     Proves the engine correctly parses the decoupled comment stream to extract
     ownership/purpose, and successfully maps docstrings back to their physical functions.
     """
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "def compute_hash():\n"
         "    '''\n"
@@ -527,7 +527,7 @@ def test_detector_cpp_objc_name_extraction():
     Proves the _extract_name logic safely isolates overloaded C++ operators,
     C++ testing macros, and Objective-C method signatures without destroying them.
     """
-    opt_detector = OpticalDetector("cpp", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("cpp", MOCK_LANG_DEFS)
 
     # Objective-C
     assert (
@@ -556,7 +556,7 @@ def test_detector_advanced_appsec_sensors():
     Proves the Phase 4 spatial correlation matrix correctly calculates metrics
     for unmitigated Memory Leaks, Tainted RCE Injection, and Race Conditions.
     """
-    opt_detector = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     code = (
         "void vulnerable_rce() { system(request_get()); }\n"
         "void race_condition() { std::thread t(worker); shared_state = 1; }\n"
@@ -596,7 +596,7 @@ def test_detector_catastrophic_fallbacks():
     """
     import pytest
 
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
 
     # 1. Standard Exception -> Returns zeroed Ghost Mass payload
     with patch.object(
@@ -724,7 +724,7 @@ def test_spatial_mapper_ray_casting_collision_avoidance(spatial_mapper):
 @pytest.mark.smoke
 def test_detector_prose_and_empty_bypass():
     """Proves the engine gracefully aborts on Markdown, low confidence, or empty streams."""
-    opt_detector = OpticalDetector("markdown", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("markdown", MOCK_LANG_DEFS)
 
     # 1. Prose/Confidence Bypass
     res_prose = opt_detector.splice("## Header", "comment", confidence=0.40)
@@ -733,7 +733,7 @@ def test_detector_prose_and_empty_bypass():
     )
 
     # 2. Empty Code Stream Bypass
-    splicer_py = OpticalDetector("python", MOCK_LANG_DEFS)
+    splicer_py = StructuralExtractor("python", MOCK_LANG_DEFS)
     res_empty = splicer_py.splice("", "comment")
     assert res_empty["logic_density"] == 0.0, "Empty stream bypass failed to abort!"
 
@@ -743,7 +743,7 @@ def test_detector_prose_and_empty_bypass():
 # ==============================================================================
 def test_detector_function_classification():
     """Proves the engine accurately classifies function textures based on naming heuristics."""
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "def handle_click_event():\n    pass\n"
         "def parse_raw_text():\n    pass\n"
@@ -775,18 +775,18 @@ def test_detector_function_classification():
 def test_detector_ruby_literals_and_makefile_extraction():
     """Proves Ruby % literals are shielded and Makefile variables are extracted correctly."""
     # 1. Ruby % literals
-    splicer_rb = OpticalDetector("ruby", MOCK_LANG_DEFS)
+    splicer_rb = StructuralExtractor("ruby", MOCK_LANG_DEFS)
     ruby_code = "def foo\n  x = %q{this is a string}\n  y = %W[a b c]\nend"
     safe_ruby = splicer_rb._apply_literal_shield(ruby_code, "ruby")
     assert "%q{" not in safe_ruby, "Failed to shield Ruby %q literal!"
 
     # 2. Makefile Name Extraction
-    splicer_make = OpticalDetector("makefile", MOCK_LANG_DEFS)
+    splicer_make = StructuralExtractor("makefile", MOCK_LANG_DEFS)
     name = splicer_make._extract_name("$(TARGET):")
     assert name == "$(TARGET)", "Makefile shield failed to preserve $(...) syntax!"
 
     # 3. C-Style ARGS Shield
-    splicer_c = OpticalDetector("c", MOCK_LANG_DEFS)
+    splicer_c = StructuralExtractor("c", MOCK_LANG_DEFS)
     c_name = splicer_c._extract_name("void my_func ARGS1(int x) {")
     assert c_name == "my_func", "C-Style ARGS macro shield failed!"
 
@@ -797,7 +797,7 @@ def test_detector_ruby_literals_and_makefile_extraction():
 @patch("gitgalaxy.core.detector.HAS_TIKTOKEN", False)
 def test_detector_missing_tiktoken_fallback():
     """Proves the engine won't crash or poison datasets if tiktoken is missing."""
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     res = opt_detector.splice("def foo(): pass", "")
 
     assert res["token_mass"] is None, "Fallback failed to return None for token mass!"
@@ -813,12 +813,12 @@ def test_detector_mode_e_erlang_cleaving():
     """Proves Mode E correctly chops Erlang/Prolog using terminators (.) instead of braces."""
     # Inject temporary Erlang config into the mock
     MOCK_LANG_DEFS["erlang"] = {
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "func_start": re.compile(r"^[a-z_][a-zA-Z0-9_]*\s*(?:\(|->)", re.M)
         }
     }
-    opt_detector = OpticalDetector("erlang", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("erlang", MOCK_LANG_DEFS)
     code = (
         "server_loop() ->\n"
         "    receive\n"
@@ -843,7 +843,7 @@ def test_detector_mode_e_erlang_cleaving():
 # ==============================================================================
 def test_detector_appsec_rce_funnel_amplification():
     """Proves the AppSec sensor detects and mathematically multiplies RCE funnel threats."""
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     # Inject the AppSec sensor rule dynamically
     opt_detector.primary_rules["rce_funnel"] = re.compile(r"\b(eval|exec)\b")
     
@@ -864,7 +864,7 @@ def test_detector_appsec_rce_funnel_amplification():
 # ==============================================================================
 def test_detector_regex_execution_catch_block():
     """Proves the engine survives a catastrophic regex execution failure during coding analysis."""
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     
     # Create a mock regex object that natively explodes to bypass C-immutability limits
     class ExplodingRegex:
@@ -889,12 +889,12 @@ def test_detector_regex_execution_catch_block():
 def test_detector_mode_b_lisp_family():
     """Proves Mode B correctly swaps from {} to () for Lisp/Scheme/Clojure languages."""
     MOCK_LANG_DEFS["lisp"] = {
-        "lexical_family": "lisp_semi",
+        "lexical_family": "lisp_style",
         "rules": {
             "func_start": re.compile(r"^\s*\(\s*defun\s+([a-zA-Z0-9_.-]+)", re.M)
         }
     }
-    opt_detector = OpticalDetector("lisp", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("lisp", MOCK_LANG_DEFS)
     code = (
         "(defun calculate-total (x y)\n"
         "  (+ x y))\n"
@@ -916,7 +916,7 @@ def test_detector_mode_b_lisp_family():
 # ==============================================================================
 def test_detector_comment_analysis_math():
     """Proves the engine accurately tallies structural debt from the isolated comment stream."""
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     
     # Inject comment rules
     opt_detector.primary_rules["planned_debt"] = re.compile(r"\bTODO\b")
@@ -941,7 +941,7 @@ def test_detector_comment_analysis_math():
 # ==============================================================================
 def test_detector_explicit_type_override():
     """Proves the @gal_type decorator overrides standard naming heuristics."""
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "def fetch_data():\n"
         "    # @gal_type: cryptography\n"
@@ -960,7 +960,7 @@ def test_detector_explicit_type_override():
 # ==============================================================================
 def test_detector_active_hemorrhage_leak():
     """Proves the AppSec sensor detects secrets being passed to outbound logging/print streams."""
-    opt_detector = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     
     # Inject rules for the hemorrhage sensor
     opt_detector.primary_rules["sec_private_info"] = re.compile(r"password")
@@ -988,7 +988,7 @@ def test_detector_active_hemorrhage_leak():
 # ==============================================================================
 def test_detector_harvest_above_and_lineage():
     """Proves the engine can harvest comments sitting ABOVE a function/class, and extract inheritance."""
-    opt_detector = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     
     # Inject a 2-group regex to trigger the inheritance lineage extractor
     opt_detector.languages["c"]["rules"]["class_start"] = re.compile(r"class\s+(\w+)(?:\s*:\s*public\s+(\w+))?")
@@ -1022,7 +1022,7 @@ def test_detector_harvest_above_and_lineage():
 # ==============================================================================
 def test_detector_mode_b_multiline_macros():
     """Proves the C-Family preprocessor shield correctly handles backslash continuations to protect scope."""
-    opt_detector = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     code = (
         "#define COMPLICATED_MACRO(x) \\\n"
         "    if (x) { \\\n"
@@ -1047,7 +1047,7 @@ def test_detector_mode_b_multiline_macros():
 def test_detector_global_dust_and_unterminated():
     """Proves the engine captures trailing/floating code outside of valid scope boundaries."""
     # 1. Mode D: Global Dust (Ruby)
-    opt_detector_rb = OpticalDetector("ruby", MOCK_LANG_DEFS)
+    opt_detector_rb = StructuralExtractor("ruby", MOCK_LANG_DEFS)
     ruby_code = (
         "puts 'This is global dust'\n"
         "def standard_func\n"
@@ -1062,7 +1062,7 @@ def test_detector_global_dust_and_unterminated():
     assert "standard_func" in names_rb
 
     # 2. Mode E: Unterminated Block (SQL without a semicolon)
-    opt_detector_sql = OpticalDetector("sql", MOCK_LANG_DEFS)
+    opt_detector_sql = StructuralExtractor("sql", MOCK_LANG_DEFS)
     sql_code = "SELECT * FROM forgotten_table WHERE id = 1"
     
     with patch("gitgalaxy.core.detector.ScopeParsingRegistry.get_mode", return_value="mode_e"):
@@ -1079,7 +1079,7 @@ def test_detector_global_dust_and_unterminated():
 # ==============================================================================
 def test_detector_metadata_block_parsing():
     """Proves the comment decoder handles multi-line purpose blocks using boundaries."""
-    opt_detector = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
     
     # Inject block-level rules
     opt_detector.primary_rules["_meta_purpose_block"] = re.compile(r"^Purpose:")
@@ -1107,7 +1107,7 @@ def test_detector_auto_heal_bootloader():
     """Proves the detector attempts to auto-heal by dynamically importing LANGUAGE_DEFINITIONS."""
     # Pass an empty language definition dictionary to trigger the heal
     try:
-        opt_detector = OpticalDetector("python", {})
+        opt_detector = StructuralExtractor("python", {})
         # If gitgalaxy is in the PYTHONPATH during testing, it will heal and find the rules
         assert "rules" in opt_detector.languages.get("python", {}) or opt_detector.primary_lang_id == "unknown", (
             "Auto-heal bootloader failed to trigger!"
@@ -1122,7 +1122,7 @@ def test_detector_embedded_language_partitioning():
     """Proves the engine dynamically swaps languages mid-file when it hits an embedded handshake."""
     # Inject a temporary mock definition for javascript
     MOCK_LANG_DEFS["javascript"] = {
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "func_start": re.compile(r"function\s+([a-zA-Z0-9_]+)\s*\("),
             "branch": re.compile(r"\bif\b")
@@ -1130,7 +1130,7 @@ def test_detector_embedded_language_partitioning():
     }
     
     # We scan an HTML file, but the handshake should route the <script> block to JS
-    opt_detector = OpticalDetector("html", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("html", MOCK_LANG_DEFS)
     
     code = (
         "<html>\n"
@@ -1156,7 +1156,7 @@ def test_detector_embedded_language_partitioning():
 # ==============================================================================
 def test_detector_exotic_semantic_names():
     """Proves the semantic name extractor correctly parses Lua, Elixir, and Visual Basic signatures."""
-    opt_detector = OpticalDetector("unknown", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("unknown", MOCK_LANG_DEFS)
     
     # Lua
     lua_name = opt_detector._extract_semantic_name("function calculate_physics()", "lua")
@@ -1176,7 +1176,7 @@ def test_detector_exotic_semantic_names():
 # ==============================================================================
 def test_detector_correlation_edge_cases():
     """Proves the AppSec correlation engine safely handles empty threat vectors without crashing."""
-    opt_detector = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     
     # Case 1: Empty Targets (No initial threat found)
     unmitigated, mitigated = opt_detector._correlate_signals(targets=[], dampeners=[100, 200])
@@ -1193,13 +1193,13 @@ def test_detector_correlation_edge_cases():
 def test_detector_unregistered_rule_handling(caplog):
     """Proves the engine safely ignores unregistered regex rules without polluting the schema."""
     MOCK_LANG_DEFS["alien_lang"] = {
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             "rogue_unregistered_rule": re.compile(r"alien_syntax")
         }
     }
     
-    opt_detector = OpticalDetector("alien_lang", MOCK_LANG_DEFS)
+    opt_detector = StructuralExtractor("alien_lang", MOCK_LANG_DEFS)
     
     with caplog.at_level(logging.WARNING):
         result = opt_detector.splice("alien_syntax is here", "")
@@ -1239,7 +1239,7 @@ def test_detector_utility_empty_states():
     assert get_token_mass(None) == 0
     assert get_token_mass("") == 0
 
-    opt = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt = StructuralExtractor("python", MOCK_LANG_DEFS)
     assert opt._extract_semantic_name("just some random text", "ruby") == "Anonymous_Block"
 
 
@@ -1248,7 +1248,7 @@ def test_detector_utility_empty_states():
 # ==============================================================================
 def test_detector_unbalanced_and_extreme_shields(caplog):
     """Proves the engine handles unbalanced braces and massive file warnings."""
-    opt = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt = StructuralExtractor("c", MOCK_LANG_DEFS)
     
     # 1. Unbalanced End (No closing brace available in the string)
     idx = opt._find_balanced_end("int main() { printf('hi'); ", 11, "{", "}")
@@ -1266,7 +1266,7 @@ def test_detector_unbalanced_and_extreme_shields(caplog):
 # ==============================================================================
 def test_detector_defensive_catch_blocks(caplog):
     """Proves the deep regex exception catch blocks prevent pipeline crashes."""
-    opt = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt = StructuralExtractor("python", MOCK_LANG_DEFS)
     
     # 1. coding_analysis catch block
     class ExplodingPattern:
@@ -1299,7 +1299,7 @@ def test_detector_defensive_catch_blocks(caplog):
 # ==============================================================================
 def test_detector_empty_pattern_continuations():
     """Proves that empty or malformed regex patterns are skipped safely."""
-    opt = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt = StructuralExtractor("python", MOCK_LANG_DEFS)
     
     # Inject explicitly empty and null patterns
     opt.languages["python"]["rules"]["empty_rule_1"] = re.compile(r"")
@@ -1317,7 +1317,7 @@ def test_detector_empty_pattern_continuations():
 # ==============================================================================
 def test_detector_ruby_inline_assignment_branch():
     """Proves the Ruby mode D scanner handles inline modifiers attached to assignments."""
-    opt = OpticalDetector("ruby", MOCK_LANG_DEFS)
+    opt = StructuralExtractor("ruby", MOCK_LANG_DEFS)
     
     code = (
         "def test_assignment\n"
@@ -1337,7 +1337,7 @@ def test_detector_ruby_inline_assignment_branch():
 # ==============================================================================
 def test_detector_memory_alloc_no_cleanup():
     """Proves the AppSec sensor flags unmitigated memory allocations."""
-    opt = OpticalDetector("c", MOCK_LANG_DEFS)
+    opt = StructuralExtractor("c", MOCK_LANG_DEFS)
     code = (
         "void leak_memory() {\n"
         "    void* ptr = malloc(100);\n" # Trigger memory_alloc, but no free()
@@ -1354,7 +1354,7 @@ def test_detector_memory_alloc_no_cleanup():
 # ==============================================================================
 def test_detector_harvest_below_docstrings():
     """Proves the Ghost Tether correctly harvests comments sitting BELOW the definition (Python)."""
-    opt = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt = StructuralExtractor("python", MOCK_LANG_DEFS)
     code = (
         "def process_data():\n"
         "    '''\n"
@@ -1393,7 +1393,7 @@ def test_detector_tiktoken_mass_success():
 # ==============================================================================
 def test_detector_metadata_decoder_exceptions(caplog):
     """Proves the metadata decoder survives malformed regex matches."""
-    opt = OpticalDetector("python", MOCK_LANG_DEFS)
+    opt = StructuralExtractor("python", MOCK_LANG_DEFS)
     
     # Inject a broken regex that crashes on .match()
     class ExplodingMatch:

@@ -17,7 +17,14 @@ def test_galaxyscope_python_fixture(tmp_path):
     script_path = project_root / "gitgalaxy" / "galaxyscope.py"
     fixture_path = (
         test_dir.parent / "fixtures" / "iwubi_frankenstein_test"
-    )  # <--- Added .parent
+    )
+
+    # --- DEBUGGING INSERTION ---
+    print(f"\nDEBUG: Project Root: {project_root}")
+    print(f"DEBUG: Fixture path: {fixture_path}")
+    print(f"DEBUG: Fixture path exists: {fixture_path.exists()}")
+    print(f"DEBUG: Files in fixture: {list(fixture_path.glob('*'))}")
+    # ---------------------------
 
     # Force output to a temporary directory
     output_dir = tmp_path / "test_run"

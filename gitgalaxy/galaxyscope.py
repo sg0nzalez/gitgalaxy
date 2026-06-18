@@ -30,7 +30,6 @@ from gitgalaxy.core.aperture import ApertureFilter, InaccessibleArtifactError
 from gitgalaxy.core.guidestar_lens import GuideStarLens
 from gitgalaxy.standards.language_lens import LanguageDetector
 from gitgalaxy.core.prism import Prism
-from gitgalaxy.core.detector import OpticalDetector
 from gitgalaxy.core.spatial_mapper import SpatialMapper
 from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
 from gitgalaxy.metrics.chronometer import Chronometer
@@ -108,7 +107,7 @@ def _init_worker(
     RAM. This prevents the OS from attempting to pickle/serialize massive compiled regex objects
     across the IPC (Inter-Process Communication) boundary, which would instantly crash the pipeline.
     """
-
+    from gitgalaxy.core.detector import StructuralExtractor as OpticalDetector
     logging.getLogger().setLevel(log_level)
     worker_logger = logging.getLogger("GalaxyScope.Worker")
 
