@@ -9,7 +9,6 @@
 # ==============================================================================
 import re
 import math
-import hashlib
 import logging
 import time
 import bisect
@@ -360,7 +359,7 @@ class OpticalDetector:
         """Executes the structural regex pass over refracted code streams."""
         self.raw_content_lines = raw_content.splitlines() if raw_content else []
         regex_telemetry = {}
-        t_start = time.time()
+        _t_start = time.time()
 
         # We always extract the metadata first, even for Dark Matter files
         ghost_meta = self._decode_comment_stream(comment_stream)
@@ -423,10 +422,10 @@ class OpticalDetector:
             line_count = sum(1 for l in code_stream.splitlines() if l.strip())
 
             # --- EXISTING OPTICAL PIPELINE ---
-            t_part = time.time()
+            _t_part = time.time()
             segments = self._partition_segments(code_stream, self.primary_lang_id)
 
-            t_eq = time.time()
+            _t_eq = time.time()
             equations, mitigation_telemetry, segment_spatial_maps, extracted_parents = (
                 self.coding_analysis(
                     segments, regex_telemetry if profile_regex else None
@@ -443,7 +442,7 @@ class OpticalDetector:
                 comment_stream, self.primary_lang_id, equations
             )
 
-            t_slice = time.time()
+            _t_slice = time.time()
             functions, sum_fxn_impact = self._function_slice(
                 segments,
                 segment_spatial_maps,
