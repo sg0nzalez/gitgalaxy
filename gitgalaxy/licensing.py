@@ -22,6 +22,7 @@ import hashlib
 RSA_N = 26246426591052891386893360014060848669249039703486471370619690169888703101486249681403954353816532326779849225335705294107639596728626354082552817865001467441053501572461845842571536261194069477635080858097816727197338141635538575333237858100766961309440633177485981055750925168080927021041197775882210942451780414362692590542565258668753401794408633433934057883838766034032873943501312118580786431503874315430445202970310517373086451368642149809238848464100732225425864743074396496142228597753786345783479499353521754427224783854308664241093649206204749644023166728185633076694315652496035018497273095207825227630859  # <-- PASTE YOUR MASSIVE N NUMBER HERE
 RSA_E = 65537
 
+
 def _validate_offline_key(license_key: str) -> str:
     """
     Mathematically verifies an offline license key using pure Python RSA.
@@ -32,18 +33,23 @@ def _validate_offline_key(license_key: str) -> str:
 
     try:
         parts = license_key.split("-")
-        
+
         # Key must contain exactly 5 segments: GG - TIER - CUSTOMER - EXPDATE - SIGNATURE
         if len(parts) != 5 or parts[0] != "GG":
             return "INVALID"
 
-        tier, customer, exp_date_str, signature_hex = parts[1], parts[2], parts[3], parts[4]
+        tier, customer, exp_date_str, signature_hex = (
+            parts[1],
+            parts[2],
+            parts[3],
+            parts[4],
+        )
 
         # 1. RECONSTRUCT PAYLOAD & HASH
         # We recreate the exact string the minter signed, then hash it.
         payload = f"{tier}-{customer}-{exp_date_str}".encode("utf-8")
         payload_hash = hashlib.sha256(payload).digest()
-        
+
         # Convert the raw bytes of the SHA-256 hash into a Python integer
         hash_int = int.from_bytes(payload_hash, byteorder="big")
 
@@ -66,11 +72,12 @@ def _validate_offline_key(license_key: str) -> str:
                 return "EXPIRED"
         except ValueError:
             return "INVALID"
-            
+
         return "VALID"
-        
+
     except Exception:
         return "INVALID"
+
 
 def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
     """
@@ -84,7 +91,7 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
     # -------------------------
 
     # --- ZERO-DEPENDENCY .ENV LOADER ---
-    # Python doesn't read .env files natively. This parses it manually 
+    # Python doesn't read .env files natively. This parses it manually
     # so we don't force users to pip install python-dotenv.
     if os.path.exists(".env"):
         try:
@@ -96,7 +103,7 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
                         key, val = line.split("=", 1)
                         # Only inject if it's not already set in the system environment
                         if key.strip() not in os.environ:
-                            os.environ[key.strip()] = val.strip().strip('"\'')
+                            os.environ[key.strip()] = val.strip().strip("\"'")
         except Exception:
             pass  # Fail gracefully if the .env file is locked by OS permissions
     # -----------------------------------
@@ -106,27 +113,39 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
     # ==============================================================================
     # 1. THE HONOR SYSTEM GATE (Community Free Tier)
     # ==============================================================================
-    # Why is this a 0-second delay? 
-    # In any healthy ecosystem, you want minimal friction for organic growth. 
-    # We built GitGalaxy as a zero-dependency engine because developer UX matters 
-    # above all else. To drive community adoption, researchers, hobbyists, and 
+    # Why is this a 0-second delay?
+    # In any healthy ecosystem, you want minimal friction for organic growth.
+    # We built GitGalaxy as a zero-dependency engine because developer UX matters
+    # above all else. To drive community adoption, researchers, hobbyists, and
     # open-source devs need to be able to drop this into their workflow instantly.
-    # 
-    # Yes, a massive enterprise could technically bypass our commercial RSA checks 
-    # by just plugging this string into their environment. But we operate on the 
-    # honor system. If a corporation wants to cheat, they get their 0-second execution, 
-    # but we permanently burn a glaring legal non-compliance warning into their 
+    #
+    # Yes, a massive enterprise could technically bypass our commercial RSA checks
+    # by just plugging this string into their environment. But we operate on the
+    # honor system. If a corporation wants to cheat, they get their 0-second execution,
+    # but we permanently burn a glaring legal non-compliance warning into their
     # immutable CI/CD audit logs. We optimize for the community, not the abusers.
-    # 
+    #
     # Check this first so we don't try to mathematically parse a plaintext string.
     if license_key == "COMMUNITY_FREE_TIER":
         print("\n" + "=" * 80, file=sys.stderr)
         print(f" 🪐 {tool_name.upper()} ONLINE — COMMUNITY FREE TIER", file=sys.stderr)
         print("=" * 80, file=sys.stderr)
-        print(" LEGAL AUDIT TRIPWIRE: Executing under PolyForm Noncommercial License 1.0.0.", file=sys.stderr)
-        print(" WARNING: This key is NOT a legitimate license for commercial enterprise use.", file=sys.stderr)
-        print(" If this engine is running in a corporate CI/CD pipeline, you are out of compliance.", file=sys.stderr)
-        print(" Contact joe@gitgalaxy.io to acquire a commercial enterprise key.", file=sys.stderr)
+        print(
+            " LEGAL AUDIT TRIPWIRE: Executing under PolyForm Noncommercial License 1.0.0.",
+            file=sys.stderr,
+        )
+        print(
+            " WARNING: This key is NOT a legitimate license for commercial enterprise use.",
+            file=sys.stderr,
+        )
+        print(
+            " If this engine is running in a corporate CI/CD pipeline, you are out of compliance.",
+            file=sys.stderr,
+        )
+        print(
+            " Contact joe@gitgalaxy.io to acquire a commercial enterprise key.",
+            file=sys.stderr,
+        )
         print("=" * 80 + "\n", file=sys.stderr)
         sys.stderr.flush()
         return
@@ -147,30 +166,62 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
         print(f" 🪐 {tool_name.upper()} ONLINE", file=sys.stderr)
         print("=" * 80, file=sys.stderr)
         if key_status == "EXPIRED":
-            print(" ⚠️  LICENSE EXPIRED: Your GitGalaxy commercial license has lapsed.", file=sys.stderr)
-            print(" You are no longer authorized to use this software for commercial purposes.", file=sys.stderr)
+            print(
+                " ⚠️  LICENSE EXPIRED: Your GitGalaxy commercial license has lapsed.",
+                file=sys.stderr,
+            )
+            print(
+                " You are no longer authorized to use this software for commercial purposes.",
+                file=sys.stderr,
+            )
         else:
-            print(" ⚠️  LICENSE MISSING: No commercial key detected in the environment.", file=sys.stderr)
-            print(" Executing under PolyForm Noncommercial License 1.0.0.", file=sys.stderr)
-            print(" Commercial use in corporate networks or CI/CD pipelines requires a valid license.", file=sys.stderr)
+            print(
+                " ⚠️  LICENSE MISSING: No commercial key detected in the environment.",
+                file=sys.stderr,
+            )
+            print(
+                " Executing under PolyForm Noncommercial License 1.0.0.",
+                file=sys.stderr,
+            )
+            print(
+                " Commercial use in corporate networks or CI/CD pipelines requires a valid license.",
+                file=sys.stderr,
+            )
         print(" Contact joe@gitgalaxy.io to acquire a commercial key.", file=sys.stderr)
-        print("\n >>> Enforcing 5-second synchronization delay for compliance visibility...", file=sys.stderr)
+        print(
+            "\n >>> Enforcing 5-second synchronization delay for compliance visibility...",
+            file=sys.stderr,
+        )
         print("=" * 80 + "\n", file=sys.stderr)
         sys.stderr.flush()
         time.sleep(5.0)
         return
 
     # 4. THE FORGERY HAMMER (Invalid / Tampered - 10 Seconds)
-    # If a user is intentionally submitting garbage data or spoofing the RSA signature, 
-    # we crush their pipeline execution speed. 
+    # If a user is intentionally submitting garbage data or spoofing the RSA signature,
+    # we crush their pipeline execution speed.
     print("\n" + "=" * 80, file=sys.stderr)
     print(f" 🪐 {tool_name.upper()} ONLINE", file=sys.stderr)
     print("=" * 80, file=sys.stderr)
-    print(" 🚨 LICENSE FORGERY DETECTED: Invalid cryptographic signature.", file=sys.stderr)
-    print(" Tampering with GitGalaxy enterprise keys is a violation of the license agreement.", file=sys.stderr)
-    print(" Incident has been flagged. Executing under maximum compliance friction.", file=sys.stderr)
-    print(" Contact joe@gitgalaxy.io to acquire a valid commercial key.", file=sys.stderr)
-    print("\n >>> Enforcing 10-second synchronization delay for compliance visibility...", file=sys.stderr)
+    print(
+        " 🚨 LICENSE FORGERY DETECTED: Invalid cryptographic signature.",
+        file=sys.stderr,
+    )
+    print(
+        " Tampering with GitGalaxy enterprise keys is a violation of the license agreement.",
+        file=sys.stderr,
+    )
+    print(
+        " Incident has been flagged. Executing under maximum compliance friction.",
+        file=sys.stderr,
+    )
+    print(
+        " Contact joe@gitgalaxy.io to acquire a valid commercial key.", file=sys.stderr
+    )
+    print(
+        "\n >>> Enforcing 10-second synchronization delay for compliance visibility...",
+        file=sys.stderr,
+    )
     print("=" * 80 + "\n", file=sys.stderr)
     sys.stderr.flush()
     time.sleep(10.0)
