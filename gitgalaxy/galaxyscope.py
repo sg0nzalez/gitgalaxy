@@ -62,7 +62,7 @@ from gitgalaxy.standards.language_standards import (
 from gitgalaxy.standards.analysis_lens import (
     ThreatPolicy,
     PATH_MODIFIERS,
-    PHYSICS_ASSET_MASKS,
+    ASSET_MASKS,
 )
 
 HAS_PYYAML = importlib.util.find_spec("yaml") is not None
@@ -2581,9 +2581,9 @@ def main():
             for lang, overrides in dialect_dict.items():
                 if lang == "_shield_":
                     if "exclude_dirs" in overrides:
-                        if "BLACK_HOLES" not in merged_aperture:
-                            merged_aperture["BLACK_HOLES"] = set()
-                        merged_aperture["BLACK_HOLES"].update(overrides["exclude_dirs"])
+                        if "IGNORED_DIRECTORIES" not in merged_aperture:
+                            merged_aperture["IGNORED_DIRECTORIES"] = set()
+                        merged_aperture["IGNORED_DIRECTORIES"].update(overrides["exclude_dirs"])
                         logging.debug(
                             f"   -> Patched Aperture Shield (Added {len(overrides['exclude_dirs'])} Black Holes)."
                         )
@@ -2631,7 +2631,7 @@ def main():
             "PATH_MODIFIERS": PATH_MODIFIERS,
             "PRIORITY_WHITELIST": PRIORITY_WHITELIST,
             "TEST_NAMING_CONVENTIONS": TEST_NAMING_CONVENTIONS,
-            "DOCUMENTATION_LANGUAGES": PHYSICS_ASSET_MASKS.get(
+            "DOCUMENTATION_LANGUAGES": ASSET_MASKS.get(
                 "DOCUMENTATION_LANGUAGES", set()
             ),
             "PARANOID_MODE": args.paranoid,

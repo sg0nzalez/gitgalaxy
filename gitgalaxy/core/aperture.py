@@ -72,8 +72,8 @@ class ApertureFilter:
         self.registry = language_definitions
         self.config = aperture_config or {}
 
-        self.ignored_directories = set(self.config.get("BLACK_HOLES", set()))
-        self.ignored_extensions = set(self.config.get("BLACK_HOLE_EXTENSIONS", set()))
+        self.ignored_directories = set(self.config.get("IGNORED_DIRECTORIES", set()))
+        self.ignored_extensions = set(self.config.get("IGNORED_EXTENSIONS", set()))
         self.denylist_patterns = self.config.get("CONTRABAND_PATTERNS", [])
 
         # ---> AUTO-GENERATED DOC SHIELD <---

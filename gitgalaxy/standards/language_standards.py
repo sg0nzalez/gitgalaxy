@@ -123,7 +123,7 @@ LENS_CONFIG = {
 # ------------------------------------------------------------------------------
 PRISM_CONFIG = {
     "SHIELD_PATTERN": r'((?<!\\)"(?:\\.|[^"\\])*"|(?<!\\)\'(?:\\.|[^\'\\])*\'|(?<!\\)`(?:\\.|[^`\\])*`)',
-    "PYTHON_DOC_PATTERN": r"(?m)^\s*(?:\"\"\"[\s\S]*?\"\"\"|\'\'\'[\s\S]*?\'\'\')\s*$",
+    "PYTHON_DOC_PATTERN": r'(?m)^\s*(?:"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')',
     "PHP_HEREDOC_PATTERN": r'<<<[ \t]*([\'"]?)([a-zA-Z_]\w*)\1[ \t]*\r?\n[\s\S]*?\n[ \t]*\2;?',
     "PHP_MULTILINE_STRING": r'(?<!\\)"(?:\\.|[^"\\])*\n(?:\\.|[^"\\])*"|(?<!\\)\'(?:\\.|[^\'\\])*\n(?:\\.|[^\'\\])*\'',
     "POSITIONAL_ANCHORS": {"*", "C", "c", "/", "!"},
@@ -235,7 +235,7 @@ LANGUAGE_DEFINITIONS = {
             "wscript",
             "Snakefile",
         ],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
         "discriminators": [
             ".py",
             "requirements.txt",
@@ -264,7 +264,7 @@ LANGUAGE_DEFINITIONS = {
             #    This is why JSON must map to the 'std_c' lexical_family, not 'pure_hash' or 'inert'.
             # 2. THE RE.COMPILE TRAP: Every rule here MUST be wrapped in re.compile().
             #    If passed as raw strings, the engine's physics loop will crash with
-            #    "'str' object has no attribute 'pattern'" during the Ghost Mass extraction.
+            #    "'str' object has no attribute 'pattern'" during the Commented / Non-Executable Text extraction.
             # =====================================================================
             # JSON has no concept of a "column 1" or line-start-only comment anchor.
             "_line_anchor": None,
@@ -273,99 +273,99 @@ LANGUAGE_DEFINITIONS = {
             # JSONC/JSON5 multi-line blocks use standard C-style delimiters.
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Includes match/case (3.10+) and logical short-circuits. EXCLUDES exceptions.
             "branch": re.compile(
                 r"\b(if|elif|else|for|while|with|try|finally|match|case|and|or)\b"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Signatures for def/lambda. Bounded generics [^\]]* and params [^)]*.
             "args": re.compile(
                 r"(?:async[ \t]+)?def\s+\w+(?:\[[^\]]*\])?\s*\([^)]*\)|\blambda\s+[^:]+:",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: _private (encapsulation) and Final (freeze_hits).
             "linear": re.compile(
                 r"\b(def|class|return|import|from|as|pass|continue|break|await|assert|del|global|nonlocal|type)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Anchors executable logic. Steps safely over decorators.
             "func_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}(?:async[ \t]+)?def\s+\w+(?:\[[^\]]*\])?\s*\(",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}class\s+([a-zA-Z_]\w*)(?:\[[^\]]*\])?(?:\s*\(\s*([a-zA-Z0-9_., \t]*)\s*\))?",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(try|except(?:\*)?|finally|assert|isinstance|issubclass|hasattr|getattr|dataclass|BaseModel|Field|TypeGuard|override)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Swallowed errors, wildcard imports, and Any bypasses.
             "safety_neg": re.compile(
                 r"\bpass\b[ \t]*$|except\s*[:(]|except\s+(?:Base)?Exception|from\s+[\w.]+\s+import\s+\*|#\s*type:\s*ignore|\b(Any|cast)\b|=\s*\[\s*\]|=[ \t]*\{\s*\}",
                 re.M,
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process killers and un-sanitized deserialization. EXCLUDES TODO/print.
             "danger": re.compile(
                 r"\b(eval|exec|subprocess\.(?:call|Popen|run)|os\.system|pickle\.loads?|yaml\.unsafe_load|shell=True)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(open|requests|httpx|aiohttp|boto3|os\.|sys\.|pathlib|socket|sqlalchemy|psycopg2?|asyncpg)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Implicit public defaults (undercased root definitions) + explicit __all__.
             "api": re.compile(
                 r"^[ \t]*(?:async[ \t]+)?def\s+[^_]\w+|^[ \t]*class\s+[^_]\w+|^__all__[ \t]*=|@(?:app|router|blueprint)\.(?:get|post|put|delete)",
                 re.M,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # State mutation. Includes Walrus operator and collection mutators.
             "flux": re.compile(
                 r"\bglobal\b|\bnonlocal\b|\b(?:self|cls)\.\w+[ \t]*=|:=|(?:\.\w+)?\.(?:append|extend|update|pop|remove|insert|clear)\s*\("
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"#[ \t]*(?:def|class|import|if|for|while|try|return)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r'"""|\'\'\'|:param|:return|:raises|:type|\b(?:Args|Returns|Yields|Raises|Attributes):\b'
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(unittest|pytest|TestCase|fixture|patch)\b|def[ \t]+test_|\bassert\b|\bMock\b"
             ),
             # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Hidden Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(async|await|asyncio|threading|multiprocessing|ThreadPoolExecutor|TaskGroup|gather|create_task)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(streamlit|django\.shortcuts|flask\.render_template|gradio|dash|fasthtml|jinja2|render)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"\blambda\b"),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(os\.environ|sys\.argv|sys\.path|globals\(\)|locals\(\))\b"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"^[ \t]*@[\w.]+", re.M),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(
                 r"\b(List|Dict|Set|Tuple|Optional|Union|TypeVar|Generic|Any|Callable|Mapping)\b\[[^\]]*\]|\b(list|dict|set|tuple|type)\[[^\]]*\]|->"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
             ),
@@ -379,12 +379,12 @@ LANGUAGE_DEFINITIONS = {
             "cryptography": re.compile(
                 r"\b(?:import|require|from)\b.*?(?:crypto|bcrypt|x509|tls|ssl|jsonwebtoken|argon2)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Metaprogramming and class-level binding.
             "heat_triggers": re.compile(
                 r"__(?:getattr|setattr|del|call|new|metaclass|dict|dir|import)__|@(?:staticmethod|classmethod|property)|\b(?:getattr|setattr|inspect\.)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"\b(?:from\s+[a-zA-Z0-9_.]+\s+import\b|import\s+[a-zA-Z0-9_., \t]+|\b__import__\s*\(|\bimportlib\.import_module\s*\()",
                 re.M,
@@ -398,74 +398,74 @@ LANGUAGE_DEFINITIONS = {
             "_named_token_capture": re.compile(
                 r"^[ \t]*from\s+[\w.]+\s+import\s+([^({\n]+)", re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(render_template|HttpResponse|JSONResponse|TemplateResponse|WSGIApplication|ASGIApplication)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(Signal|receiver|post_save|pre_save|asyncio\.Event|EventDispatcher|emit|send|blinker)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(Depends|Provide|Inject|Container|dependency_injector|fastapi\.Depends)\b"
             ),
             # 34. macros
             "macros": None,  # Python lacks a C-style preprocessor.
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": re.compile(r"\b(ctypes\.POINTER|c_void_p|byref)\b"),
             # 36. memory_alloc (Manual Memory Management)
             "memory_alloc": None,  # Managed by GC.
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(logging|logger|structlog|sentry_sdk|datadog|loguru)\.(?:info|error|warn|warning|debug|trace|log|exception|critical)\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(print|input)\s*\("),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\b(int|str|float|list|dict|set|tuple|bool|bytes|cast)\b\s*\("
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(raise|quit|exit|sys\.exit|abort)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(time\.sleep|asyncio\.sleep|Thread\.join)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(Lock|RLock|Semaphore|BoundedSemaphore|Event|Condition|Barrier)\b"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(Final|frozenset|mappingproxy|immutable)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|__exit__|del|shutdown|cleanup)\b\s*\("),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Captures protected/private members via underscore convention.
             "encapsulation": re.compile(r"\b_[a-zA-Z_]\w*\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\b(on_event|add_listener|subscribe|callback|handler)\b"
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"
             ),
@@ -526,7 +526,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": ["Jakefile"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
         "discriminators": [
             ".js",
             "package.json",
@@ -553,14 +553,14 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES throw (bailout_hits).
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|catch|finally|continue|break|try)\b|&&|\|\||\?|\?\?"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks. Bounded to prevent ReDoS on massive positional/destructured sets.
             "args": re.compile(
                 # =====================================================================
@@ -580,12 +580,12 @@ LANGUAGE_DEFINITIONS = {
                 r")",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural declaration boundaries. EXCLUDES: Access modifiers (encapsulation) and const (freeze_hits).
             "linear": re.compile(
                 r"\b(let|var|import|export|return|class|extends|super|await|delete)\b|=>"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Uses positive lookaheads (?=) to stop the match exactly at the identifier name.
             # Captures standard functions, namespace assignments (foo.bar = function),
             # object literal methods (foo: function), and ES6 methods.
@@ -607,75 +607,75 @@ LANGUAGE_DEFINITIONS = {
                 r")",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:export[ \t]+)?(?:default[ \t]+)?class\s+([a-zA-Z_$][\w$]*)(?:\s+extends\s+([a-zA-Z_$][\w$]*))?",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(try|catch|finally|typeof|instanceof|Array\.isArray|Number\.(?:isFinite|isNaN)|Object\.hasOwn)\b|===|!==|\?\?|\?\."
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Loose equality and bypasses.
             "safety_neg": re.compile(
                 r"==(?!=)|!=(?!=)|\b(with|void)\b|eslint-disable|@ts-nocheck"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Catastrophic vulnerabilities. EXCLUDES console.log (print_hits) and TODO (debt).
             "danger": re.compile(
                 r"\b(eval|document\.write|innerHTML|outerHTML|dangerouslySetInnerHTML|debugger|alert|process\.exit)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(fetch|axios|http|https|fs|path|database|sql|localStorage|sessionStorage|indexedDB|document\.cookie|XMLHttpRequest|child_process)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Exposure surface. Explicit exports + implicit architectural defaults.
             "api": re.compile(
                 r"\b(export|module\.exports|exports\.)\b|@(Controller|Resolver|Get|Post|Put|Delete)\b"
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const (freeze_hits).
             "flux": re.compile(
                 r"\b(let|var|this\.|setState|mut|push|pop|shift|unshift|splice|sort|reverse|\.current[ \t]*=|\.set\(|\.delete\(|\.add\()\b"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//[ \t]*(?:if|for|while|function|class|return|var|const|let|import)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"/\*\*|@param|@return|@throws|@deprecated|@typedef|@type|@template"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(describe|expect|assert|beforeEach|afterEach|jest|mocha|vitest|cy\.)\b|\b(?:it|test)\s*\("
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(async|await|Promise|requestAnimationFrame|setImmediate|setTimeout|setInterval|queueMicrotask|Worker|postMessage)\b|\.then\(|\.catch\("
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r'<[A-Z]\w+|className=|use(?:State|Effect|Context|Reducer|Ref|Memo|Callback|Transition)|props\.|this\.state|document\.(?:getElementById|querySelector|addEventListener)|["\']use\s+(?:client|server)["\']'
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(
                 r"=>[ \t]*\{|\(\)[ \t]*=>|function\s*\([^)]*\)[ \t]*\{"
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(window\.|global\.|process\.env|document\.|navigator\.|self\.|globalThis\.)\b"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"@\w+"),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             # Simulated/JSDoc generics in JS.
             "generics": re.compile(r"@template\s+\w+|/\*\*\s*@type\s*(?:\{|<\w+)"),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
             ),
@@ -689,11 +689,11 @@ LANGUAGE_DEFINITIONS = {
             "cryptography": re.compile(
                 r"\b(?:import|require|from)\b.*?(?:crypto|bcrypt|x509|tls|ssl|jsonwebtoken|argon2)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             "heat_triggers": re.compile(
                 r"\b(arguments\.|prototype|__proto__|Object\.assign|Reflect|Proxy|Object\.defineProperty|\.bind\(|\.call\(|\.apply\()\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"\b(?:import|export)\b[^;]*?\bfrom\b|\brequire\s*\(|\bimport\s*\(",
                 re.M,
@@ -724,28 +724,28 @@ LANGUAGE_DEFINITIONS = {
             "_named_token_capture": re.compile(
                 r"(?:import|export)\s+\{([^}]+)\}", re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(r"(?:@author|Created by)\s+(.*)", re.I),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(getServerSideProps|getStaticProps|getInitialProps|renderToString|hydrateRoot)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(emit|on|once|off|dispatchEvent|EventEmitter|EventTarget)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(Inject|Injectable|Container|resolve|register|inversify)\b"
             ),
@@ -753,52 +753,52 @@ LANGUAGE_DEFINITIONS = {
             "macros": None,
             # 35. pointers
             "pointers": None,
-            # 36. memory_alloc (The Yin to cleanup)
+            # 36. memory_alloc 
             "memory_alloc": re.compile(r"\bnew\s+[A-Z]\w*"),
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(logger|winston|pino|morgan|datadog|prometheus|newrelic|sentry)\.(?:info|error|warn|debug|trace|log)\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"\bconsole\.(?:log|warn|error|dir|trace|info|table|time)\b"
             ),
-            # 40. cast_hits (The "Trust Me" Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\b(Number|String|Boolean|BigInt|Symbol|Array\.from)\b\s*\("
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|abort|process\.exit)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(
                 r"\b(sleep|delay|setTimeout|setInterval|Atomics\.wait)\b"
             ),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>>?|\^|~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|Atomics\.lock|Atomics\.wait)\b",
                 re.I,
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(
                 r"\b(const|readonly|final|Object\.freeze|Object\.seal)\b"
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(dispose|close|destroy|clearTimeout|clearInterval|removeEventListener|delete)\b"
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # JS private fields and keywords.
             "encapsulation": re.compile(r"\b(private|protected|internal|#)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\b(on|addEventListener|subscribe|watch|effect)\b"
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"
             ),
@@ -845,7 +845,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
         "discriminators": [
             ".ts",
             "tsconfig.json",
@@ -871,25 +871,25 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # EXCLUDES: Exceptions (throw). Includes control flow and logical short-circuits.
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|catch|finally|continue|break|try)\b|&&|\|\||\?|\?\?"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # CRITICAL FIX: Added negative lookahead for control flow, and `[^=;{]*` to support TypeScript return types.
             "args": re.compile(
                 r"function\s+\w*(?:<[^>]*>)?\s*\([^)]*\)|\([^)]*\)[^=;{]*=>|[a-zA-Z_$][\w$]*[ \t]*=>|^[ \t]*(?:(?:public|private|protected|static|override|abstract)[ \t]+){0,3}(?:async[ \t]+)?(?:get\s+|set[ \t]+)?(?!(?:if|for|while|switch|catch)\b)[a-zA-Z_$][\w$]*\s*\([^)]*\)",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (public/private) and Immutability (const).
             "linear": re.compile(
                 r"\b(var|return|class|interface|type|enum|import|export|await|satisfies|using|namespace|module|implements|extends|declare)\b|=>"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Captures standard functions, assignments, object properties, and class methods.
             # Safely steps over TypeScript Generics <T> and explicit return types in the lookaheads.
             "func_start": re.compile(
@@ -910,7 +910,7 @@ LANGUAGE_DEFINITIONS = {
                 r")",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # =====================================================================
             # [ THE VERTICAL MODIFIER SHIELD (TYPESCRIPT) ]
             # TypeScript allows modifiers like `export`, `default`, and `abstract`
@@ -922,84 +922,84 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:(?:export|default|abstract|declare)[ \t\n]+){0,4}(?:class|enum|interface)[ \t\n]+([a-zA-Z_$][\w$]*)(?:[ \t\n]+(?:extends|implements)[ \t\n]+([a-zA-Z_$][\w_$, \t\n]*))?",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(try|catch|finally|satisfies|unknown|never|void|Object\.freeze|z\.(?:string|object|parse)|v\.(?:string|parse))\b|\?\?|\?\.|\b(?:is|asserts)\s+\w+\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Force unwrapping, any, and linter bypasses.
             "safety_neg": re.compile(
                 r"\b(any)\b|as\s+any|!\s*[;,\n)\]\.]|!\.|@ts-ignore|@ts-expect-error|@ts-nocheck|eslint-disable|as\s+unknown\s+as|<any>"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process killers and catastrophic vulnerabilities. EXCLUDES TODO (debt) and console.log (print).
             "danger": re.compile(
                 r"\b(eval|document\.write|innerHTML|outerHTML|dangerouslySetInnerHTML|debugger|alert|process\.exit)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(fetch|axios|http|https|fs|path|database|sql|localStorage|sessionStorage|indexedDB|document\.cookie|XMLHttpRequest|child_process|fs/promises)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Captures explicit exports and public visibility.
             "api": re.compile(
                 r"\b(export|public|module\.exports|exports\.)\b|@(Controller|Resolver|Get|Post|Put|Delete)\b"
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const (freeze_hits).
             "flux": re.compile(
                 r"\b(let|var|this\.|setState|push|pop|shift|unshift|splice|sort|reverse|\.current[ \t]*=|\.set\(|\.delete\(|\.add\()\b"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//[ \t]*(?:if|for|while|function|class|return|export|import)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"/\*\*|@param|@return|@throws|@deprecated|@typedef|@type|@template|@callback"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # CRITICAL FIX: Negative lookbehind (?<!\.) prevents matching 'regex.test()' as an assertion.
             "test": re.compile(
                 r"\b(?:describe|expect|beforeEach|afterEach|jest|vitest|playwright)\s*\(|(?<!\.)\b(?:it|test|assert)\s*\("
             ),
             # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Hidden Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(async|await|Promise|requestAnimationFrame|setImmediate|setTimeout|setInterval|Worker|postMessage|Observable|Subject|Subscription)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r'<[A-Z]\w+|className=|use(?:State|Effect|Context|Reducer|Ref|Memo|Callback|Transition|Id)|props\.|this\.state|@Component|@Injectable|document\.(?:getElementById|querySelector)|["\']use\s+(?:client|server)["\']'
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(
                 r"=>[ \t]*\{|\(\)[ \t]*=>|function\s*\([^)]*\)[ \t]*\{"
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(window\.|global\.|process\.env|document\.|navigator\.|self\.|globalThis\.)\b"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"@\w+(?:\([^)]*\))?"),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(
                 r"<\s*[A-Z][^>]*>|\b(?:keyof|infer|extends|Omit|Pick|Partial|Record|Required|Awaited|ReturnType|Parameters|NonNullable)\b"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(Math\.|tf\.|THREE\.|d3\.|gl-matrix|random)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             "heat_triggers": re.compile(
                 r"\b(arguments\.|prototype|__proto__|Object\.assign|Reflect|Proxy|Object\.defineProperty|\.bind\(|\.call\(|\.apply\()\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"\b(?:import(?:\s+type)?|export(?:\s+type)?)\b[^;]*?\bfrom\b|\brequire\s*\(|\bimport\s*\(",
                 re.M,
@@ -1032,28 +1032,28 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:import(?:[ \t\n]+type)?|export(?:[ \t\n]+type)?)\s+\{([^}]+)\}",
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(r"(?:@author|Created by)\s+(.*)", re.I),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(getServerSideProps|getStaticProps|generateStaticParams|LoaderFunction|ActionFunction)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(emit|on|once|off|dispatchEvent|EventEmitter|EventTarget)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(Inject|Injectable|Container|resolve|register|tsyringe|inversify)\b"
             ),
@@ -1061,12 +1061,12 @@ LANGUAGE_DEFINITIONS = {
             "macros": None,  # TypeScript uses transformer plugins/pre-processors, not standard inline macros.
             # 35. pointers
             "pointers": None,  # Managed memory environment.
-            # 36. memory_alloc (The Yin to cleanup)
+            # 36. memory_alloc 
             "memory_alloc": re.compile(r"\bnew\s+[A-Z]\w*"),
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(logger|winston|pino|morgan|datadog|prometheus|newrelic|sentry)\.(?:info|error|warn|debug|trace|log)\b"
             ),
@@ -1074,36 +1074,36 @@ LANGUAGE_DEFINITIONS = {
             "print_hits": re.compile(
                 r"\bconsole\.(?:log|warn|error|dir|trace|info|table|time)\b"
             ),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(r"\bas\s+[A-Z]\w*|<\s*[A-Z]\w*\s*>\s*[a-zA-Z_]"),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|fatalError|abort|process\.exit)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(
                 r"\b(sleep|delay|setTimeout|setInterval|Atomics\.wait)\b"
             ),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|Atomics\.lock|Atomics\.wait)\b",
                 re.I,
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(
                 r"\b(const|readonly|final|Object\.freeze|Object\.seal)\b"
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(dispose|close|destroy|clearTimeout|clearInterval|removeEventListener|delete)\b"
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal|#)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\b(on|addEventListener|subscribe|watch|effect)\b"
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"
             ),
@@ -1144,7 +1144,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".java", ".jav", ".jsp", ".jspf", ".jspx", ".jws", ".bsh"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
         "discriminators": [
             ".java",
             "pom.xml",
@@ -1173,14 +1173,14 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Includes modern switch expressions (yield) and pattern guards (when).
             # EXCLUDES: Exceptions (throw) - moved to bailout_hits.
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|catch|finally|continue|break|yield|try|when)\b|\?|:"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Captures method/constructor params and lambdas. Bounded to prevent ReDoS.
             "args": re.compile(
                 # =====================================================================
@@ -1201,12 +1201,12 @@ LANGUAGE_DEFINITIONS = {
                 r")",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and final (freeze_hits).
             "linear": re.compile(
                 r"\b(void|return|import|package|class|interface|enum|record|extends|implements|var|sealed|non-sealed|permits|new|throws|module|requires|exports|opens|provides|uses)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ONLY executable logic blocks. EXCLUDES classes/interfaces. Steps over annotations.
             "func_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,10}"
@@ -1225,127 +1225,127 @@ LANGUAGE_DEFINITIONS = {
                 r"(?!(?:if|for|while|switch|catch|new|return|class|interface|enum|record)\b)([A-Za-z_$][\w_$]*)\s*\(",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]*){0,5}(?:(?:public|protected|private|static|final|sealed|non-sealed|abstract|strictfp)[ \t]+){0,5}(?:class|interface|enum|record)\s+([A-Za-z_$][\w_$]*)(?:\s+(?:extends|implements)\s+([A-Za-z_$][\w_$, \t<>\?]*))?",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(try|catch|finally|assert|Optional|Objects\.requireNonNull|instanceof)\b|@(Valid|Validated|NotNull|NonNull|NotBlank|Immutable|Transactional)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             "safety_neg": re.compile(
                 r"\b(null)\b|return\s+null|\([A-Z]\w+\)\s*(?!->)[a-zA-Z_$]|catch\s*\(\s*(?:Exception|Throwable)\b|@SuppressWarnings|@SneakyThrows|\.get\(\)"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process killers and raw memory/execution risks. EXCLUDES prints (Phase 5).
             "danger": re.compile(
                 r"\b(Runtime\.getRuntime\(\)\.exec|ProcessBuilder|System\.exit|Thread\.stop|Unsafe)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|InputStream|OutputStream|Reader|Writer|Scanner|Files\.|Path|Socket|RestTemplate|WebClient|RestClient|HttpClient|Connection|ResultSet|Statement|EntityManager|DataSource|Repository)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             "api": re.compile(
                 r"\b(public|protected)\b|@(RestController|Controller|Service|Component|Bean|Produces|Consumes|RequestMapping|GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|Endpoint|WebFilter)\b"
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES final (freeze_hits).
             "flux": re.compile(
                 r"\b(volatile|Atomic\w+)\b|^[ \t]*(?:this\.)?\w+[ \t]*=|@(?:Setter|Data)\b|(?:\w+\.)?(?:set[A-Z]\w+|add|put|remove|clear|addAll|replace|computeIfAbsent)\s*\("
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//[ \t]*(?:public|private|protected|class|void|if|for|while|return|import)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"/\*\*|@param|@return|@throws|@deprecated|@see|@since|@apiNote|@implSpec|@Operation|@Schema"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"@(?:Test|ParameterizedTest|Before|After|BeforeEach|AfterEach|Mock|InjectMocks)|assert[A-Za-z0-9_]*\s*\(|\b(?:verify|expect|given|when)\s*\("
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(synchronized|Thread|Runnable|Future|CompletableFuture|ExecutorService|Semaphore|Atomic\w+|VirtualThread|StructuredTaskScope|ScopedValue|Mono|Flux|Publisher)\b|@(?:Async|Scheduled)"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(SwingUtilities|JFrame|JPanel|javafx\.|ModelAndView|ModelMap|Model|@ModelAttribute|VaadinSession|FacesContext|UIComponent)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"->|::"),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(System\.getProperty|System\.getenv|public\s+static\s+(?:final[ \t]+)?\w+\s+[A-Z_0-9]+[ \t]*=|ThreadLocal|ScopedValue)\b|@(?:Value|ConfigurationProperties)"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"^[ \t]*@[\w.]+(?:\([^)]*\))?", re.M),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(r"<\s*[A-Z?][^>]*>"),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:stream|parallelStream|map|filter|reduce|collect|flatMap|forEach|anyMatch|noneMatch|gather)\("
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(Math\.|BigDecimal|BigInteger|Random|SecureRandom|StrictMath|VectorSpecies|FloatVector|IntVector)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Reflection and dynamic proxies.
             "heat_triggers": re.compile(
                 r"\b(reflect\.|native|Class\.forName|Method\.invoke|Field\.setAccessible|Proxy\.newProxyInstance|ClassLoader|MethodHandles|VarHandle|Linker\.nativeLinker)\b|@SneakyThrows"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r"^[ \t]*import\s+(?:static[ \t]+)?[\w.]+;", re.M),
             "_dependency_capture": re.compile(
                 r"^[ \t]*import[ \t\n]+(?:static[ \t\n]+)?([\w.*]+)[ \t\n]*;", re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(r"@author\s+(.*)", re.I),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(ModelAndView|FacesServlet|HttpServletRequest|HttpServletResponse|@ResponseBody|@ResponseStatus|JspWriter|ThymeleafViewResolver)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(ApplicationEvent|ApplicationEventPublisher|ApplicationListener|@EventListener|@KafkaListener|@RabbitListener|@JmsListener|EventObject|publishEvent)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(@Autowired|@Inject|@Qualifier|@Primary|@Component|@Service|@Repository|@Bean|@Configuration|ApplicationContext|BeanFactory|@Provides)\b"
             ),
             # 34. macros
             "macros": None,  # Java lacks preprocessor macros.
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Project Panama (Java 22+) bridging to native memory.
             "pointers": re.compile(
                 r"\b(MemorySegment|MemoryLayout|ValueLayout|AddressLayout|SymbolLookup)\b"
             ),
-            # 36. memory_alloc (The Yin to cleanup)
+            # 36. memory_alloc 
             "memory_alloc": re.compile(
                 r"\b(Arena\.ofConfined|Arena\.ofShared|Arena\.ofAuto|Arena\.global|SegmentAllocator|allocateFrom|ByteBuffer\.allocateDirect)\b"
             ),
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(log|logger|LOGGER|LoggerFactory|LogManager|MDC|Tracer|Span)\.(?:info|error|warn|warning|debug|trace|log)\b|@Slf4j|@Log4j2"
             ),
@@ -1353,38 +1353,38 @@ LANGUAGE_DEFINITIONS = {
             "print_hits": re.compile(
                 r"\b(System\.out\.(?:print|println|printf)|System\.err\.(?:print|println|printf)|\.printStackTrace\(\))\b"
             ),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\(\s*(?:int|long|short|byte|char|float|double|boolean|[A-Z][A-Za-z0-9_]*)\s*\)\s*[a-zA-Z_$]"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|abort|System\.exit|halt)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(
                 r"\b(Thread\.sleep|TimeUnit\.[A-Z_]+\.sleep|delay|CountDownLatch\.await)\b"
             ),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>>?|\^|~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|ReentrantLock|ReadWriteLock|Condition)\b",
                 re.I,
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(
                 r"\b(final|immutable|unmodifiable[A-Z]\w*|Object\.freeze)\b"
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(close|dispose|shutdown|free|release|cleaner\.register)\b\s*\("
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\b(on[A-Z]\w*|addEventListener|subscribe|@KafkaListener|@RabbitListener)\b"
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"@(?:Ignore|Disabled)|test\.skip\(|mock\(|spy\(|verifyZeroInteractions"
             ),
@@ -1425,7 +1425,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": ["build.cake"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
         "discriminators": [
             ".cs",
             ".csproj",
@@ -1453,14 +1453,14 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES throw (bailout_hits).
             # Includes pattern matching (and, or, not) and null-coalescing.
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|foreach|while|do|catch|finally|continue|break|goto|try|yield\s+return|yield\s+break|and|or|not)\b|\?\?|\?"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks for methods, primary constructors, and lambdas.
             "args": re.compile(
                 # =====================================================================
@@ -1481,12 +1481,12 @@ LANGUAGE_DEFINITIONS = {
                 r")",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and const/readonly (freeze_hits).
             "linear": re.compile(
                 r"\b(var|return|class|interface|struct|record|enum|using|namespace|yield|await|delegate|event|init|required|field|implements|extends|declare)\b|=>"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ONLY executable logic blocks. EXCLUDES types/classes.
             #
             # =====================================================================
@@ -1499,7 +1499,7 @@ LANGUAGE_DEFINITIONS = {
             # THE FIX: Strict character exclusion, numeric bounding, and mutual
             #   exclusivity between word characters and spaces.
             # =====================================================================
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ONLY executable logic blocks. EXCLUDES types/classes.
             #
             # =====================================================================
@@ -1560,86 +1560,86 @@ LANGUAGE_DEFINITIONS = {
                 r"([@A-Za-z_$][\w_$.]*)(?:[ \t\n]*<[^>]{0,100}>)?[ \t\n]*\(",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:\[[^\]]*\][ \t]*){0,5}(?:(?:public|internal|private|protected|static|sealed|abstract|partial|file|unsafe|new)[ \t]+){0,5}(?:class|interface|struct|record|enum)\s+([A-Za-z_$][\w_$]*)(?:\s*:\s*([A-Za-z_$][\w_$, \t<>\?]*))?",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(try|catch|finally|checked|is|as|nameof|required|ArgumentNullException|ThrowIfNull|ThrowIfNullOrWhiteSpace)\b|\[(?:Required|NotNull|Authorize)\]|\?\?|\?\."
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Null-forgiving operator, dynamic, and unsafe bypasses.
             "safety_neg": re.compile(
                 r"!\.|\bnull!|#pragma\s+warning\s+disable|\.Result\b|\.Wait\(\)|\b(dynamic)\b"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Extreme tech debt/vulnerabilities. EXCLUDES TODO (debt) and Console (print).
             "danger": re.compile(
                 r"\b(Thread\.Abort|Process\.Start|Environment\.FailFast|Environment\.Exit|goto)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|Directory|Stream|HttpClient|Path|SqlConnection|SqlCommand|DbContext|DbSet|HttpRequest|HttpResponse)\b\.|\[Table\("
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Public exposure surface. Explicit visibility + Controller mapping.
             "api": re.compile(
                 r"\b(public|internal)\b|\[(?:HttpGet|HttpPost|HttpPut|HttpDelete|Route|ApiController|HubMethodName)\]|\bapp\.Map(?:Get|Post|Put|Delete|Group)\b"
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const/readonly (freeze_hits).
             "flux": re.compile(
                 r"\b(set|field)\s*[{;]|volatile|ref\s|out\s|^[ \t]*(?:this\.)?\w+[ \t]*=|(?:\w+\.)?(?:Add|Remove|Clear|Insert|Push|Pop|Update)\s*\("
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//[ \t]*(?:public|private|protected|internal|class|void|if|for|foreach|while|return|using)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"///|///\s*<summary>|///\s*<param|///\s*<returns>|///\s*<remarks>"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\[(?:Test|Fact|Theory|TestMethod|TestClass|SetUp|TearDown)\]|\b(?:Assert\.|Should\(\)|Mock\.|Substitute\.For)\b"
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(async|await|Task|ValueTask|Thread|Parallel|SemaphoreSlim|Mutex|Channel|IAsyncEnumerable|Interlocked)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(ControllerBase|IActionResult|Binding|ObservableCollection|DependencyProperty|ComponentBase|RenderFragment|MonoBehaviour)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"=>|delegate[ \t]*\{"),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(ConfigurationManager|Environment\.|public\s+static\s+(?:readonly[ \t]+)?[\w<>]+\s+[A-Z_0-9]+[ \t]*=|AsyncLocal)\b|\[ThreadStatic\]"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"^[ \t]*\[[A-Za-z_][^\]]*\]", re.M),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(r"<\s*[A-Z][^>]*>|\bwhere\s+\w+\s*:"),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:Select|Where|OrderBy|GroupBy|Aggregate|Any|All|ToList|ToArray|SelectMany)\(|^[ \t]*from\s+\w+\s+in\s+",
                 re.M,
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(Math\.|MathF\.|Vector[234]|Matrix4x4|Random|Complex|Tensor|TensorPrimitives)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Reflection and dynamic Emit.
             "heat_triggers": re.compile(
                 r"\b(System\.Reflection|DllImport|LibraryImport|MethodInfo|Activator|Marshal\.|Emit|ILGenerator)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"^[ \t]*(?:global[ \t]+)?using\s+(?:static[ \t]+)?[\w.]+;", re.M
             ),
@@ -1647,37 +1647,37 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:global[ \t\n]+)?using[ \t\n]+(?:static[ \t\n]+)?([\w.]+)[ \t\n]*;",
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(r"(?:<author>|Author:|Created by)\s*(.*)", re.I),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (The Blazor/Razor Horizon)
             "ssr_boundaries": re.compile(
                 r"@(?:page|rendermode|code|layout)|\[(?:Route|CascadingParameter)\]|\b(RenderFragment|ComponentBase|IViewComponentResult)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(event\s+[\w<>]+\s+\w+|EventHandler|\+=\s*|-=\s*|Invoke|Raise|MediatR|INotification|IRequest|Publish)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(IServiceCollection|AddTransient|AddScoped|AddSingleton|AddKeyed|\[Inject\]|FromServices|IServiceProvider)\b"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"^[ \t]*#(?:define|undef|if|elif|else|endif|region|endregion|pragma|warning|error)\b",
                 re.M,
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Native pointers and modern memory structures (Span/Memory).
             "pointers": re.compile(
                 r"\b(?:fixed|stackalloc|Unsafe\.AsPointer|IntPtr|UIntPtr|nint|nuint)\b|->"
@@ -1688,8 +1688,8 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:ILogger|_logger|Log|TelemetryClient|ActivitySource)\.(?:LogInformation|LogError|LogWarning|LogDebug|StartActivity|TrackEvent)\b|\[LoggerMessage"
             ),
@@ -1697,37 +1697,37 @@ LANGUAGE_DEFINITIONS = {
             "print_hits": re.compile(
                 r"\b(Console\.(?:Write|WriteLine|Error)|Debug\.(?:Write|WriteLine|Print))\b"
             ),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\bas\s+[A-Z]\w*|\(\s*(?:int|long|short|byte|char|float|double|decimal|bool|string|[A-Z][A-Za-z0-9_]*)\s*\)\s*[a-zA-Z_$]"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|abort|FailFast|Environment\.Exit)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(
                 r"\b(sleep|delay|Wait\(\)|Task\.Delay|Thread\.Sleep)\b"
             ),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation. Safely maps to C# bitwise operators without overlapping language-specific pipelines.
             "bitwise_hits": re.compile(r"<<|>>|\^|~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|Monitor|Semaphore|Interlocked|SpinLock|ReaderWriterLockSlim)\b",
                 re.I,
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(const|readonly|init|Immutable[A-Z]\w*)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(dispose|close|free|delete|GC\.Collect|GC\.SuppressFinalize)\b\s*\("
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal|file)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\b(on|addEventListener|subscribe|EventHandler)\b|\+="
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\[(?:Ignore|Skipped)\]|test\.skip\(|mock\(|stub\(|Substitute\.For"
             ),
@@ -1777,23 +1777,23 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Includes select/case and range-based loops. EXCLUDES panic (bailout_hits).
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|range|select|goto|break|continue|fallthrough)\b|&&|\|\|"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks for functions and methods. Bounded generics [^\]]* and params [^)]*.
             "args": re.compile(
                 r"func\s+(?:\([^)]*\)[ \t]+)?\w*(?:\[[^\]]*\])?\s*\([^)]*\)", re.M
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: const/var (freeze_hits) and Capitalization (encapsulation).
             "linear": re.compile(
                 r"\b(package|import|return|type|go|defer|chan|map|interface|struct)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ONLY executable logic blocks.
             # Bypasses the 'func' keyword, skips optional method receivers (e.g. (s *Server)),
             # and strictly captures the actual identifier name. Ignores anonymous functions.
@@ -1807,7 +1807,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*func(?:[ \t\n]+\([^)]+\))?[ \t\n]+([A-Za-z_$][\w_$]*)[ \t\n]*\(",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # =====================================================================
             # [ THE VERTICAL GENERICS SHIELD (GO) ]
             # Go 1.18+ introduces generic type parameters `[T any]` which can be
@@ -1821,92 +1821,92 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*type[ \t\n]+([a-zA-Z_]\w*)(?:[ \t\n]*\[[^\]]*\])?[ \t\n]+(?:struct|interface)",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"err\s*!=\s*nil|\b(errors\.(?:Is|As|New|Join)|sync\.(?:Once|WaitGroup)|context\.Context|recover\(\))\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Explicitly ignoring errors via blank identifier.
             "safety_neg": re.compile(
                 r'_\s*,\s*err[ \t]*=|_[ \t]*=\s*\w+|\bimport\s+(?:\.[ \t]+)?"'
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process-killing commands and direct syscalls. EXCLUDES TODO (debt) and fmt.Print (print_hits).
             "danger": re.compile(
                 r"\b(os\.Exit|syscall\.Kill|syscall\.RawSyscall|log\.Fatal(?:f|ln)?)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(os\.(?:Open|Create|ReadFile)|io\.(?:Reader|Writer|Copy)|net/http|database/sql|bufio\.|grpc\.|sqlx\.|pgx\.)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Implicit Public Reality: Capitalized top-level identifiers in Go are public.
             "api": re.compile(
                 r"^[ \t]*(?:func\s+(?:\([^)]*\)[ \t]+)?)?[A-Z]\w+|^[ \t]*(?:type|var|const)\s+[A-Z]\w+",
                 re.M,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. Reassignment and channel sends.
             "flux": re.compile(
                 r":=|(?<![=!<>])=(?![=])|<-|\bappend\(|\batomic\.(?:Add|Store|Swap)"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//[ \t]*(?:func|type|var|const|import|if|for|switch|select|return)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             # GoDoc standard: comments immediately preceding a declaration.
             "doc": re.compile(
                 r"^[ \t]*//\s+[A-Z][a-zA-Z0-9_]+\s+.*|^[ \t]*//\s*Package\s+", re.M
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(?:Test|Benchmark|Fuzz)[A-Z]\w*\b|t\.Run\b|\b(?:assert|require|mock)\.\w+\("
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(go\s+func|go\s+\w+|chan\s+|select[ \t]*\{|context\.(?:WithTimeout|WithCancel)|errgroup\.Group)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # Go is primarily backend; targets templates and web handlers.
             "ui_framework": re.compile(
                 r"\b(html/template|text/template|http\.HandleFunc|ServeHTTP|gin\.|echo\.|fiber\.)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(
                 r"func\s*\([^)]*\)\s*(?:\[[^\]]*\])?\s*(?:\([^)]*\))?[ \t]*\{"
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"^[ \t]*var\s+[a-zA-Z_]\w*\s*(?:[a-zA-Z_]\w*\s*)?=|os\.Getenv|os\.Environ",
                 re.M,
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             # Go lacks @decorators; uses Struct Tags and Build Tags.
             "decorators": re.compile(
                 r'`[^`]*?(?:json|xml|yaml|gorm|db|bson):"[^"]*"[^`]*?`|//go:build|//\s*\+build'
             ),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(
                 r"\[[^\]]*\b(?:any|comparable|~[a-zA-Z_]\w*)\b[^\]]*\]|\bany\b"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # Functional iteration helpers from the slices/maps packages.
             "comprehensions": re.compile(
                 r"\b(slices\.(?:Delete|Filter|Sort|Compact)|maps\.(?:Keys|Values))\b"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(math\.|math/cmplx\.|math/rand\.|crypto/rand\.|gonum\.)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Reflection, CGO, and Unsafe triggers.
             "heat_triggers": re.compile(
                 r'import\s+"C"|\b(reflect\.|unsafe\.|cgo|go:linkname)\b'
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r'^[ \t]*import\s*(?:\(|"[^"]+")', re.M),
             # ---> THE FIX: Strictly bounded to valid Go import path characters <---
             # Prevents raw HTTP string literals in test files from being hallucinated as packages.
@@ -1914,41 +1914,41 @@ LANGUAGE_DEFINITIONS = {
                 r'^[ \t]*(?:import\s+)?(?:\(\s*)?(?:[a-zA-Z0-9_.]+\s+)?["`]([a-zA-Z0-9_.\-/]+)["`]',
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"(?://|#|/\*)\s*(?:Author|Maintainer|Created by|Owner):?\s+([a-zA-Z0-9_ -]+)",
                 re.I,
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             # Gofmt mandates tabs; finding spaces at start signals structural friction.
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(html/template|ExecuteTemplate|http\.ResponseWriter|Render|gin\.Context)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(EventBus|Publish|Subscribe|kafka\.|rabbitmq\.|Emit|OnEvent)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(wire\.Build|wire\.NewSet|fx\.New|fx\.Provide|fx\.Invoke|dig\.Provide|do\.Provide)\b"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             # Go lacks a preprocessor; //go: directives act as compile-time hooks.
             "macros": re.compile(
                 r"^//go:(?:generate|build|noinline|nosplit|noescape|linkname)\b", re.M
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Explicit pointer addressing and dereferencing.
             "pointers": re.compile(
                 r"\b(?:uintptr|unsafe\.Pointer)\b|&\w+|\*(?:[A-Z]\w*|int\d*|uint\d*|float\d*|byte|rune|string|bool)\b"
@@ -1957,45 +1957,45 @@ LANGUAGE_DEFINITIONS = {
             "memory_alloc": re.compile(r"\b(make|new)\s*\(|sync\.Pool\b"),
             # 37. inline_asm
             "inline_asm": None,  # Go handles ASM in separate .s files.
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(slog|logrus|zap|zerolog|log)\.(?:Info|Warn|Error|Debug|Trace)(?:f|ln)?\b|\btrace\.Span\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"\b(fmt\.Print|fmt\.Println|fmt\.Printf|println|print)\b"
             ),
-            # 40. cast_hits (The "Trust Me" Tax)
+            # 40. cast_hits (Explicit Type Casting)
             # Type assertions and conversions.
             "cast_hits": re.compile(
                 r"\.\([a-zA-Z_]\w*\)|\b(?:int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|float32|float64|byte|rune|uintptr|string)\s*\("
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(panic|os\.Exit|log\.Fatal)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(time\.Sleep|time\.After|runtime\.Gosched)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|&\^"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(Mutex|RWMutex|Lock|Unlock|RLock|RUnlock|atomic\.|sync\.Map|sync\.Pool)\b"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\bconst\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(defer|Close|Unlock|RUnlock|Stop|Cleanup)\b\s*\("
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Unexported identifiers (lowercase) in Go are private/internal.
             "encapsulation": re.compile(
                 r"^[ \t]*(?:func\s+(?:\([^)]*\)[ \t]+)?)?[a-z]\w+|^[ \t]*(?:type|var|const)\s+[a-z]\w+",
                 re.M,
             ),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"<-chan\b|\.On\(|\.Subscribe\("),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\bt\.Skip(?:f|Now)?\(|mock\.|gomock\."),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Go Specifics) ---
             "serialization_parsing": re.compile(
@@ -2023,7 +2023,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".rs", ".rlib", ".rmeta"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": ["build.rs"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling extensions, package manifests, and lockfiles to resolve ambiguous files.
         "discriminators": [
             ".rs",
             "Cargo.toml",
@@ -2049,13 +2049,13 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # REQUIRED for Family 2: Recursive logic markers
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES panic!/throw (bailout_hits).
             "branch": re.compile(
                 r"\b(if|else|match|for|while|loop|break|continue)\b|\?|&&|\|\|"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks of functions and closures. Bounded to prevent ReDoS on complex types.
             "args": re.compile(
                 # =====================================================================
@@ -2069,13 +2069,13 @@ LANGUAGE_DEFINITIONS = {
                 r"\bfn[ \t\n]+[a-zA-Z_]\w*(?:[ \t\n]*<[^>]*>)?[ \t\n]*\((?:[^)(]|\([^)]*\))*\)|\|[^|]*\|",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (pub) and Immutability (const/static).
             "linear": re.compile(
                 r"\b(let|struct|enum|union|trait|impl|use|mod|type|yield|await|where|mut|ref|move|return)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
-            # ONLY executable logic blocks. EXCLUDES structs/traits to prevent Ghost Satellites.
+            # 4. func_start (Executable Logic Anchors)
+            # ONLY executable logic blocks. EXCLUDES structs/traits to prevent False Positives.
             "func_start": re.compile(
                 # =====================================================================
                 # [ THE VERTICAL MACRO & GENERICS SHIELD ]
@@ -2091,84 +2091,84 @@ LANGUAGE_DEFINITIONS = {
                 r"fn[ \t\n]+([a-zA-Z_]\w*)(?:[ \t\n]*<[^>]*>)?[ \t\n]*(?=\()",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:pub(?:\([^)]*\))?[ \t]+){0,3}(?:struct|enum|union|trait)\s+[a-zA-Z_]\w*",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(Option|Result|Mutex|RwLock|Arc|Rc|Box|RefCell|match|if\s+let|while\s+let|let\s+else|Ok|Err|Some|None)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Actively bypasses type safety (unwraps and forced expectations).
             "safety_neg": re.compile(
                 r"\b(unwrap|expect|unwrap_err|unwrap_unchecked)\b"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process-killing commands. EXCLUDES TODO (debt) and println! (print_hits).
             "danger": re.compile(
                 r"\b(panic!|todo!|unimplemented!|process::exit|abort)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(std::fs|File::|std::net|tokio::net|tokio::fs|reqwest|std::io|hyper::|sqlx::|diesel::|sea_orm::)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Code exposed to the outside world.
             "api": re.compile(r"\bpub(?:\([^)]*\))?\b"),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const (freeze_hits).
             "flux": re.compile(
                 r"\bmut\b|\.borrow_mut\(\)|\.write\(\)|Cell::|RefCell::|Atomic[A-Za-z0-9]+"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//[ \t]*(?:fn|let|struct|impl|mod|use|match|for|while|loop|if|return)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(r"///|//!|#!?\[doc\b[^\]]*\]"),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # Triggers indicating internal verification. Anchors standard testing macros and prevents prose collisions for BDD frameworks (rstest/spec).
             "test": re.compile(
                 r"#\[(?:tokio::)?test\]|#\[cfg\(test\)\]|\b(?:assert!|assert_eq!|assert_ne!)\b|\b(?:describe|it|test)\s*\("
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(async|await|std::thread|spawn|tokio::spawn|mpsc::|async_trait|Future|Stream|Send|Sync)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(yew::|dioxus::|iced::|html!|rsx!|view!|slint|leptos::|tauri::)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"\|[^|]*\|[ \t]*\{"),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(static\s+mut|lazy_static!|OnceCell|OnceLock|LazyLock|std::env::var)\b"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"^[ \t]*#!?\[[^\]]*\]", re.M),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(
                 r"<\s*[A-Z\'][^>]*>|\bwhere\b|\'[a-z]+\b|\bimpl\s+[A-Z]\w+"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|filter|fold|collect|flat_map|any|all|reduce|for_each|find|zip)\s*\("
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(ndarray::|nalgebra::|num::|f32|f64|std::simd)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Metaprogramming and memory transmutation.
             "heat_triggers": re.compile(
                 r"\b(macro_rules!|std::mem::transmute|Pin::|PhantomData|UnsafeCell)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r"\b(?:pub[ \t]+)?use\s+[^;]+;", re.M),
             "_dependency_capture": re.compile(
                 # =====================================================================
@@ -2195,38 +2195,38 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:pub[ \t]+)?use\s+([a-zA-Z0-9_:{},\s]+);",
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"//\s*(?:Author|Maintainer|Copyright):\s+(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(actix_web|axum|rocket|HttpResponse|Responder|IntoResponse|Html|askama::|tera::)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(tokio::sync::broadcast|std::sync::mpsc|crossbeam_channel|Sender|Receiver)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(axum::extract::State|actix_web::web::Data|Extension|Provider|shaku::)\b"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"\b(macro_rules!|proc_macro|proc_macro_derive|proc_macro_attribute)\b"
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Raw memory addressing. Shielded from standard multiplication by explicitly mapping to native Rust unsafe pointer primitives and dereferencing.
             "pointers": re.compile(r"\*const\b|\*mut\b|\bNonNull\b|\bstd::ptr\b|->"),
             # 36. memory_alloc (Manual Memory Management)
@@ -2237,41 +2237,41 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": re.compile(
                 r"\b(?:core::arch::asm!|std::arch::asm!|asm!|global_asm!)\b"
             ),
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:log::|tracing::)?(?:info!|warn!|error!|debug!|trace!|span!|instrument)\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(println!|print!|eprintln!|eprint!|dbg!)\b"),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             # Forceful type coercion bypassing the safety engine. Enforces strict mapping to the `as` keyword followed by standard primitive types.
             "cast_hits": re.compile(
                 r"\bas\s+(?:i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize|f32|f64|bool|char)\b"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(panic!|abort|process::exit|fatalError)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(
                 r"\b(std::thread::sleep|tokio::time::sleep|Duration::from)\b"
             ),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation. CRITICAL: Removed the pipe '|' (used for closures `|x| x+1` and patterns), ampersand '&' (used for references), and exclamation '!' (used for macros and logical NOT).
             "bitwise_hits": re.compile(r"<<|>>|\^"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(Mutex|RwLock|lock|barrier|atomic|Semaphore)\b", re.I
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(const|static|immutable|readonly)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(drop|free|delete|close|shutdown)\b\s*\("),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Visibility variant tracking.
             "encapsulation": re.compile(r"\bpub(?:\(crate\)|\(super\)|\(self\))?\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\.subscribe\(|\.on\(|addEventListener"),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"#\[ignore\]|test\.skip\(|mock\(|fake\("),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Rust Specifics) ---
             "serialization_parsing": re.compile(
@@ -2313,7 +2313,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files (like .h or .inc).
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files (like .h or .inc).
         "discriminators": [
             ".cpp",
             ".cc",
@@ -2333,7 +2333,7 @@ LANGUAGE_DEFINITIONS = {
         "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
-            # C++ uses '//' for standard line-level Literature (Ghost Mass).
+            # C++ uses '//' for standard line-level Literature (Commented / Non-Executable Text).
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
             "_inline_comment": re.compile(r"//"),
@@ -2341,18 +2341,18 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # 1. branch (The Forks in the Road)
+            # 1. branch (Control Flow / Branching)
             # Control flow jumps. Includes modern coroutine jumps (co_yield, co_await).
             # EXCLUDES exceptions (bailout_hits).
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|catch|break|continue|goto|co_yield|co_await)\b|&&|\|\||\?"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks of functions and lambdas. Bounded to prevent ReDoS on massive signatures.
             "args": re.compile(
                 r"\b[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?\s*\(\s*(?:const\s+|volatile\s+)?(?:int|char|void|float|double|bool|long|short|unsigned|signed|struct|class|std::|[A-Z]\w*)\b[^)]*\)|\[[^\]]*\]\s*\([^)]*\)"
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and const (freeze_hits).
             "linear": re.compile(
                 r"\b(namespace|using|class|struct|enum|union|template|typename|concept|requires|auto|return|void|inline|virtual|explicit|friend|module|export|import|typedef)\b"
@@ -2383,7 +2383,7 @@ LANGUAGE_DEFINITIONS = {
                 # 5. THE "NOT A FUNCTION" SHIELD
                 # Prevents control flow (if, while) and primitive types from being captured as function names.
                 r"(?!(?:if|for|while|switch|return|catch|else|elif|sizeof|new|delete|ARGS\d+|NOARGS|int|float|double|char|void|long|short|unsigned|signed|bool|INTEGER|LOGICAL|real|__attribute__|__declspec|__asm__)\b)"
-                # 6. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
+                # 6. THE IDENTIFIER CAPTURE (FUNCTION IDENTIFIER - GROUP 1)
                 # [IRON WALL]: Ensures the actual function/operator name isn't hijacked by a macro definition.
                 r"(?![ \t]*#)((?:[a-zA-Z_]\w*::)*[~a-zA-Z_]\w*|operator[ \t]*[^a-zA-Z_\s(]+|operator[ \t]+(?:new|delete)(?:\[\])?)"
                 # 7. THE PARAMETER BLOCK (Supports vertical gap)
@@ -2403,7 +2403,7 @@ LANGUAGE_DEFINITIONS = {
                 r"[ \t\n]*\{",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # =====================================================================
             # [ THE C++ ATTRIBUTE & TEMPLATE SHIELD ]
             # C++ entity declarations can be preceded by massive, multi-line templates
@@ -2418,87 +2418,87 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:export[ \t\n]+)?(?:template[ \t\n]*<[^>]*>[ \t\n]*)?(?:class|struct|union|enum[ \t\n]+class|enum[ \t\n]+struct)[ \t\n]+(?:\[\[[^\]]*\]\][ \t\n]*){0,5}([a-zA-Z_]\w*)",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(try|catch|finally|std::unique_ptr|std::shared_ptr|std::weak_ptr|override|final|noexcept|static_assert|assert|std::optional|std::expected|std::span|std::variant|std::lock_guard|std::atomic)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Swallowing errors or bypassing types. EXCLUDES standard casting (Phase 5).
             "safety_neg": re.compile(
                 r"\b(std::any|void\s*\*)\b|catch\s*\(\s*\.\.\.\s*\)"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process killers and low-level blits. EXCLUDES prints (Phase 5).
             "danger": re.compile(
                 r"\b(system|memcpy|memset|abort|exit|std::terminate|longjmp|setjmp)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(std::fstream|std::ifstream|std::ofstream|std::filesystem|fopen|fclose|fread|fwrite|socket|recv|send|asio::|curl_easy_perform|std::cin)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Code exposed to the world. Explicit visibility and module exports.
             "api": re.compile(
                 r'\b(public:|export\s+module|export\s+import|export\s+class|__declspec\(dllexport\)|__attribute__\(\(visibility\("default"\)\)\))\b|^[ \t]*export\b(?!\s*module)',
                 re.M,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. Includes moves and increments.
             "flux": re.compile(
                 r"\b(mutable|std::move|std::exchange|std::swap|std::atomic)\b|(?<![=!<>])=(?![=])|&(?!\s*const)|\+\+|--|(?:\+=|-=|\*=|/=|%=|<<=|>>=|&=|\|=|\^=)"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Commented-out execution logic indicating dead features. MUST enforce that the structural keyword immediately follows the comment token.
             "graveyard": re.compile(
                 r"//[ \t]*(?:if|for|while|auto|class|struct|std::cout|std::print|printf|void|int|return)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"///|/\*\*|@param|@return|@brief|@details|@tparam|\\param|\\return|\\brief|\\details|\\tparam"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # Triggers indicating internal verification. Anchors explicit GTest/Catch2 macros and prevents prose collisions.
             "test": re.compile(
                 r"\b(?:TEST|TEST_F|TEST_CASE|SECTION|REQUIRE|CHECK|EXPECT_[A-Z_]+|ASSERT_[A-Z_]+|Catch::|GTest)\b"
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(std::thread|std::jthread|std::mutex|std::future|std::promise|std::async|std::latch|std::barrier|std::condition_variable|std::semaphore|co_await|std::coroutine_handle)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(Q_OBJECT|slots:|signals:|QWidget|wxFrame|ImGui::|Fl_Window)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(
                 r"\[[^\]]*\]\s*(?:<[^>]*>\s*)?(?:\([^)]*\))?\s*(?:(?:mutable|constexpr|consteval|noexcept)\s+)*(?:mutable|constexpr|consteval|noexcept)?\s*(?:->\s*[\w:<>_]+)?[ \t]*\{"
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(extern|static(?!\s*assert)|thread_local|inline\s+constexpr)\b|^[ \t]*(?:static|extern)\s+[\w:<>_]+\s+[a-zA-Z_]\w*[ \t]*=",
                 re.M,
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"\[\[\s*[a-zA-Z_:][^\]]*\]\]"),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(r"\btemplate\s*<[^>]*>|\b(?:concept|requires)\b"),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # Range pipelines acting as functional mappers.
             "comprehensions": re.compile(
                 r"\b(std::ranges::|std::views::|views::|std::transform|std::accumulate|std::reduce|std::for_each|std::filter)\b|\|\s*std::views::"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(std::cmath|std::complex|std::linalg|std::mdspan|Eigen::|blaze::|std::simd|__m128|__m256|__m512|std::numbers::)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # SFINAE, compile-time reflection, and macros.
             "heat_triggers": re.compile(
                 r"\b(if\s+constexpr|if\s+consteval|std::enable_if|std::is_same|std::any_cast|std::bit_cast|decltype|sizeof\.\.\.)\b|#define\s+[a-zA-Z_]"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r'^[ \t]*(?:#include\s*[<"][^>"]+[>"]|import\s+[a-zA-Z_][\w.:]*\s*;|export\s+import\s+[a-zA-Z_][\w.:]*\s*;)',
                 re.M,
@@ -2507,39 +2507,39 @@ LANGUAGE_DEFINITIONS = {
                 r'^[ \t]*(?:#\s*include\s*[<"]([^>"]+)[>"]|(?:export\s+)?import\s+([a-zA-Z_][\w.:]*)\s*;)',
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"(?:@author|\\author|Author:|Created by:|Copyright)\s+(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(FCGI_Accept|render_template|Inja::|ctemplate::)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(emit|signal|slot|notify|publish|subscribe|boost::signals2)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(boost\.di|fruit::|[I]nject|IServiceCollection)\b"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"^[ \t]*#(?:define|undef|if|elif|else|endif|pragma|warning|error)\b",
                 re.M,
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Raw memory addressing and pointer manipulation. CRITICAL: Uses lookbehinds `(?<=[=\s,(])` to strictly capture pointer dereferences `*ptr` and memory addresses `&var` without flagging standard multiplication `a * b` or logical AND `a & b`.
             "pointers": re.compile(
                 r"->|\b(?:uintptr_t|intptr_t|ptrdiff_t|size_t)\b|(?<=[=\s,(])&\w+|(?<=[=\s,(])\*(?:\s*const\s*)?\w+"
@@ -2552,52 +2552,52 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": re.compile(
                 r"\b(?:__asm__|asm|__asm)\b(?:\s+(?:volatile|__volatile__))?\s*\(|\b(?:__asm__|asm|__asm)\b[ \t]*\{"
             ),
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(log|logger|LOGGER|spdlog|glog|syslog)\.(?:info|error|warn|debug|trace)\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"\b(std::cout|std::cerr|std::clog|printf|fprintf|vprintf|puts|putchar|std::print|std::println)\b"
             ),
-            # 40. cast_hits (The "Trust Me" Tax)
+            # 40. cast_hits (Explicit Type Casting)
             # Forceful type coercion bypassing the safety engine. Captures modern explicitly named casts and strict C-style groupings.
             "cast_hits": re.compile(
                 r"\b(?:static_cast|dynamic_cast|reinterpret_cast|const_cast|bit_cast)\b|<\s*[A-Za-z_]\w*\s*>|\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed)\s*\)\s*[a-zA-Z_]"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(
                 r"\b(throw|abort|exit|_Exit|quick_exit|std::terminate|longjmp)\b"
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             # Admission of race conditions or lazy polling.
             "halt_hits": re.compile(
                 r"\b(sleep|delay|usleep|nanosleep|std::this_thread::sleep_for)\b"
             ),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation. CRITICAL: Removed bare `<<` and `>>` to prevent catastrophic false positives on `std::cout` and `std::cin` streams. Explicit bitwise assignments (`<<=`, `&=`) are retained as they are unambiguous.
             "bitwise_hits": re.compile(r"\^|(?<![=!])~|<<=|>>=|&=|\|=|\^="),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|std::lock_guard|std::scoped_lock|std::unique_lock|mtx_lock)\b",
                 re.I,
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(
                 r"\b(const|constexpr|consteval|constinit|final|readonly|Immutable)\b"
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(delete|free|close|fclose|dispose|shutdown|std::destroy|reset)\b\s*\("
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private:|protected:|internal:)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\b(on|addEventListener|subscribe|connect|handler|callback)\b"
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\b(GTEST_SKIP|test\.skip|it\.skip|mock\(|fake\()\b"
             ),
@@ -2638,7 +2638,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless build/config scripts and tooling configs that are secretly pure code.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files (like .h or .inc).
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files (like .h or .inc).
         "discriminators": [
             ".c",
             "Makefile",
@@ -2656,7 +2656,7 @@ LANGUAGE_DEFINITIONS = {
         "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
-            # Modern C (C99+) uses '//' for standard line-level Ghost Mass.
+            # Modern C (C99+) uses '//' for standard line-level Commented / Non-Executable Text.
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
             "_inline_comment": re.compile(r"//"),
@@ -2664,13 +2664,13 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and jumps. EXCLUDES exit/abort (bailout_hits).
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|break|continue|goto)\b|&&|\|\||\?"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks. Bounded negation [^)]* to prevent ReDoS on massive param lists.
             "args": re.compile(
                 # =====================================================================
@@ -2684,7 +2684,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?!(?:if|for|while|switch|return)\b)\b[a-zA-Z_]\w*[ \t\n*]*\(\s*(?:const\s+|volatile\s+)?(?:int|char|void|float|double|long|short|unsigned|signed|struct|enum)\b(?:[^)(]|\([^)]*\))*\)",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and const (freeze_hits).
             "linear": re.compile(
                 r"\b(struct|union|enum|typedef|return|void|restrict|auto|bool|true|false|_BitInt|alignas|alignof)\b"
@@ -2731,29 +2731,29 @@ LANGUAGE_DEFINITIONS = {
                 r"\s*(?:\{|BEGIN\b)",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # C uses structs/unions/enums as the primary entity entities.
             "class_start": re.compile(
                 r"^[ \t]*(?:typedef[ \t]+)?(?:struct|union|enum)\s+[a-zA-Z_]\w*", re.M
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(assert|static_assert|_Static_assert|size_t|snprintf|strncat|strncpy|calloc|nullptr|unreachable|ckd_add|ckd_sub|ckd_mul)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Dangerous legacy functions and raw void manipulation.
             "safety_neg": re.compile(
                 r"\b(strcpy|strcat|sprintf|gets|alloca)\b|\([a-zA-Z_]\w*\s*\*\)\s*[a-zA-Z_]\w*"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process killers and context switches. EXCLUDES prints (Phase 5).
             "danger": re.compile(r"\b(system|popen|execl|execv|fork|longjmp|setjmp)\b"),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(fopen|fclose|fread|fwrite|fscanf|sscanf|socket|recv|send|open|read|write|close|stat|fseek|remove|rename)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Linker-visible global exports.
             "api": re.compile(
                 # =====================================================================
@@ -2769,35 +2769,35 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*[a-zA-Z_]\w*(?:\s*[*&]+\s*|\s+)[a-zA-Z_]\w*\s*\([^)]*\)\s*;",
                 re.M,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const/constexpr (freeze_hits).
             "flux": re.compile(
                 r"(?<![=!<>])=(?![=])|\*(?!\s*const)\w+[ \t]*=|(?:\+\+|--)"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"(?://|/\*)[ \t]*(?:if|for|while|struct|union|enum|void|int|return)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"///|/\*\*|@param|@return|@brief|@details|\\param|\\return|\\brief|\\details"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(?:TEST|TEST_F|TEST_CASE|CU_ASSERT|RUN_TEST|EXPECT_[A-Z_]+|ASSERT_[A-Z_]+)\b|\bassert\s*\("
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(thrd_create|thrd_join|mtx_lock|pthread_create|pthread_mutex_lock|atomic_int|_Atomic|memory_order_[a-z]+|thread_local)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(GtkWidget|CreateWindow|MessageBox|XOpenDisplay|gtk_window_new|Fl_Window|initscr|wprintw)\b"
             ),
             # 17. closures
             "closures": None,  # Strict C23 lacks native closures (blocks are non-standard).
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 # =====================================================================
                 # [ROADMAP: AMBIGUITY OVERLAP AVOIDANCE]
@@ -2807,61 +2807,61 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:static\s+|extern[ \t]+)?[a-zA-Z_]\w*(?:\s*[*&]+\s*|\s+)[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*=(?![ \t]*==)",
                 re.M,
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"\[\[\s*[a-zA-Z_:][^\]]*\s*\]\]"),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(r"\b_Generic\s*\([^)]*\)"),
             # 21. comprehensions
             "comprehensions": None,
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(math\.h|tgmath\.h|complex\.h|cblas_|dgemm|sin|cos|tan|exp|log|sqrt|complex|I|_Float\d+|__m\d+)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Macros with args and unstructured jumps.
             "heat_triggers": re.compile(
                 r"^#\s*define\s+[a-zA-Z_]\w*\([^)]*\)|\bgoto\b", re.M
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r'^[ \t]*#[ \t]*(?:include|embed)\s*[<"][^>"]+[>"]', re.M
             ),
             "_dependency_capture": re.compile(
                 r'^[ \t]*#[ \t\n]*(?:include|embed)[ \t\n]*[<"]([^>"]+)[>"]', re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"(?:@author|\\author|Author:|Created by:|Copyright)\s+(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(FCGI_Accept|khttp_parse|MHD_start_daemon|facil\.io)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(epoll_wait|epoll_ctl|kqueue|kevent|select|poll|libev|libuv)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(plugin_register|vtable|struct\s+[a-zA-Z_]\w*_ops)\b"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"^[ \t]*#[ \t]*(?:define|undef|if|elif|else|endif|pragma|warning|error)\b",
                 re.M,
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": re.compile(
                 r"->|\b(?:uintptr_t|intptr_t|ptrdiff_t|size_t)\b|(?<=[=\s,(])&\w+|(?<=[=\s,(])\*(?:\s*const\s*)?\w+"
             ),
@@ -2873,16 +2873,16 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": re.compile(
                 r"\b(?:__asm__|asm|__asm)\b(?:\s+(?:volatile|__volatile__))?\s*\(|\b(?:__asm__|asm|__asm)\b[ \t]*\{"
             ),
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:syslog|openlog|log_info|log_error|log_warn|log_debug|vsyslog)\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"\b(printf|fprintf|vprintf|puts|putchar|perror)\b"
             ),
-            # 40. cast_hits (The "Trust Me" Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 # =====================================================================
                 # [ROADMAP: NESTED OPTIONAL SPACES (ReDoS TRAP)]
@@ -2894,32 +2894,32 @@ LANGUAGE_DEFINITIONS = {
                 # =====================================================================
                 r"\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed|void)\s*[*]*\s*\)\s*[a-zA-Z_]"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(
                 r"\b(abort|exit|_Exit|quick_exit|return\s+-1)\b"
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(sleep|usleep|nanosleep|thrd_sleep)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|(?<![=!])~|<<=|>>=|&=|\|=|\^="),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mtx_lock|mtx_unlock|pthread_mutex_lock|atomic_flag_test_and_set|atomic_store)\b"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(const|constexpr|alignas|restrict)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(free|fclose|close|munmap|destroy|shutdown)\b\s*\("
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Physical Reality: Static functions/variables are internal/private to the translation unit.
             "encapsulation": re.compile(r"^[ \t]*static\b", re.M),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\b(on_event|handler|callback|signal\(|sigaction\()"
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(IGNORE_TEST|test\.skip|mock\(|fake\()\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (C Specifics) ---
             "serialization_parsing": re.compile(
@@ -2962,7 +2962,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Extensionless framework CLI entry points that are secretly pure PHP code.
         "exact_matches": ["artisan", "composer.phar", "drush", "wp-cli", "phpunit"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files (like .inc).
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, package manifests, and lockfiles to resolve ambiguous files (like .inc).
         "discriminators": [
             ".php",
             "composer.json",
@@ -2982,26 +2982,26 @@ LANGUAGE_DEFINITIONS = {
         "lexical_family": "embedded_syntax",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
-            # PHP supports both '//' and '#' for line-level Ghost Mass.
+            # PHP supports both '//' and '#' for line-level Commented / Non-Executable Text.
             "_line_anchor": re.compile(r"//|#"),
             # Inline comments follow the same dual-token logic.
             "_inline_comment": re.compile(r"//|#"),
             # Block comment start: /* '_block_start': re.compile(r'/\*'),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Control flow. Includes modern match expression. EXCLUDES throw (bailout_hits).
             "branch": re.compile(
                 r"\b(if|else|elseif|switch|case|default|foreach|for|while|do|try|catch|finally|break|continue|match|goto)\b|&&|\|\||\?\?|\?"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Signatures for functions and arrow functions. Bounded to prevent ReDoS.
             "args": re.compile(
                 r"\b(?:function|fn)\s*(?:&\s*)?[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*\s*\([^)]*\)|\bfunction\s*\([^)]*\)|fn\s*\([^)]*\)[ \t]*=>",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and const/readonly (freeze_hits).
             "linear": re.compile(
                 r"\b(namespace|use|class|interface|trait|enum|function|return|yield|declare|require|require_once|include|include_once|as|implements|extends|clone|new)\b"
@@ -3016,85 +3016,85 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:#\[[^\]]*\][ \t]*){0,5}(?:(?:abstract|final|readonly)[ \t]+){0,3}(?:class|interface|trait|enum)\s+([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)(?:\s+(?:extends|implements)\s+([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\\]*))?",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(try|catch|finally|declare\s*\(\s*strict_types[ \t]*=\s*1\s*\)|readonly|Throwable|Exception|assert|isset|empty|is_null|instanceof)\b|\?\?|\?->|#\[Override\]"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Error suppression, dangerous eval, and loose equality.
             "safety_neg": re.compile(
                 r"@(?:[a-zA-Z_\x80-\xff])|\b(unserialize|extract|parse_str|phpinfo)\b|error_reporting\s*\(\s*0\s*\)|==(?!=)|!=(?!=)"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Shell execution and process killers. EXCLUDES prints (Phase 5).
             "danger": re.compile(
                 r"\b(exec|shell_exec|system|passthru|proc_open|popen)\b|`[^`]+`"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(fopen|fread|fwrite|file_get_contents|file_put_contents|PDO|mysqli|curl_exec|socket|header|setcookie)\b|\$_(?:GET|POST|FILES|REQUEST|COOKIE)"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Exposed surface. Explicit public markers + attribute routes.
             "api": re.compile(
                 r"\b(public)\b|#\[(?:ApiResource|Route|Get|Post|Put|Delete|Patch)[^\]]*\]"
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. Variable reassignments and array mutators.
             "flux": re.compile(
                 r"\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*\s*(?:[-+*./%&|])?=|&\$|\bglobal\s+\$|(?:\w+)?(?:->|::)[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*[ \t]*=|array_(?:push|pop|shift|unshift|splice)\b|(?:\+\+|--)"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//\s*[;{}]|/\*\s*(?:function|class|namespace|use|if|foreach)\s|#\s*\$|//\s*(?:echo|print|\$|return|var_dump)"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"/\*\*|@param|@return|@throws|@var|@deprecated|@property|@method"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(PHPUnit|TestCase|assertSame|assertEquals|assertTrue|assertFalse|mock|spy|expects|toBe|test|it)\b|#\[Test\]"
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(Fiber|yield|Swoole|React\\|Amp\\|Coroutine|go\(|await|suspend|resume|pcntl_fork)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r'\b(view\s*\(|render\s*\(|renderView|extends\s+Controller|Blade::|Twig\\Environment)\b|@(?:if|foreach|yield|section|extends)\b|<\?=|echo\s+[\'"]<|\{\{[^}]*\}\}|\{%\s*[^%]*\s*%\}'
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(
                 r"\b(?:function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?\{|fn\s*\([^)]*\)[ \t]*=>)"
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(\$_SERVER|\$_SESSION|\$_ENV|\$GLOBALS)\b|\bglobal\s+\$"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"#\[\s*[a-zA-Z0-9_:\\]+[^\]]*\]", re.M),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             # Simulated/Docblock generics.
             "generics": re.compile(
                 r"@(?:template|implements|extends|use)\s+[a-zA-Z0-9_\\]+(?:<[^>]*>)?|\b(?:array|iterable|Collection)<[^>]*>"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\b(array_map|array_filter|array_reduce|array_walk|array_column|array_find|array_any|array_all)\b"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(bcadd|bcsub|bcmul|bcdiv|gmp_add|gmp_mul|abs|cos|sin|tan|sqrt|log|exp|pow)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Magic methods, reflection, and variable variables.
             "heat_triggers": re.compile(
                 r"\b(__(?:get|set|call|callStatic|invoke|destruct|clone)|Reflection(?:Class|Method|Property)|call_user_func(?:_array)?)\b|\$\$[a-zA-Z_\x80-\xff]"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"\b(?:use\s+(?:function|const[ \t]+)?[\w\\]+|require|include|require_once|include_once)\b",
                 re.M,
@@ -3126,82 +3126,82 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:use[ \t\n]+(?:function[ \t\n]+|const[ \t\n]+)?([\w\\]+)|(?:require|require_once|include|include_once)[ \t\n]*\(?[ \t\n]*['\"]([^'\"]+)['\"])",
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"@(?:author|copyright)\s+(.*)|(?:Created by|Maintainer):?\s+(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(Response|JsonResponse|HtmlResponse|RedirectResponse|Symfony\\Component\\HttpFoundation|Illuminate\\Http\\Response)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(EventDispatcher|dispatchEvent|Listener|dispatch|broadcast|notify|Event::|listen)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(ContainerInterface|Container|getContainer|inject|bind|singleton|app\(|make\()\b|#\[(?:Inject|Autowire)[^\]]*\]"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(r"\b(?:Macroable|macro\s*\(|mixin\s*\()\b"),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": re.compile(r"\b(FFI::cast|FFI::addr|FFI::scope|FFI::new)\b"),
-            # 36. memory_alloc (The Yin to cleanup)
+            # 36. memory_alloc 
             "memory_alloc": re.compile(
                 r"\bnew\s+[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*"
             ),
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:Log::|LoggerInterface|logger\(|Monolog\\|error_log|Psr\\Log)\b.*?(?:info|error|warning|debug|trace|notice|critical|alert|emergency)\b",
                 re.I,
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"\b(echo|print|var_dump|print_r|printf|vprintf|var_export|die|exit|dd|dump)\b"
             ),
-            # 40. cast_hits (The "Trust Me" Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\((?:int|integer|bool|boolean|float|double|string|array|object|unset)\)\s*|\bsettype\s*\("
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|die|exit|abort)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(
                 r"\b(sleep|usleep|time_nanosleep|time_sleep_until)\b"
             ),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|flock|sem_acquire)\b", re.I
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(const|readonly|final)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(unset|fclose|mysql_close|mysqli_close|PDO::null|dispose|cleanup)\b\s*\("
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\.on\(|addEventListener|subscribe|@KafkaListener|@RabbitListener"
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\b(markTestSkipped|test\.skip|it\.skip|mock\(|fake\()\b"
             ),
@@ -3231,7 +3231,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".ps1", ".psm1", ".psd1", ".ps1xml", ".psc1", ".pssc", ".cdxml"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: PowerShell rarely uses extensionless execution scripts; its conventions demand extensions.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions and analyzer settings to lock in context.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions and analyzer settings to lock in context.
         "discriminators": [
             ".ps1",
             ".psm1",
@@ -3243,7 +3243,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 4 (Hybrid Hash)
         # Rationale: PowerShell uses '#' for single-line comments but relies on
         # a unique '<# #>' syntax for multi-line block comments, requiring hybrid parsing logic.
-        "lexical_family": "hybrid_hash",
+        "lexical_family": "embedded_syntax",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # PowerShell uses '#' for standard line-level literature.
@@ -3254,58 +3254,58 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"<#"),
             # Block comment end: #>
             "_block_end": re.compile(r"#>"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # branch: decisions that split flow. Includes ternary operators (?) and null-coalescing (??).
             "branch": re.compile(
                 r"\b(if|else|elseif|switch|for|foreach|while|do|until|try|catch|finally|throw|trap|break|continue|return)\b|-and|-or|-not|-xor|\?|\?\?",
                 re.I,
             ),
-            # args: Coupling Mass. Captures the param block mass of functions and script files.
+            # args: Parameters / Coupling. Captures the param block mass of functions and script files.
             "args": re.compile(
                 r"\bparam\s*\([^)]*\)|\bfunction\s+[a-zA-Z0-9_-]+\s*\([^)]*\)", re.I
             ),
-            # linear: Smooth Path. Structural boundaries defining scope (process, begin, end).
+            # linear: Sequential I/O & Network Boundaries. Structural boundaries defining scope (process, begin, end).
             # EXCLUDES access modifiers (hidden, static) to prevent Geometry Inflation.
             "linear": re.compile(
                 r"\b(function|filter|workflow|configuration|class|enum|process|begin|end|clean|return|exit|using|namespace)\b",
                 re.I,
             ),
-            # func_start: Satellite Spawner. Anchors executable logic blocks.
-            # EXCLUDES class/enum to fix Ghost Satellites.
+            # func_start: Executable Logic Anchors. Anchors executable logic blocks.
+            # EXCLUDES class/enum to fix False Positives.
             "func_start": re.compile(
                 r"^[ \t]*(?:function|filter|workflow)\s+([a-zA-Z0-9_-]+)|^[ \t]*\[[^\]]+\]\s+([a-zA-Z_]\w*)(?=\s*\()",
                 re.I | re.M,
             ),
-            # class_start: Entity Census. Defines OO boundaries (Classes and Enums).
+            # class_start: Object / Entity Declarations. Defines OO boundaries (Classes and Enums).
             "class_start": re.compile(
                 r"^[ \t]*(?:class|enum)\s+[a-zA-Z_]\w*", re.I | re.M
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # safety: Cyan Fortification. Strict mode, validation attributes, and null-conditional access (?.).
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # safety: Defensive Programming. Strict mode, validation attributes, and null-conditional access (?.).
             "safety": re.compile(
                 r"\b(try|catch|finally|trap|Set-StrictMode|ValidateNotNull|ValidateSet|ValidateRange|ValidatePattern)\b|-ErrorAction\s+Stop|\$\?|\?\.",
                 re.I,
             ),
-            # safety_neg: Fractures. Actively bypassing errors or type checks (Out-Null, SilentlyContinue).
+            # safety_neg: Safety Bypasses. Actively bypassing errors or type checks (Out-Null, SilentlyContinue).
             "safety_neg": re.compile(
                 r"-ErrorAction\s+SilentlyContinue|-WarningAction\s+SilentlyContinue|Out-Null|\[void\]|ExecutionPolicy\s+Bypass|\bIgnore\b",
                 re.I,
             ),
-            # danger: Heavy Load. Dynamic code execution and process terminators.
+            # danger: High-Risk Execution. Dynamic code execution and process terminators.
             "danger": re.compile(
                 r"\b(Invoke-Expression|iex|Stop-Process|kill|Exit)\b", re.I
             ),
-            # io: Boundaries. Disk, Network, and URL fetching (Includes CERN/TBL legacy emulation triggers).
+            # io: I/O & Network Boundaries. Disk, Network, and URL fetching (Includes CERN/TBL legacy emulation triggers).
             "io": re.compile(
                 r"\b(Get-Content|Set-Content|Out-File|Invoke-WebRequest|iwr|Invoke-RestMethod|irm|TcpClient|HttpListener|HTLoad|HTGet|ENQUIRE)\b",
                 re.I,
             ),
-            # api: Event Horizon. Exposed surface area (Module exports and non-hidden functions).
+            # api: Public Surface Area. Exposed surface area (Module exports and non-hidden functions).
             "api": re.compile(
                 r"\b(Export-ModuleMember|New-Alias|CmdletBinding)\b|^[ \t]*(?!hidden\s+)[a-zA-Z_]\w*\s*\(",
                 re.I | re.M,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. Captures assignments, scoped variables, array indexing, and anchored increments.
             "flux": re.compile(
                 # PATH A: EXPLICIT CMDLET MUTATION
@@ -3325,63 +3325,63 @@ LANGUAGE_DEFINITIONS = {
                 r"\$(?:[a-zA-Z]+:)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*|\[[^\]\n]+\]){0,4}[ \t]*(?:\+\+|--)",
                 re.I,
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Commented-out execution logic indicating dead features. Supports both `//` and `#` style comments.
             "graveyard": re.compile(
                 r"(?:#|<#)[ \t]*(?:function|class|if|foreach|while|return)\b", re.I
             ),
-            # doc: Intent. Get-Help comment-based documentation.
+            # doc: Structured Documentation. Get-Help comment-based documentation.
             "doc": re.compile(
                 r"\.(?:SYNOPSIS|DESCRIPTION|PARAMETER|EXAMPLE|NOTES|LINK|INPUTS|OUTPUTS|ROLE)\b",
                 re.I,
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # Triggers indicating internal verification. MUST strictly anchor 'it', 'test', and 'toBe' with opening parentheses to prevent triggering on prose inside Pest/PHPUnit tests.
             "test": re.compile(
                 r'\b(?:Mock|Assert-MockCalled|BeforeAll|AfterAll|BeforeEach|AfterEach|Should)\b|\b(?:Describe|Context|It)\s+[\'"]',
                 re.I,
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # concurrency: Temporal Static. Jobs, Runspaces, and PS7 Parallel pipelines.
             "concurrency": re.compile(
                 r"\b(Start-Job|Wait-Job|Receive-Job|Start-ThreadJob|-Parallel|RunspaceFactory|PowerShell\.Create)\b",
                 re.I,
             ),
-            # ui_framework: View Layer. WinForms/WPF bridges (Includes TBL WWW rendering emulation triggers).
+            # ui_framework: UI / View Components. WinForms/WPF bridges (Includes TBL WWW rendering emulation triggers).
             "ui_framework": re.compile(
                 r"\[System\.Windows\.(?:Forms|Controls|Markup)\]|New-Object\s+System\.Windows\.|Out-GridView|HtmlDocument|WebBrowser|SGML|WorldWideWeb",
                 re.I,
             ),
-            # closures: Functional Depth. ScriptBlocks (The foundation of PS closures).
+            # closures: Closures / Anonymous Functions. ScriptBlocks (The foundation of PS closures).
             "closures": re.compile(r"\{\s*(?:param\s*\([^)]*\))?[^}]*\}", re.I),
-            # globals: Shared Void. Environment and global/script scope variables.
+            # globals: Global / Shared State. Environment and global/script scope variables.
             "globals": re.compile(
                 r"\$(?:global|env|script):[a-zA-Z_]\w*|\b(?:ErrorActionPreference|WarningPreference|ConfirmPreference)\b",
                 re.I,
             ),
-            # decorators: Metadata Hooks. Cmdlet and Parameter attributes.
+            # decorators: Decorators / Annotations. Cmdlet and Parameter attributes.
             "decorators": re.compile(
                 r"\[(?:CmdletBinding|Parameter|Alias|OutputType|AllowNull|AllowEmptyString)\s*\([^)]*\)\]",
                 re.I,
             ),
-            # generics: Type Abstractions. .NET generic type invocations.
+            # generics: Generics / Type Parameters. .NET generic type invocations.
             "generics": re.compile(r"\[[a-zA-Z_.]+(?:`\d+)?\[[^\]]*\]\]", re.I),
-            # comprehensions: High-Density Loops. Pipeline filtering and projection.
+            # comprehensions: Iterators / Comprehensions. Pipeline filtering and projection.
             "comprehensions": re.compile(
                 r"\|\s*(?:Where-Object|\?|Select-Object|select|ForEach-Object|%)[ \t]*\{",
                 re.I,
             ),
-            # scientific: Compute Core. .NET Math primitives.
+            # scientific: Numerical / Compute Libraries. .NET Math primitives.
             "scientific": re.compile(
                 r"\[Math\]::(?:Abs|Acos|Asin|Atan|Ceiling|Cos|Exp|Floor|Log|Max|Min|Pow|Round|Sin|Sqrt|Tan|PI)\b",
                 re.I,
             ),
-            # heat_triggers: Thermal Radiation. Reflection and on-the-fly C# compilation via Add-Type.
+            # heat_triggers: Metaprogramming & Reflection. Reflection and on-the-fly C# compilation via Add-Type.
             "heat_triggers": re.compile(
                 r"\b(Add-Type|System\.Reflection|System\.Management\.Automation\.Language|Invoke-Expression|iex)\b|&\s*\$[a-zA-Z_]\w*",
                 re.I,
             ),
-            # import: Gravity Links. Module and assembly loading.
+            # import: Dependency Inclusions. Module and assembly loading.
             "import": re.compile(
                 r"\b(Import-Module|using\s+module|using\s+namespace|using\s+assembly|\.\s+[\w.\/\\]+\.ps1)\b",
                 re.I,
@@ -3396,11 +3396,11 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*#\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)|\.AUTHOR\s+([^\n]+)",
                 re.I | re.M,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             "planned_debt": GLOBAL_PLANNED_DEBT,
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             # Structural formatting violating norms. Handled natively by the GitGalaxy Signal Processor.
             "civil_war": None,
             "ssr_boundaries": re.compile(
@@ -3416,7 +3416,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             "macros": None,  # PowerShell lacks a preprocessor
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # PHP natively lacks pointers, but FFI (Foreign Function Interface) memory bounds are safely captured.
             "pointers": re.compile(
                 r"\[(?:IntPtr|UIntPtr)\]|\[ref\]\s*\$[a-zA-Z_]\w*", re.I
@@ -3426,15 +3426,15 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # telemetry: Professional observers. Structured pipeline logging.
             "telemetry": re.compile(
                 r"\b(Write-Verbose|Write-Debug|Write-Information|Write-Warning|Start-Transcript|Write-Log)\b",
                 re.I,
             ),
-            # print_hits: Amateur space debris. Raw terminal pollution.
+            # print_hits: Standard output. Raw terminal pollution.
             "print_hits": re.compile(r"\b(Write-Host|echo)\b", re.I),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             # Forceful type coercion. PHP has a strict, built-in casting syntax which prevents false positives naturally.
             "cast_hits": re.compile(
                 r"\[(?:int|long|string|char|byte|bool|double|float|decimal|array|hashtable)\]\s*[\$\(]",
@@ -3444,7 +3444,7 @@ LANGUAGE_DEFINITIONS = {
             "bailout_hits": re.compile(r"\b(throw|Exit)\b|-ErrorAction\s+Stop", re.I),
             # halt_hits: Temporal Duct Tape. Forcing threads to sleep.
             "halt_hits": re.compile(r"\b(Start-Sleep|sleep)\b", re.I),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation. CRITICAL: Removed the pipe '|' (PHP 8 Union Types), ampersand '&' (Pass-by-reference `&$var`), and used lookarounds for `<<` to prevent triggering on Heredocs (`<<<EOF`).
             "bitwise_hits": re.compile(r"-(?:band|bor|bxor|bnot|shl|shr)\b", re.I),
             # sync_locks: Barricades. Coordinated threading logic.
@@ -3516,6 +3516,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Relies strictly on '#' for line-level Ghost Mass; no native block delimiters.
         "lexical_family": "single_line_only",
+
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Shell uses '#' for standard line-level literature.
@@ -3525,17 +3526,17 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: Shell lacks native multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logic jumps. Includes test constructs [[ ]] and [ ].
             # CRITICAL: Excluded bare '((' and '))' to prevent ReDoS on massive subshell nesting.
             "branch": re.compile(
                 r"\b(if|then|else|elif|fi|case|esac|for|while|do|done|until|select|break|continue)\b|&&|\|\||\[\[|\]\]"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Positional parameters and expansion markers.
             "args": re.compile(r'\$(?:[1-9]|\{[1-9]\w*\}|@|\*|#)|"\$@"|"\$\*"'),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries and straight-line execution verbs.
             "linear": re.compile(
                 r"\b(local|readonly|export|declare|typeset|return|exit|source|\.|read|cd|pwd|ls|cp|mv|rm|mkdir|touch)\b|\|(?!\s*\|)"
@@ -3556,68 +3557,68 @@ LANGUAGE_DEFINITIONS = {
             # 5. class_start
             # Shell is strictly procedural.
             "class_start": None,
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             # Shell hardening: strict modes, traps, and robust quoting.
             "safety": re.compile(
                 r'\b(set\s+-(?:[a-zA-Z]*e[a-zA-Z]*|u|o\s+pipefail)|trap\s+[^\n]*(?:ERR|EXIT|INT|TERM))\b|"\$[@*]"|"\$\{[^}]+\}"|\bcommand\s+-v\b|\$\{[a-zA-Z0-9_]+:[-=?][^}]*\}'
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Unquoted variables, dynamic evaluation, and blind network-to-shell piping.
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Unquoted variables, dynamic evaluation, and blind network-to-shell piping.
             "safety_neg": re.compile(
                 r'\b(eval)\b(?!\s*\()|(?<!")\$(?![\(?])\w+(?!")|\|\|\s*true\b|>\s*/dev/null(?:\s*2>&1)?|\bcurl\s+[^|\n]{1,200}\|[ \t]*(?:bash|sh|zsh)\b'
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Destructive commands and privilege elevation. EXCLUDES echo (Phase 5).
             "danger": re.compile(
                 r"\b(rm\s+-[rR]f|sudo|chmod\s+(?:-R[ \t]+)?777|chown\s+(?:-R[ \t]+)?root|mkfs|dd|kill(?:all)?)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # Redirections, pipes, and network clients.
             "io": re.compile(
                 r">|>>|<|\|(?:&)?|\b(curl|wget|nc|ssh|scp|ftp|rsync|cat|tail|grep|find|xargs|jq)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Exported variables and identifiers modifying the global environment.
             "api": re.compile(r"^[ \t]*export\s+[a-zA-Z_]\w*", re.M),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state via assignment or arithmetic.
             "flux": re.compile(
                 r"^[ \t]*[a-zA-Z_]\w*(?:\[[^\]]+\])?=(?![=~])|\b(?:let|declare)\s+[a-zA-Z_]\w*=|\[\+\]=|\(\([^)]*(?:\+\+|--|[-+*/%]=)[^)]*\)\)",
                 re.M,
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Commented-out execution logic indicating dead features.
             "graveyard": re.compile(
                 r"#[ \t]*(?:if|for|while|function|export|echo|printf|cd|rm|sudo|ls)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"^[ \t]*#\s*(?:@param|@return|Usage:|Description:|Examples:|Options:)|#\s*shellcheck\s+disable",
                 re.M | re.I,
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # Triggers indicating internal verification. Anchored to shell-specific testing framework commands.
             "test": re.compile(
                 r"\b(assert_?eq|assertTrue|assertFalse|assert_?match|bats|shunit2)\b|^@test\s+|\brun\s+[a-zA-Z0-9_-]+",
                 re.M,
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"&[ \t]*$|\b(wait(?:\s+-n)?|coproc|nohup|parallel|jobs|fg|bg|disown|xargs\s+-P)\b|&\s*\|\||<\([^)]*\)|>\([^)]*\)",
                 re.M,
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # Terminal UI builders and ANSI sequences.
             "ui_framework": re.compile(
                 r"\b(dialog|whiptail|zenity|kdialog|notify-send|tput|gum|tmux)\b|\\033\[[0-9;]+m|\\e\[[0-9;]+m"
             ),
             # 17. closures
             "closures": None,  # Shell lacks native anonymous lambdas.
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(PATH|HOME|USER|SHELL|EDITOR|PWD|OLDPWD|TERM|LANG|OSTYPE|MACHTYPE|UID|EUID|GROUPS)\b"
             ),
@@ -3625,19 +3626,19 @@ LANGUAGE_DEFINITIONS = {
             "decorators": None,
             # 20. generics
             "generics": None,
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # Brace expansions acting as inline loops.
             "comprehensions": re.compile(
                 r"\{[0-9]+(?:\.\.|,)[0-9]+(?:\.\.[0-9]+)?\}|\{[a-zA-Z]\.\.[a-zA-Z]\}"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(r"\b(bc|awk|dc|expr|jq|RANDOM|SRANDOM)\b|\$\(\("),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Sub-languages and indirect expansion. (ReDoS Shielded)
             "heat_triggers": re.compile(
                 r'\$\([^)]+\)|`[^`]+`|\b(?:awk|sed|perl|python[23]?|ruby)\s+[\'"][^\'"]{0,500}|\beval\s+\$|\$\{!?[a-zA-Z0-9_]+\}'
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"(?:^|[ \t;|&])(?:source\b|\.(?=[ \t]))[ \t]+[^\s;]+", re.M
             ),
@@ -3668,74 +3669,74 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:^|[ \t;|&])(?:source\b|\.(?=[ \t]))[ \t]+['\"]?([^'\"\s;]+)['\"]?",
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^[ \t]*#\s*(?:Author|Created by|Maintainer|Copyright):?\s+(.*)",
                 re.M | re.I,
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"#\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             # Legacy CGI shell environments.
             "ssr_boundaries": re.compile(
                 r'\b(?:CONTENT_TYPE|QUERY_STRING|HTTP_USER_AGENT)\b|echo\s+"Content-type:\s*text/(?:html|plain|json)'
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Named pipes and OS signal handlers.
             "events": re.compile(
                 r"\b(mkfifo|mknod|inotifywait|inotifywatch|fswatch|tail\s+-f|kill\s+-(?:SIG)?(?:USR1|USR2|HUP|TERM))\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\$\{1:-\w+\}|\$\{2:-\w+\}|\b(?:command\s+-v|type\s+-p)\b"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(r"^[ \t]*(?:alias|shopt)\b", re.M),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Raw memory addressing. Shell uses namerefs and indirect expansion.
             "pointers": re.compile(r"\b(?:declare\s+-n|typeset\s+-n)\b|\$\{\!"),
             # 36. memory_alloc
             "memory_alloc": None,
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:logger|syslog|log_info|log_err|log_warn|log_debug)\b|>\s*/dev/(?:stderr|console)"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(echo|printf|print|read)\b"),
             # 40. cast_hits
             "cast_hits": None,
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(
                 r"\b(exit|kill|abort|halt|return\s+[1-9][0-9]*)\b"
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(sleep|read\s+-t)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": None,
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(r"\b(flock|mkdir|mkfifo|lockfile|sem)\b"),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(readonly|declare\s+-r|typeset\s+-r)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(rm\s+-f|trap\s+.*EXIT|unset|exit|logout)\b"),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Physical Reality: local variables represent internal state scope.
             "encapsulation": re.compile(r"\b(local|typeset|declare)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(read|inotifywait|nc\s+-l|while\s+read)\b"),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(test\.skip|bats_skip|#\s*SKIP|mock|stub)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Shell Specifics) ---
             "serialization_parsing": re.compile(r"\b(jq|yq|awk|sed|xmlstarlet)\b"),
@@ -3781,7 +3782,7 @@ LANGUAGE_DEFINITIONS = {
             "Fastfile",
             "Appraisals",
         ],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, lockfiles, and environment pins to lock in context.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, lockfiles, and environment pins to lock in context.
         "discriminators": [
             ".rb",
             "Gemfile.lock",
@@ -3794,10 +3795,10 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 4 (Hybrid Hash)
         # Rationale: Uses '#' for single-line comments, but multi-line literature
         # utilizes the `=begin ... =end` block syntax, requiring hybrid parsing rules.
-        "lexical_family": "hybrid_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
-            # Ruby uses '#' for standard line-level literature (Ghost Mass).
+            # Ruby uses '#' for standard line-level literature (Commented / Non-Executable Text).
             "_line_anchor": re.compile(r"#"),
             # Inline comments are also triggered by the '#' token.
             "_inline_comment": re.compile(r"#"),
@@ -3805,23 +3806,23 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"^=begin", re.M),
             # Block comment end: =end (Must be at the absolute start of the line).
             "_block_end": re.compile(r"^=end", re.M),
-            # 1. branch (The Forks in the Road)
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES raise/throw (bailout_hits).
             "branch": re.compile(
                 r"\b(if|unless|elsif|else|case|when|in|for|while|until|begin|rescue|ensure|break|next|redo|retry)\b|&&|\|\||\?|=>"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks of methods, lambdas, and blocks. Bounded to prevent ReDoS.
             "args": re.compile(
                 r"\bdef\s+(?:self\.)?[a-zA-Z_]\w*[=!?]?\s*\([^)]*\)|\bdo\s*\|[^|]*\||\{\s*\|[^|]*\||->\s*\([^)]*\)",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and const (freeze_hits).
             "linear": re.compile(
                 r"\b(class|module|def|yield|return|super|alias|undef|require|require_relative|include|extend|prepend|attr_reader|attr_writer|attr_accessor|Data\.define)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ONLY executable logic blocks. EXCLUDES class/module definitions.
             "func_start": re.compile(
                 # =====================================================================
@@ -3835,97 +3836,97 @@ LANGUAGE_DEFINITIONS = {
                 r'^[ \t]*(?:def[ \t\n]+(?:self\.[ \t\n]*)?|define_method[ \t\n]*\(?[ \t\n]*[:\'"]?)([a-zA-Z_]\w*[=!?]?)(?=[ \t\n]*[)\(]|[\'"]?[ \t\n]*(?:\{|do)|[ \t\n]|$)',
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:class|module)\s+([A-Z]\w*(?:::[A-Z]\w*)*)(?:\s*<\s*([A-Z]\w*(?:::[A-Z]\w*)*))?",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\&\.|\b(rescue|ensure|fetch|frozen_string_literal|freeze|catch|throw|safe_load|T\.must|T\.let|T\.cast|T\.bind)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Dynamic logic bypasses and Sorbet escape hatches.
             "safety_neg": re.compile(
                 r"\b(eval|class_eval|instance_eval|module_eval|send|__send__|public_send|binding|instance_variable_set|unsafe_load|T\.unsafe|T\.untyped)\b"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process killers and shell execution. EXCLUDES puts (Phase 5).
             "danger": re.compile(
                 r"\b(abort|exit|exit!|system|exec|spawn|fork)\b|`[^`]+`|IO\.popen"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|Dir|IO|Net::HTTP|URI\.open|Socket|TCPSocket|FileUtils|ActiveRecord::Base|find|where|create|update|destroy)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Implicit public defaults (undercased defs) + explicit module functions.
             "api": re.compile(
                 r'\b(module_function)\b|^[ \t]*(?:get|post|put|patch|delete|resources?)\s+[:\'"]',
                 re.M,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const (freeze_hits).
             "flux": re.compile(
                 r"@[a-zA-Z_]\w*\s*(?:\+|-|\*|/)?=|@@[a-zA-Z_]\w*\s*(?:\+|-|\*|/)?=|\b(?:push|pop|shift|unshift|delete|clear|merge!|update!|gsub!|map!|select!|reject!)\b|<<"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"#[ \t]*(?:def|class|module|if|unless|while|puts|p)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             # Captures YARD tags, Sorbet signatures, RDoc blocks/modifiers, and standard documentation headers.
             "doc": re.compile(
                 r"^[ \t]*#\s*@(?:param|return|api|yield|raise|see|abstract|deprecated|note|example)|^[ \t]*sig[ \t]*\{|^=begin\s+(?:rdoc|pod)\b|^[ \t]*#\s*(?::nodoc:|:yields:|:args:|:return:)|^[ \t]*#\s*(?:Description|Usage|Example|Summary):\s+",
                 re.M | re.I,
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r'\b(describe|context|expect|assert[a-zA-Z_]*|refute[a-zA-Z_]*|setup|teardown|before|after|let|subject)\b|\b(?:it|test)\s+[\'"]'
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(Thread|Mutex|Monitor|ConditionVariable|Ractor|Fiber|Async|await|Concurrent)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(ActionView|render|render_to_string|ViewComponent::Base|Phlex::HTML|form_with|form_for|link_to|stylesheet_link_tag|Turbo|Stimulus|Hotwire)\b|<%|%>"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(
                 r"\b(?:do\s*\|[^|]*\||do\b|\{\s*\|[^|]*\||->\s*(?:\([^)]*\))?[ \t]*\{)"
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\$[a-zA-Z_]\w*|\b(ENV|ARGV|ARGF|STDIN|STDOUT|STDERR|RUBY_VERSION)\b"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             # Rails class macros acting as metadata descriptors.
             "decorators": re.compile(
                 r"^[ \t]*(?:before_action|after_action|around_action|before_save|after_commit|validates|has_many|belongs_to|has_one)\b",
                 re.M,
             ),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             # Sorbet parameterized types.
             "generics": re.compile(
                 r"\b(?:T::|::T::)?(?:Array|Hash|Set|Enumerable|Class)\[[^\]]*\]"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|collect|select|reject|reduce|inject|filter_map|flat_map|each_with_object|partition|group_by)\b(?:[ \t]*\{|\s*do)"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(Math|Complex|Rational|Matrix|Vector|Numo::NArray|BigDecimal)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Metaprogramming and runtime object extensions.
             "heat_triggers": re.compile(
                 r"\b(method_missing|define_method|const_missing|respond_to_missing\?|included|extended|prepended|class\s*<<\s*self)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"\b(?:require|require_relative|load|autoload)\b[^'\"]*['\"]", re.M
             ),
@@ -3954,40 +3955,40 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:require|require_relative|load|autoload)\b[^'\"]*['\"]([^'\"]+)['\"]",
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"#\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(ActionController::Base|ActionController::API|Sinatra::Base|Hanami::Action|respond_to|format\.html|format\.json)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(Wisper|broadcast|subscribe|ActiveSupport::Notifications\.instrument|publish)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(Dry::Container|Dry::AutoInject|include\s+Import|inject)\b"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             # Ruby DSL macros.
             "macros": re.compile(
                 r"^[ \t]*(?:attr_accessor|attr_reader|attr_writer|scope|delegate)\b",
                 re.M,
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": re.compile(
                 r"\b(FFI::Pointer|Fiddle::Pointer|Fiddle::Function)\b"
             ),
@@ -3997,39 +3998,39 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:Rails\.logger|Logger\.new|SemanticLogger|[a-zA-Z_]\w*logger)\.(?:debug|info|warn|error|fatal|unknown)\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(puts|print|p|pp|warn)\b"),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\b(Integer|Float|String|Array|Hash|Complex|Rational)\b\s*\("
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(raise|fail|abort|exit!)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\bsleep\b\s*[0-9.]+"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"\^|(?<![=!])~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|Monitor|Atomic[A-Z]\w*)\b", re.I
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(freeze|frozen_string_literal|immutable)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(close|GC\.start|dispose|shutdown|cleanup)\b\s*\("
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Visibility modifiers in Ruby.
             "encapsulation": re.compile(r"\b(private|protected)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\.subscribe\(|\.on\(|addEventListener"),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(skip|xit|xdescribe|mock|stub|double)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Ruby Specifics) ---
             "serialization_parsing": re.compile(
@@ -4057,7 +4058,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".swift", ".swiftinterface"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Tooling configurations that are secretly pure Swift code.
         "exact_matches": ["Package.swift"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions and package manager lockfiles to resolve ambiguous files in mixed Apple environments.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions and package manager lockfiles to resolve ambiguous files in mixed Apple environments.
         "discriminators": [".swift", "Package.resolved", "project.pbxproj"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for Swift-based scripting and automation.
         "shebangs": ["swift", "swift-sh"],
@@ -4075,14 +4076,14 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # REQUIRED for Family 2: Recursive logic markers
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. Includes modern typed throws (throws(Error)).
             # EXCLUDES throw/rethrows (bailout_hits).
             "branch": re.compile(
                 r"\b(if|else|guard|switch|case|default|for|while|repeat|do|catch|break|continue|defer|try)\b|&&|\|\||\?|\?\?"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks. Bounded negation [^)]* and <[^>]*> to prevent ReDoS.
             "args": re.compile(
                 # =====================================================================
@@ -4096,12 +4097,12 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:func|init\??|subscript)[ \t\n]*(?:[a-zA-Z_]\w*)?(?:[ \t\n]*<[^>]*>)?[ \t\n]*\((?:[^)(]|\([^)]*\))*\)|\{[ \t\n]*(?:\[[^\]]*\][ \t\n]*)?(?:\([^)]*\)|[a-zA-Z_]\w*(?:[ \t\n]*,[ \t\n]*[a-zA-Z_]\w*){0,50})[ \t\n]+in\b",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (encapsulation) and let (freeze_hits).
             "linear": re.compile(
                 r"\b(var|struct|class|enum|protocol|extension|actor|macro|import|typealias|associatedtype|some|any|consume|borrow|discard|mutating|nonmutating|isolated|nonisolated|return|yield|await|inout)\b|~Copyable"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ONLY executable logic blocks. EXCLUDES types/classes. Steps over Concurrency modifiers.
             "func_start": re.compile(
                 # =====================================================================
@@ -4116,89 +4117,89 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:func[ \t\n]+([a-zA-Z_]\w*)(?:[ \t\n]*<[^>]*>)?|(init\??)|(subscript))(?=[ \t\n]*\()",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]*){0,5}(?:(?:public|private|fileprivate|internal|open|package|final|distributed)[ \t]+){0,5}(?:class|struct|enum|protocol|actor|extension|macro)\s+[a-zA-Z_]\w*",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(guard\s+let|if\s+let|guard\s+var|if\s+var|try\?|as\?|catch|is|Sendable|Result|assert|precondition|Mutex)\b|@MainActor|\?\?"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Unsafe pointers and linter bypasses. EXCLUDES forced unwraps (moved to friction).
             "safety_neg": re.compile(
                 r"\bunowned(?:\(unsafe\))?\b|\bnonisolated\(unsafe\)|\bunsafeDowncast\b|//\s*swiftlint:disable"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Fatal traps and process killers. EXCLUDES TODO (debt) and print (print_hits).
             "danger": re.compile(
                 r"\b(fatalError|preconditionFailure|assertionFailure|abort|exit)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(URLSession|FileManager|FileHandle|Data\(contentsOf:|write\(to:|UserDefaults|CoreData|SwiftData|NWConnection)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Exposed surface area. Explicit visibility and Objective-C bridges.
             "api": re.compile(
                 r"\b(public|open|package|@usableFromInline|@objc|@objcMembers|@_exported|@IBAction|@IBOutlet|@Published)\b"
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES let (freeze_hits).
             "flux": re.compile(
                 r"\b(var|inout|mutating|didSet|willSet|_modify)\b|@(?:State|Binding|FocusState|Bindable|Observable)|^[ \t]*(?:self\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*){0,5}\s*[-+*/]?=|\.(?:append|insert|remove|toggle|updateValue)\("
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//[ \t]*(?:let|var|func|class|struct|actor|extension|if|guard|return)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"///|/\*\*|-\s*parameter|-\s*returns:|-\s*throws:|-\s*warning:"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(?:XCTest|XCTestCase|XCTAssert[A-Za-z]*|setUp|tearDown)\b|@(?:Test|Suite)\b|#(?:expect|require)\b"
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(async|await|actor|Task|TaskGroup|DispatchQueue|OperationQueue|MainActor|Sendable|isolated|nonisolated|continuation)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(View|Body|ZStack|VStack|HStack|Text|Image|Button|SwiftUI|UIKit|AppKit|UIView|UIViewController|NSView|NSWindow|@State|@Binding|@Environment)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(
                 r"completion:[ \t]*\{|\{\s*(?:\[[^\]]*\]\s*)?(?:\([^)]*\)|[a-zA-Z_]\w*(?:[ \t\n]*,[ \t\n]*[a-zA-Z_]\w*){0,50})[ \t\n]+in\b"
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(?:static\s+let|static\s+var|shared|standard|default|NotificationCenter\.default|UserDefaults\.standard|FileManager\.default)\b|@Environment\b"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"@[a-zA-Z_]\w*(?:\([^)]*\))?"),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(
                 r"<\s*[A-Z][^>]*>|\bwhere\s+[a-zA-Z_]\w*\s*:|\b(?:some|any|each)\s+[A-Z]\w*"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|compactMap|flatMap|filter|reduce|forEach|allSatisfy|contains)\s*(?:\(|\{)"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(simd|Accelerate|Double|Float|Float16|CGFloat|Decimal|CoreML|CreateML|vDSP|sqrt|pow|sin|cos|tan)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Reflection and Dynamic Dispatch.
             "heat_triggers": re.compile(
                 r"\b(@objc|dynamic|Mirror\(|unsafeBitCast|withUnsafe\w+|KeyPath|WritableKeyPath)\b|\\\.[\w.]+"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"^[ \t]*(?:@_exported[ \t]+)?import\s+[a-zA-Z_]\w*", re.M
             ),
@@ -4206,38 +4207,38 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:@_exported[ \t]+)?import\s+(?:(?:typealias|struct|class|enum|protocol|let|var|func)\s+)?([a-zA-Z_][\w.]+)",
                 re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"//\s*(?:Created by|Author:|Copyright):\s+(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(Vapor|Hummingbird|Request|Response|Route|app\.get|app\.post|EventLoopFuture)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(NotificationCenter|Combine|Publisher|Subscriber|CurrentValueSubject|PassthroughSubject|AnyCancellable|\.sink|\.assign|@Published|ObservableObject|Observation)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(@Environment|@EnvironmentObject|@Inject|@Dependency|Swinject|Container|Resolver|Factory)\b"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"#(?:Preview|Predicate|OptionSet|Rule|warning|error)\b|@(?:freestanding|attached)|#[A-Z]\w*"
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": re.compile(
                 r"\b(?:Unsafe(?:Mutable)?(?:Raw|Buffer)?Pointer|OpaquePointer|CVaListPointer|Unmanaged)\b|\.pointee\b|(?<=[=\s,(])&\w+"
             ),
@@ -4247,46 +4248,46 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm
             "inline_asm": None,  # Swift delegates ASM to C-headers.
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:Logger|OSLog|os_log)\b|\bLogger\([^)]*\)\.(?:info|error|warning|debug|trace|notice|critical|fault)\b",
                 re.I,
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(print|debugPrint|dump)\b"),
-            # 40. cast_hits (The "Trust Me" Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\bas[!?]?\s+[A-Z]\w*|\bis\s+[A-Z]\w*|\b(?:Int|Double|Float|Float16|CGFloat|String|Bool)\s*\("
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(
                 r"\b(throw|fatalError|abort|exit|preconditionFailure)\b"
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(sleep|delay|Task\.sleep)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|(?<![=!])~|<<=|>>=|\^="),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|OSAllocatedUnfairLock|MainActor|distributed)\b",
                 re.I,
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(
                 r"\b(let|final|static|readonly|Immutable|Sendable)\b"
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(deinit|close|free|dispose|shutdown|removeAll)\b\s*\("
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|fileprivate|internal)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\.onAppear\(|\.onChange\(|\.sink\(|addObserver|subscribe"
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(XCTSkip|mock\(|stub\(|fake\(|double\()\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Swift Specifics) ---
             "serialization_parsing": re.compile(
@@ -4314,7 +4315,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".kt", ".kts", ".ktm"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Kotlin rarely uses extensionless execution scripts.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions and Kotlin-DSL Gradle build files to lock in context.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions and Kotlin-DSL Gradle build files to lock in context.
         "discriminators": [
             ".kt",
             "build.gradle.kts",
@@ -4337,14 +4338,14 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. Includes modern 'when' and Elvis operator.
             # EXCLUDES throw (bailout_hits).
             "branch": re.compile(
                 r"\b(if|else|when|for|while|do|try|catch|finally|break|continue|return)\b|\?:|&&|\|\|"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # OPTIMIZED: Removed overlapping whitespace quantifiers to fix Regex Sludge.
             "args": re.compile(
                 # =====================================================================
@@ -4357,7 +4358,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:fun|constructor)(?:[ \t\n]*<[^>]{0,100}>)?[ \t\n]*(?:[a-zA-Z_]\w*\.)?[a-zA-Z_]\w*[ \t\n]*\((?:[^)(]|\([^)]*\))*\)|\{[ \t\n]*[a-zA-Z_][a-zA-Z0-9_ \t\n:<>,.?]{0,150}?->",
                 re.M,
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # OPTIMIZED: Bound annotation parenthesis scanning to prevent multi-line bleeding.
             "func_start": re.compile(
                 # =====================================================================
@@ -4375,133 +4376,133 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:fun[ \t\n]+(?:<[^>]{0,100}>[ \t\n]*)?(?:[a-zA-Z_]\w*\.)?([a-zA-Z_]\w*)|(init)|(constructor))(?=[ \t\n]*[\(\{])",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # OPTIMIZED: Applied the same 300-char bounds to class annotations.
             "class_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)\{]{0,300}\))?[ \t]*){0,10}(?:(?:public|private|protected|internal|open|abstract|final|sealed|data|value|annotation|expect|actual|inner)[ \t]+){0,5}(?:class|interface|object|enum\s+class)\s+[a-zA-Z_]\w*",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\?\.(?!.)|as\?|\b(require|requireNotNull|check|checkNotNull|error|sealed|is|!is|Result|onSuccess|onFailure|fold|runCatching)\b|\?:"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Force unwrapping, unsafe casts, and suppression.
             "safety_neg": re.compile(r"!!|as(?!\?)\b|\blateinit\s+var\b|@Suppress\b"),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Process killers and raw system triggers. EXCLUDES println (Phase 5).
             "danger": re.compile(
                 r"\b(System\.exit|exitProcess|Runtime\.getRuntime|Thread\.stop)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|InputStream|OutputStream|Retrofit|OkHttpClient|Ktor|HttpClient|RoomDatabase|Dao|SharedPreferences|DataStore|java\.nio)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Exposed surface. Implicit public/internal defaults + Ktor/Spring routes.
             "api": re.compile(
                 r"\b(public|internal)\b|@(RestController|Controller|Service|Component|RequestMapping|GetMapping|PostMapping|Route)\b"
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # CRITICAL FIX: Added re.M so it scans every line, not just the first line of the file!
             "flux": re.compile(
                 r"\b(var|MutableList|MutableMap|MutableSet|MutableState|MutableStateFlow|Atomic[A-Za-z0-9]+)\b|^[ \t]*(?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*\s*[-+*/%]?=|\.(?:add|addAll|remove|put|set|update)\(",
                 re.M,
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"//[ \t]*(?:val|var|fun|class|interface|object|if|when|for|return|import)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"/\*\*|@param|@return|@property|@receiver|@constructor|@throws|@see|@since"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"@(?:Test|ParameterizedTest|BeforeTest|AfterTest)|\b(?:assert[A-Za-z0-9_]*|mockk|spyk|test)\s*\(|\b(?:shouldBe|shouldNotBe)\b|\b(?:every|verify)\s*\{"
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(suspend|launch|async|CoroutineScope|GlobalScope|Dispatchers|Flow|StateFlow|SharedFlow|Channel|yield|runBlocking|withContext|Mutex)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"@Composable|Modifier|\b(Column|Row|Box|Text|Image|Button|Scaffold|LazyColumn|LazyRow|Surface|remember|mutableStateOf|findViewById|View|Activity|Fragment)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             # OPTIMIZED: Removed overlapping whitespace quantifiers to fix ReDoS.
             "closures": re.compile(
                 r"\{[ \t\n]*[a-zA-Z_][a-zA-Z0-9_ \t\n:<>,.?]{0,150}?->"
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(object|companion\s+object)\b|^[ \t]*(?:const[ \t]+)?val\s+[A-Z_0-9]+[ \t]*=",
                 re.M,
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             # OPTIMIZED: Bounded arguments.
             "decorators": re.compile(
                 r"@[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\([^)\{]{0,300}\))?"
             ),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             # Prevented catastrophic backtracking across newlines.
             "generics": re.compile(
                 r"<\s*(?:in|out)?\s*[A-Z][^>\n]{0,100}>|\breified\b|\bwhere\b"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # Functional collection transformations.
             "comprehensions": re.compile(
                 r"\.(?:map|mapNotNull|filter|filterNot|reduce|fold|flatMap|zip|associate|groupBy|forEach|any|all|none|find)\b"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(kotlin\.math\.|java\.lang\.Math\.|StrictMath\.|Random\.|sin|cos|tan|sqrt|exp|log|abs|BigDecimal|BigInteger)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Reflection and optimization hooks.
             "heat_triggers": re.compile(
                 r"::class|javaClass|@JvmOverloads|@JvmStatic|@JvmField|@JvmName|\b(inline|crossinline|noinline|invoke|context|tailrec)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r"^[ \t]*import\s+(?:static[ \t]+)?[\w.]+;?", re.M),
             "_dependency_capture": re.compile(
                 r"^[ \t]*import[ \t\n]+(?:static[ \t\n]+)?([\w.*]+)", re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"@(?:author|since)\s+(.*)|//\s*(?:Created by|Maintainer|Copyright):\s+(.*)",
                 re.I,
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(ApplicationCall|call\.respond|call\.respondText|call\.respondHtml|ServerResponse|ModelAndView)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\.(?:collect|collectLatest|observe|subscribe|onNext)\(|\b(LiveData|Observer|Observable|FlowCollector)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"@(?:Inject|Module|Provides|Binds|HiltViewModel|AndroidEntryPoint|Component|Autowired)|(?:koin|get|inject)\(\)"
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"@(?:OptIn|RequiresOptIn|Suppress|SuppressWarnings)\b"
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Kotlin/Native FFI boundaries.
             "pointers": re.compile(
                 r"\b(?:CPointer|COpaquePointer|CFunction|CValue|CPointed)\b"
@@ -4512,40 +4513,40 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm
             "inline_asm": None,  # Usually bridged via C-headers in Native.
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:Timber|Log|Logger|LoggerFactory)\.(?:i|e|w|d|v|info|error|warn|warning|debug|trace|verbose)\b|@Slf4j"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(println|print)\b\s*\("),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\bas\??\s+[A-Z]\w*|\.to(?:Int|Long|Short|Byte|Double|Float|String|Boolean|UInt|ULong|UShort|UByte)\(\)"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|raise|exitProcess|return|panic)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(delay|Thread\.sleep|yield)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(
                 r"\.(?:shl|shr|ushr|and|or|xor|inv)\(|\b(?:shl|shr|ushr|xor)\b"
             ),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|Atomic[A-Z]\w*)\b", re.I
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(val|const|immutable|readonly)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|dispose|shutdown|use|cleanup)\b\s*\("),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(
                 r"\.(?:collect|observe|subscribe|on[A-Z]\w*|set[A-Z]\w*Listener)\("
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"@(?:Ignore|Disabled)|test\.skip\(|mockk|spyK|fake\("
             ),
@@ -4575,7 +4576,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".sql", ".ddl", ".dml"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Standard SQLite configuration and history files that consist of CLI commands/SQL.
         "exact_matches": [".sqliterc"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Binary database files acting as gravitational anchors to prove a .sql file is SQLite and not Postgres/MySQL.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Binary database files acting as gravitational anchors to prove a .sql file is SQLite and not Postgres/MySQL.
         "discriminators": [
             ".sql",
             ".db",
@@ -4588,7 +4589,7 @@ LANGUAGE_DEFINITIONS = {
         # EXECUTION SIGNATURES: Interpreters found on Line 1.
         "shebangs": ["sqlite3", "sqlite"],
         # UPGRADED: Maps to Family 5 (Hybrid Dash)
-        # Rationale: Uses '--' for line-level and '/*' '*/' for block-level Ghost Mass.
+        # Rationale: Uses '--' for line-level and '/*' '*/' for block-level Commented / Non-Executable Text.
         "lexical_family": "multi_style_dash",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
@@ -4600,28 +4601,28 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical filters. Includes case logic and modern IIF().
             "branch": re.compile(
                 r"\b(CASE|WHEN|THEN|ELSE|END|IFNULL|NULLIF|COALESCE|IIF|FILTER|WHERE|HAVING)\b",
                 re.I,
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks and input coupling. Bounded to prevent ReDoS on massive IN clauses.
             # Now explicitly captures CTE scoped arguments: cte_name (col1, col2)
             "args": re.compile(
                 r"\?[0-9]*|[:@$][a-zA-Z_]\w*|\b(?:VALUES|IN)\s*\([^)]*\)|^[ \t]*[a-zA-Z_]\w*[ \t\n]*\([^)]*\)[ \t\n]*AS[ \t\n]*\(",
                 re.I | re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries defining query execution flow.
             "linear": re.compile(
                 r"\b(SELECT|FROM|JOIN|INNER\s+JOIN|LEFT\s+JOIN|CROSS\s+JOIN|GROUP\s+BY|ORDER\s+BY|LIMIT|OFFSET|UNION|INTERSECT|EXCEPT|RETURNING|AS|INTO|WINDOW|STRICT|WITHOUT\s+ROWID|PARTITION\s+BY|PRECEDING|FOLLOWING|UNBOUNDED|CURRENT\s+ROW)\b",
                 re.I,
             ),
-            # 4. func_start (The Satellite Spawner)
-            # Executable logic wrappers. EXCLUDES tables to avoid Ghost Satellites.
+            # 4. func_start (Executable Logic Anchors)
+            # Executable logic wrappers. EXCLUDES tables to avoid False Positives.
             "func_start": re.compile(
                 # =====================================================================
                 # [ THE VERTICAL MODIFIER SHIELD (SQLITE) ]
@@ -4635,103 +4636,103 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:IF[ \t\n]+NOT[ \t\n]+EXISTS[ \t\n]+)?([a-zA-Z_]\w*)(?=[ \t\(\n;]|$)",
                 re.I | re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Physical entity instantiation (Tables).
             "class_start": re.compile(
                 r"^[ \t]*CREATE\s+(?:TEMP|TEMPORARY)?\s*(?:VIRTUAL[ \t]+)?TABLE\s+"
                 r"(?:IF\s+NOT\s+EXISTS[ \t]+)?([a-zA-Z_]\w*)(?=[ \t\(\n;])",
                 re.I | re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(TRANSACTION|COMMIT|ROLLBACK|SAVEPOINT|RELEASE|CONSTRAINT|CHECK|UNIQUE|PRIMARY\s+KEY|FOREIGN\s+KEY|STRICT|IF\s+NOT\s+EXISTS|ON\s+DELETE\s+CASCADE|PRAGMA\s+foreign_keys[ \t]*=\s*(?:1|ON))\b",
                 re.I,
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Bypassing safety checks and structural removals.
             "safety_neg": re.compile(
                 r"\b(DROP\s+TABLE|DROP\s+VIEW|DROP\s+INDEX|PRAGMA\s+foreign_keys[ \t]*=\s*(?:0|OFF)|PRAGMA\s+writable_schema[ \t]*=\s*(?:1|ON)|PRAGMA\s+ignore_check_constraints[ \t]*=\s*(?:1|ON)|IF\s+EXISTS)\b",
                 re.I,
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Destructive schema actions and system bypasses.
             "danger": re.compile(
                 r"\b(PRAGMA\s+legacy_alter_table|DROP\s+DATABASE|\.shell|\.system|\.exit|\.quit)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(SELECT|INSERT|UPDATE|DELETE|REPLACE|ATTACH\s+DATABASE|DETACH\s+DATABASE|\.import|\.output|\.dump|\.read|readfile|writefile)\b",
                 re.I,
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Exposed surface area (Views and Virtual Tables).
             "api": re.compile(
                 r"^[ \t]*CREATE\s+(?:TEMP|TEMPORARY)?\s*(?:VIEW|VIRTUAL\s+TABLE)\s+",
                 re.I | re.M,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. Includes UPSERT.
             "flux": re.compile(
                 r"\b(UPDATE|SET|ALTER\s+TABLE|ADD\s+COLUMN|DROP\s+COLUMN|RENAME\s+TO|UPSERT|ON\s+CONFLICT\s+DO\s+UPDATE|ON\s+CONFLICT\s+DO\s+NOTHING|REPLACE\s+INTO|EXCLUDED\.[a-zA-Z_]\w*|jsonb?_(?:insert|replace|set|remove|patch))\b",
                 re.I,
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"--[ \t]*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|PRAGMA)\b",
                 re.I,
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"--\s*@(?:param|return|brief|table|column)|/\*\*|--\s*Description:"
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(?:EXPLAIN[ \t]+QUERY[ \t]+PLAN|PRAGMA[ \t]+integrity_check|PRAGMA[ \t]+foreign_key_check|\.testcase|\.lint)\b",
                 re.I,
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(BEGIN\s+EXCLUSIVE|BEGIN\s+IMMEDIATE|PRAGMA\s+journal_mode[ \t]*=\s*WAL|PRAGMA\s+busy_timeout|PRAGMA\s+synchronous|PRAGMA\s+wal_checkpoint)\b",
                 re.I,
             ),
             # 16. ui_framework
             "ui_framework": None,
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             # SQLite does not support functional closures/lambdas. (CTEs are structural boundaries/loops).
             "closures": None,
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(sqlite_master|sqlite_schema|sqlite_sequence|sqlite_temp_schema|sqlite_stat\d+|PRAGMA\s+global_)\b",
                 re.I,
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             # Optimizer hints.
             "decorators": re.compile(
                 r"\b(?:INDEXED\s+BY|NOT\s+INDEXED|MATERIALIZED|NOT\s+MATERIALIZED)\b",
                 re.I,
             ),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(r"\bANY\b|\bCAST\s*\([^)]*\)", re.I),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # JSON iterations and windowing.
             "comprehensions": re.compile(
                 r"\b(json_each|json_tree|json_group_array|json_group_object|OVER\s*\([^)]*\))\b",
                 re.I,
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(abs|acos|asin|atan|ceil|cos|degrees|exp|floor|ln|log|pi|pow|radians|sin|sqrt|tan|random|match|bm25|snippet|highlight|rtree|geopoly_[a-z_]+)\b",
                 re.I,
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Recursive logic and JSON paths.
             "heat_triggers": re.compile(
                 r"\b(WITH\s+RECURSIVE|GENERATED\s+ALWAYS\s+AS|STORED|VIRTUAL)\b|->>|->|\b(?:json_extract|jsonb_extract)\b",
                 re.I,
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"\b(ATTACH\s+DATABASE|load_extension)\b|^[ \t]*\.(?:read|load|import)\s+",
                 re.I | re.M,
@@ -4740,39 +4741,39 @@ LANGUAGE_DEFINITIONS = {
                 r"\bATTACH\s+(?:DATABASE\s+)?['\"]?([^'\"\s;]+)['\"]?\s+AS|\bload_extension\s*\(\s*['\"]([^'\"]+)['\"]|^[ \t]*\.(?:read|load|import)\s+['\"]?([^'\"\s]+)['\"]?",
                 re.I | re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"--\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"--\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(CREATE\s+TRIGGER|AFTER\s+UPDATE|AFTER\s+INSERT|AFTER\s+DELETE|BEFORE\s+UPDATE|BEFORE\s+INSERT|BEFORE\s+DELETE|INSTEAD\s+OF)\b",
                 re.I,
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(?:sqlite3_load_extension|SELECT\s+load_extension)\b|^[ \t]*\.load\b",
                 re.I | re.M,
             ),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"\b(PRAGMA\s+compile_options|sqlite_compileoption_used)\b|^[ \t]*\.parameter\s+(?:set|init)\b",
                 re.I | re.M,
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": None,
             # 36. memory_alloc (Manual Memory Management)
             "memory_alloc": re.compile(
@@ -4781,47 +4782,47 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:sqlite_stat1|sqlite_stat4|ANALYZE)\b|^[ \t]*\.(?:trace|log|show|stats|timer)\b",
                 re.I | re.M,
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"\b(?:disp|warning|fprintf(?![ \t]*\([ \t]*[a-zA-Z_]))\b|^\.print\b|^\.echo\b",
                 re.I | re.M,
             ),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\bCAST[ \t]*\([^)]+[ \t]+AS[ \t]+[a-zA-Z_]+\s*\)", re.I
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(
                 r"\b(ABORT|RAISE|EXIT|QUIT)\b|\.exit|\.quit", re.I
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\bPRAGMA\s+busy_timeout\b|\.pause", re.I),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|~|(?<!\|)\|(?!\|)"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(BEGIN\s+EXCLUSIVE|BEGIN\s+IMMEDIATE|PRAGMA\s+synchronous)\b", re.I
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(
                 r"\b(STRICT|WITHOUT\s+ROWID|CONSTANT|READONLY)\b", re.I
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(DROP\s+TABLE|VACUUM|DETACH|CLOSE|CLEAR|DELETE\s+FROM)\b", re.I
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Temporary/Local scopes and hidden columns.
             "encapsulation": re.compile(r"\b(TEMP|TEMPORARY|HIDDEN)\b", re.I),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(BEFORE\s+|AFTER\s+|INSTEAD\s+OF)\b", re.I),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\.testcase\s+skip|\bPRAGMA\s+ignore_check_constraints\b", re.I
             ),
@@ -4861,7 +4862,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Standardized routing and entry points.
         "exact_matches": ["index.html", "404.html"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions and frontend build tools to prove context.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions and frontend build tools to prove context.
         "discriminators": [
             ".html",
             "package.json",
@@ -4884,124 +4885,124 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"<!--"),
             # Block comment end: Accept both --> and permissive HTML parser form --!>.
             "_block_end": re.compile(r"--!?>"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # User-driven branching and declarative framework conditionals.
             "branch": re.compile(
                 r'<(?:details|summary|noscript)\b|\b(?:v-if|ng-if|\*ngIf|x-if|hx-swap)="[^"]*"|\{%\s*(?:if|elif|else|endif)\s*[^%]*%\}|\{\{#if\s+[^}]+\}\}',
                 re.I,
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Attribute signatures defining input coupling. Bounded to prevent ReDoS on massive data attrs.
             "args": re.compile(
                 r'\b(?:data-[a-zA-Z0-9_-]+|aria-[a-z]+|name|value|placeholder|for|alt|step|min|max)="[^"]*"',
                 re.I,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural document flow tags. Includes 1990 CERN tags (<nextid>, <address>) alongside modern semantic ones.
             "linear": re.compile(
                 r"<(?:html|head|body|main|section|article|header|footer|div|span|p|h[1-6]|ul|ol|li|dl|dt|dd|nav|aside|figure|figcaption|search|address|nextid|hp[1-2]|dir|menu)\b",
                 re.I,
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ONLY executable behavior blocks.
             "func_start": re.compile(r"<([Ss]cript|[Ss]tyle)(?=[ \t>])"),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Defines structural entities, Web Components, and template boundaries.
             "class_start": re.compile(
                 r"<([Ff]orm|[Tt]able|[Ss]vg|[Cc]anvas|[Pp]icture|[Vv]ideo|[Aa]udio|[Dd]ialog|[Tt]emplate|[Ff]ieldset|[Ll]egend|[a-zA-Z0-9]+-[a-zA-Z0-9-]+)(?=[ \t>])"
             ),
             # --- PHASE 2: RISK ENGINE (Structural Integrity & Debt) ---
-            # 6. safety (The Defenders)
+            # 6. safety (Defensive Programming / Validation)
             # Browser security and validation constraints.
             "safety": re.compile(
                 r'\b(?:required|readonly|disabled|pattern="[^"]*"|sandbox="[^"]*"|rel="noopener(?: noreferrer)?"|integrity="[^"]*")\b|<meta\s+http-equiv="Content-Security-Policy"',
                 re.I,
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Actively bypasses standard browser safety (e.g. target="_blank" without noopener).
             "safety_neg": re.compile(
                 r'target="_blank"(?!\s+rel="noopener")|href="javascript:[^"]*"|on[a-z]+="[^"]*(?:eval\(|document\.write\()',
                 re.I,
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # HTML is declarative markup. Execution dangers (eval, setTimeout) belong in JS.
             "danger": None,
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # Hyperlink navigation and resource fetching. (The core of the Web).
             "io": re.compile(
                 r'\b(?:src|href|action|poster|data)="[^"]*"|<(?:a|form|iframe|audio|video|object|embed|source|track|img)\b',
                 re.I,
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Exposed identifiers and metadata consumption surface.
             "api": re.compile(
                 r'\b(?:id|name|role|exportparts|part|itemprop|itemscope|itemtype)="[^"]*"|<slot\b|<meta\s+(?:property="og:|name="twitter:)',
                 re.I,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # HTML is declarative markup. State mutation (DOM manipulation) belongs in JS.
             "flux": None,
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Commented-out structural logic.
             "graveyard": re.compile(
                 r"<!--[ \t]*<(?:div|script|style|form|table|a|p|section|span|img|ul|li|nav|header|footer|main)\b",
                 re.I,
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             # Structured intent for crawlers and accessibility.
             "doc": re.compile(
                 r'<title>[^<]*</title>|<meta\s+name="(?:description|keywords|author)"\s+content="[^"]*"|\baria-(?:description|label|labelledby|describedby|details)="[^"]*"',
                 re.I,
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(r"\bdata-(?:testid|cy|test|test-id|qa)[ \t]*=", re.I),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             # Prioritization and asynchronous fetching logic.
             "concurrency": re.compile(
                 r'\b(?:async|defer|loading="lazy"|fetchpriority="(?:high|low)"|decoding="async")\b|<link\s+rel="(?:preload|prefetch|preconnect|modulepreload|prerender)"',
                 re.I,
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # Formatting tags and Tailwind/Bootstrap utility density.
             "ui_framework": re.compile(
                 r'<(?:b|i|u|strong|em|mark|small|del|ins|sub|sup)\b|\bclass="[^"]*(?:flex|grid|absolute|relative|block|inline-block|container|row|col-[0-9]+|justify-center|items-center|w-full|h-full)[^"]*"',
                 re.I,
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             # DOM encapsulation via Shadow DOM.
             "closures": re.compile(
                 r'<template\s+shadowrootmode="[^"]*">|<template\s+shadowroot="[^"]*">',
                 re.I,
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             # HTML is declarative markup. Browser globals (window, document) belong in JS.
             "globals": None,
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             # Directive-based logic mutation (HTMX, Vue, Alpine).
             "decorators": re.compile(
                 r'\b(?:class|style|hidden|inert|tabindex|draggable|spellcheck|dir|lang|translate)[ \t]*=|hx-[a-z-]+="[^"]*"|x-[a-z-]+="[^"]*"|v-[a-z-]+="[^"]*"',
                 re.I,
             ),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(r"<slot\b[^>]*>", re.I),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # Declarative array iteration in markup.
             "comprehensions": re.compile(
                 r'\b(?:v-for|ng-repeat|\*ngFor|x-for)="[^"]*"|\{%\s*for\b[^%]*%\}|\{\{#each\b[^}]*\}\}',
                 re.I,
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # MathML and SVG path math.
             "scientific": re.compile(
                 r'<(?:math|mfrac|mi|mo|svg|canvas|path|circle|rect|polygon|polyline)\b|\bd=["\'][MmLlHhVvCcSsQqTtAaZz0-9\s,.-]+["\']',
                 re.I,
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Extreme logic heat: heavy inline styles and JS pollution.
             "heat_triggers": re.compile(r'style="[^"]*;"|\bon[a-z]+="[^"]*"', re.I),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r'<script\s+type="(?:importmap|module)"|<link\s+(?:rel="stylesheet"|rev="[^"]*")',
                 re.I,
@@ -5009,56 +5010,56 @@ LANGUAGE_DEFINITIONS = {
             "_dependency_capture": re.compile(
                 r'<(?:script[^>]+src|link[^>]+href)\s*=\s*["\']([^"\']+)["\']', re.I
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r'<meta\s+name="(?:author|creator|publisher)"\s+content="([^"]+)"|<link\s+rev="made"\s+href="mailto:[^"]+"',
                 re.I,
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             # Back-end template engine hydration.
             "ssr_boundaries": re.compile(
                 r'<\?php|<%|<%=|\{\{\s*[^}]+\s*\}\}|\{%\s*[^%]+\s*%\}|\b(?:data-reactroot|data-server-rendered|ng-version|nuxt-ssr)="[^"]*"',
                 re.I,
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Declarative event dispatchers.
             "events": re.compile(
                 r'\bhx-trigger="[^"]*"|@[a-z]+="[^"]*"|v-on:[a-z]+="[^"]*"|\([a-z]+\)="[^"]*"',
                 re.I,
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(r'<script\s+type="importmap"\b', re.I),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             # Server Side Includes (SSI).
             "macros": re.compile(
                 r"<!--#\s*(?:include|exec|echo|config|if|else|endif)\b", re.I
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Fragment identifiers and original name pointers.
             "pointers": None,
             # 36. memory_alloc
             "memory_alloc": None,
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             # Professional analytics trackers.
             "telemetry": re.compile(
                 r'<script[^>]*src="[^"]*(?:analytics|gtag|gtm|segment|plausible|mixpanel)[^"]*"|\bdata-layer\b|\bnavigator\.sendBeacon\b',
                 re.I,
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             # Ad-hoc debug statements in scripts.
             "print_hits": re.compile(
                 r"\b(?:document\.write|alert|confirm|prompt|console\.(?:log|error|warn|dir|trace|info))\s*\(",
@@ -5066,34 +5067,34 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 40. cast_hits
             "cast_hits": None,
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(
                 r"\b(?:process\.exit|history\.back|window\.close)\s*\(", re.I
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(?:setTimeout|setInterval)\s*\(", re.I),
             # 43. bitwise_hits
             "bitwise_hits": None,
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": None,
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(
                 r'\b(?:readonly|disabled|inert|aria-disabled="true")\b', re.I
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r'\b(?:removeEventListener|clearInterval|clearTimeout|remove|innerHTML\s*=\s*[\'"][\'"])\s*\(',
                 re.I,
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Declarative and Shadow DOM boundaries.
             "encapsulation": re.compile(r"<(?:template|shadowrootmode|slot)\b", re.I),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             # Event sinks waiting for state broadcast.
             "listeners": re.compile(
                 r"\bhx-trigger|v-on:|@[a-z]+=|addEventListener|on[a-z]+=", re.I
             ),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\b(?:data-skip|data-ignore|mock-data|test-skip)\b", re.I
             ),
@@ -5110,7 +5111,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".css", ".scss", ".sass", ".less", ".styl", ".pcss"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: CSS rarely uses extensionless configurations.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: CSS linting, PostCSS, and utility framework configurations acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: CSS linting, PostCSS, and utility framework configurations acting as gravity anchors.
         "discriminators": [
             ".css",
             "postcss.config.js",
@@ -5133,53 +5134,53 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical gating. Includes Container/Media queries and logic-gating pseudo-selectors.
             "branch": re.compile(
                 r"\b(@media|@supports|@container|@starting-style)\b|:(?:has|is|where|not)\s*\([^)]*\)",
                 re.I,
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Signatures defining input coupling. Bounded to prevent ReDoS on massive calculations.
             "args": re.compile(
                 r"\b(?:calc|clamp|min|max|var|env|url|rgba?|hsla?|lch|oklch|color-mix|light-dark)\s*\([^)]*\)",
                 re.I,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: Access modifiers (none in CSS) and !important (freeze_hits).
             "linear": re.compile(
                 r"\b(@layer|@scope|@property|@font-face|@keyframes|@page|@charset|@namespace)\b",
                 re.I,
             ),
-            # 4. func_start (The Satellite Spawner)
-            # ONLY executable logic blocks (Selectors). EXCLUDES classes/IDs to avoid Ghost Satellites.
+            # 4. func_start (Executable Logic Anchors)
+            # ONLY executable logic blocks (Selectors). EXCLUDES classes/IDs to avoid False Positives.
             "func_start": re.compile(
                 r"^[ \t]*(@(?:media|supports|container|layer|keyframes)\b)(?=[^{]*\{)",
                 re.M | re.I,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Defines discrete visual entities via Class and ID selectors.
             "class_start": re.compile(
                 r"^[ \t]*(\.[a-zA-Z_][\w-]*|#[a-zA-Z_][\w-]*)(?=[ \t,>+~:]*[^{]*\{)",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             # Defensive fallbacks and mathematical clamps.
             "safety": re.compile(
                 r"@supports\b|\bvar\([^,]+,\s*[^)]+\)|\b(?:minmax|clamp)\s*\([^)]*\)|\bcontain\s*:\s*(?:strict|content|paint|layout)\b",
                 re.I,
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Universal selectors and high-specificity ID overrides.
             "safety_neg": re.compile(
                 r"^[ \t]*\*|^[ \t]*#[\w-]+\s*(?:[:.[>+~][^{;]*)?\{", re.M | re.I
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Extreme tech debt and legacy engine thrashing.
             "danger": re.compile(r"\b(?:expression|behavior|-ms-filter)\b"),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # =====================================================================
             # THE FIX: Prevent False I/O Latency Flags.
             # HISTORICAL CONTEXT FOR FUTURE LLMS: CSS is a declarative language.
@@ -5189,12 +5190,12 @@ LANGUAGE_DEFINITIONS = {
             # severe I/O bottlenecks on standard stylesheets. Must remain `None`.
             # =====================================================================
             "io": None,
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Design Tokens and global properties exposed for script/component consumption.
             "api": re.compile(
                 r":root\b|@property\b|--[a-zA-Z0-9_-]+\s*:|::part\s*\([^)]*\)", re.I
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # =====================================================================
             # THE FIX: Prevent 'Declarative Hallucination' of State Flux.
             # HISTORICAL CONTEXT FOR FUTURE LLMS: Defining a CSS custom property
@@ -5204,37 +5205,37 @@ LANGUAGE_DEFINITIONS = {
             # in volatility. Must remain `None`.
             # =====================================================================
             "flux": None,
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Commented-out structural rules.
             "graveyard": re.compile(
                 r"/\*[ \t]*(?:@media|@container|@supports|@keyframes|\.[a-zA-Z]|#[a-zA-Z]|[a-zA-Z][\w-]*[ \t]*{)\b",
                 re.I,
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"/\*\*\s*|/\*\s*@(?:param|return|author|example|prop|define|theme)",
                 re.I,
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\[[ \t]*data-(?:testid|cy|test|test-id|qa)[ \t]*[=\]]", re.I
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             # Logic executing concurrently on the GPU.
             "concurrency": None,
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # Density of layout primitives and Tailwind utilities.
             "ui_framework": re.compile(
                 r"\b(?:display:\s*flex|display:\s*grid|justify-content|align-items|gap|grid-template-columns|absolute|relative)\b|@apply\b",
                 re.I,
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             # Native CSS Nesting (&).
             "closures": re.compile(
                 r"(?:^[ \t]*|\s+|,)&\s*(?:[:.\[>+~][^{;]*)?\{", re.M
             ),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"^[ \t]*(?::root|html|body|\*)\s*(?:{[^}]*}|[,{])", re.M | re.I
             ),
@@ -5244,43 +5245,43 @@ LANGUAGE_DEFINITIONS = {
             "generics": None,
             # 21. comprehensions
             "comprehensions": None,
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # Modern CSS trigonometry and rendering math.
             "scientific": re.compile(
                 r"\b(?:sin|cos|tan|asin|acos|atan|atan2|hypot|abs|sign|mod|rem|round|pow|sqrt|exp|log)\s*\([^)]*\)",
                 re.I,
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Catastrophic specificity graphs and recursively nested logic.
             "heat_triggers": re.compile(
                 r"&(?:\s*&)+|:(?:has|is|not)\s*\([^)]*:(?:has|is|not)\s*\([^)]*\)|calc\([^)]*calc\([^)]*\)",
                 re.I,
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r"@import\b", re.I),
             "_dependency_capture": re.compile(
                 r"^[ \t]*@import[ \t\n]+(?:url\(\s*['\"]?|['\"])([^'\"\)]+)",
                 re.I | re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"/\*\s*(?:@author|Author:|Created by|Maintainer|Copyright):?\s+([^*]*)\*/",
                 re.I | re.S,
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]|\bfigma\.com/file/", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Modern Scroll-Driven animation timelines.
             "events": re.compile(
                 r"@(?:scroll-timeline|view-timeline)|animation-timeline:\s*(?:scroll|view)\([^)]*\)",
@@ -5296,10 +5297,10 @@ LANGUAGE_DEFINITIONS = {
             "memory_alloc": None,
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry
             "telemetry": None,
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             # =====================================================================
             # THE FIX: Prevent String Literal Hallucinations.
             # HISTORICAL CONTEXT FOR FUTURE LLMS: CSS does not possess a runtime
@@ -5310,22 +5311,22 @@ LANGUAGE_DEFINITIONS = {
             "print_hits": None,
             # 40. cast_hits
             "cast_hits": None,
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             # Execution resets.
             "bailout_hits": re.compile(
                 r"\b(unset|initial|revert|revert-layer)\b", re.I
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(?:transition-delay|animation-delay)\b", re.I),
             # 43. bitwise_hits
             "bitwise_hits": None,
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             # Coordinating cascade layers and containment.
             "sync_locks": None,
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             # Explicit locks on data mutation.
             "freeze_hits": re.compile(r"!important\b|\bconstant\b", re.I),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             # =====================================================================
             # THE FIX: Prevent False Memory Management Flags.
             # HISTORICAL CONTEXT FOR FUTURE LLMS: In CSS, `clear: both;` is a
@@ -5335,13 +5336,13 @@ LANGUAGE_DEFINITIONS = {
             # stylesheet is performing active memory management. Must remain `None`.
             # =====================================================================
             "cleanup": None,
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Scoping and part boundaries.
             "encapsulation": re.compile(r"@scope\b|::part|::slotted", re.I),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             # Subscribing to external timelines.
             "listeners": re.compile(r"animation-timeline|@scroll-timeline", re.I),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(?:data-skip|data-ignore)\b", re.I),
         },
     },
@@ -5368,7 +5369,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Fortran rarely uses extensionless configurations.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests (fpm), and build files to resolve ambiguous files like .inc.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, package manifests (fpm), and build files to resolve ambiguous files like .inc.
         "discriminators": [
             ".f90",
             ".f77",
@@ -5389,20 +5390,20 @@ LANGUAGE_DEFINITIONS = {
             # and start-of-line '!' for Modern/Free-form.
             "_line_anchor": re.compile(r"^[Cc*!dD](?!\$)"),
             # Inline Comment Logic:
-            # Modern Fortran (90+) uses '!' for trailing literature/Ghost Mass.
+            # Modern Fortran (90+) uses '!' for trailing literature/Commented / Non-Executable Text.
             "_inline_comment": re.compile(r"!(?!\$)"),
             # EXPLICIT: Fortran does not support standard multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Control flow that forces the CPU to make a decision or jump. High density creates jagged shapes.
             # Includes standard conditional blocks, legacy computed GO TO, and modern SELECT TYPE / SELECT RANK.
             "branch": re.compile(
                 r"\b(IF|ELSEIF|ELSE|DO|WHILE|SELECT\s+CASE|CASE|DEFAULT|WHERE|ELSEWHERE|GO\s*TO|GOTO|SELECT\s+TYPE|SELECT\s+RANK|EXIT|CYCLE)\b|\.AND\.|\.OR\.",
                 re.I,
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Signatures defining input parameters. Drives the physical size/mass of the function.
             # Upgraded to capture both the declaration block and explicit INTENT binding markers
             # that act as the true coupling mass in legacy Fortran.
@@ -5410,14 +5411,14 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:SUBROUTINE|FUNCTION|ENTRY)\s+[A-Za-z_]\w*(?:\s*\([^)]*\))?|\bINTENT\s*\(\s*(?:IN|OUT|INOUT)\s*\)",
                 re.I,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries defining straight-line execution and data types.
             # CRITICAL GUARDRAIL: Access modifiers (PUBLIC, PRIVATE, PROTECTED) do not belong here. Explicitly omitted to prevent the Geometry Inflator Bug.
             "linear": re.compile(
                 r"\b(PROGRAM|MODULE|SUBMODULE|BLOCK\s+DATA|CONTAINS|END\s+(?:PROGRAM|MODULE|SUBROUTINE|FUNCTION|BLOCK|TYPE|ASSOCIATE)|RETURN|IMPLICIT|USE|ASSOCIATE|BLOCK|INTEGER|REAL|COMPLEX|LOGICAL|CHARACTER|DOUBLE\s+PRECISION|CLASS)\b",
                 re.I,
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # =====================================================================
             # [ CONTEXT: FORTRAN FUNCTION AST EXTRACTOR & REDOS SHIELD]
             # PURPOSE: Anchors executable logic blocks (Program, Subroutine, Function, Entry)
@@ -5462,7 +5463,7 @@ LANGUAGE_DEFINITIONS = {
                 r")?"
                 # 4. THE EXECUTION BLOCK KEYWORD
                 r"(?:FUNCTION|SUBROUTINE|PROGRAM|ENTRY)[ \t\n]+"
-                # 5. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
+                # 5. THE IDENTIFIER CAPTURE (FUNCTION IDENTIFIER - GROUP 1)
                 # Extracts the actual block name.
                 r"([A-Za-z_]\w*)"
                 # 6. THE TRAILING ANCHOR (Lookahead)
@@ -5471,7 +5472,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?=[ \t\n]*(?:[\(!&]|$|\bRESULT\b|\bBIND\b))",
                 re.I | re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Defines object-oriented and structural boundaries. Drives API Surface Area math.
             # Maps to Fortran MODULEs, SUBMODULEs, INTERFACEs, and structural TYPE definitions (Fortran's struct/class equivalent).
             "class_start": re.compile(
@@ -5479,153 +5480,153 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?!\bEND\b)TYPE(?:,[^:]*::\s*|\s+)([A-Za-z_]\w*)(?=[ \t]*\n|[ \t]*$)",
                 re.I | re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (The Dimensions) ---
-            # 6. safety (The Defenders / Cyan Fortification)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming)
             # Fortification markers establishing strict boundaries: explicit typing (`IMPLICIT NONE`),
             # explicit intent (`INTENT(IN)`), bounds safety (`ALLOCATABLE`), and fatal assertions (`ERROR STOP`).
             "safety": re.compile(
                 r"\b(IMPLICIT\s+NONE|INTENT\s*\(\s*(?:IN|OUT|INOUT)\s*\)|ALLOCATABLE|SAVE|PARAMETER|VALUE|ERROR\s+STOP|ASYNCHRONOUS|ASSOCIATED|ALLOCATED|PRESENT)\b",
                 re.I,
             ),
-            # 7. safety_neg (The Fractures / Red Fragility)
+            # 7. safety_neg (Safety Bypasses)
             # Actively bypasses memory safety and compiler predictability.
             # Legacy memory sharing (`COMMON`, `EQUIVALENCE`), dangerous implicit typing rules, and unprotected legacy array `DIMENSION` bounds.
             "safety_neg": re.compile(
                 r"\b(COMMON|EQUIVALENCE|IMPLICIT\s+(?:REAL|INTEGER|CHARACTER|COMPLEX|LOGICAL|DOUBLE))\b",
                 re.I,
             ),
-            # 8. danger (The Heavy Load / Space Debris)
+            # 8. danger (High-Risk Execution)
             # Extreme tech debt, unconstrained legacy jumps (`GO TO`, `ASSIGN`), and raw terminal output.
             # CRITICAL GUARDRAIL: Terminal prints (`PRINT`, `WRITE(*,...)`) strictly routed here, away from `io` and `telemetry`.
             "danger": re.compile(r"\b(GO\s*TO|GOTO|ASSIGN|RETURN\s+\d+)\b", re.I),
-            # 9. io (The Boundaries / System Gravity)
+            # 9. io (I/O & Network Boundaries)
             # File operations, hardware inquiries, and disk boundaries.
             # Negatively asserts `*` or `6` to ensure raw standard-out terminal prints do not trigger IO.
             "io": re.compile(
                 r"\b(OPEN|CLOSE|READ|WRITE\s*\(\s*(?!\*|6\b)[^,]+,|INQUIRE|REWIND|BACKSPACE|ENDFILE|FLUSH|FORMAT)\b",
                 re.I,
             ),
-            # 10. api (The Event Horizon / Rose Glow)
+            # 10. api (Public Surface Area)
             # Code exposed to the outside world. Visibility exports (`PUBLIC`) and FFI bridges (`BIND(C)`).
             "api": re.compile(
                 r"\b(PUBLIC|BIND\s*\(\s*C\s*\))\b|"
                 r"^[ \t]*(?:(?:PURE|ELEMENTAL|RECURSIVE)[ \t]+){0,5}(?:TYPE\s*\([^)]*\)[ \t]+)?(?:SUBROUTINE|FUNCTION)\s+[A-Za-z_]\w*",
                 re.M | re.I,
             ),
-            # 11. flux (The Boiling Plasma / Orange Glow)
+            # 11. flux (State Mutation)
             # Mutation of state. Variable assignments and standard memory manipulations.
             # Captures standard `=` (avoiding `==`, `<=`, etc.)
             "flux": re.compile(
                 r"(?!\b(?:KIND|LEN|UNIT|FMT|FILE|STATUS|ACTION)\s*=)[A-Za-z0-9_%\(\)]+[ \t]*=[^=>]",
                 re.I,
             ),
-            # 12. graveyard (The Necrosis / Purple Haze)
-            # Ghost logic, commented-out structural code. Supports both Fortran 90+ (`!`) and legacy F77 (`C`/`*` in column 1).
+            # 12. graveyard (Dead / Commented-out Code)
+            # Commented-out logic, commented-out structural code. Supports both Fortran 90+ (`!`) and legacy F77 (`C`/`*` in column 1).
             "graveyard": re.compile(
                 r"(?i)(?:!|^[cC*])[ \t]*(?:if|do|where|call|function|subroutine|allocate)\b"
             ),
-            # 13. doc (The Intent / Gold Library)
+            # 13. doc (Structured Documentation)
             # Documentation meant to be parsed by generators (Doxygen style `!>`, `!<`, or `! @`).
             "doc": re.compile(
                 r"^[Cc*!dD][ \t]*[@><\\]|^[ \t]*![ \t]*(?:Author|Description|Param|Return):",
                 re.I | re.M,
             ),
-            # 14. test (The Verification / Teal Glow)
+            # 14. test (Testing & Assertions)
             # Test frameworks like pFUnit, generic assertions, and verification routines.
             "test": re.compile(
                 r"\b(?:@test|@assertEqual|@assertTrue|@assertFalse|@assertException)\b|call[ \t]+assert_[a-z_]+",
                 re.I,
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
-            # 15. concurrency (The Temporal Static / Ultraviolet)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             # Fortran 2008/2018 Coarrays (distributed shared memory programming natively in the language) and OpenMP pragmas.
             "concurrency": re.compile(
                 r"\b(COARRAY|SYNC\s+ALL|SYNC\s+IMAGES|SYNC\s+MEMORY|CRITICAL|LOCK|UNLOCK|FAIL\s+IMAGE|FORM\s+TEAM|MPI_[A-Za-z_]+)\b|!\$(?:OMP|ACC)\b",
                 re.I,
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # Fortran handles math and background computing. No native UI frameworks exist.
             "ui_framework": None,
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             # Fortran does not natively support closures, lambdas, or anonymous functions.
             "closures": None,
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             # Persistent application state across scopes. F77 `COMMON` blocks, `SAVE` variables, and `EXTERNAL` procedures.
             "globals": re.compile(r"\b(COMMON|SAVE|EXTERNAL)\b", re.I),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             # Fortran does not have Python-style decorators, but compiler directives heavily modify block execution behaviors.
             "decorators": re.compile(
                 r"^[ \t]*(?:!DIR\$|cDEC\$|!\$OMP|!\$ACC)\b", re.I | re.M
             ),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             # Fortran Generic Interfaces overriding operators/assignments, and Parameterized Derived Types (PDTs).
             # CRITICAL GUARDRAIL: Safely bounds `<[^>]*>` and parentheses `\([^)]*\)` to avoid ReDoS.
             "generics": re.compile(
                 r"\b(INTERFACE\s+ASSIGNMENT|INTERFACE\s+OPERATOR|GENERIC\s*::|TYPE\s+[A-Za-z_]\w*\s*\([^)]*\)|EXTENDS\s*\([^)]*\))\b",
                 re.I,
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # Modern Fortran implicit loops, array constructors (`[...]`, `(/.../)`), and parallel execution syntax (`DO CONCURRENT`, `FORALL`).
             "comprehensions": re.compile(
                 r"\b(?:FORALL|DO\s+CONCURRENT)\b|\[[^\]]+\]|\(\/[^/]+\/\)", re.I
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # Native Fortran superpower: Vectorized matrix operations, tensor reductions, and strict scientific primitive typing.
             "scientific": re.compile(
                 r"\b(MATMUL|DOT_PRODUCT|TRANSPOSE|SUM|PRODUCT|MAXVAL|MINVAL|MAXLOC|MINLOC|RESHAPE|SQRT|EXP|LOG|LOG10|SIN|COS|TAN|ASIN|ACOS|ATAN|ATAN2|SINH|COSH|TANH|KIND=|CEILING|FLOOR|MOD|MODULO)\b",
                 re.I,
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Extreme "Logic Heat": Memory aliasing (`EQUIVALENCE`), multiple entry points (`ENTRY`), Object-Oriented runtime dispatch (`CLASS DEFAULT`, `%`), and unstructured `NAMELIST` loading.
             "heat_triggers": re.compile(
                 r"\b(EQUIVALENCE|ENTRY|SELECT\s+TYPE|CLASS\s+DEFAULT|NAMELIST|VOLATILE)\b",
                 re.I,
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             # Dependency linkage across Fortran modules and files.
             "import": re.compile(r"\b(USE|INCLUDE|IMPORT)\b", re.I),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:USE(?:\s*,\s*\w+\s*::)?\s+([a-zA-Z0-9_]+)|INCLUDE[ \t\n]*['\"]([^'\"]+)['\"])",
                 re.I | re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             # Identifying the developer, maintainer, or copyright holder natively.
             "ownership": re.compile(
                 r"^[cCdD*!][ \t]*(?:Author|Created by|Maintainer|Developer):\s+(.*)",
                 re.I | re.M,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             # Audit tags establishing traceability of intent back to physics papers or architectural specifications.
             # CRITICAL: Removed (?i) to enforce strict uppercase [SPEC-XYZ] tags and prevent prose collisions.
             "spec_exposure": re.compile(
                 r"\[\s*(?:SPEC\s*-\s*\d+|AUDIT-[A-Z0-9_-]+)\s*\]"
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             # Identifies Tab indentation. In Legacy Fortran 77, columns strictly dictate syntax (1-5 label, 6 continuation, 7+ code).
             # Using tabs violates strict standard constraints, establishing heavy tech debt/formatter civil wars.
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             # Fortran does not perform Server-Side Rendering.
             "ssr_boundaries": None,
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Fortran 2018 natively introduced Event-Driven programming primitives for Coarray synchronization.
             "events": re.compile(r"\b(EVENT\s+POST|EVENT\s+WAIT|EVENT_QUERY)\b", re.I),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             # Fortran handles linkages procedurally or via modules. No native DI containers or decorators exist.
             "dependency_injection": None,
             # Low-level systems language concepts mapped to Fortran paradigms.
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             # Fortran utilizes the standard C Preprocessor (cpp) allowing for structural `#define`, `#ifdef` pathing (e.g., `#ifdef MPI`).
             "macros": re.compile(
                 r"^[ \t]*#(?:define|undef|if|ifdef|ifndef|elif|else|endif|include|pragma)\b",
                 re.M | re.I,
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Explicit memory mapping. Includes native Fortran `POINTER` logic, assignments `=>`, and C-FFI pointer bridges (`C_PTR`).
             "pointers": re.compile(r"(?i)\bpointer\b|[ \t]*=>[ \t]*"),
             # 36. memory_alloc (Manual Memory Management)
@@ -5636,54 +5637,54 @@ LANGUAGE_DEFINITIONS = {
             # 37. inline_asm (The Bare Metal)
             # Fortran delegates assembly to standard C linkage. Inline ASM is explicitly not supported natively in Fortran code.
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (The Structured Observers)
             # CRITICAL GUARDRAIL: Isolates structured diagnostic output (custom Fortran loggers) away from raw terminal prints.
             "telemetry": re.compile(
                 r"\b(?:call[ \t]+)?(?:log_info|log_error|log_warn|log_debug|logger%info|logger%error|logger%warn|logger%debug|flog)\b",
                 re.I,
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             # Raw terminal output natively dumping to stdout.
             "print_hits": re.compile(
                 r"\b(?:PRINT\b|WRITE\s*\(\s*(?:\*|6)\s*[,)])", re.I
             ),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             # Forceful type coercion bypassing the safety engine. Strictly defining known Fortran intrinsic type conversion functions.
             "cast_hits": re.compile(
                 r"(?i)\b(?:int|real|cmplx|dble|achar|char|iachar|ichar)[ \t]*\([^)]*\)"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             # Hard execution destruction and unrecoverable exceptions.
             "bailout_hits": re.compile(r"(?i)\b(?:stop|error[ \t]+stop|return)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             # Forcing threads to sleep.
             "halt_hits": re.compile(r"(?i)\bcall[ \t]+(?:sleep|usleep)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation utilizing Fortran's explicit intrinsic bitwise functions.
             "bitwise_hits": re.compile(
                 r"(?i)\b(?:iand|ior|ieor|not|ishft|ishftc|btest|ibset|ibclr|ibits)\b"
             ),
-            # 44. sync_locks (The Barricades)
-            # Explicit coordination to prevent race conditions (The Yang to Concurrency).
+            # 44. sync_locks (Thread Synchronization / Locks)
+            # Explicit coordination to prevent race conditions .
             "sync_locks": re.compile(
                 r"(?i)\b(?:lock|unlock|critical|sync[ \t]+all|sync[ \t]+images|sync[ \t]+memory)\b"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
-            # Explicit locking of data to prevent mutation (The Yang to Flux).
+            # 45. freeze_hits (Immutability Constraints)
+            # Explicit locking of data to prevent mutation .
             "freeze_hits": re.compile(
                 r"(?i)\b(?:parameter|intent[ \t]*\([ \t]*in[ \t]*\))\b"
             ),
-            # 46. cleanup (The Janitor)
-            # Explicit destruction of state or closing of streams (The Yang to IO/Memory).
+            # 46. cleanup (Resource Cleanup / Teardown)
+            # Explicit destruction of state or closing of streams .
             "cleanup": re.compile(r"(?i)\b(?:close|deallocate|nullify)\b"),
-            # 47. encapsulation (The Vault)
-            # Logic hidden from view via visibility modifiers (The Yang to API).
+            # 47. encapsulation (Access Modifiers / Encapsulation)
+            # Logic hidden from view via visibility modifiers .
             "encapsulation": re.compile(r"(?i)\bprivate\b"),
-            # 48. listeners (The Sinks)
-            # Waiting to receive state from an external broadcast (The Yang to Events).
+            # 48. listeners (Event Listeners / Observers)
+            # Waiting to receive state from an external broadcast .
             "listeners": None,
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             # Framework code that explicitly bypasses verification.
             "test_skip": None,
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Fortran Specifics) ---
@@ -5722,7 +5723,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Assembly is assembled directly to machine code; no extensionless exact configurations exist.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, linker scripts (.ld), and build systems acting as gravity anchors to resolve .inc or .s files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, linker scripts (.ld), and build systems acting as gravity anchors to resolve .inc or .s files.
         "discriminators": [
             ".asm",
             ".s",
@@ -5748,81 +5749,81 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: Standard Assembly does not support multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES system exits/halts (bailout_hits).
             "branch": re.compile(
                 r"\b(jmp|je|jne|jz|jnz|ja|jb|jl|jg|jge|jle|jae|jbe|call|ret|b|bl|bx|blr|cbz|cbnz|tbz|tbnz|beq|bne|loop)\b",
                 re.I,
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Assembly uses ABI registers for parameter coupling.
             "args": re.compile(
                 r"\b([er]di|[er]si|[er]dx|[er]cx|[er][89]|x[0-7]|w[0-7]|v[0-7]|xmm[0-7])\b",
                 re.I,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Data movement and arithmetic primitives. EXCLUDES: Linker visibility (api) and sections (globals).
             "linear": re.compile(
                 r"\b(mov|mov[bwlq]|lea|ldr|str|push|pop|add|sub|inc|dec|mul|imul|div|idiv|nop|ldp|stp)\b",
                 re.I,
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Subroutine entry points. EXCLUDES data labels or local loop markers.
             "func_start": re.compile(
                 r"^[ \t]*(?!\.L|\.LC|\d|\.text|\.data|\.bss)([a-zA-Z_][a-zA-Z0-9_.$]*)(?=\s*:)",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Maps to assembler structure definition macros.
             "class_start": re.compile(
                 r"^[ \t]*(?:struc|STRUCT|\.struct)\s+[a-zA-Z_]\w*", re.M | re.I
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             # Stack preservation and defensive frame setups.
             "safety": re.compile(
                 r"\b(enter|leave|endbr64|paciasp|autiasp|bti|retab|\.align|\.p2align)\b|\b(?:stp|ldp)\s+x29,\s*x30",
                 re.I,
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Indirect jumps and hardware interrupt disabling.
             "safety_neg": re.compile(
                 r"\b(?:jmp|call)\s+(?:\*|\[|[er]?[abcd]x|r\d+)\b|\bbr\s+[xw]\d+\b|\b(cli|msr\s+daifclr)\b",
                 re.I,
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # CPU halts and debug traps. EXCLUDES prints (Phase 5).
             "danger": re.compile(r"\b(hlt|int\s+3|brk|ud2|sys_exit|sys_kill)\b", re.I),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # System calls and hardware I/O ports.
             "io": re.compile(
                 r"\b(in|out|ins[bdw]|outs[bdw]|syscall|svc\b|int\s+0x80|sys_read|sys_open)\b",
                 re.I,
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Linker-visible global exports.
             "api": re.compile(
                 r"^[ \t]*(?:\.global|\.globl|global|EXPORT|PUBLIC|EXTERN|IMPORT)\b",
                 re.M | re.I,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Explicit memory/register swaps and atomic increments.
             "flux": re.compile(r"\b(xchg|cmpxchg|inc|dec)\b", re.I),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"(?i)(?:;|#|//)[ \t]*(?:jmp|call|mov|push|pop|cmp|add|sub)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"^[;#@/|]+\s*@(?:param|return|brief|author|note)", re.M | re.I
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"(?i)\b(?:describe|expect|assert|TestCase)\b|\bit[ \t]*\("
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(lock|xadd|mfence|lfence|sfence|dmb|dsb|isb|ldxr|stxr|ldaxr|stlxr)\b",
                 re.I,
@@ -5831,7 +5832,7 @@ LANGUAGE_DEFINITIONS = {
             "ui_framework": None,
             # 17. closures
             "closures": None,
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"^[ \t]*(?:\.data|\.bss|\.rodata|\.comm|section\s+\.data|section\s+\.bss)\b",
                 re.M | re.I,
@@ -5840,24 +5841,24 @@ LANGUAGE_DEFINITIONS = {
             "decorators": None,
             # 20. generics
             "generics": None,
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # Instruction repetition prefixes.
             "comprehensions": re.compile(
                 r"^[ \t]*(?:%rep|\.rept|\.irp)\b|\b(?:rep|repe|repne|repz|repnz)\b",
                 re.M | re.I,
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # FPU, SSE, AVX, and NEON instructions.
             "scientific": re.compile(
                 r"\b(fadd|fsub|fmul|fdiv|fsqrt|vadd[ps][sd]|vsub[ps][sd]|vmul[ps][sd]|fmla|fmov)\b",
                 re.I,
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Complex SIB addressing and block replication.
             "heat_triggers": re.compile(
                 r"\[\s*[a-zA-Z0-9_]+\s*\+\s*[a-zA-Z0-9_]+\s*\*\s*\d+", re.I
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"^[ \t]*(?:%include|\.include|\.incbin)\b", re.M | re.I
             ),
@@ -5865,25 +5866,25 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:%include|\.include|\.incbin)\s+(?:['\"]([^'\"]+)['\"]|([^'\"\s]+))",
                 re.M | re.I,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^[;#@/|]+\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)",
                 re.M | re.I,
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|rfc)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Interrupt vectors and exception handlers.
             "events": re.compile(
                 r"\b(int\s+(?:0x)?[0-9a-fA-F]+|iret[qd]?|reti|svc|hvc|smc)\b|^[ \t]*(?:vector|handler|isr)_[a-zA-Z0-9_]+:",
@@ -5891,12 +5892,12 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 33. dependency_injection
             "dependency_injection": None,
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"^[ \t]*(?:%macro|\.macro|%endmacro|\.endm|%define|\.equ|\.set|#define)\b",
                 re.M | re.I,
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Raw memory addressing and dereferencing.
             "pointers": re.compile(
                 r"(?i)(?:byte|word|dword|qword)[ \t]+ptr[ \t]*\[[^\]]*\]|\[[^\]]+\]"
@@ -5908,47 +5909,47 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm
             "inline_asm": None,  # This is base assembly.
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(?:call|bl)\s+(?:log_info|log_error|log_warn|log_debug|syslog)\b",
                 re.I,
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"\b(?:call|bl)\s+(?:printf|puts|sys_write)\b", re.I
             ),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(r"(?i)\b(?:byte|word|dword|qword)[ \t]+ptr\b"),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             # Hard execution destruction and unrecoverable hardware exceptions. [cite: 780]
             "bailout_hits": re.compile(r"(?i)\b(?:hlt|ud2|brk|svc|int[ \t]+3)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             # Forcing hardware threads to sleep or pause execution. [cite: 781]
             "halt_hits": re.compile(r"(?i)\b(?:pause|hlt|wfi|wfe)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation natively supported by the instruction set. [cite: 782]
             "bitwise_hits": re.compile(
                 r"(?i)\b(?:and|or|xor|not|shl|shr|sal|sar|rol|ror|lsl|lsr|asr)\b"
             ),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             # Explicit hardware coordination to prevent race conditions (e.g., atomic instructions, memory barriers). [cite: 783]
             "sync_locks": re.compile(
                 r"(?i)\b(?:lock|xchg|cmpxchg|stxr|ldxr|dmb|dsb|isb)\b"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             # Explicit locking of data to prevent mutation (e.g., read-only data sections or constants). [cite: 784]
             "freeze_hits": re.compile(r"(?i)\b(?:equ|\.rodata|\.rdata)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             # Assembly relies on manual memory management via standard instructions, lacking dedicated cleanup APIs. [cite: 785]
             "cleanup": re.compile(r"\b(?:call|bl)\s+_?free\b", re.I),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Logic hidden from view via visibility directives. [cite: 786]
             "encapsulation": re.compile(r"(?i)\b(?:\.local|\.private)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             # Assembly relies on hardware interrupts rather than high-level listener subscriptions. [cite: 787]
             "listeners": None,
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             # Framework code that explicitly bypasses verification. [cite: 788]
             "test_skip": None,
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Lua Specifics) ---
@@ -5977,7 +5978,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".agc"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: AGC code is hardware-level; no extensionless exact configurations exist.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions and emulator/assembler tools to lock in the historical context.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions and emulator/assembler tools to lock in the historical context.
         "discriminators": [".agc", "yaYUL"],
         # EXECUTION SIGNATURES: AGC code is hardware-level or emulator-resident; no shebangs exist.
         "shebangs": [],
@@ -5993,14 +5994,14 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: AGC Assembly does not support multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES fatal alarms (bailout_hits).
             "branch": re.compile(
                 r"\b(TC|TCF|BZF|BZE|BMN|BPL|CCS|RESUME|RETURN|TCR|OVSK|BVBZ|CALL|GOTO)\b",
                 re.I,
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Safely captures hardware registers (A, Q, L, Z) ONLY when they are
             # explicitly coupled to an AGC mathematical/memory opcode.
             # Also captures the Bank assignment declarations.
@@ -6010,13 +6011,13 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:CA|CS|TS|AD|SU|MULT|DV|MASK|DXCH|LXCH|QXCH|XCH|INDEX)[ \t]+(?:A|Q|L|Z)\b",
                 re.I,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Standard instruction flow and data markers.
             "linear": re.compile(
                 r"\b(CA|CS|TS|DXCH|LXCH|QXCH|XCH|AD|SU|MULT|DV|MASK|SETLOC|BANK|COUNT|ADRES|OCTAL|2OCT|DEC|2DEC|BLOCK|ERASE)\b",
                 re.I,
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Subroutine entry points anchoring logic blocks.
             "func_start": re.compile(
                 r"^([A-Z0-9_-]+)(?=\s+(?:TC|CA|CS|TS|DXCH|CCS|DLOAD|STORE|CALL|INDEX|EXTEND|INHINT|BZF|BZMF|BPL|BMI)\b)",
@@ -6025,68 +6026,68 @@ LANGUAGE_DEFINITIONS = {
             # 5. class_start
             # AGC lacks native objects.
             "class_start": None,
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             # Real-time safety guards and interrupt control.
             "safety": re.compile(
                 r"\b(INHINT|RELINT|TC\s+DOWNRUPT|CS\s+ERESTORE|MUST\s+RESTORE|EDRUPT)\b",
                 re.I,
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Bypassing predictable flow or task management risks.
             "safety_neg": re.compile(
                 r"\b(TC\s+JOBSLEEP|TC\s+JOBWAKE|TCF\s+2|TASKOVER|TCF\s+ADRERR)\b", re.I
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # High-risk failure states and alarms. EXCLUDES MOD history (Phase 2 debt).
             "danger": re.compile(
                 r"\b(CURTAINS|SOFTWARE\s+RESTART|SYSTEM_FAILURE|WHIMPER|HALT)\b", re.I
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # Hardware I/O bridging to the Command/Lunar Module.
             "io": re.compile(
                 r"\b(DSKY|CHANNEL|READ|WRITE|V\d+N\d+|OUT\d+|IN\d+)\b", re.I
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Global labels and externally visible entry points.
             "api": re.compile(
                 r"^[A-Z0-9_-]+\s+EQUALS|^[ \t]*(?:SUBROUTINE|BEXT|EXTEND)\b",
                 re.M | re.I,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Direct state mutation and register storage.
             "flux": re.compile(
                 r"\b(TS|DXCH|LXCH|QXCH|XCH|INCR|AUG|DIM|WRSUB|AUGMENT|DIMINISH|STORE|STQ|STCALL|DAS)\b",
                 re.I,
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(r"(?i)#[ \t]*(?:TCF|CCS|INDEX|BZF|BZN|CA|CS)\b"),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"^#\s*(?:Page|MOD\s+(?:BY|NO)|FUNCTIONAL\s+DESCRIPTION|SUBROUTINE|PURPOSE|CALLING\s+SEQUENCE|AUTHOR|PROGRAM|REVISION)",
                 re.M | re.I,
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # System integrity verifications and self-checks.
             "test": re.compile(
                 r"\b(TC\s+ALARM2|SELFCHECK|ROPECHK|ERASCHK|CNTRCHK|CHECK|TC\s+BANKJUMP)\b",
                 re.I,
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             # Priority multitasking scheduler and task management.
             "concurrency": re.compile(
                 r"\b(PRIO[1-9]|EXEC|TC\s+NOVAC|TC\s+WAITLIST|TC\s+FINDVAC|ENDOFJOB|PHASCHNG|AWAKE|SLEEP|VARDELAY)\b",
                 re.I,
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # DSKY (Display/Keyboard) UI verbs and nouns.
             "ui_framework": re.compile(
                 r"\b(V\s+\d+|N\s+\d+|NOUN|VERB|ENTER|PROCEED)\b", re.I
             ),
             # 17. closures
             "closures": None,
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             # Memory division markers.
             "globals": re.compile(
                 r"\b(ERASABLE\s+MEMORY|FIXED\s+MEMORY|WORKING-STORAGE|COMMON|FLAGWRD\d+|BIT\d+)\b",
@@ -6098,44 +6099,44 @@ LANGUAGE_DEFINITIONS = {
             "generics": None,
             # 21. comprehensions
             "comprehensions": None,
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # Vector math and orbital navigation interpreter routines.
             "scientific": re.compile(
                 r"\b(VAD|VSUB|BDSU|DDV|DMP|DSU|SQRT|NORM|SIGN|ABS|SIN|COS|ASIN|ACOS|SPCOS|SPSIN|DOT|CROSS|UNIT|ABVAL|VXV|VXM|MXV)\b",
                 re.I,
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Self-modifying logic and VM entry.
             "heat_triggers": re.compile(
                 r"\b(INDEX|TC\s+INTPRET|DXCH\s+0000|RVQ)\b", re.I
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r"\b(BANK|SETLOC|EBANK=)\b", re.I),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:BANK[ \t\n]+|SETLOC[ \t\n]+|EBANK=[ \t\n]*)([A-Za-z0-9_]+)",
                 re.I | re.M,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^#\s*(?:MOD\s+BY|AUTHOR|CREATED\s+BY|MAINTAINER|Contact)\s*[:\-]\s*(.*)",
                 re.M | re.I,
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             # Linkage to MIT GSOP or mission versions.
             "spec_exposure": re.compile(
                 r"\b(GSOP|LUMINARY|COMANCHE|COLOSSUS|SUNDISK|SUNBURST|PCR\s*\d+|PCN\s*\d+|SPEC\s*-\s*\d+|#\s*REF:)\b",
                 re.I,
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Hardware interrupt vectors (Rupts).
             "events": re.compile(
                 r"\b(RUPT|TIME1|TIME2|KEYRUPT|UPRUPT|DOWNRUPT|RADAR|OPTIC|HANDRUPT|ERRUPT)\b",
@@ -6143,9 +6144,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 33. dependency_injection
             "dependency_injection": None,
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(r"^[ \t]*(?:MACRO|ENDMAC|DEFINE)\b", re.M | re.I),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": re.compile(
                 r"\b(?:INDEX|INDIRECT|POINTER|CADR|FCADR|ECADR)\b|\*[A-Z0-9_-]+", re.I
             ),
@@ -6153,8 +6154,8 @@ LANGUAGE_DEFINITIONS = {
             "memory_alloc": re.compile(r"\b(?:ERASABLE|FIXED|EQUALS|SHARE)\b", re.I),
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             # Spacecraft downlink routines.
             "telemetry": re.compile(
                 r"\b(DNTM|DOWNLINK|TELEM|TM|DUMPTEL|TM\s+WORD)\b", re.I
@@ -6163,24 +6164,24 @@ LANGUAGE_DEFINITIONS = {
             "print_hits": re.compile(r"\b(?:FLASH|PINBALL|OUT\d+)\b", re.I),
             # 40. cast_hits
             "cast_hits": re.compile(r"\bEXTEND\b", re.I),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(POODOO|BAILOUT|TC\s+ALARM|ABORT)\b", re.I),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(TC\s+JOBSLEEP|VARDELAY)\b", re.I),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"\b(MASK|AD|SU|MULT|DV)\b", re.I),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(r"\b(INHINT|RELINT|LOCK|UNLOCK)\b", re.I),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\bFIXED\s+MEMORY\b", re.I),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(ENDOFJOB|RESUME|EXIT)\b", re.I),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Internal task-local labels or non-global tags.
             "encapsulation": re.compile(r"^[ \t]*[a-z0-9_][a-zA-Z0-9_.]*", re.M),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(EVENT\s+WAIT|TC\s+WAITLIST)\b", re.I),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": None,
         },
     },
@@ -6195,7 +6196,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".lua", ".luau", ".nse", ".pd_lua", ".wlua", ".rockspec"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Tooling and documentation configurations that are secretly pure Lua code.
         "exact_matches": ["config.ld"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, package manifests, and linting configs to resolve ambiguous files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, package manifests, and linting configs to resolve ambiguous files.
         "discriminators": [".lua", ".luacheckrc", "stylua.toml", ".rockspec"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for CLI, Game-Engine, and embedded scripts.
         "shebangs": ["lua", "luajit", "luau", "texlua"],
@@ -6213,18 +6214,18 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"--\[=*\["),
             # Block comment end: Catches standard ]] and long-bracket ]=] styles
             "_block_end": re.compile(r"\]=*\]"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes standard loops and Lua 5.2+ goto.
             "branch": re.compile(
                 r"\b(if|then|elseif|else|for|in|while|do|repeat|until|break|goto|and|or|not)\b"
             ),
-            # 2. args: Coupling Mass. Captures parameters in named and anonymous function signatures.
+            # 2. args: Parameters / Coupling. Captures parameters in named and anonymous function signatures.
             "args": re.compile(r"\bfunction\s*(?:[a-zA-Z_][\w.:]*\s*)?\([^)]*\)"),
-            # 3. linear: Smooth Path. Structural boundaries defining scope and data definitions.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries defining scope and data definitions.
             "linear": re.compile(
                 r"\b(local|end|require|module|return)\b|<\s*(?:const|close|toclose)\s*>"
             ),
-            # 4. func_start: Satellite Spawner. Anchors executable logic blocks (named functions).
+            # 4. func_start: Executable Logic Anchors. Anchors executable logic blocks (named functions).
             "func_start": re.compile(
                 # =====================================================================
                 # [ THE VERTICAL FUNCTION SHIELD (LUA) ]
@@ -6237,83 +6238,83 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:local[ \t\n]+)?(?:export[ \t\n]+)?function[ \t\n]+([a-zA-Z_][\w.:]*)(?=[ \t\n]*\()",
                 re.M,
             ),
-            # 5. class_start: Entity Census. Captures proto-tables or EmmyLua class definitions.
+            # 5. class_start: Object / Entity Declarations. Captures proto-tables or EmmyLua class definitions.
             "class_start": re.compile(
                 r"^[ \t]*---@class\s+([a-zA-Z_]\w*)|^[ \t]*(?:local[ \t]+)?(?:export[ \t]+)?([A-Z][a-zA-Z0-9_]*)(?=[ \t]*=[ \t]*\{)",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Protected calls, assertions, and type checks.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Protected calls, assertions, and type checks.
             "safety": re.compile(
                 r"\b(pcall|xpcall|assert|error|type|getmetatable|rawequal|ipairs|pairs|next)\b|<\s*(?:const|close|toclose)\s*>"
             ),
-            # 7. safety_neg: Fractures. Actively bypassing safety (environment manipulation/raw access).
+            # 7. safety_neg: Safety Bypasses. Actively bypassing safety (environment manipulation/raw access).
             "safety_neg": re.compile(
                 r"\b(rawget|rawset|rawlen|debug\.[a-zA-Z0-9_]+|collectgarbage|_G|_ENV|getfenv|setfenv)\b"
             ),
-            # 8. danger: Heavy Load. Dynamic evaluation and OS-level execution hooks.
+            # 8. danger: High-Risk Execution. Dynamic evaluation and OS-level execution hooks.
             "danger": re.compile(
                 r"\b(os\.execute|os\.exit|os\.remove|os\.rename|load|loadstring|loadfile)\b"
             ),
-            # 9. io: Boundaries. Standard IO library and environment inquiries.
+            # 9. io: I/O & Network Boundaries. Standard IO library and environment inquiries.
             "io": re.compile(
                 r"\b(io\.open|io\.read|io\.lines|io\.close|io\.input|io\.output|io\.popen|os\.getenv)\b"
             ),
-            # 10. api: Event Horizon. Functions NOT marked local or explicit module returns.
+            # 10. api: Public Surface Area. Functions NOT marked local or explicit module returns.
             "api": re.compile(
                 r"^[ \t]*function\s+[^_][\w.:]*|^[ \t]*return\s+[a-zA-Z_]\w*[ \t]*$|---@public|\bexport\b",
                 re.M,
             ),
-            # 11. flux: Boiling Plasma. State mutation (assignments and table mutators).
+            # 11. flux: State Mutation. State mutation (assignments and table mutators).
             "flux": re.compile(
                 r"\b[a-zA-Z_]\w*(?:\[[^\]]+\]|\.[a-zA-Z_]\w*)?\s*(?<![=<>~])=(?![=])|\btable\.(?:insert|remove|move|sort|concat)\b"
             ),
-            # 12. graveyard: Necrosis. Commented out structural code trails.
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural code trails.
             "graveyard": re.compile(
                 r"(?:--|--\[=*\[)[ \t]*(?:if|local|function|for|while|print|return)\b",
                 re.M,
             ),
-            # 13. doc: Intent. LDoc/EmmyLua style documentation.
+            # 13. doc: Structured Documentation. LDoc/EmmyLua style documentation.
             "doc": re.compile(
                 r"---@(?:param|return|field|see|alias|private|protected|diagnostic)|---\s*[A-Z]",
                 re.M,
             ),
-            # 14. test: Verification. Busted, LuaUnit, and custom verification markers.
+            # 14. test: Testing & Assertions. Busted, LuaUnit, and custom verification markers.
             "test": re.compile(
                 r'\b(?:setup|teardown|busted|luassert|assert|mock|stub|spy|luaunit|Test[A-Z]\w*)\b|\b(?:describe|it)\s*[\'"(]'
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. Lua coroutines and task schedulers.
             "concurrency": re.compile(
                 r"\b(coroutine\.(?:create|resume|yield|wrap|status|isyieldable|close)|task\.(?:spawn|wait|defer|delay)|uv\.[a-zA-Z0-9_]+)\b"
             ),
-            # 16. ui_framework: View Layer. Game engine hooks (LÖVE, Solar2D, Defold, Roblox).
+            # 16. ui_framework: UI / View Components. Game engine hooks (LÖVE, Solar2D, Defold, Roblox).
             "ui_framework": re.compile(
                 r"\b(love\.[a-zA-Z0-9_]+|display\.new[a-zA-Z0-9_]+|gui\.[a-zA-Z0-9_]+|Roact\.[a-zA-Z0-9_]+|Instance\.new)\b"
             ),
-            # 17. closures: Functional Depth. Anonymous function depth.
+            # 17. closures: Closures / Anonymous Functions. Anonymous function depth.
             "closures": re.compile(r"(?:^|[(=,\s])function\s*\([^)]*\)", re.M),
-            # 18. globals: Shared Void. Access to global registries.
+            # 18. globals: Global / Shared State. Access to global registries.
             "globals": re.compile(
                 r"\b(_G|_ENV|_VERSION|arg)\b|^[ \t]*[A-Z][A-Z0-9_]*[ \t]*=(?![=])", re.M
             ),
-            # 19. decorators: Metadata Hooks. EmmyLua annotations.
+            # 19. decorators: Decorators / Annotations. EmmyLua annotations.
             "decorators": re.compile(r"^[ \t]*---@[a-zA-Z_]\w*", re.M),
-            # 20. generics: Type Abstractions. EmmyLua generic type annotations.
+            # 20. generics: Generics / Type Parameters. EmmyLua generic type annotations.
             "generics": re.compile(r"---@(?:generic|type)\s+[a-zA-Z_]\w*(?:<[^>]*>)?"),
-            # 21. comprehensions: High-Density Loops. Functional iterator patterns.
+            # 21. comprehensions: Iterators / Comprehensions. Functional iterator patterns.
             "comprehensions": re.compile(
                 r"\b(?:pairs|ipairs|next|string\.gmatch)\b|\b(?:lume|moses|_\.)(?:map|filter|reduce|each|find|any|all)\b"
             ),
-            # 22. scientific: Compute Core. Standard math library.
+            # 22. scientific: Numerical / Compute Libraries. Standard math library.
             "scientific": re.compile(
                 r"\b(math\.[a-zA-Z0-9_]+|bit32\.[a-zA-Z0-9_]+)\b|<<|>>|//"
             ),
-            # 23. heat_triggers: Thermal Radiation. Metatable overrides and Dunder methods.
+            # 23. heat_triggers: Metaprogramming & Reflection. Metatable overrides and Dunder methods.
             "heat_triggers": re.compile(
                 r"\b(__index|__newindex|__call|__add|__sub|__mul|__div|__mod|__pow|__unm|__idiv|__band|__bor|__bxor|__bnot|__shl|__shr|__concat|__len|__eq|__lt|__le|__gc|__close|__mode)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"\b(?:require|dofile)\b[ \t\n]*\(?[ \t\n]*['\"]", re.M
             ),
@@ -6345,7 +6346,7 @@ LANGUAGE_DEFINITIONS = {
                 r"--\s*(?:Author|Copyright|License|Maintainer):\s+([^\n]+)|---\s*@author\s+([^\n]+)",
                 re.I | re.M,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -6378,12 +6379,12 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(
                 r"\b(?:log\.(?:info|warn|error|debug|trace)|ngx\.log|ngx\.ERR|ngx\.INFO)\b"
             ),
-            # 39. print_hits: Amateur space debris.
+            # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(print|warn|io\.write)\b"),
             # 40. cast_hits: "Trust Me" Tax.
             "cast_hits": re.compile(r"\b(ffi\.cast|tonumber|tostring)\b"),
@@ -6437,7 +6438,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".pl", ".pm", ".t", ".pod", ".plx", ".cgi", ".al", ".ph"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Core build scripts that are purely executed Perl code.
         "exact_matches": ["Makefile.PL", "Build.PL"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions and CPAN metadata to resolve .pl (Prolog collision) and .t.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions and CPAN metadata to resolve .pl (Prolog collision) and .t.
         "discriminators": [
             ".pm",
             ".pod",
@@ -6462,20 +6463,20 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"^=\w+", re.M),
             # Block comment end: POD blocks are explicitly closed by '=cut'.
             "_block_end": re.compile(r"^=cut", re.M),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: Decisions that split the flow. Includes modern try/catch/finally and defer.
             "branch": re.compile(
                 r"\b(if|unless|elsif|else|while|until|for|foreach|given|when|next|last|redo|try|catch|finally|defer|goto|continue|default)\b|&&|\|\||//|\?|:"
             ),
-            # 2. args: Coupling Mass. Captures modern signatures, traditional @_ unpacking, and shift.
+            # 2. args: Parameters / Coupling. Captures modern signatures, traditional @_ unpacking, and shift.
             "args": re.compile(
                 r"\b(?:sub|method)\s+(?:[a-zA-Z_]\w*\s*)?\([^)]*\)|\bmy\s*\([^)]*\)[ \t]*=\s*@_|\bshift\b"
             ),
-            # 3. linear: Smooth Path. Structural boundaries. EXCLUDES access modifiers and immutability.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries. EXCLUDES access modifiers and immutability.
             "linear": re.compile(
                 r"\b(my|our|state|local|field|class|role|package|return|yield|use|require|undef|do|true|false|await)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Anchors executable logic blocks. MUST HAVE EXACTLY ONE CAPTURE GROUP for the name.
             #
             # LLM/MAINTAINER CONTEXT & DOMAIN KNOWLEDGE:
@@ -6500,83 +6501,83 @@ LANGUAGE_DEFINITIONS = {
                 r"(?=[ \t\n]*[:\(\{]|$)",
                 re.M,
             ),
-            # 5. class_start: Entity Census. Defines object-oriented and structural boundaries.
+            # 5. class_start: Object / Entity Declarations. Defines object-oriented and structural boundaries.
             "class_start": re.compile(
                 r"^[ \t]*(?:package|class|role)\s+([a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*)(?=[ \t]*[;\{]|\n|$)",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Defensive constructs (strict, warnings, safe exceptions).
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Defensive constructs (strict, warnings, safe exceptions).
             "safety": re.compile(
                 r"\b(use\s+strict|use\s+warnings|use\s+v5\.\d+|croak|confess|try|catch|finally|eval[ \t]*\{|defer|isa|DOES)\b|->isa\b|->DOES\b"
             ),
-            # 7. safety_neg: Fractures. Actively bypassing safety (no strict, string eval).
+            # 7. safety_neg: Safety Bypasses. Actively bypassing safety (no strict, string eval).
             "safety_neg": re.compile(
                 r'\b(no\s+strict|no\s+warnings|eval\s*["\']|eval\s+(?!\w|{)|goto\s+\&)\b'
             ),
-            # 8. danger: Heavy Load. Process killers and raw shell execution.
+            # 8. danger: High-Risk Execution. Process killers and raw shell execution.
             "danger": re.compile(r"\b(system|exec|exit|qx|CORE::dump)\b|`[^`]+`"),
-            # 9. io: Boundaries. Disk, Network, DBI, and standard handles.
+            # 9. io: I/O & Network Boundaries. Disk, Network, DBI, and standard handles.
             "io": re.compile(
                 r"\b(open|close|sysopen|sysread|syswrite|opendir|closedir|DBI->connect|Mojo::UserAgent|HTTP::Tiny|LWP::UserAgent|socket|connect|bind)\b|<[A-Z_0-9]+>|<>"
             ),
-            # 10. api: Event Horizon. Exposed surface area (Exports and modern routing).
+            # 10. api: Public Surface Area. Exposed surface area (Exports and modern routing).
             "api": re.compile(
                 r'\b(?:get|post|put|del|any|patch)\s+[\'"]/[^\'"]*[\'"]|@(?:EXPORT|EXPORT_OK|EXPORT_TAGS|ISA)\b|use\s+(?:Exporter|parent|base)\b|:\s*(?:reader|writer|param)\b'
             ),
-            # 11. flux: Boiling Plasma. State mutation (assignments, array mutators, substitutions).
+            # 11. flux: State Mutation. State mutation (assignments, array mutators, substitutions).
             # UPDATED: Removed '.=' and '=~' / '!~' to prevent massive string-builder false positives.
             "flux": re.compile(
                 r"\b(?:push|pop|shift|unshift|splice|delete)\b|[\$@%][a-zA-Z_]\w*(?:->|\[|\{){0,5}\s*(?:\+|-|\*|/|\||&|\^|%|x)?=(?!=)|(?:\+\+|--)|\bs/"
             ),
-            # 12. graveyard: Necrosis. Commented out structural logic.
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural logic.
             "graveyard": re.compile(
                 r"^[ \t]*#\s*(?:my|our|state|sub|method|class|package|if|unless|while|print|say)\b",
                 re.M,
             ),
-            # 13. doc: Intent. Structured POD documentation.
+            # 13. doc: Structured Documentation. Structured POD documentation.
             "doc": re.compile(
                 r"^=(?:pod|head[1-6]|item|over|back|cut|begin|end|encoding|for)\b", re.M
             ),
-            # 14. test: Verification. Assertions and Test frameworks.
+            # 14. test: Testing & Assertions. Assertions and Test frameworks.
             "test": re.compile(
                 r"\b(?:Test2::V0|Test::More|cmp_ok|is_deeply|subtest|done_testing|BAIL_OUT)\b|\b(?:ok|is|isnt|like|unlike|plan|diag|note)\s*\("
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. Async, forks, and threads.
             "concurrency": re.compile(
                 r"\b(async|await|fork|waitpid|threads(?:->create)?|threads::shared|AnyEvent|Coro|Mojo::IOLoop|Mojo::Promise|Future|Parallel::ForkManager)\b"
             ),
-            # 16. ui_framework: View Layer. GUI libraries and template engines.
+            # 16. ui_framework: UI / View Components. GUI libraries and template engines.
             "ui_framework": re.compile(
                 r"\b(Tk::|Wx::|Gtk2::|Gtk3::|Prima::|Template|HTML::Mason|Mojolicious::Plugin::TagHelpers)\b|\brender(?:_to_string)?\b|<%|%>|\[%|%\]"
             ),
-            # 17. closures: Functional Depth. Anonymous subroutines.
+            # 17. closures: Closures / Anonymous Functions. Anonymous subroutines.
             "closures": re.compile(r"\bsub\s*(?:\([^)]*\))?[ \t]*\{"),
-            # 18. globals: Shared Void. Magic variables and system globals.
+            # 18. globals: Global / Shared State. Magic variables and system globals.
             "globals": re.compile(
                 r"(?:\$a|\$b|\$_|\$\$|\$@|\$!|\$\?|\$0|%ENV|%SIG|@ARGV|@INC)\b|^[ \t]*our\s+[\$@%]",
                 re.M,
             ),
-            # 19. decorators: Metadata Hooks. Subroutine and variable attributes.
+            # 19. decorators: Decorators / Annotations. Subroutine and variable attributes.
             "decorators": re.compile(r":\s*[a-zA-Z_]\w*(?:\([^)]*\))?"),
-            # 20. generics: Type Abstractions. Parameterized types (via Type::Tiny/Moose).
+            # 20. generics: Generics / Type Parameters. Parameterized types (via Type::Tiny/Moose).
             "generics": re.compile(
                 r"\b(?:ArrayRef|HashRef|Map|Tuple|Dict|Maybe|InstanceOf|ConsumerOf|Enum)\[[^\]]*\]"
             ),
-            # 21. comprehensions: High-Density Loops. Map and Grep.
+            # 21. comprehensions: Iterators / Comprehensions. Map and Grep.
             "comprehensions": re.compile(
                 r"\b(?:map|grep|reduce|any|all|none|notall|first|List::Util)\b"
             ),
-            # 22. scientific: Compute Core. PDL and Math::BigInt.
+            # 22. scientific: Numerical / Compute Libraries. PDL and Math::BigInt.
             "scientific": re.compile(
                 r"\b(Math::Trig|Math::BigInt|Math::BigFloat|Math::Complex|PDL|sin|cos|exp|log|sqrt|atan2|abs|int|rand|srand)\b"
             ),
-            # 23. heat_triggers: Thermal Radiation. Metaprogramming and Symbol table hacks.
+            # 23. heat_triggers: Metaprogramming & Reflection. Metaprogramming and Symbol table hacks.
             "heat_triggers": re.compile(
                 r"\b(AUTOLOAD|DESTROY|BEGIN|UNITCHECK|CHECK|INIT|END|tie|untie|bless|overload)\b|\*[a-zA-Z_]\w*[ \t]*=\s*(?:\\|&)|goto\s+&"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(
                 r"\b(?:use|require|no)\s+[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*", re.M
             ),
@@ -6602,7 +6603,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^=head1\s+(?:AUTHOR|COPYRIGHT|LICENSE)|#\s*(?:Author|Maintainer|Created by):\s+([^\n]+)",
                 re.I | re.M,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -6639,7 +6640,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm: Bare Metal. Direct architecture bridging via Inline modules.
             "inline_asm": re.compile(r'\buse\s+Inline\s+[\'"](?:C|CPP|ASM)[\'"]'),
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: The Professional. Structured logging and observability frameworks.
             "telemetry": re.compile(
                 r"\b(?:Log::Log4perl|Log::Any|Mojo::Log|log_(?:info|debug|warn|error|fatal))\b|->(?:debug|info|warn|error|fatal|trace)\b",
@@ -6701,7 +6702,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".hs", ".lhs", ".hsc", ".ghci"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Cabal custom setup scripts that evaluate as pure Haskell.
         "exact_matches": ["Setup.hs", "Setup.lhs"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, Stack configs, and Cabal manifests to anchor the ecosystem.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, Stack configs, and Cabal manifests to anchor the ecosystem.
         "discriminators": [".hs", ".lhs", "stack.yaml", "cabal.project", ".cabal"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for script-based Haskell execution.
         "shebangs": ["runhaskell", "runghc", "stack", "ghci"],
@@ -6710,7 +6711,7 @@ LANGUAGE_DEFINITIONS = {
         "lexical_family": "multi_style_dash",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
-            # Haskell uses '--' for line-level Ghost Mass.
+            # Haskell uses '--' for line-level Commented / Non-Executable Text.
             # CRITICAL GUARDRAIL: Negative lookahead ensures we don't accidentally split on custom operators like '-->'
             "_line_anchor": re.compile(r"--+(?![!#$%&*+./<=>?@\\^|~-])"),
             # Inline comments follow the same highly-specific symbol guard
@@ -6719,21 +6720,21 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"\{-"),
             # Block comment end: -}
             "_block_end": re.compile(r"-\}"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # branch: decisions that split flow. Includes guards (|) and modern \cases.
             "branch": re.compile(
                 r"\b(if|then|else|case|of|MultiWayIf)\b|\\cases?|^[ \t]*\|", re.M
             ),
-            # args: Coupling Mass. Captures type signatures, lambda bindings, and explicit @type apps.
+            # args: Parameters / Coupling. Captures type signatures, lambda bindings, and explicit @type apps.
             "args": re.compile(
                 r"::\s*[^=\n]+(?:->|=>|⊸)|\\[a-zA-Z0-9_\'\s,()\[\]]+->|@[A-Z][a-zA-Z0-9_\']*"
             ),
-            # linear: Smooth Path. Structural boundaries defining scope and data definitions.
+            # linear: Sequential I/O & Network Boundaries. Structural boundaries defining scope and data definitions.
             "linear": re.compile(
                 r"\b(module|data|type|newtype|class|instance|let|in|where|do|mdo|deriving|family|pattern)\b|%1\s*->|⊸"
             ),
-            # 4. func_start: Satellite Spawner. Anchors executable logic (Type Signatures).
-            # EXCLUDES data/type/class declarations to fix Ghost Satellites.
+            # 4. func_start: Executable Logic Anchors. Anchors executable logic (Type Signatures).
+            # EXCLUDES data/type/class declarations to fix False Positives.
             "func_start": re.compile(
                 # =====================================================================
                 # THE HASKELL UPPERCASE TRAP:
@@ -6746,83 +6747,83 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?!(?:data|type|newtype|class|instance)\b)([a-zA-Z_][a-zA-Z0-9_\']*)(?=\s*::)",
                 re.M,
             ),
-            # class_start: Entity Census. Defines structural entities and typeclass boundaries.
+            # class_start: Object / Entity Declarations. Defines structural entities and typeclass boundaries.
             "class_start": re.compile(
                 r"^[ \t]*(?:data|newtype|class|type(?:\s+family)?)\s+([A-Z][a-zA-Z0-9_\']*)(?=\s*[=|]|\n|$)",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # safety: Cyan Fortification. Functional safety (Maybe/Either) and exception brackets.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # safety: Defensive Programming. Functional safety (Maybe/Either) and exception brackets.
             "safety": re.compile(
                 r"\b(Maybe|Either|Just|Nothing|Right|Left|try|catch|bracket|finally|onException|SafeT|mask|pure|return)\b"
             ),
-            # safety_neg: Fractures. Bypassing purity (unsafePerformIO) and partial functions.
+            # safety_neg: Safety Bypasses. Bypassing purity (unsafePerformIO) and partial functions.
             "safety_neg": re.compile(
                 r"\b(unsafePerformIO|unsafeCoerce|error|undefined|fromJust|head|tail|init|last|throw|unsafeFixIO)\b"
             ),
-            # danger: Heavy Load. Forceful aborts and Debug-trace leaks in production.
+            # danger: High-Risk Execution. Forceful aborts and Debug-trace leaks in production.
             "danger": re.compile(
                 r"\b(die|exitWith|exitFailure|Debug\.Trace|trace|traceShow|traceIO|traceM)\b"
             ),
-            # io: Boundaries. IO Monad and hardware interactions.
+            # io: I/O & Network Boundaries. IO Monad and hardware interactions.
             "io": re.compile(
                 r"\b(IO|readFile|writeFile|appendFile|hGetContents|hPutStr|openFile|withFile|getLine|getChar|Socket|Connection|runDB)\b"
             ),
-            # api: Event Horizon. Captured via module headers. Captures both explicit lists and implicit "all" exports.
+            # api: Public Surface Area. Captured via module headers. Captures both explicit lists and implicit "all" exports.
             "api": re.compile(
                 r"^[ \t]*module\s+[A-Z][a-zA-Z0-9_.]*(?:\s*\([^)]*\))?\s*where|\bforeign\s+export\b",
                 re.M,
             ),
-            # flux: Boiling Plasma. State mutation (IORef/MVar) and monadic binds (<-).
+            # flux: State Mutation. State mutation (IORef/MVar) and monadic binds (<-).
             "flux": re.compile(
                 r"\b(IORef|STRef|TVar|MVar|TMVar|modifyIORef\'?|writeIORef|putMVar|modify|put|StateT)\b|<-"
             ),
-            # graveyard: Necrosis. Commented out structural code trails.
+            # graveyard: Dead / Commented-out Code. Commented out structural code trails.
             "graveyard": re.compile(
                 r"--\s*(?:data|type|newtype|class|instance|let|where|import|putStrLn)\b",
                 re.M,
             ),
-            # doc: Intent. Haddock documentation markers.
+            # doc: Structured Documentation. Haddock documentation markers.
             "doc": re.compile(r"--\s*\||--\s*\^|\{-\||--\s*@(?:param|return|author)"),
-            # test: Verification. Verification framework keywords (QuickCheck/Hspec).
+            # test: Testing & Assertions. Verification framework keywords (QuickCheck/Hspec).
             "test": re.compile(
                 r'\b(?:hspec|QuickCheck|prop_[a-zA-Z0-9_\']+|assertEqual|shouldBe|testGroup|testCase)\b|\b(?:describe|it|property)\s+"'
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # concurrency: Temporal Static. STM, async, and thread forking.
             "concurrency": re.compile(
                 r"\b(forkIO|forkOS|async|wait|cancel|MVar|TVar|STM|atomically|threadDelay)\b"
             ),
-            # ui_framework: View Layer. Functional reactive GUI and web components.
+            # ui_framework: UI / View Components. Functional reactive GUI and web components.
             "ui_framework": re.compile(
                 r"\b(Threepenny|Brick|Reflex|Miso|Gtk|widget|vBox|hBox|Lucid|Blaze|Monomer)\b"
             ),
-            # closures: Functional Depth. Anonymous lambda depth.
+            # closures: Closures / Anonymous Functions. Anonymous lambda depth.
             "closures": re.compile(r"\\[a-zA-Z0-9_\'\s(),\[\]]+\s*->|\\cases?"),
-            # globals: Shared Void. Top-level state hacks (typically MVars using unsafePerformIO).
+            # globals: Global / Shared State. Top-level state hacks (typically MVars using unsafePerformIO).
             "globals": re.compile(
                 r"^[ \t]*[a-z_][a-zA-Z0-9_\']*\s*::\s*(?:IORef|TVar|MVar)[^=]*unsafePerformIO",
                 re.M,
             ),
-            # decorators: Metadata Hooks. GHC pragmas (INLINE, LANGUAGE).
+            # decorators: Decorators / Annotations. GHC pragmas (INLINE, LANGUAGE).
             "decorators": re.compile(
                 r"\{-#\s*(?:INLINE|NOINLINE|LANGUAGE|OPTIONS_GHC|RULES|MINIMAL)\s+[^#]*#-\}"
             ),
-            # generics: Type Abstractions. forall quantification and constraints.
+            # generics: Generics / Type Parameters. forall quantification and constraints.
             "generics": re.compile(
                 r"\bforall\s+[^.]+\.|\b(?:[A-Z][a-zA-Z0-9_\']*\s+[a-z][a-zA-Z0-9_\']*[ \t]*=>)|\([^)]+\)[ \t]*=>"
             ),
-            # comprehensions: High-Density Loops. List comprehensions and dense monad applicatives.
+            # comprehensions: Iterators / Comprehensions. List comprehensions and dense monad applicatives.
             "comprehensions": re.compile(r"\[\s*[^|\]]+\s*\|[^\]]+\]|<\$>|<\*>|>>="),
-            # scientific: Compute Core. Advanced Math and Linear Algebra.
+            # scientific: Numerical / Compute Libraries. Advanced Math and Linear Algebra.
             "scientific": re.compile(
                 r"\b(Complex|RealFloat|Floating|Numeric\.LinearAlgebra|Matrix|Vector|ad|grad|jacobian|sin|cos|tan|exp|log|pi)\b"
             ),
-            # heat_triggers: Thermal Radiation. QuasiQuotes and Template Haskell.
+            # heat_triggers: Metaprogramming & Reflection. QuasiQuotes and Template Haskell.
             "heat_triggers": re.compile(
                 r"\b(TemplateHaskell|QuasiQuotes|TypeFamilies|GHC\.Generics|Generic)\b|\[[a-z_]+\||\$\([a-zA-Z0-9_\']+\)"
             ),
-            # import: Gravity Links. Module resolution.
+            # import: Dependency Inclusions. Module resolution.
             "import": re.compile(
                 r"^[ \t]*import\s+(?:qualified[ \t]+)?[A-Z][a-zA-Z0-9_.]*", re.M
             ),
@@ -6833,7 +6834,7 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(
                 r"--\s*\|?\s*(?:Author|Maintainer|Copyright|License):\s+([^\n]+)", re.I
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             "planned_debt": GLOBAL_PLANNED_DEBT,
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(r"\[(?:spec-[0-9]+|audit|rfc)\]", re.I),
@@ -6860,12 +6861,12 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": re.compile(
                 r"\bforeign\s+import\s+(?:ccall|cplusplus|prim|capi)\b"
             ),
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # telemetry: Professional structured logging.
             "telemetry": re.compile(
                 r"\b(?:logDebug|logInfo|logWarn|logError|logOther|katip|MonadLogger|LoggerT)\b"
             ),
-            # print_hits: Amateur space debris.
+            # print_hits: Standard output.
             "print_hits": re.compile(r"\b(putStr|putStrLn|print|putChar)\b"),
             # cast_hits: "Trust Me" Tax.
             "cast_hits": re.compile(
@@ -6921,7 +6922,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".py", ".mpy"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: The strict execution entry points for microcontroller boot sequences.
         "exact_matches": ["boot.py"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, boot sequence files, and the MicroPython package installer (mip) configs.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, boot sequence files, and the MicroPython package installer (mip) configs.
         "discriminators": ["boot.py", "mip.json", "upip"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for embedded discovery and cross-compilation.
         "shebangs": ["micropython", "mpy-cross"],
@@ -6936,7 +6937,7 @@ LANGUAGE_DEFINITIONS = {
         "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
-            # MicroPython uses '#' for line-level Ghost Mass.
+            # MicroPython uses '#' for line-level Commented / Non-Executable Text.
             "_line_anchor": re.compile(r"#"),
             # Inline comments are also triggered by the '#' token.
             "_inline_comment": re.compile(r"#"),
@@ -6944,145 +6945,145 @@ LANGUAGE_DEFINITIONS = {
             # (Note: Multi-line strings used as docs are handled by the 2.3.C Python Heuristic).
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES raise (bailout_hits).
             "branch": re.compile(
                 r"\b(if|elif|else|for|while|with|try|finally|match|case|and|or)\b"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Parameter blocks of functions/lambdas. Bounded negation to prevent ReDoS.
             "args": re.compile(
                 r"(?:async[ \t]+)?def\s+[a-zA-Z_]\w*\s*\([^)]*\)|\blambda\s+[^:]+:",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: _private (encapsulation) and Final (freeze_hits).
             "linear": re.compile(
                 r"\b(def|class|return|import|from|as|pass|continue|break|yield|await|assert|del|global|nonlocal|type)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ONLY executable logic blocks. EXCLUDES classes. Steps safely over hardware decorators.
             "func_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}(?:async[ \t]+)?def\s+([a-zA-Z_]\w*)(?=\s*\()",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}class\s+([a-zA-Z_]\w*)(?=[ \t]*[\(:]|\n|$)",
                 re.M,
             ),
-            # --- PHASE 2: RISK ENGINE (Cognitive Load & Tech Debt) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             # Hardware watchdogs and standard Python safety checks.
             "safety": re.compile(
                 r"\b(try|except|finally|assert|machine\.WDT|isinstance|issubclass|hasattr|getattr|alloc_emergency_exception_buf)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Bare excepts and blocking the event loop (detrimental in embedded async).
             "safety_neg": re.compile(
                 r"\bpass\b[ \t]*$|except\s*[:\n]|except\s+(?:Base)?Exception|from\s+[\w.]+\s+import\s+\*|\btime\.sleep(?:_ms|_us)?\b",
                 re.M,
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Hardware resets and raw memory pokes. EXCLUDES TODO (debt) and print (print_hits).
             "danger": re.compile(
                 r"\b(machine\.reset|machine\.deepsleep|machine\.bootloader|machine\.disable_irq|eval|exec|sys\.exit)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # Hardware Peripherals (I2C, SPI, UART, Pin) and Networking.
             "io": re.compile(
                 r"\b(open|Pin|I2C|SPI|UART|ADC|PWM|RTC|SDCard|I2S|WLAN|LAN|socket|usocket|uos\.mount|aiohttp)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Implicit public defaults (undercased root defs) + explicit exports.
             "api": re.compile(
                 r"^[ \t]*(?:async[ \t]+)?def\s+[^_]\w+|^[ \t]*class\s+[^_]\w+|^__all__[ \t]*=",
                 re.M,
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # State mutation including hardware value toggling.
             "flux": re.compile(
                 r"\bglobal\b|\bnonlocal\b|\b(?:self|cls)\.\w+[ \t]*=|:=|(?:\.\w+)?\.(?:append|extend|update|pop|remove|insert|clear)\s*\(|\.(?:value|on|off|high|low|toggle)\s*\("
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             "graveyard": re.compile(
                 r"#[ \t]*(?:def|class|import|if|for|while|try|print|machine\.Pin)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r'"""|\'\'\'|:param|:return|:raises|:type|#\s*Pin[ \t]*=|#\s*GPIO'
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(unittest|pytest|assert|test_|setUp|tearDown|Mock)\b"
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(async|await|uasyncio|asyncio|Timer\.init|_thread|start_new_thread|allocate_lock|gather|create_task|Event|Lock)\b"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # Framebuffers and embedded OLED/TFT drivers.
             "ui_framework": re.compile(
                 r"\b(framebuf|ssd1306|st7789|ili9341|epaper|lvgl|display|text|fill|pixel|show|scroll)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"\blambda\b"),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\bglobal\b|\bglobals\(\)|\blocals\(\)|\b(sys\.path|sys\.modules|os\.environ)\b"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             # Generic decorators. (Specific ASM/Viper optimizations moved to heat_triggers/inline_asm).
             "decorators": re.compile(
                 r"^[ \t]*@(?!(?:micropython\.viper|micropython\.asm|micropython\.native))[\w.]+",
                 re.M,
             ),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(
                 r"\b(?:List|Dict|Set|Tuple|Optional|Union|Any|Callable|Sequence|Iterable)\[[^\]]*\]|->"
             ),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\[[^\]]*\bfor\b[^\]]*\]|\{[^}]*\bfor\b[^}]*\}|\([^)]*\bfor\b[^)]*\)"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # Math, complex arrays, and ulab (MicroPython's NumPy).
             "scientific": re.compile(
                 r"\b(math|cmath|ulab|numpy|ndarray|struct\.pack|struct\.unpack|bin|hex|oct|abs|sin|cos|tan)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Extreme "Logic Heat": Dunder methods and Viper/Native emitters.
             "heat_triggers": re.compile(
                 r"__(?:getattr|setattr|new|call|dict|dir|import)__|@(?:staticmethod|classmethod|property)|@micropython\.(?:viper|native)\b|\b(?:getattr|setattr|hasattr)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r"^[ \t]*(?:import|from)\b\s+[\w.]+", re.M),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:import|from)\b\s+([\w.]+)", re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I
             ),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             # Lightweight web servers (Microdot, Picoweb).
             "ssr_boundaries": re.compile(
                 r"\b(microdot|picoweb|MicroWebSrv|tinyweb|render_template|Response|@app\.get|@app\.post)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Hardware interrupts and async event flags.
             "events": re.compile(
                 r"\b(irq|Pin\.irq|Timer\.irq|machine\.enable_irq|trigger|set_callback|Event\.set|schedule)\b"
@@ -7092,12 +7093,12 @@ LANGUAGE_DEFINITIONS = {
             # 34. macros
             # MicroPython's const() acts as a compile-time macro.
             "macros": re.compile(r"\bconst\s*\([^)]+\)"),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Pointer manipulation enabled by Viper/uctypes.
             "pointers": re.compile(
                 r"\b(uctypes\.addressof|uctypes\.bytearray_at|ptr8|ptr16|ptr32|machine\.mem8|machine\.mem16|machine\.mem32)\b"
             ),
-            # 36. memory_alloc (The Yin to cleanup)
+            # 36. memory_alloc 
             "memory_alloc": re.compile(
                 r"\b(bytearray|memoryview|alloc_emergency_exception_buf)\b"
             ),
@@ -7105,37 +7106,37 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": re.compile(
                 r"@(?:micropython\.asm_thumb|micropython\.asm_xtensa|rp2\.asm_pio)\b"
             ),
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(logging|logger|ulogging|syslog)\.(?:info|error|warn|warning|debug|trace|critical|exception)\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(print|input)\s*\("),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\b(int|str|float|list|dict|set|tuple|bool|bytes|cast)\b\s*\("
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(raise|quit|exit|sys\.exit|abort)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(time\.sleep|asyncio\.sleep|Thread\.join)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(Lock|RLock|Semaphore|Event|Condition|allocate_lock)\b"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(Final|frozenset|mappingproxy|immutable)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|__exit__|del|gc\.collect|cleanup)\b\s*\("),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b_[a-zA-Z_]\w*\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             # Waiting for state broadcast via hardware IRQs or event listeners.
             "listeners": re.compile(r"\.irq\(|handler=|callback="),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"
             ),
@@ -7165,7 +7166,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".cbl", ".cob", ".cpy", ".cobol", ".pco", ".cut"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Mainframe environments do not typically use extensionless execution scripts.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions and Job Control Language (.jcl) files which orchestrated legacy COBOL execution.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions and Job Control Language (.jcl) files which orchestrated legacy COBOL execution.
         "discriminators": [".cbl", ".cob", ".cpy", ".jcl"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 (primarily for modern GnuCOBOL scripting).
         "shebangs": ["cobc"],
@@ -7176,7 +7177,7 @@ LANGUAGE_DEFINITIONS = {
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Fixed Format Logic: Column 7 is the 'Indicator Area'.
-            # An asterisk '*' or forward-slash '/' in Col 7 marks the line as Literature (Ghost Mass).
+            # An asterisk '*' or forward-slash '/' in Col 7 marks the line as Literature (Commented / Non-Executable Text).
             # Regex translates to: Start of line, skip 6 chars, match indicator.
             "_line_anchor": re.compile(r"^.{6}[*/dD]"),
             # Modern COBOL (GnuCOBOL/IBM 6+) supports floating inline comments via '*>'.
@@ -7184,35 +7185,35 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: COBOL does not support multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: Entscheidungslogik. Control flow that splits execution paths.
             "branch": re.compile(
                 r"\b(IF|ELSE|EVALUATE|WHEN|PERFORM|UNTIL|VARYING|TIMES|DEPENDING\s+ON|ON\s+EXCEPTION|AT\s+END|INVALID\s+KEY|ON\s+SIZE\s+ERROR|ON\s+OVERFLOW)\b",
                 re.I,
             ),
-            # 2. args: Coupling Mass. Captures USING and RETURNING signatures in PROCEDURE division or CALLs.
+            # 2. args: Parameters / Coupling. Captures USING and RETURNING signatures in PROCEDURE division or CALLs.
             "args": re.compile(
                 r"\b(?:USING|RETURNING)\s+((?:(?:BY\s+(?:REFERENCE|CONTENT|VALUE)[ \t]+)?[A-Z0-9_-]+[ \t]*,?){0,20})",
                 re.I,
             ),
-            # 3. linear: Smooth Path. Structural boundaries defining straight-line execution flow.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries defining straight-line execution flow.
             # EXCLUDES access modifiers (GLOBAL, EXTERNAL) to prevent Geometry Inflation.
             "linear": re.compile(
                 r"\b(DIVISION|SECTION|EXIT|CONTINUE|GOBACK|ACCEPT|XML\s+PARSE|JSON\s+GENERATE|DISPLAY|STOP\s+RUN)\b",
                 re.I,
             ),
-            # 4. func_start: Satellite Spawner. Anchors logic blocks (Paragraphs and Sections).
+            # 4. func_start: Executable Logic Anchors. Anchors logic blocks (Paragraphs and Sections).
             # =====================================================================
             # [ CONTEXT: COBOL FUNCTION/PARAGRAPH AST EXTRACTOR & REDOS SHIELD]
             # PURPOSE: Anchors executable logic blocks (Paragraphs and Sections) in COBOL.
             # VULNERABILITY: COBOL spans 60 years of formatting rules (Fixed vs Free format).
             #   Without strict column boundaries, standard verbs or data definitions
-            #   (like 01 levels) resting against the margin will hallucinate Ghost Satellites.
+            #   (like 01 levels) resting against the margin will hallucinate False Positives.
             # THE "IRON WALL" FIX: Combines strict leading-margin allowances with
             #   comprehensive negative lookaheads to explicitly ban COBOL reserved words,
             #   data structures, and Division headers.
             # =====================================================================
-            # 4. func_start: Satellite Spawner. Anchors logic blocks (Paragraphs and Sections).
+            # 4. func_start: Executable Logic Anchors. Anchors logic blocks (Paragraphs and Sections).
             "func_start": re.compile(
                 # =====================================================================
                 # [ CONTEXT: COBOL FUNCTION/PARAGRAPH AST EXTRACTOR & REDOS SHIELD ]
@@ -7250,7 +7251,7 @@ LANGUAGE_DEFINITIONS = {
                 # Bans any word followed immediately by DIVISION (e.g., "PROCEDURE DIVISION").
                 # Upgraded to `[ \t\n]+` to prevent vertical ghosting.
                 r"(?![A-Za-z0-9_-]+[ \t\n]+DIVISION\b)"
-                # 5. THE IDENTIFIER CAPTURE (SATELLITE NAME - GROUP 1)
+                # 5. THE IDENTIFIER CAPTURE (FUNCTION IDENTIFIER - GROUP 1)
                 # [ THE GREEDY MARGIN SHIELD ]: The `\b` forces the engine to evaluate the whole word,
                 # preventing the 6-character margin-eater from splitting flush-left identifiers.
                 r"\b([A-Za-z0-9_-]+)"
@@ -7261,85 +7262,85 @@ LANGUAGE_DEFINITIONS = {
                 r"(?=(?:[ \t\n]+SECTION)?[ \t]*\.(?:[ \t\n]|$))",
                 re.I | re.M,
             ),
-            # 5. class_start: Entity Census. Defines structural program and modern OO boundaries.
+            # 5. class_start: Object / Entity Declarations. Defines structural program and modern OO boundaries.
             "class_start": re.compile(
                 r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*(?:PROGRAM-ID|CLASS-ID|INTERFACE-ID|FACTORY|OBJECT)\.\s+([A-Za-z0-9_-]+)(?=[ \t]*\.|\n|$)",
                 re.I | re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Defensive scope terminators and declarative blocks.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Defensive scope terminators and declarative blocks.
             "safety": re.compile(
                 r"\b(END-IF|END-PERFORM|END-EVALUATE|END-READ|END-WRITE|END-COMPUTE|END-CALL|DECLARATIVES|VALIDATE|CHECK)\b",
                 re.I,
             ),
-            # 7. safety_neg: Fractures. Bypassing logic or unpredictable jumps.
+            # 7. safety_neg: Safety Bypasses. Bypassing logic or unpredictable jumps.
             "safety_neg": re.compile(
                 r"\b(NEXT\s+SENTENCE|GO\s+TO|CORRESPONDING|ANY\s+LENGTH|OMITTED)\b",
                 re.I,
             ),
-            # 8. danger: Heavy Load. Process-stopping commands and self-modifying code (ALTER).
+            # 8. danger: High-Risk Execution. Process-stopping commands and self-modifying code (ALTER).
             "danger": re.compile(r"\b(STOP\s+RUN|ALTER|CANCEL)\b", re.I),
-            # 9. io: Boundaries. Disk, Database (SQL), and CICS communication.
+            # 9. io: I/O & Network Boundaries. Disk, Database (SQL), and CICS communication.
             "io": re.compile(
                 r"\b(READ|WRITE|REWRITE|OPEN|CLOSE|START|DELETE|EXEC\s+SQL|EXEC\s+CICS\s+(?:READ|WRITE|REWRITE|DELETE))\b",
                 re.I,
             ),
-            # 10. api: Event Horizon. Exposed linkage points and external entries.
+            # 10. api: Public Surface Area. Exposed linkage points and external entries.
             "api": re.compile(
                 r"\b(ENTRY|LINKAGE\s+SECTION|CALL|INVOKE|EXPORT)\b", re.I
             ),
-            # 11. flux: Boiling Plasma. State mutation (The core of COBOL data manipulation).
+            # 11. flux: State Mutation. State mutation (The core of COBOL data manipulation).
             "flux": re.compile(
                 r"\b(MOVE|COMPUTE|ADD|SUBTRACT|MULTIPLY|DIVIDE|SET|INITIALIZE|REPLACE|STRING|UNSTRING)\b",
                 re.I,
             ),
-            # 12. graveyard: Necrosis. Commented out structural logic (Column 7 indicator).
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural logic (Column 7 indicator).
             "graveyard": re.compile(
                 r"^(?:.{6}\*|[ \t]*\*>)[ \t]*(?:MOVE|COMPUTE|IF|PERFORM|CALL|EXEC)\b",
                 re.I | re.M,
             ),
-            # 13. doc: Intent. Identification metadata and structured comments.
+            # 13. doc: Structured Documentation. Identification metadata and structured comments.
             "doc": re.compile(
                 r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*(?:AUTHOR|DATE-WRITTEN|DATE-COMPILED|REMARKS|INSTALLATION)\.|\*>\s*@(?:param|return|author)",
                 re.I | re.M,
             ),
-            # 14. test: Verification. Unit testing framework markers (ZUnit).
+            # 14. test: Testing & Assertions. Unit testing framework markers (ZUnit).
             "test": re.compile(
                 r"\b(ZUNIT|CBLUNIT|ASSERT|TEST-CASE|READY\s+TRACE)\b", re.I
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. CICS Task and resource coordination.
             "concurrency": re.compile(
                 r"\bEXEC\s+CICS\s+(?:ENQ|DEQ|WAIT|START|DELAY)\b", re.I
             ),
-            # 16. ui_framework: View Layer. Screen sections and CICS maps.
+            # 16. ui_framework: UI / View Components. Screen sections and CICS maps.
             "ui_framework": re.compile(
                 r"\b(SCREEN\s+SECTION|EXEC\s+CICS\s+SEND\s+MAP|DFHMDF|DFHMDI|DFHMSD)\b",
                 re.I,
             ),
-            # 17. closures: Functional Depth. (COBOL lacks native lambdas).
+            # 17. closures: Closures / Anonymous Functions. (COBOL lacks native lambdas).
             "closures": None,
-            # 18. globals: Shared Void. Global storage and external linkages.
+            # 18. globals: Global / Shared State. Global storage and external linkages.
             "globals": re.compile(
                 r"\b(WORKING-STORAGE\s+SECTION|COMMON|GLOBAL|EXTERNAL)\b", re.I
             ),
-            # 19. decorators: Metadata Hooks. (COBOL uses compiler directives).
+            # 19. decorators: Decorators / Annotations. (COBOL uses compiler directives).
             "decorators": re.compile(
                 r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*>>\s*(?:IF|ELSE|END-IF|DEFINE|CALL-CONVENTION)",
                 re.I | re.M,
             ),
-            # 20. generics: Type Abstractions. Parameterized classes (Modern COBOL).
+            # 20. generics: Generics / Type Parameters. Parameterized classes (Modern COBOL).
             "generics": re.compile(
                 r"\bCLASS-ID\.\s+[A-Za-z0-9_-]+\s+USING\s+[A-Za-z0-9_-]+", re.I
             ),
-            # 21. comprehensions: High-Density Loops. (Not native to COBOL).
+            # 21. comprehensions: Iterators / Comprehensions. (Not native to COBOL).
             "comprehensions": None,
-            # 22. scientific: Compute Core. Intrinsic math functions.
+            # 22. scientific: Numerical / Compute Libraries. Intrinsic math functions.
             "scientific": re.compile(
                 r"\bFUNCTION\s+(?:ACOS|ASIN|ATAN|COS|EXP|FACTORIAL|LOG|LOG10|MOD|RANDOM|SQRT|TAN|VARIANCE)\b",
                 re.I,
             ),
-            # 23. heat_triggers: Thermal Radiation. Metaprogramming and memory aliasing.
+            # 23. heat_triggers: Metaprogramming & Reflection. Metaprogramming and memory aliasing.
             "heat_triggers": re.compile(
                 r"\b(REDEFINES|RENAMES|OCCURS\s+DEPENDING\s+ON|EVALUATE\s+TRUE|EXEC\s+CICS|EXEC\s+SQL)\b",
                 re.I,
@@ -7352,7 +7353,7 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(
                 r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*AUTHOR\.\s+([^\n]+)", re.I | re.M
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -7388,12 +7389,12 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(
                 r"\b(?:EXEC\s+CICS\s+WRITEQ\s+TD|CEE3DMP|CEEMOUT|CEEDUMP)\b", re.I
             ),
-            # 39. print_hits: Amateur space debris.
+            # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(DISPLAY)\b", re.I),
             # 40. cast_hits: Trust Me Tax. REDEFINES is the implicit COBOL cast.
             "cast_hits": re.compile(r"\b(REDEFINES)\b", re.I),
@@ -7443,7 +7444,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".zig", ".zon"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: The pure-code build scripts that act as the architectural anchors of a Zig project.
         "exact_matches": ["build.zig", "build.zig.zon"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Zig's build system files ensure that ambiguous contexts are locked in perfectly.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Zig's build system files ensure that ambiguous contexts are locked in perfectly.
         "discriminators": [".zig", "build.zig", "build.zig.zon"],
         # EXECUTION SIGNATURES: Zig is compiled, but `zig run` can be invoked via shebang in scripting scenarios.
         "shebangs": ["zig"],
@@ -7456,89 +7457,89 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": None,
             "_block_end": None,
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes unique 'orelse' and 'catch' patterns.
             "branch": re.compile(
                 r"\b(if|else|switch|while|for|try|catch|orelse|break|continue|return)\b|&&|\|\|"
             ),
-            # 2. args: Coupling Mass. Captures parameters in function signatures.
+            # 2. args: Parameters / Coupling. Captures parameters in function signatures.
             "args": re.compile(r"\bfn\s*(?:[a-zA-Z_]\w*\s*)?\([^)]*\)"),
-            # 3. linear: Smooth Path. Structural boundaries. EXCLUDES access modifiers and const (freeze_hits).
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries. EXCLUDES access modifiers and const (freeze_hits).
             "linear": re.compile(
                 r"\b(var|return|defer|errdefer|unreachable|resume|suspend|await|nosuspend|usingnamespace)\b"
             ),
-            # 4. func_start: Satellite Spawner. Anchors logic blocks (fn). EXCLUDES struct/enum/union headers.
+            # 4. func_start: Executable Logic Anchors. Anchors logic blocks (fn). EXCLUDES struct/enum/union headers.
             "func_start": re.compile(
                 r"^[ \t]*(?:(?:pub|export|extern|inline|noinline|callconv\([^)]*\))[ \t]+){0,5}fn\s+([a-zA-Z_]\w*)(?=\s*\()",
                 re.M,
             ),
-            # 5. class_start: Entity Census. Defines structural entities (struct, enum, union, error, opaque).
+            # 5. class_start: Object / Entity Declarations. Defines structural entities (struct, enum, union, error, opaque).
             "class_start": re.compile(
                 r"^[ \t]*(?:pub[ \t]+)?const[ \t]+([a-zA-Z_]\w*)[ \t]*=[ \t]*(?:packed[ \t]+|extern[ \t]+)?(?:struct|enum|union|error|opaque)(?=[ \t]*[{(])",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Error handling, payload capturing (|val|), and debug assertions.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Error handling, payload capturing (|val|), and debug assertions.
             "safety": re.compile(
                 r"\b(try|catch|orelse|errdefer|std\.debug\.assert)\b|\|[ \t]*[a-zA-Z_]\w*[ \t]*\|"
             ),
-            # 7. safety_neg: Fractures. Bypassing safety (undefined, unreachable, raw ptr casting).
+            # 7. safety_neg: Safety Bypasses. Bypassing safety (undefined, unreachable, raw ptr casting).
             "safety_neg": re.compile(
                 r"\b(undefined|unreachable|@ptrCast|@intCast|@alignCast|@bitCast|@truncate|@enumFromInt)\b"
             ),
-            # 8. danger: Heavy Load. Forceful panics and process terminations.
+            # 8. danger: High-Risk Execution. Forceful panics and process terminations.
             "danger": re.compile(r"\b(@panic|panic|std\.process\.exit)\b"),
-            # 9. io: Boundaries. Standard library IO, Network, and Filesystem interactions.
+            # 9. io: I/O & Network Boundaries. Standard library IO, Network, and Filesystem interactions.
             "io": re.compile(
                 r"\b(std\.fs|std\.net|std\.io(?!\.getStdOut)|std\.ChildProcess|std\.posix|std\.os)\b"
             ),
-            # 10. api: Event Horizon. Exposed boundaries via 'pub' and 'export' (C ABI).
+            # 10. api: Public Surface Area. Exposed boundaries via 'pub' and 'export' (C ABI).
             "api": re.compile(r"\b(pub|export)\b"),
-            # 11. flux: Boiling Plasma. State mutation (var) and pointer dereference assignments (.* =).
+            # 11. flux: State Mutation. State mutation (var) and pointer dereference assignments (.* =).
             "flux": re.compile(r"\bvar\b|\.\*[ \t]*=[^=]"),
-            # 12. graveyard: Necrosis. Commented out structural code.
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural code.
             "graveyard": re.compile(
                 r"//[ \t]*(?:fn|const|var|pub|if|for|while|try|catch)\b"
             ),
-            # 13. doc: Intent. Structured documentation (/// and //!).
+            # 13. doc: Structured Documentation. Structured documentation (/// and //!).
             "doc": re.compile(r"///|//!"),
-            # 14. test: Verification. Native test framework blocks.
+            # 14. test: Testing & Assertions. Native test framework blocks.
             "test": re.compile(
                 r'\b(test\s+"[^"]*"|test\s+[a-zA-Z_]\w*|std\.testing\.expect|std\.testing\.expectEqual)\b'
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. Suspend/resume and thread primitives.
             "concurrency": re.compile(
                 r"\b(std\.Thread|std\.Thread\.Mutex|std\.Thread\.RwLock|std\.atomic|@atomicLoad|@atomicStore|@atomicRmw|suspend|resume|await)\b"
             ),
-            # 16. ui_framework: View Layer. (Zig lacks native UI; targets common bindings like Mach/zgui).
+            # 16. ui_framework: UI / View Components. (Zig lacks native UI; targets common bindings like Mach/zgui).
             "ui_framework": re.compile(
                 r"\b(mach\.|zgui\.|zopengl\.|capy\.|vaxis\.|raylib\.)\b"
             ),
-            # 17. closures: Functional Depth. (Zig lacks traditional anonymous closures).
+            # 17. closures: Closures / Anonymous Functions. (Zig lacks traditional anonymous closures).
             "closures": None,
-            # 18. globals: Shared Void. Top-level file-scoped state.
+            # 18. globals: Global / Shared State. Top-level file-scoped state.
             "globals": re.compile(
                 r"^[ \t]*(?:pub[ \t]+)?(?:threadlocal[ \t]+)?(?:comptime[ \t]+)?(?:const|var)\s+[a-zA-Z_]\w*\s*(?::[^=]+)?=",
                 re.M,
             ),
-            # 19. decorators: Metadata Hooks. (Zig uses @builtins instead).
+            # 19. decorators: Decorators / Annotations. (Zig uses @builtins instead).
             "decorators": None,
-            # 20. generics: Type Abstractions. Comptime parameters and 'anytype' duck typing.
+            # 20. generics: Generics / Type Parameters. Comptime parameters and 'anytype' duck typing.
             "generics": re.compile(
                 r"\b(anytype|type)\b|\bcomptime\s+[a-zA-Z_]\w*\s*:\s*type\b"
             ),
-            # 21. comprehensions: High-Density Loops. (Not native to Zig).
+            # 21. comprehensions: Iterators / Comprehensions. (Not native to Zig).
             "comprehensions": None,
-            # 22. scientific: Compute Core. Math intrinsics and SIMD @Vector support.
+            # 22. scientific: Numerical / Compute Libraries. Math intrinsics and SIMD @Vector support.
             "scientific": re.compile(
                 r"\b(std\.math|@Vector|f16|f32|f64|f80|f128|@sqrt|@sin|@cos|@splat|@reduce)\b"
             ),
-            # 23. heat_triggers: Thermal Radiation. Comptime metaprogramming and reflection.
+            # 23. heat_triggers: Metaprogramming & Reflection. Comptime metaprogramming and reflection.
             "heat_triggers": re.compile(
                 r"\b(comptime[ \t]*\{|inline\s+for|inline\s+while|@Type|@typeInfo|@compileLog|@hasDecl|@hasField)\b"
             ),
-            # 24. import: Gravity Links. Module and C-header bridges.
+            # 24. import: Dependency Inclusions. Module and C-header bridges.
             "import": re.compile(r"\b(@import|@cImport|@cInclude)\b"),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:const[ \t]+[a-zA-Z_]\w*[ \t]*=[ \t]*)?(?:@import|@cInclude)[ \t\n]*\([ \t\n]*['\"]([^'\"]+)['\"]",
@@ -7548,7 +7549,7 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(
                 r"//\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)", re.I
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -7579,12 +7580,12 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm: Bare Metal.
             "inline_asm": re.compile(r"\basm\b(?:\s+volatile)?\s*\([^)]+\)"),
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(
                 r"\b(?:std\.log\.(?:info|err|warn|debug)|std\.log\.scoped)\b"
             ),
-            # 39. print_hits: Amateur space debris.
+            # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(std\.debug\.print)\b"),
             # 40. cast_hits: "Trust Me" Tax. Explicit casting.
             "cast_hits": re.compile(r"\b(@ptrCast|@intCast|@alignCast|@bitCast|@as)\b"),
@@ -7634,7 +7635,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".cls", ".trigger"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Apex code lives and executes on the Salesforce platform; no extensionless configurations exist.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: .cls is highly contested. Salesforce metadata XMLs and SFDX configs act as absolute gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: .cls is highly contested. Salesforce metadata XMLs and SFDX configs act as absolute gravity anchors.
         "discriminators": [
             ".cls-meta.xml",
             ".trigger-meta.xml",
@@ -7652,23 +7653,23 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes switch on/when and DML try-catch.
             "branch": re.compile(
                 r"\b(if|else|switch\s+on|when|for|while|do|try|catch|finally|break|continue|return)\b|&&|\|\||\?|\?\?",
                 re.I,
             ),
-            # 2. args: Coupling Mass. Captures method parameters and trigger event signatures.
+            # 2. args: Parameters / Coupling. Captures method parameters and trigger event signatures.
             "args": re.compile(
                 r"\b[a-z_]\w*(?:<[^>]*>)?\s+[a-z_]\w*\s*\([^)]*\)|\btrigger\s+[a-z_]\w*\s+on\s+[a-z_]\w*\s*\([^)]*\)",
                 re.I,
             ),
-            # 3. linear: Smooth Path. Structural boundaries. EXCLUDES access modifiers and sharing keywords.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries. EXCLUDES access modifiers and sharing keywords.
             "linear": re.compile(
                 r"\b(class|interface|trigger|enum|final|transient|implements|extends|virtual|abstract|return)\b",
                 re.I,
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ReDoS clamped to {0,5}. Strict capture groups and lookaheads for both Methods and Triggers.
             "func_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}"
@@ -7677,7 +7678,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*trigger\s+([a-zA-Z_]\w*)(?=\s+on\b)",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # ReDoS clamped. Strict capture group and positive lookahead applied.
             "class_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}"
@@ -7685,90 +7686,90 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:class|interface|enum)\s+([a-zA-Z_]\w*)(?=\s+implements|\s+extends|\s*\{|\n|$)",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Sharing rules, FLS checks, and null-safe navigation.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Sharing rules, FLS checks, and null-safe navigation.
             "safety": re.compile(
                 r"\b(with\s+sharing|inherited\s+sharing|isAccessible|isCreateable|isUpdateable|isDeletable|StripInaccessible|try|catch|finally|LIMIT\s+\d+|Security\.stripInaccessible)\b|\?\.",
                 re.I,
             ),
-            # 7. safety_neg: Fractures. Actively bypassing safety (without sharing, raw casting).
+            # 7. safety_neg: Safety Bypasses. Actively bypassing safety (without sharing, raw casting).
             "safety_neg": re.compile(
                 r"\b(without\s+sharing|Database\.query(?!\s*\(.*?WITH\s+SECURITY_ENFORCED)|@SuppressWarnings)\b|\(\s*[A-Z_]\w*\s*\)\s*[a-z_]\w*",
                 re.I,
             ),
-            # 8. danger: Heavy Load. Dynamic SOQL, mass deletion, and hardcoded IDs.
+            # 8. danger: High-Risk Execution. Dynamic SOQL, mass deletion, and hardcoded IDs.
             "danger": re.compile(
                 r"\b(Database\.query|delete|undelete|emptyRecycleBin|purgeOldAsyncJobs)\b|\'[a-z0-9]{15,18}\'",
                 re.I,
             ),
-            # 9. io: Boundaries. SOQL/SOSL queries, HTTP callouts, and batch boundaries.
+            # 9. io: I/O & Network Boundaries. SOQL/SOSL queries, HTTP callouts, and batch boundaries.
             "io": re.compile(
                 r"\[\s*(?:SELECT|FIND)\b[^\]]*\]|\b(Http|HttpRequest|HttpResponse|Database\.executeBatch|HTLoad|HTGet|ENQUIRE)\b",
                 re.I,
             ),
-            # 10. api: Event Horizon. Exposed global interfaces, REST resources, and UI hooks.
+            # 10. api: Public Surface Area. Exposed global interfaces, REST resources, and UI hooks.
             "api": re.compile(
                 r"\b(global|webservice)\b|@(?:RestResource|HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch|AuraEnabled|InvocableMethod|RemoteAction)\b",
                 re.I,
             ),
-            # 11. flux: Boiling Plasma. State mutation (DML operations and standard assignments).
+            # 11. flux: State Mutation. State mutation (DML operations and standard assignments).
             "flux": re.compile(
                 r"\b(insert|update|upsert|delete|merge)\b|^[ \t]*(?:this\.)?[a-z_]\w*\s*[-+*/%]?=|\.(?:add|addAll|remove|put|clear|set)\s*\(",
                 re.I | re.M,
             ),
-            # 12. graveyard: Necrosis. Commented out structural code or queries.
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural code or queries.
             "graveyard": re.compile(
                 r"//[ \t]*(?:class|trigger|public|private|if|for|while|System\.debug|\[\s*SELECT|insert|update)\b|/\*[ \t]*(?:class|trigger|\[\s*SELECT)",
                 re.I | re.M,
             ),
-            # 13. doc: Intent. ApexDoc annotations and metadata blocks.
+            # 13. doc: Structured Documentation. ApexDoc annotations and metadata blocks.
             "doc": re.compile(
                 r"/\*\*|@description|@param|@return|@author|@date|@example", re.I
             ),
-            # 14. test: Verification. Salesforce test execution and assertion markers.
+            # 14. test: Testing & Assertions. Salesforce test execution and assertion markers.
             "test": re.compile(
                 r"@isTest|@TestSetup|@TestVisible|\b(?:Test\.startTest|Test\.stopTest|System\.assert|Assert\.(?:isTrue|isNotNull|areEqual)|Test\.setMock)\b",
                 re.I,
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. Asynchronous Apex (Future, Queueable, Batch).
             "concurrency": re.compile(
                 r"@future|\b(Queueable|Schedulable|Batchable|System\.enqueueJob|Database\.executeBatch|System\.schedule)\b",
                 re.I,
             ),
-            # 16. ui_framework: View Layer. Visualforce and LWC bridge components.
+            # 16. ui_framework: UI / View Components. Visualforce and LWC bridge components.
             "ui_framework": re.compile(
                 r"\b(ApexPages|PageReference|StandardController|Dom\.Document|SGML|HyperText|WorldWideWeb|BrowserView)\b",
                 re.I,
             ),
-            # 17. closures: Functional Depth. (Apex lacks true anonymous closures).
+            # 17. closures: Closures / Anonymous Functions. (Apex lacks true anonymous closures).
             "closures": None,
-            # 18. globals: Shared Void. Custom Settings, Organization data, and User context.
+            # 18. globals: Global / Shared State. Custom Settings, Organization data, and User context.
             "globals": re.compile(
                 r"\b(UserInfo|System\.Label|Organization|Cache\.Org|Cache\.Session)\b|\w+__c\.getInstance\b|\w+__mdt\.getInstance\b",
                 re.I,
             ),
-            # 19. decorators: Metadata Hooks. Execution context annotations.
+            # 19. decorators: Decorators / Annotations. Execution context annotations.
             "decorators": re.compile(r"@[a-z_]\w*(?:\([^)]*\))?", re.I),
-            # 20. generics: Type Abstractions. Parameterized collections (List, Map, Set).
+            # 20. generics: Generics / Type Parameters. Parameterized collections (List, Map, Set).
             "generics": re.compile(
                 r"\b(?:List|Set|Map|Iterable|Iterator)\s*<\s*[a-z_][^>]*>", re.I
             ),
-            # 21. comprehensions: High-Density Loops. Inline SOQL for-loops act as mappers.
+            # 21. comprehensions: Iterators / Comprehensions. Inline SOQL for-loops act as mappers.
             "comprehensions": re.compile(
                 r"\bfor\s*\([^)]+:\s*\[\s*SELECT[^\]]+\]\s*\)", re.I
             ),
-            # 22. scientific: Compute Core. Standard numerical and currency math.
+            # 22. scientific: Numerical / Compute Libraries. Standard numerical and currency math.
             "scientific": re.compile(
                 r"\b(Math\.(?:abs|sin|cos|tan|exp|log|pow|sqrt)|Decimal|setScale|setRoundingMode)\b",
                 re.I,
             ),
-            # 23. heat_triggers: Thermal Radiation. Dynamic SOQL, Reflection, and Describe calls.
+            # 23. heat_triggers: Metaprogramming & Reflection. Dynamic SOQL, Reflection, and Describe calls.
             "heat_triggers": re.compile(
                 r"\b(Database\.query|Type\.forName|Schema\.getGlobalDescribe|Schema\.describeSObjects|SObject\.put|SObject\.get|JSON\.deserializeUntyped)\b",
                 re.I,
             ),
-            # 24. import: Gravity Links.
+            # 24. import: Dependency Inclusions.
             # Apex lacks a native import keyword. Cross-package dependencies are established via
             # reflection (Type.forName) or explicitly namespaced static invocations.
             "import": re.compile(
@@ -7784,7 +7785,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:@author|Author|Created by|Maintainer|Copyright|Tim Berners-Lee):\s+([^\n]+)",
                 re.I | re.M,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -7822,13 +7823,13 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics (Structured logs).
             "telemetry": re.compile(
                 r"\b(Logger|Log|AppLog|NebulaLogger)\.(?:info|error|warn|debug|trace)\b|\binsert\s+new\s+Log__c\b",
                 re.I,
             ),
-            # 39. print_hits: Amateur space debris.
+            # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(System\.debug)\b", re.I),
             # 40. cast_hits: "Trust Me" Tax. Explicit type coercion.
             "cast_hits": re.compile(
@@ -7871,7 +7872,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".dart"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Dart rarely uses extensionless configurations.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, pub package manifests, and analyzer configurations to anchor Flutter/Dart projects.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, pub package manifests, and analyzer configurations to anchor Flutter/Dart projects.
         "discriminators": [
             ".dart",
             "pubspec.yaml",
@@ -7890,13 +7891,13 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": re.compile(r"\*/"),
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes modern pattern guards (when) and null-coalescing.
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|try|catch|finally|break|continue|when)\b|&&|\|\||\?|\?\?",
                 re.I,
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Captures parameters in function, method, and lambda signatures.
             "args": re.compile(
                 # =====================================================================
@@ -7911,12 +7912,12 @@ LANGUAGE_DEFINITIONS = {
                 r"(?!(?:if|for|while|switch|catch)\b)\b[A-Za-z_$][\w$]*(?:[ \t\n]*<[^>]*>)?[ \t\n]*\([^()]*(?:\([^()]*\)[^()]*)*\)(?=[ \t\n]*(?:\{|=>|:|async|sync))|\([^()]*(?:\([^()]*\)[^()]*)*\)[ \t\n]*=>",
                 re.I | re.M,
             ),
-            # 3. linear: Smooth Path. Structural boundaries. EXCLUDES access modifiers and const/final.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries. EXCLUDES access modifiers and const/final.
             "linear": re.compile(
                 r"\b(var|late|return|yield|await|class|mixin|extension|enum|typedef|import|export|part|library|base|sealed|interface|macro)\b|=>",
                 re.I,
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # ReDoS clamped to {0,5}. Strict capture group and positive lookahead applied.
             "func_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}"
@@ -7925,7 +7926,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:get\s+|set\s+|factory\s+|operator\s+\S+\s*)?([a-zA-Z_]\w*)(?=\s*\()",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # =====================================================================
             # [ THE VERTICAL MODIFIER & INHERITANCE SHIELD (DART) ]
             # Dart allows modifiers to stack (e.g., `abstract base mixin class`)
@@ -7941,80 +7942,80 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:class|mixin|enum|extension[ \t\n]+type|extension)[ \t\n]+([A-Z_]\w*)(?:[ \t\n]+(?:extends|implements|with)[ \t\n]+[A-Za-z_$][\w_<>, \t\n]*)?",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Null safety boundaries, type assertions, and required parameters.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Null safety boundaries, type assertions, and required parameters.
             "safety": re.compile(
                 r"\b(try|catch|finally|on\s+[A-Z]\w*|assert|required|late|is|!is|SafeArea|@immutable|@mustCallSuper)\b|\?\?|\?.",
                 re.I,
             ),
-            # 7. safety_neg: Fractures. Actively bypassing sound null safety or static analysis.
+            # 7. safety_neg: Safety Bypasses. Actively bypassing sound null safety or static analysis.
             "safety_neg": re.compile(
                 r"!\s*[;,\n)\.\]]|\bdynamic\b|//\s*ignore(?:_for_file)?:\s*\w+"
             ),
-            # 8. danger: Heavy Load. Process killers and catastrophic exit commands.
+            # 8. danger: High-Risk Execution. Process killers and catastrophic exit commands.
             "danger": re.compile(r"\b(exit|exitCode|Process\.killPid)\b", re.I),
-            # 9. io: Boundaries. Disk, Network, WebSockets, and Uri parsing (Includes legacy CERN triggers).
+            # 9. io: I/O & Network Boundaries. Disk, Network, WebSockets, and Uri parsing (Includes legacy CERN triggers).
             "io": re.compile(
                 r"\b(File|Directory|HttpClient|HttpServer|ServerSocket|WebSocket|Uri\.parse|HtmlDocument|HttpRequest|HttpResponse|HTRequest|Nexus|ENQUIRE)\b",
                 re.I,
             ),
-            # 10. api: Event Horizon. Exposed visibility (Lack of _ prefix) and routing decorators.
+            # 10. api: Public Surface Area. Exposed visibility (Lack of _ prefix) and routing decorators.
             "api": re.compile(
                 r"\b(export|part\s+of)\b|@(Route|Get|Post|Mapping|visibleForTesting|pragma)\b|^[ \t]*(?:class|mixin|enum|extension|typedef)\s+(?![_])[A-Za-z]\w*",
                 re.I | re.M,
             ),
-            # 11. flux: Boiling Plasma. State mutation (setState and reactive collection mutators).
+            # 11. flux: State Mutation. State mutation (setState and reactive collection mutators).
             "flux": re.compile(
                 r"\b(setState|notifyListeners|markNeedsBuild|StreamController\.add)\b|[^!=<>\+\-\*\/%&\|\s]=\s*[^=]|(?:\+\+|--)|\.(?:add|addAll|remove|insert|clear|update)\s*\(",
                 re.I,
             ),
-            # 12. graveyard: Necrosis. Commented out structural code or dead widgets.
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural code or dead widgets.
             "graveyard": re.compile(
                 r"//[ \t]*(?:class|mixin|void|if|for|while|print|Widget|return)\b|/\*[ \t]*(?:class|mixin|void|Widget|if|for)"
             ),
-            # 13. doc: Intent. dartdoc annotations and structured comments.
+            # 13. doc: Structured Documentation. dartdoc annotations and structured comments.
             "doc": re.compile(r"///|/\*\*|@param|@return"),
-            # 14. test: Verification. Flutter test frameworks and standard expect/verify markers.
+            # 14. test: Testing & Assertions. Flutter test frameworks and standard expect/verify markers.
             "test": re.compile(
                 r"\b(?:test|testWidgets|group|setUp|tearDown|pumpWidget|pumpAndSettle|find\.(?:byType|text|byKey))\b|\b(?:expect|verify|when)\s*\("
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. Event Loop primitives (Future, Stream, Isolate).
             "concurrency": re.compile(
                 r"\b(async|async\*|sync\*|await|Future|Stream|Isolate|ReceivePort|SendPort|Completer|Timer|StreamSubscription)\b",
                 re.I,
             ),
-            # 16. ui_framework: View Layer. Flutter Component trees and DOM nodes (Includes TBL triggers).
+            # 16. ui_framework: UI / View Components. Flutter Component trees and DOM nodes (Includes TBL triggers).
             "ui_framework": re.compile(
                 r"\b(Widget|BuildContext|StatefulWidget|Scaffold|Container|Text|HtmlElementView|RichText|Hyperlink|SGML|HyperText|Browser)\b",
                 re.I,
             ),
-            # 17. closures: Functional Depth. Fat-arrows and anonymous function blocks.
+            # 17. closures: Closures / Anonymous Functions. Fat-arrows and anonymous function blocks.
             "closures": re.compile(r"=>|\(\s*[^)]*\)\s*(?:async\*?|sync\*?)?[ \t]*\{"),
-            # 18. globals: Shared Void. Static class fields and environmental bindings.
+            # 18. globals: Global / Shared State. Static class fields and environmental bindings.
             "globals": re.compile(
                 r"\b(static\s+final|static\s+const|Platform\.environment|window\.|Zone\.current)\b|^[ \t]*(?:final|const|var)\s+[A-Za-z_$][\w$]*[ \t]*=",
                 re.I | re.M,
             ),
-            # 19. decorators: Metadata Hooks. Annotations applied to methods/classes.
+            # 19. decorators: Decorators / Annotations. Annotations applied to methods/classes.
             "decorators": re.compile(r"@[A-Za-z_$][\w$]*(?:\([^)]*\))?"),
-            # 20. generics: Type Abstractions. Parameterized collections and generic classes.
+            # 20. generics: Generics / Type Parameters. Parameterized collections and generic classes.
             "generics": re.compile(r"<\s*[A-Z][^>]*>"),
-            # 21. comprehensions: High-Density Loops. Collection for/if and functional pipelines.
+            # 21. comprehensions: Iterators / Comprehensions. Collection for/if and functional pipelines.
             "comprehensions": re.compile(
                 r"\[\s*(?:for|if)\s*\([^)]*\)|\{\s*(?:for|if)\s*\([^)]*\)|\.(?:map|where|reduce|fold|expand|every|any)\s*\("
             ),
-            # 22. scientific: Compute Core. math.pi, typed binary arrays, and Matrix4 vectors.
+            # 22. scientific: Numerical / Compute Libraries. math.pi, typed binary arrays, and Matrix4 vectors.
             "scientific": re.compile(
                 r"\b(math\.sin|math\.cos|math\.sqrt|math\.pi|dart:math|Float64List|Float32List|Int32List|Uint8List|Vector2|Vector3|Matrix4)\b",
                 re.I,
             ),
-            # 23. heat_triggers: Thermal Radiation. Reflection, Native Bridges, and code generation markers.
+            # 23. heat_triggers: Metaprogramming & Reflection. Reflection, Native Bridges, and code generation markers.
             "heat_triggers": re.compile(
                 r'\b(MethodChannel|EventChannel|dart:mirrors|reflect|reflectClass|noSuchMethod|dart:js_interop)\b|part\s+[\'"][^\'"]+\.(?:g|freezed)\.dart[\'"]',
                 re.I,
             ),
-            # 24. import: Gravity Links. Dependency resolution and library partitions.
+            # 24. import: Dependency Inclusions. Dependency resolution and library partitions.
             "import": re.compile(
                 r'^[ \t]*(?:import|export|part|part\s+of)\b\s*[\'"][^\'"]+[\'"]', re.M
             ),
@@ -8026,7 +8027,7 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(
                 r"//\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)", re.I
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -8070,13 +8071,13 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics (Structured logs).
             "telemetry": re.compile(
                 r"\b(developer\.log|Logger|log|FirebaseCrashlytics|Sentry)\.(?:info|error|warn|severe|debug|trace|recordError)\b|\bdart:developer\b",
                 re.I,
             ),
-            # 39. print_hits: Amateur space debris.
+            # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(print|debugPrint)\s*\(", re.I),
             # 40. cast_hits: "Trust Me" Tax. Explicit casting.
             "cast_hits": re.compile(r"\bas\s+[A-Z]\w*|\(\s*[A-Z]\w*\s*\)\s*[a-zA-Z_$]"),
@@ -8136,7 +8137,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".scala", ".sc", ".sbt", ".kojo"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Scala build definitions are typically handled by .sbt extensions rather than extensionless files.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions, build files, and Play framework configurations to anchor the ecosystem.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, build files, and Play framework configurations to anchor the ecosystem.
         "discriminators": [
             ".scala",
             "build.sbt",
@@ -8156,21 +8157,21 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes Scala 3 if-then and match-case.
             "branch": re.compile(
                 r"\b(if|then|else|match|case|try|catch|finally|for|while|do|throw|yield)\b|&&|\|\|",
                 re.I,
             ),
-            # 2. args: Coupling Mass. Captures parameters in method signatures and lambdas.
+            # 2. args: Parameters / Coupling. Captures parameters in method signatures and lambdas.
             "args": re.compile(
                 r"\bdef\s+[a-zA-Z_]\w*(?:\[[^\]]*\])?\s*\([^)]*\)|\([^)]*\)[ \t]*=>|\b[a-zA-Z_]\w*[ \t]*=>"
             ),
-            # 3. linear: Smooth Path. Structural boundaries. EXCLUDES access modifiers and val/var.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries. EXCLUDES access modifiers and val/var.
             "linear": re.compile(
                 r"\b(lazy|type|opaque|class|trait|object|enum|extension|import|export|return|extends|with|derives|new|given|using)\b"
             ),
-            # 4. func_start: Satellite Spawner. Anchors executable logic. EXCLUDES structural headers.
+            # 4. func_start: Executable Logic Anchors. Anchors executable logic. EXCLUDES structural headers.
             "func_start": re.compile(
                 # =====================================================================
                 # [ THE VERTICAL MODIFIER SHIELD (SCALA) ]
@@ -8185,84 +8186,84 @@ LANGUAGE_DEFINITIONS = {
                 r"def[ \t\n]+([a-zA-Z_]\w*)(?=[ \t\n]*[\[(:=]|$)",
                 re.M,
             ),
-            # 5. class_start: Entity Census. Defines structural entities and OO boundaries.
+            # 5. class_start: Object / Entity Declarations. Defines structural entities and OO boundaries.
             "class_start": re.compile(
                 r"^[ \t]*(?:@[\w.]+(?:\([^)]*\))?[ \t]+){0,5}"
                 r"(?:(?:sealed|abstract|final|case|open|opaque|transparent)[ \t]+){0,3}"
                 r"(?:class|trait|object|enum)\s+([A-Za-z_]\w*)(?=[ \t]*[\[({]|\s+extends|\n|$)",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Monadic error handling (Option/Try) and assertions.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Monadic error handling (Option/Try) and assertions.
             "safety": re.compile(
                 r"\b(Option|Some|None|Try|Success|Failure|Either|Left|Right|sealed|require|assert|assume)\b|\|\s*Null\b"
             ),
-            # 7. safety_neg: Fractures. Actively bypassing type safety (asInstanceOf, .get).
+            # 7. safety_neg: Safety Bypasses. Actively bypassing type safety (asInstanceOf, .get).
             "safety_neg": re.compile(
                 r"\b(null|asInstanceOf|isInstanceOf|\.get\b(?!Class)|@unchecked|Any|AnyRef)\b"
             ),
-            # 8. danger: Heavy Load. Process killers and catastrophic exit commands.
+            # 8. danger: High-Risk Execution. Process killers and catastrophic exit commands.
             "danger": re.compile(
                 r"\b(System\.exit|sys\.exit|Thread\.stop|Runtime\.getRuntime\.exec)\b"
             ),
-            # 9. io: Boundaries. Filesystem, Network, and Http Clients (Includes CERN triggers).
+            # 9. io: I/O & Network Boundaries. Filesystem, Network, and Http Clients (Includes CERN triggers).
             "io": re.compile(
                 r"\b(Source|java\.io|java\.nio|Files\.|Socket|ServerSocket|sttp|Http|WSClient|HTLoad|HTGet|ENQUIRE)\b"
             ),
-            # 10. api: Event Horizon. Implicit public visibility and Scala 3 @main entry points.
+            # 10. api: Public Surface Area. Implicit public visibility and Scala 3 @main entry points.
             "api": re.compile(
                 r"\b(export)\b|@(?:main|GetMapping|PostMapping|Endpoint|Path)\b|^[ \t]*(?:override\s+|inline\s+|transparent[ \t]+)?def\s+[^_]\w+",
                 re.M,
             ),
-            # 11. flux: Boiling Plasma. State mutation (var and mutable collection updates).
+            # 11. flux: State Mutation. State mutation (var and mutable collection updates).
             "flux": re.compile(
                 r"\b(var|scala\.collection\.mutable|AtomicReference|AtomicInteger)\b|^[ \t]*[a-zA-Z_]\w*[ \t]*=",
                 re.M,
             ),
-            # 12. graveyard: Necrosis. Commented out structural code or logic trails.
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural code or logic trails.
             "graveyard": re.compile(
                 r"//[ \t]*(?:def|val|var|class|object|trait|if|match|println|import)\b|/\*[ \t]*(?:def|val|class|object)"
             ),
-            # 13. doc: Intent. Scaladoc documentation (/**) and annotations.
+            # 13. doc: Structured Documentation. Scaladoc documentation (/**) and annotations.
             "doc": re.compile(r"/\*\*|@param|@return|@tparam|@throws|@see|@note"),
-            # 14. test: Verification. ScalaTest, MUnit, and standard expect/verify markers.
+            # 14. test: Testing & Assertions. ScalaTest, MUnit, and standard expect/verify markers.
             "test": re.compile(
                 r"\b(test\s*\(|it\s+should|assertEquals|assertThrows|AnyFunSuite|WordSpec|munit|weaver)\b|\b(?:must|expect|assert)\s*[\(\{]"
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. Effect systems and Actor paradigms (ZIO, Cats Effect, Akka).
             "concurrency": re.compile(
                 r"\b(Future|Promise|Await|Actor|Behavior|ZIO|UIO|Task|RIO|cats\.effect\.IO|Fiber|FiberRef|Ref|Deferred|Semaphore)\b"
             ),
-            # 16. ui_framework: View Layer. Scala.js DOM and XML literals (Includes TBL triggers).
+            # 16. ui_framework: UI / View Components. Scala.js DOM and XML literals (Includes TBL triggers).
             "ui_framework": re.compile(
                 r"\b(dom\.|Laminar|Tyrian|HtmlElement|Document|Node|SGML|HyperLink|scala\.xml|Elem|XML|WorldWideWeb|BrowserView)\b"
             ),
-            # 17. closures: Functional Depth. Anonymous function fat-arrows and underscores.
+            # 17. closures: Closures / Anonymous Functions. Anonymous function fat-arrows and underscores.
             "closures": re.compile(r"=>|(?<=\()\s*_\s*(?=[\),])|(?<=\W)_\s*(?=\W)"),
-            # 18. globals: Shared Void. Singletons (objects) and JVM environment bindings.
+            # 18. globals: Global / Shared State. Singletons (objects) and JVM environment bindings.
             "globals": re.compile(
                 r"\b(object\s+[A-Z]\w*|sys\.env|sys\.props|System\.getProperty|scala\.util\.Properties)\b"
             ),
-            # 19. decorators: Metadata Hooks. Method and class annotations.
+            # 19. decorators: Decorators / Annotations. Method and class annotations.
             "decorators": re.compile(r"@[A-Za-z_]\w*(?:\([^)]*\))?"),
-            # 20. generics: Type Abstractions. Type parameterization and HKT constraints.
+            # 20. generics: Generics / Type Parameters. Type parameterization and HKT constraints.
             "generics": re.compile(
                 r"\[\s*[+-]?[A-Z][^\]]*\]|\bF\[_\]|<:|>:|\[[ \t]*_\s*\]"
             ),
-            # 21. comprehensions: High-Density Loops. For-comprehensions and monadic chains.
+            # 21. comprehensions: Iterators / Comprehensions. For-comprehensions and monadic chains.
             "comprehensions": re.compile(
                 r"\bfor\s*(?:\{[^}]*\}|\([^)]*\))\s*yield\b|\.(?:map|flatMap|filter|withFilter|foldLeft|reduce|collect)\s*[\(\{]"
             ),
-            # 22. scientific: Compute Core. Math library and linear algebra wrappers.
+            # 22. scientific: Numerical / Compute Libraries. Math library and linear algebra wrappers.
             "scientific": re.compile(
                 r"\b(scala\.math|breeze\.|spire\.|algebird|Math\.|StrictMath\.|DenseMatrix|DenseVector)\b"
             ),
-            # 23. heat_triggers: Thermal Radiation. Contextual abstractions and implicit resolution.
+            # 23. heat_triggers: Metaprogramming & Reflection. Contextual abstractions and implicit resolution.
             "heat_triggers": re.compile(
                 r"\b(implicit|given|using|inline|extension|TypeTag|ClassTag|scala\.reflect|Typeable|Dynamic|summon|derives)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r"\b(?:import|export)\s+[\w.{}\s,]+", re.M),
             "_dependency_capture": re.compile(
                 # =====================================================================
@@ -8290,7 +8291,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:@author|Created by|Maintainer|Copyright|Tim Berners-Lee):\s+([^\n]+)",
                 re.I,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -8328,12 +8329,12 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics (Structured logs).
             "telemetry": re.compile(
                 r"\b(?:logger|log|ZIO\.log|LoggerFactory|log4cats|slf4j)\.(?:info|error|warn|debug|trace)\b|@Slf4j"
             ),
-            # 39. print_hits: Amateur space debris.
+            # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(println|print|Console\.println)\b"),
             # 40. cast_hits: "Trust Me" Tax. Explicit type coercion.
             "cast_hits": re.compile(
@@ -8401,7 +8402,7 @@ LANGUAGE_DEFINITIONS = {
             "Dockerfile.test",
             "Dockerfile.local",
         ],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Compose files and ignore manifests acting as massive gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Compose files and ignore manifests acting as massive gravity anchors.
         "discriminators": [
             "docker-compose.yml",
             "docker-compose.yaml",
@@ -8418,41 +8419,41 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"#"),
             "_block_start": None,
             "_block_end": None,
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Control flow executing inside RUN shell blocks. High density indicates complex embedded shell scripts.
             "branch": re.compile(
                 r"\b(?:if|elif|else|fi|case|esac|for|while|do|done|until)\b|&&|\|\|",
                 re.I,
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Build arguments (`ARG`) passed into the container acting as input parameters to the satellite.
             "args": re.compile(r"^[ \t]*ARG[ \t]+[a-zA-Z0-9_-]+", re.M | re.I),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries defining straight-line execution and environment contexts.
             # CRITICAL GUARDRAIL: EXCLUDES `FROM` and `RUN`/`CMD` to maintain geometric stability.
             "linear": re.compile(
                 r"^[ \t]*(?:WORKDIR|USER|VOLUME|STOPSIGNAL|SHELL|LABEL)\b", re.M | re.I
             ),
-            # 4. func_start (The Satellite Spawner)
-            # CRITICAL GUARDRAIL: Spawns satellites. ONLY executable logic blocks.
+            # 4. func_start (Executable Logic Anchors)
+            # CRITICAL GUARDRAIL: Anchors logic blocks. ONLY executable logic blocks.
             # In Docker, `RUN`, `CMD`, and `ENTRYPOINT` execute logic, generating discrete intermediate image layers.
             "func_start": re.compile(
                 r"^[ \t]*(RUN|CMD|ENTRYPOINT|HEALTHCHECK)(?=[ \t])", re.M | re.I
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Defines object-oriented and structural boundaries. Drives API Surface Area math.
             # `FROM` instantiates a discrete build stage/image boundary, acting as a class wrapper.
             "class_start": re.compile(r"^[ \t]*(FROM)(?=[ \t])", re.M | re.I),
-            # --- ⚠️ PHASE 2: RISK ENGINE (The Dimensions) ---
-            # 6. safety (The Defenders / Cyan Fortification)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming)
             # Hardening the container. Dropping root privileges (`USER nonroot`), explicit `HEALTHCHECK`,
             # setting explicit shell crash flags (`set -e`), and safe file ownership (`--chown`).
             "safety": re.compile(
                 r"^[ \t]*HEALTHCHECK\b|--chown=|^[ \t]*USER[ \t]+(?!root\b|0\b)[a-zA-Z0-9_-]+|\bset[ \t]+-[exuo]\b",
                 re.M | re.I,
             ),
-            # 7. safety_neg (The Fractures / Red Fragility)
+            # 7. safety_neg (Safety Bypasses)
             # Actively bypassing isolation or safety logic.
             # Using `:latest`, running as root, setting permissions to 777, or blindly curling directly into bash.
             # CRITICAL GUARDRAIL: Safely bounds the curl/wget pipe `[^|\n]{1,200}` to prevent ReDoS on massive RUN chains.
@@ -8460,82 +8461,82 @@ LANGUAGE_DEFINITIONS = {
                 r":latest\b|^[ \t]*USER[ \t]+(?:root|0)\b|chmod[ \t]+777|--privileged|--allow-unauthenticated|\b(?:curl|wget)[ \t]+[^|\n]{1,200}\|[ \t]*(?:bash|sh|zsh)\b",
                 re.M | re.I,
             ),
-            # 8. danger (The Heavy Load / Space Debris)
+            # 8. danger (High-Risk Execution)
             # Extreme space debris. Destructive recursive removes targeting root, and dangerous dynamic eval.
             # CRITICAL GUARDRAIL: Raw terminal prints (`echo`) strictly routed to print_hits.
             "danger": re.compile(
                 r"\b(?:rm[ \t]+-rf[ \t]+/(?![A-Za-z])|eval|exec)\b", re.M | re.I
             ),
-            # 9. io (The Boundaries / System Gravity)
+            # 9. io (I/O & Network Boundaries)
             # Interaction with external networks, copying files from host, or executing package managers.
             "io": re.compile(
                 r"^[ \t]*(?:COPY|ADD)[ \t]+|\b(?:wget|curl|apt-get|apk|yum|dnf|git[ \t]+clone|tar[ \t]+-[cx]f|unzip|pip[ \t]+install|npm[ \t]+install)\b",
                 re.M | re.I,
             ),
-            # 10. api (The Event Horizon / Rose Glow)
+            # 10. api (Public Surface Area)
             # Code exposed to the outside world. Ports explicitly exposed to the host network (`EXPOSE`).
             "api": re.compile(r"^[ \t]*EXPOSE[ \t]+[0-9]+", re.M | re.I),
-            # 11. flux (The Boiling Plasma / Orange Glow)
+            # 11. flux (State Mutation)
             # Mutation of state. Setting Environment variables that permanently alter the image layer state.
             "flux": re.compile(
                 r"^[ \t]*ENV[ \t]+[a-zA-Z0-9_]+|export[ \t]+[a-zA-Z0-9_]+[ \t]*=",
                 re.M | re.I,
             ),
-            # 12. graveyard (The Necrosis / Purple Haze)
-            # Ghost logic, commented-out structural Dockerfile commands.
+            # 12. graveyard (Dead / Commented-out Code)
+            # Commented-out logic, commented-out structural Dockerfile commands.
             "graveyard": re.compile(
                 r"^[ \t]*#[ \t]*(?:RUN|COPY|ADD|ENV|EXPOSE|FROM|CMD|ENTRYPOINT|WORKDIR)\b",
                 re.M | re.I,
             ),
-            # 13. doc (The Intent / Gold Library)
+            # 13. doc (Structured Documentation)
             # Intent documentation meant for developers or image registries.
             "doc": re.compile(
                 r"^[ \t]*LABEL[ \t]+(?:maintainer|org\.opencontainers|version|description)=|^[ \t]*#[ \t]*(?:Description|Usage|Author|Maintainer):",
                 re.M | re.I,
             ),
-            # 14. test (The Verification / Teal Glow)
+            # 14. test (Testing & Assertions)
             # Explicit test runner executions inside the build layer (often used in CI multi-stage pipelines).
             "test": re.compile(
                 r"\b(?:npm[ \t]+test|yarn[ \t]+test|pytest|go[ \t]+test|cargo[ \t]+test|make[ \t]+test)\b",
                 re.M | re.I,
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
-            # 15. concurrency (The Temporal Static / Ultraviolet)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             # Parallelism executed inside the build shell (e.g. compiling with all cores).
             "concurrency": re.compile(
                 r"&[ \t]*$|\b(?:nohup|parallel|make[ \t]+-j|xargs[ \t]+-P)\b", re.M
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # Containerizing GUI applications (X11, Wayland, GTK).
             "ui_framework": re.compile(
                 r"\b(?:xvfb|x11|wayland|gtk|qt5?|libgl1-mesa)\b", re.I
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             # Dockerfiles are purely declarative structurally; closures do not exist.
             "closures": None,
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             # Global environment variables mapping structurally.
             "globals": re.compile(r"^[ \t]*ENV[ \t]+[a-zA-Z0-9_]+", re.M | re.I),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             # Not natively applicable to Dockerfile architecture.
             "decorators": None,
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": None,
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": None,
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # Installing data science, ML base dependencies, or GPU drivers natively into the image.
             "scientific": re.compile(
                 r"\b(?:nvidia/cuda|pytorch/pytorch|tensorflow/tensorflow|jupyter/)\b",
                 re.I,
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Extreme "Logic Heat": Advanced BuildKit logic. Mounting caches, secrets, cross-platform builds, or `ONBUILD` (which defers execution to downstream images).
             "heat_triggers": re.compile(
                 r"^[ \t]*ONBUILD\b|--mount=type=(?:cache|secret|bind|ssh)|--platform=|<<EOF",
                 re.M | re.I,
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             # Base images or dependencies pulled from other build stages (`COPY --from=`).
             "import": re.compile(
                 r"^[ \t]*FROM[ \t]+[a-zA-Z0-9_./:-]+|--from=[a-zA-Z0-9_-]+", re.M | re.I
@@ -8544,39 +8545,39 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*FROM\s+(?:--[\w-]+=[^\s]+\s+)?([a-zA-Z0-9_./:-]+)|--from=([a-zA-Z0-9_-]+)",
                 re.M | re.I,
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             # Standard metadata tracing image ownership (legacy MAINTAINER or modern LABEL).
             "ownership": re.compile(
                 r"^[ \t]*(?:MAINTAINER|LABEL[ \t]+maintainer=|LABEL[ \t]+org\.opencontainers\.image\.authors=)[ \t]*(.*)",
                 re.M | re.I,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit|CVE-\d{4}-\d+)[^\]]*\]",
                 re.I,
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             # Dockerfiles strictly use spaces for formatting continuations. Tabs indicate formatter disruption.
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": None,
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Container lifecycle events explicitly bound to the host OS.
             "events": re.compile(r"^[ \t]*STOPSIGNAL[ \t]+", re.M | re.I),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             # BuildKit secret and SSH mounts injecting external state at compile time securely.
             "dependency_injection": re.compile(r"--mount=type=(?:secret|ssh)", re.I),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             # Docker BuildKit `# syntax=` directives which change the parser dynamically at compile-time (just like C-macros).
             "macros": re.compile(
                 r"^[ \t]*#[ \t]*(?:syntax|escape)[ \t]*=", re.M | re.I
             ),
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": None,
             # 36. memory_alloc (Manual Memory Management)
             # Explicit memory limits defined in ENV vars that configure Java/Node runtime heaps natively.
@@ -8586,49 +8587,49 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm (The Bare Metal)
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             # Forcing specific logging outputs at the container level or symlinking to stdout for daemon parsing.
             "telemetry": re.compile(
                 r"\b(?:LOG_LEVEL|--log-level[ \t]+(?:debug|info|warn|error)|ln[ \t]+-sf[ \t]+/dev/stdout)\b",
                 re.I,
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             # Shell echos used for ad-hoc debugging in the build output log.
             "print_hits": re.compile(r"\b(?:echo|printf)\b", re.I),
-            # 40. cast_hits (The "Trust Me" Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": None,
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             # Hard execution aborts forcing the build to fail dynamically.
             "bailout_hits": re.compile(
                 r"\b(?:exit[ \t]+[1-9]|kill[ \t]+-[0-9]+)\b", re.I
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             # Forcing the build thread to sleep (often a hack to wait for a daemon/network).
             "halt_hits": re.compile(r"\bsleep[ \t]+[0-9]+\b", re.I),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": None,
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             # Utilizing file locking to prevent parallel build collisions.
             "sync_locks": re.compile(r"\bflock\b", re.I),
-            # 45. freeze_hits (The Data Cryogenics)
-            # Pinning dependencies to immutable SHAs rather than mutable tags. (The Yang to `:latest`).
+            # 45. freeze_hits (Immutability Constraints)
+            # Pinning dependencies to immutable SHAs rather than mutable tags. .
             "freeze_hits": re.compile(r"@[a-f0-9]{64}\b|--read-only|:ro\b", re.I),
-            # 46. cleanup (The Janitor)
-            # Explicitly purging apt/apk caches to reduce final container bloat. (The Yang to IO).
+            # 46. cleanup (Resource Cleanup / Teardown)
+            # Explicitly purging apt/apk caches to reduce final container bloat. .
             "cleanup": re.compile(
                 r"\b(?:apt-get[ \t]+clean|rm[ \t]+-rf[ \t]+/var/lib/apt/lists|apk[ \t]+(?:cache[ \t]+)?clean|yum[ \t]+clean[ \t]+all|npm[ \t]+cache[ \t]+clean)\b",
                 re.I,
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Explicitly encapsulating logic in multi-stage builds (`AS builder`). Hides intermediate build layers.
             "encapsulation": re.compile(
                 r"^[ \t]*FROM[ \t]+[^\n]+[ \t]+AS[ \t]+[a-zA-Z0-9_-]+", re.M | re.I
             ),
-            # 48. listeners (The Sinks)
-            # Exposing ports for network consumption. (The Yang to Events/IO).
+            # 48. listeners (Event Listeners / Observers)
+            # Exposing ports for network consumption. .
             "listeners": re.compile(r"^[ \t]*EXPOSE[ \t]+[0-9]+", re.M | re.I),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             # Bypassing package manager tests/audits or using logical OR to ignore failures (`|| true`).
             "test_skip": re.compile(
                 r"\|\|[ \t]*true\b|\b(?:--passWithNoTests|skipTests|Dmaven\.test\.skip=true|--no-audit)\b",
@@ -8660,7 +8661,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".m", ".mlx"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: MATLAB and Octave rely strictly on extensions for execution.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Critical for resolving the massive .m collision with Objective-C. Binary workspace and figure files act as absolute anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Critical for resolving the massive .m collision with Objective-C. Binary workspace and figure files act as absolute anchors.
         "discriminators": [".m", ".mat", ".fig", ".mlx", "project.prj"],
         # Instantly claims any .m file that uses MATLAB's unique comment character (%)
         # or the MATLAB function declaration syntax. Defeats Objective-C gravity theft.
@@ -8678,7 +8679,7 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"%"),
             "_block_start": re.compile(r"^[ \t]*%\{", re.M),
             "_block_end": re.compile(r"^[ \t]*%\}", re.M),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # branch: MATLAB control flow. EXCLUDES 'error' and 'rethrow' (bailout_hits).
             "branch": re.compile(
                 r"\b(?:if|elseif|else|switch|case|otherwise|for|while|try|catch)\b|&&|\|\||~="
@@ -8693,7 +8694,7 @@ LANGUAGE_DEFINITIONS = {
             "linear": re.compile(
                 r"\b(?:classdef|properties|methods|events|enumeration|return|global|persistent|continue|break|end)\b"
             ),
-            # func_start: Spawns satellites. Exactly anchors executable blocks.
+            # func_start: Anchors logic blocks. Exactly anchors executable blocks.
             # Negative lookahead explicitly prevents control flow or OOP structures from generating ghost satellites.
             "func_start": re.compile(
                 # =====================================================================
@@ -8714,7 +8715,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*classdef(?:[ \t]*\([^)]*\))?[ \t]+([a-zA-Z_]\w*)(?=[ \t\n]|$)",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (The Dimensions) ---
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             # safety: Defensive programming, modern argument validation (`arguments` block), and type/shape checks.
             "safety": re.compile(
                 r"\b(?:try|catch|narginchk|nargoutchk|validateattributes|validatestring|mustBe[A-Za-z_]\w*|assert|isa|isempty|isnumeric|ischar|isstruct|isfield|iscell|islogical|arguments)\b"
@@ -8744,7 +8745,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*[a-zA-Z_]\w*(?:\([^)]*\)|\{[^}]*\}|\.[a-zA-Z_]\w*){0,5}[ \t]*=[ \t]*[^=]|\b(?:clear|clearvars)\b",
                 re.M,
             ),
-            # graveyard: Ghost logic, commented-out structural MATLAB code.
+            # graveyard: Commented-out logic, commented-out structural MATLAB code.
             "graveyard": re.compile(
                 r"^[ \t]*%[ \t]*(?:if|for|while|function|classdef)\b", re.M
             ),
@@ -8757,7 +8758,7 @@ LANGUAGE_DEFINITIONS = {
             "test": re.compile(
                 r"\b(?:matlab\.unittest|TestCase|verifyEqual|assertEqual|assertGreaterThan|verifyTrue|verifyFalse|verifyError)\b"
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # concurrency: Parallel Computing Toolbox (parallel loops and batch jobs).
             "concurrency": re.compile(
                 r"\b(?:parfor|parfeval|spmd|batch|createJob|createTask|BackgroundPool|parpool|fetchOutputs)\b"
@@ -8798,10 +8799,10 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(
                 r"^[ \t]*%[ \t]*(?:Author|Created by|Copyright)[ \t]*:(.*)", re.M | re.I
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
@@ -8824,7 +8825,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # telemetry: Custom structured logging frameworks.
             "telemetry": re.compile(
                 r"\b(?:log4m|logger\.(?:info|debug|warn|error)|logDebug|logInfo|logWarn|logError)\b",
@@ -8892,7 +8893,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".lc", ".livecodescript", ".lcb", ".livecode", ".stack", ".rev"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: LiveCode environments rarely use extensionless execution scripts.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions to anchor the LiveCode server/builder environment.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions to anchor the LiveCode server/builder environment.
         "discriminators": [".lc", ".livecode", ".lcb", ".livecodescript"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for LiveCode Server environments.
         "shebangs": ["livecode-server"],
@@ -8909,118 +8910,118 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes English-like loops and try-catch.
             "branch": re.compile(
                 r"\b(if|then|else|switch|case|default|repeat|while|until|times|try|catch|finally|throw|next\s+repeat|and|or|not)\b",
                 re.I,
             ),
-            # 2. args: Coupling Mass. Captures parameters in handlers (on, command, function).
+            # 2. args: Parameters / Coupling. Captures parameters in handlers (on, command, function).
             "args": re.compile(
                 r"(?:on|command|function|getprop|setprop)\s+[a-zA-Z0-9_-]+\s+([^\n]+)",
                 re.I,
             ),
-            # 3. linear: Smooth Path. Structural boundaries and state transformation verbs.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries and state transformation verbs.
             "linear": re.compile(
                 r"\b(put|get|set|go|send|dispatch|pass|return|add|subtract|multiply|divide|constant|visual\s+effect|play|sort|find|replace)\b",
                 re.I,
             ),
-            # 4. func_start: Satellite Spawner. Anchors executable logic blocks (handlers).
+            # 4. func_start: Executable Logic Anchors. Anchors executable logic blocks (handlers).
             "func_start": re.compile(
                 r"^[ \t]*(?:private\s+|public[ \t]+)?(?:on|command|function|getprop|setprop)\s+([a-zA-Z0-9_-]+)(?=[ \t\n]|$)",
                 re.I | re.M,
             ),
-            # 5. class_start: Entity Census. Defines structural entities (Stacks, Behaviors, Widgets).
+            # 5. class_start: Object / Entity Declarations. Defines structural entities (Stacks, Behaviors, Widgets).
             "class_start": re.compile(
                 r'^[ \t]*(?:script|behavior|widget|module|library)\s+(["\'a-zA-Z_]\w*)(?=[ \t\n]|$)',
                 re.I | re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Defensive programming and screen/message locking.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Defensive programming and screen/message locking.
             "safety": re.compile(
                 r"\b(try|catch|finally|throw|lock\s+screen|lock\s+messages|lock\s+errordialogs|assert|strict\s+compilation|is\s+a|is\s+strictly)\b",
                 re.I,
             ),
-            # 7. safety_neg: Fractures. Actively bypassing safety (disabling messages, raw do).
+            # 7. safety_neg: Safety Bypasses. Actively bypassing safety (disabling messages, raw do).
             "safety_neg": re.compile(
                 r"\b(disable\s+messages|unlock\s+(?:screen|messages)|global\s+|do\s+(?![a-zA-Z_]\w*\b))\b",
                 re.I,
             ),
-            # 8. danger: Heavy Load. Process killers and blocking UI alerts in execution flow.
+            # 8. danger: High-Risk Execution. Process killers and blocking UI alerts in execution flow.
             "danger": re.compile(
                 r"\b(answer|ask|do(?!\s+(?:AppleScript|VBScript))|delete\s+(?:file|folder|url)|quit|exit\s+to\s+top)\b",
                 re.I,
             ),
-            # 9. io: Boundaries. Disk, Network, and URL fetching.
+            # 9. io: I/O & Network Boundaries. Disk, Network, and URL fetching.
             "io": re.compile(
                 r"\b(open\s+(?:file|socket|process)|read\s+from|write\s+to|close\s+(?:file|socket|process)|post\s+[^ \t\n]+?\s+to\s+url|get\s+url|put\s+url|load\s+url)\b",
                 re.I,
             ),
-            # 10. api: Event Horizon. Exposed surface area (Any non-private handler).
+            # 10. api: Public Surface Area. Exposed surface area (Any non-private handler).
             "api": re.compile(
                 r"^[ \t]*(?:public[ \t]+)?(?!(?:private)\s+)(?:on|command|function|getprop|setprop)\s+[a-zA-Z0-9_-]+",
                 re.I | re.M,
             ),
-            # 11. flux: Boiling Plasma. State mutation (The 'put into' core of xTalk).
+            # 11. flux: State Mutation. State mutation (The 'put into' core of xTalk).
             "flux": re.compile(
                 r"\b(?:put\s+[^ \t\n]+?\s+(?:into|after|before)|set\s+(?:the[ \t]+)?[a-zA-Z0-9_.]+\s+to|add\s+[^ \t\n]+?\s+to|subtract\s+[^ \t\n]+?\s+from)\b",
                 re.I,
             ),
-            # 12. graveyard: Necrosis. Commented out structural code.
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural code.
             "graveyard": re.compile(
                 r"^[ \t]*(?:--|#|//)[ \t]*(?:on|command|function|put|get|set|if|repeat|try|end)\b",
                 re.I | re.M,
             ),
-            # 13. doc: Intent. Structured documentation (/** or --@ tags).
+            # 13. doc: Structured Documentation. Structured documentation (/** or --@ tags).
             "doc": re.compile(
                 r"^[ \t]*(?:--\||--@|/\*\*|//!).*(?:@param|@return|@author)|\b(?:Description|Purpose|Author|Summary):\b",
                 re.I | re.M,
             ),
-            # 14. test: Verification. Unit testing framework markers.
+            # 14. test: Testing & Assertions. Unit testing framework markers.
             "test": re.compile(
                 r"\b(command\s+test[a-zA-Z0-9_]*|pass\s+test|fail\s+test|Levure|LcU|runTests)\b",
                 re.I,
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. Message scheduling and non-blocking waits.
             "concurrency": re.compile(
                 r"\b(send\s+[^ \t\n]+?\s+in\s+[^ \t\n]+?\s+(?:seconds|milliseconds|ticks)|wait\s+(?:for[ \t]+)?\d+\s+[^ \t\n]+?\s+with\s+messages|dispatch|pendingMessages|cancel)\b",
                 re.I,
             ),
-            # 16. ui_framework: View Layer. HyperCard-descendant object hierarchy.
+            # 16. ui_framework: UI / View Components. HyperCard-descendant object hierarchy.
             "ui_framework": re.compile(
                 r"\b(card|stack|background|bg|button|btn|field|fld|group|grp|graphic|grc|image|img|scrollbar|browser|data\s+grid|widget)\b",
                 re.I,
             ),
-            # 17. closures: Functional Depth. (LiveCode Script lacks native lambdas).
+            # 17. closures: Closures / Anonymous Functions. (LiveCode Script lacks native lambdas).
             "closures": None,
-            # 18. globals: Shared Void. Global state and environmental bindings.
+            # 18. globals: Global / Shared State. Global state and environmental bindings.
             "globals": re.compile(
                 r"\b(global\s+|the\s+global|the\s+environment|the\s+platform|\$ENV|it)\b",
                 re.I,
             ),
-            # 19. decorators: Metadata Hooks. LCB attributes.
+            # 19. decorators: Decorators / Annotations. LCB attributes.
             "decorators": re.compile(
                 r"^[ \t]*@(?:metadata|property|type|name|title)\b", re.M
             ),
-            # 20. generics: Type Abstractions. (LCS is dynamically typed).
+            # 20. generics: Generics / Type Parameters. (LCS is dynamically typed).
             "generics": None,
-            # 21. comprehensions: High-Density Loops. Implicit list processing.
+            # 21. comprehensions: Iterators / Comprehensions. Implicit list processing.
             "comprehensions": re.compile(
                 r"\brepeat\s+for\s+each\s+(?:item|line|word|char|key|element)\b|\bfilter\s+[^ \t\n]+?\s+(?:with|without)\b",
                 re.I,
             ),
-            # 22. scientific: Compute Core. Native math commands.
+            # 22. scientific: Numerical / Compute Libraries. Native math commands.
             "scientific": re.compile(
                 r"\b(sqrt|exp|ln|log2|log10|sin|cos|tan|asin|acos|atan|atan2|abs|round|trunc|random|any|average|max|min)\b",
                 re.I,
             ),
-            # 23. heat_triggers: Thermal Radiation. Dynamic execution and path hijacking.
+            # 23. heat_triggers: Metaprogramming & Reflection. Dynamic execution and path hijacking.
             "heat_triggers": re.compile(
                 r"\b(do\s+|value\(|the\s+params|the\s+paramcount|evaluate\(|frontscripts|backscripts|insert\s+script)\b",
                 re.I,
             ),
-            # 24. import: Gravity Links. Library and stack loading.
+            # 24. import: Dependency Inclusions. Library and stack loading.
             "import": re.compile(
                 r"\b(start\s+using\s+(?:stack|behavior)|require|include|module)\b", re.I
             ),
@@ -9033,7 +9034,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:--|//|#)\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)",
                 re.I | re.M,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -9065,13 +9066,13 @@ LANGUAGE_DEFINITIONS = {
             "memory_alloc": None,
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(
                 r"\b(revLog|syslog|logError|logInfo|logWarn|logDebug|mergLog|rreLog|lcLog)\b",
                 re.I,
             ),
-            # 39. print_hits: Amateur space debris (puts to message box without target).
+            # 39. print_hits: Raw terminal output (puts to message box without target).
             "print_hits": re.compile(
                 r'^[ \t]*put\s+(?:"[^"]*"|[a-zA-Z0-9_]+)[ \t]*$', re.I | re.M
             ),
@@ -9130,7 +9131,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".sol"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Solidity compiles to EVM bytecode; no extensionless scripts exist.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Hardhat, Truffle, and Foundry configurations acting as gravitational anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Hardhat, Truffle, and Foundry configurations acting as gravitational anchors.
         "discriminators": [
             "hardhat.config.js",
             "hardhat.config.ts",
@@ -9149,89 +9150,89 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: Decisions that split flow. Includes Solidity 0.6+ try/catch.
             "branch": re.compile(
                 r"\b(if|else|for|while|do|break|continue|return|try|catch)\b|\?|:"
             ),
-            # 2. args: Coupling Mass. Captures parameters for functions, errors, events, and modifiers.
+            # 2. args: Parameters / Coupling. Captures parameters for functions, errors, events, and modifiers.
             # Bounded `{0,50}` to prevent ReDoS on massive tuple returns or complex signatures.
             "args": re.compile(
                 r"\b(?:function|modifier|error|event|constructor)\s+(?:[a-zA-Z_]\w*[ \t]*)?\([^)]{0,500}\)"
             ),
-            # 3. linear: Smooth Path. Structural boundaries defining scope and data definitions.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries defining scope and data definitions.
             "linear": re.compile(
                 r"\b(pragma|import|contract|interface|library|struct|enum|type|mapping|address|uint\d*|int\d*|bytes\d*|bool|string)\b"
             ),
-            # 4. func_start: Satellite Spawner. Anchors executable logic (Functions, Modifiers, Custom Errors, Events).
+            # 4. func_start: Executable Logic Anchors. Anchors executable logic (Functions, Modifiers, Custom Errors, Events).
             # LOOKAHEAD MANDATE APPLIED: Stops exactly at the identifier name before the parenthesis.
             "func_start": re.compile(
                 r"^[ \t]*(?:function|modifier|error|event)\s+([a-zA-Z_]\w*)(?=\s*\()",
                 re.M,
             ),
-            # 5. class_start: Entity Census. Defines structural entities (Contracts, Interfaces, Libraries).
+            # 5. class_start: Object / Entity Declarations. Defines structural entities (Contracts, Interfaces, Libraries).
             "class_start": re.compile(
                 r"^[ \t]*(?:abstract\s+)?(?:contract|interface|library)\s+([a-zA-Z_]\w*)(?=\s*(?:is|\{))",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. State reversion, assertions, and defensive modifier usage.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. State reversion, assertions, and defensive modifier usage.
             "safety": re.compile(
                 r"\b(require|assert|revert|modifier|nonReentrant|onlyOwner)\b"
             ),
-            # 7. safety_neg: Fractures. Bypassing overflow checks (0.8+) or dangerous delegation.
+            # 7. safety_neg: Safety Bypasses. Bypassing overflow checks (0.8+) or dangerous delegation.
             "safety_neg": re.compile(r"\b(unchecked|assembly|delegatecall)\b"),
-            # 8. danger: Heavy Load. Contract destruction and absolute value termination.
+            # 8. danger: High-Risk Execution. Contract destruction and absolute value termination.
             "danger": re.compile(r"\b(selfdestruct|suicide)\b"),
-            # 9. io: Boundaries. EVM blockchains are closed systems. (Cross-contract calls are mapped as API/Generics).
+            # 9. io: I/O & Network Boundaries. EVM blockchains are closed systems. (Cross-contract calls are mapped as API/Generics).
             "io": None,
-            # 10. api: Event Horizon. Exposed boundaries to external wallets or contracts.
+            # 10. api: Public Surface Area. Exposed boundaries to external wallets or contracts.
             "api": re.compile(r"\b(external|public)\b"),
-            # 11. flux: Boiling Plasma. State mutation. Captures array mutators, payable states, and explicit assignment.
+            # 11. flux: State Mutation. State mutation. Captures array mutators, payable states, and explicit assignment.
             "flux": re.compile(
                 r"\b(payable|push|pop)\b|(?<![=<>!])=(?![=])|\+\+|--|\+=|-=|\*=|/="
             ),
-            # 12. graveyard: Necrosis. Commented out execution flow or structural definitions.
+            # 12. graveyard: Dead / Commented-out Code. Commented out execution flow or structural definitions.
             "graveyard": re.compile(
                 r"//[ \t]*(?:function|contract|if|require|uint|address)\b"
             ),
-            # 13. doc: Intent. NatSpec (Ethereum Natural Specification Format).
+            # 13. doc: Structured Documentation. NatSpec (Ethereum Natural Specification Format).
             "doc": re.compile(
                 r"///|/\*\*|@(?:param|return|dev|notice|custom|title|author)"
             ),
-            # 14. test: Verification. Foundry/Forge testing hooks and assertions.
+            # 14. test: Testing & Assertions. Foundry/Forge testing hooks and assertions.
             "test": re.compile(
                 r"\b(?:setUp|test[A-Za-z0-9_]*|assertEq|assertTrue|assertFalse|assertGt|assertLt|vm\.expectRevert)\b"
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. EVM execution is strictly synchronous per transaction.
             "concurrency": None,
-            # 16. ui_framework: View Layer. Solidity has no UI rendering capacity.
+            # 16. ui_framework: UI / View Components. Solidity has no UI rendering capacity.
             "ui_framework": None,
-            # 17. closures: Functional Depth. Solidity lacks native closures/lambdas.
+            # 17. closures: Closures / Anonymous Functions. Solidity lacks native closures/lambdas.
             "closures": None,
-            # 18. globals: Shared Void. Global transaction, block, and message state context variables.
+            # 18. globals: Global / Shared State. Global transaction, block, and message state context variables.
             "globals": re.compile(
                 r"\b(msg\.(?:sender|value|data|sig)|block\.(?:timestamp|number|chainid|coinbase|difficulty)|tx\.(?:gasprice|origin))\b"
             ),
-            # 19. decorators: Metadata Hooks. Modifiers act structurally similar to decorators.
+            # 19. decorators: Decorators / Annotations. Modifiers act structurally similar to decorators.
             "decorators": None,  # Modifiers are inline in Solidity, not on preceding lines.
-            # 20. generics: Type Abstractions. Parameterized K/V associations.
+            # 20. generics: Generics / Type Parameters. Parameterized K/V associations.
             # Deeply supports nested mapping structures across vertical lines.
             "generics": re.compile(
                 r"\bmapping\s*\([ \t\n]*[a-zA-Z0-9_]+\s*=>\s*(?:mapping\s*\([^)]+\)|[a-zA-Z0-9_]+)[ \t\n]*\)"
             ),
-            # 21. comprehensions: High-Density Loops. Solidity lacks native comprehensions.
+            # 21. comprehensions: Iterators / Comprehensions. Solidity lacks native comprehensions.
             "comprehensions": None,
-            # 22. scientific: Compute Core. Cryptographic hashing and elliptic curve recovery.
+            # 22. scientific: Numerical / Compute Libraries. Cryptographic hashing and elliptic curve recovery.
             "scientific": re.compile(
                 r"\b(keccak256|sha256|ripemd160|ecrecover|addmod|mulmod)\b"
             ),
-            # 23. heat_triggers: Thermal Radiation. Low-level assembly injections and fallback routers.
+            # 23. heat_triggers: Metaprogramming & Reflection. Low-level assembly injections and fallback routers.
             "heat_triggers": re.compile(
                 r"\b(fallback|receive|assembly|delegatecall|call|staticcall)\b"
             ),
-            # 24. import: Gravity Links. Resolving dependencies across files.
+            # 24. import: Dependency Inclusions. Resolving dependencies across files.
             "import": re.compile(
                 r"^[ \t]*import\s+(?:\{[^}]+\}\s+from\s+)?[\"'][^\"']+[\"'];", re.M
             ),
@@ -9244,9 +9245,9 @@ LANGUAGE_DEFINITIONS = {
                 r"//[ \t]*SPDX-License-Identifier:|(?:@author|Created by):\s+(.*)", re.I
             ),
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
-            # 26. planned_debt (The Promise)
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 28. private_info: Hardcoded credentials or private keys. Requires assignment.
             "private_info": re.compile(
@@ -9272,10 +9273,10 @@ LANGUAGE_DEFINITIONS = {
             "memory_alloc": re.compile(r"\b(new)\b"),
             # 37. inline_asm: Bare Metal Yul integration.
             "inline_asm": re.compile(r"\bassembly\s*\{"),
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics. (Hardhat console logging).
             "telemetry": re.compile(r"\b(console\.log[a-zA-Z0-9_]*)\b"),
-            # 39. print_hits: Amateur space debris. (Solidity lacks native printing outside Hardhat).
+            # 39. print_hits: Standard output. (Solidity lacks native printing outside Hardhat).
             "print_hits": None,
             # 40. cast_hits: "Trust Me" Tax. Explicit type coercion (e.g., uint256(addr)).
             "cast_hits": re.compile(
@@ -9325,7 +9326,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".m", ".mm", ".h"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Objective-C executes natively on Apple platforms; no extensionless configurations exist.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: The ultimate defense against MATLAB. Apple UI components and Xcode project files act as massive gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: The ultimate defense against MATLAB. Apple UI components and Xcode project files act as massive gravity anchors.
         "discriminators": [
             ".m",
             ".mm",
@@ -9352,12 +9353,12 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: Decisions that split flow. Includes Obj-C specific @try/@catch blocks.
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|break|continue|return|goto|@try|@catch|@finally)\b|&&|\|\||\?"
             ),
-            # 2. args: Coupling Mass. Captures method parameters (colons), C-style args, and Blocks (^).
+            # 2. args: Parameters / Coupling. Captures method parameters (colons), C-style args, and Blocks (^).
             "args": re.compile(
                 # =====================================================================
                 # [ THE GHOST ARGS & BLOCK SHIELD (OBJECTIVE-C) ]
@@ -9368,11 +9369,11 @@ LANGUAGE_DEFINITIONS = {
                 r":\s*\([^)]+\)\s*[a-zA-Z_]\w*|\^[ \t]*(?:[a-zA-Z_]\w*\s*)?\([^)]*\)|(?!(?:if|for|while|switch|catch|return)\b)\b[a-zA-Z_]\w*[ \t\n]*\([^)]*\)[ \t\n]*(?:\{|;)",
                 re.M,
             ),
-            # 3. linear: Smooth Path. Structural boundaries defining interface, implementation, and memory types.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries defining interface, implementation, and memory types.
             "linear": re.compile(
                 r"\b(@interface|@implementation|@protocol|@end|@synthesize|@dynamic|@class|@import|typedef|struct|enum|union|__block|__weak|__strong)\b"
             ),
-            # 4. func_start: Satellite Spawner. Anchors executable logic.
+            # 4. func_start: Executable Logic Anchors. Anchors executable logic.
             # The Critical Fix: Compiled with re.M and optional return types for TBL / NeXTSTEP syntax
             "func_start": re.compile(
                 # =====================================================================
@@ -9388,78 +9389,78 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:static[ \t\n]+|inline[ \t\n]+)?(?:[a-zA-Z_]\w*(?:[ \t\n]*\*+)?[ \t\n]+)+([a-zA-Z_]\w*)(?=[ \t\n]*\()",
                 re.M,
             ),
-            # 5. class_start: Entity Census. Defines OO boundaries.
+            # 5. class_start: Object / Entity Declarations. Defines OO boundaries.
             "class_start": re.compile(
                 r"^[ \t]*(?:@interface|@implementation|@protocol)\s+([a-zA-Z_]\w*)(?=[ \t]*[:(<{\n]|$)",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. ARC memory qualifiers and Cocoa/NeXT Assertions.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. ARC memory qualifiers and Cocoa/NeXT Assertions.
             "safety": re.compile(
                 r"\b(@try|@catch|@finally|__weak|__strong|__auto_type|NSAssert|NSParameterAssert|NSError|nil|Nil)\b"
             ),
-            # 7. safety_neg: Fractures. Bypassing ARC, raw void pointers, and dangerous dynamic selectors.
+            # 7. safety_neg: Safety Bypasses. Bypassing ARC, raw void pointers, and dangerous dynamic selectors.
             "safety_neg": re.compile(
                 r"\b(__unsafe_unretained|unsafe_unretained|id|void\s*\*|performSelector:|performSelector:withObject:)\b|!\s*[;,\]\)\.]|#pragma\s+clang\s+diagnostic\s+ignored"
             ),
-            # 8. danger: Heavy Load. Process killers.
+            # 8. danger: High-Risk Execution. Process killers.
             "danger": re.compile(r"\b(abort|exit)\b"),
-            # 9. io: Boundaries. Disk, Network, and URL fetching (Includes NeXTSTEP NX prefixes & TBL WWW wrappers).
+            # 9. io: I/O & Network Boundaries. Disk, Network, and URL fetching (Includes NeXTSTEP NX prefixes & TBL WWW wrappers).
             "io": re.compile(
                 r"\b(NSFileHandle|NSFileManager|NSURLSession|NSURLConnection|NSData|NXNetPath|NXSocket|NXStream|NXFile|HTLoad|HyperText|HTGet|socket|connect|send|recv)\b"
             ),
-            # 10. api: Event Horizon. Exposed interface/C-level exports and Interface Builder hooks.
+            # 10. api: Public Surface Area. Exposed interface/C-level exports and Interface Builder hooks.
             "api": re.compile(
                 r"\b(FOUNDATION_EXPORT|UIKIT_EXTERN|OBJC_EXPORT|extern)\b|@property|IBOutlet|IBAction"
             ),
-            # 11. flux: Boiling Plasma. State mutation (Property setters and raw assignments).
+            # 11. flux: State Mutation. State mutation (Property setters and raw assignments).
             "flux": re.compile(
                 r"\b(?:self\.)?[a-zA-Z_]\w*[ \t]*=|\[self\s+set[A-Z]\w*:|(?:\+\+|--)"
             ),
-            # 12. graveyard: Necrosis. Commented out structural code.
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural code.
             "graveyard": re.compile(
                 r"//[ \t]*(?:@interface|@implementation|\[|if|NSLog|- \()|/\*[ \t]*(?:@interface|@implementation|\[|if|NSLog|- \()"
             ),
-            # 13. doc: Intent. Structured documentation (Includes NeXT style).
+            # 13. doc: Structured Documentation. Structured documentation (Includes NeXT style).
             "doc": re.compile(r"/\*\*|///|/\*!|@param|@return|@brief|@discussion"),
-            # 14. test: Verification. Unit testing framework markers (OCUnit/XCTest).
+            # 14. test: Testing & Assertions. Unit testing framework markers (OCUnit/XCTest).
             "test": re.compile(
                 r"\b(XCTest|XCTestCase|XCTAssert[A-Za-z]*|SenTestCase|STAssert[A-Za-z]*)\b|\b(?:setUp|tearDown)\s*\("
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. GCD (Grand Central Dispatch), NSOperation, and Locks.
             "concurrency": re.compile(
                 r"\b(dispatch_async|dispatch_sync|dispatch_once|dispatch_queue_t|NSOperation|NSThread|@synchronized|NSLock|NXConditionLock)\b"
             ),
-            # 16. ui_framework: View Layer. Cocoa, UIKit, and AppKit hierarchies (Includes legacy NX classes).
+            # 16. ui_framework: UI / View Components. Cocoa, UIKit, and AppKit hierarchies (Includes legacy NX classes).
             "ui_framework": re.compile(
                 r"\b(UIView|UIViewController|UIWindow|NSView|NSWindow|NXWindow|NXApp|NXBrowser|NXText|Text|ScrollView|HyperText|WorldWideWeb|SGML)\b"
             ),
-            # 17. closures: Functional Depth. Objective-C Blocks.
+            # 17. closures: Closures / Anonymous Functions. Objective-C Blocks.
             "closures": re.compile(r"\^[ \t]*(?:[a-zA-Z_]\w*\s*)?\s*\([^)]*\)[ \t]*\{"),
-            # 18. globals: Shared Void. Singleton/Shared instance access.
+            # 18. globals: Global / Shared State. Singleton/Shared instance access.
             "globals": re.compile(
                 r"\b(extern|NSUserDefaults|NXDefaults|\[UIApplication\s+sharedApplication\]|\[NSWorkspace\s+sharedWorkspace\]|NXApp)\b"
             ),
-            # 19. decorators: Metadata Hooks. Attributes and Property decorators.
+            # 19. decorators: Decorators / Annotations. Attributes and Property decorators.
             "decorators": re.compile(
                 r"\b__attribute__\s*\(\([^)]*\)\)|@property\s*\([^)]+\)"
             ),
-            # 20. generics: Type Abstractions. Lightweight generics (introduced in Xcode 7).
+            # 20. generics: Generics / Type Parameters. Lightweight generics (introduced in Xcode 7).
             "generics": re.compile(r"<\s*[A-Z][^>]*\s*\*?\s*>"),
-            # 21. comprehensions: High-Density Loops. Block-based array/set enumeration.
+            # 21. comprehensions: Iterators / Comprehensions. Block-based array/set enumeration.
             "comprehensions": re.compile(
                 r"\b(enumerateObjectsUsingBlock:|filteredArrayUsingPredicate:|makeObjectsPerformSelector:)\b"
             ),
-            # 22. scientific: Compute Core. C-Math and CoreGraphics structs.
+            # 22. scientific: Numerical / Compute Libraries. C-Math and CoreGraphics structs.
             "scientific": re.compile(
                 r"\b(math\.h|sin|cos|tan|sqrt|exp|log|abs|NSDecimalNumber|CGVector|CGAffineTransform|CGPoint|CGRect|CGSize|NXRect|NXSize)\b"
             ),
-            # 23. heat_triggers: Thermal Radiation. Objective-C Runtime Swizzling and dynamic messaging.
+            # 23. heat_triggers: Metaprogramming & Reflection. Objective-C Runtime Swizzling and dynamic messaging.
             "heat_triggers": re.compile(
                 r"\b(objc_msgSend|performSelector|method_exchangeImplementations|class_addMethod|objc_allocateClassPair|isa|object_setClass)\b|<objc/runtime\.h>"
             ),
-            # 24. import: Gravity Links. Module and header inclusion.
+            # 24. import: Dependency Inclusions. Module and header inclusion.
             "import": re.compile(r"^[ \t]*(?:#import|#include|@import)\b", re.M),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:#import|#include)\s*(?:<([^>]+)>|[\"']([^\"']+)[\"'])|^[ \t]*@import\s+([\w.]+)",
@@ -9469,7 +9470,7 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(
                 r"\b(?:Created by|@author|Author:|Copyright|Tim Berners-Lee)\b", re.I
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             "planned_debt": GLOBAL_PLANNED_DEBT,
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(
@@ -9499,12 +9500,12 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": re.compile(
                 r"\b(?:__asm__|asm|__asm)\b(?:\s+volatile)?\s*\([^)]*\)"
             ),
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(
                 r"\b(os_log|OSLog|DDLogInfo|DDLogError|DDLogWarn|DDLogDebug|syslog)\b"
             ),
-            # 39. print_hits: Amateur space debris.
+            # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(printf|fprintf|NXPrintf|NSLog)\b"),
             # 40. cast_hits: "Trust Me" Tax. Explicit type coercion.
             "cast_hits": re.compile(
@@ -9565,7 +9566,7 @@ LANGUAGE_DEFINITIONS = {
             "Makeconf",
             "Makevars",
         ],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Sibling configurations acting as gravity anchors to resolve ambiguous .mk includes.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling configurations acting as gravity anchors to resolve ambiguous .mk includes.
         "discriminators": ["Makefile", "makefile", "configure.ac", "CMakeLists.txt"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for executable make scripts.
         "shebangs": ["make", "gmake"],
@@ -9580,7 +9581,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": None,
             "_block_end": None,
             # --------------------------------------------------------------------------
-            # 1. GEOMETRY & SHAPE (The Physical Stars)
+            # 1. GEOMETRY & SHAPE (Geometry & Shape)
             # --------------------------------------------------------------------------
             # Captures Make conditionals and typical inline shell conditional branches.
             "branch": re.compile(
@@ -9595,18 +9596,18 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*[a-zA-Z0-9_.-]+[ \t]*(?::|\?|::)?=(?![ \t]*=)|^[ \t]*(?:vpath|undefine)\b",
                 re.M,
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Strict capture group and positive lookahead applied for both Obj-C methods and C-functions.
             "func_start": re.compile(
                 r"^[ \t]*(?!\.(?:PHONY|POSIX|SECONDARY|PRECIOUS|DELETE_ON_ERROR|KEEP_STATE|NOTPARALLEL|WAIT|SILENT|EXPORT_ALL_VARIABLES|IGNORE|SUFFIXES|DEFAULT|PRECIOUS|INTERMEDIATE|SECONDARY|SECONDEXPANSION)\b)"
                 r"([a-zA-Z0-9_./%-]+)(?=[ \t]*::?)",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Defines OO boundaries. Strict capture group and positive lookahead applied.
             "class_start": None,
             # --------------------------------------------------------------------------
-            # 2. STRUCTURAL INTEGRITY & TECH DEBT (Cyan Fortifications & Red Fragility)
+            # 2. STRUCTURAL INTEGRITY & TECH DEBT (Structural Integrity & Tech Debt)
             # --------------------------------------------------------------------------
             # Defensive programming: Executing internal logic checks, asserting tool paths, or using safety system states.
             "safety": re.compile(
@@ -9630,9 +9631,9 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:\.PHONY|export\b|(?:all|install|build|clean|test|run)[ \t]*::?)",
                 re.M,
             ),
-            # Mutating variable state by appending (+=) or shell assignment (!=). (The Yin to freeze_hits).
+            # Mutating variable state by appending (+=) or shell assignment (!=). .
             "flux": re.compile(r"^[ \t]*[a-zA-Z0-9_.-]+[ \t]*(?:\+|!)=", re.M),
-            # Ghost targets, commented out shell logic, or commented conditional Make directives.
+            # Commented-out targets, commented out shell logic, or commented conditional Make directives.
             "graveyard": re.compile(
                 r"^[ \t]*#[ \t]*(?:[a-zA-Z0-9_./%-]+[ \t]*::?|[a-zA-Z0-9_.-]+[ \t]*(?::|\?|::)?=|\b(?:ifeq|ifneq|ifdef|ifndef|include)\b)",
                 re.M,
@@ -9683,9 +9684,9 @@ LANGUAGE_DEFINITIONS = {
             # --------------------------------------------------------------------------
             # 4. SPECIALIZED EXTRACTIONS (Sub-Equations and Low-Level/System)
             # --------------------------------------------------------------------------
-            # 26. planned_debt (The Promise)
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(r"\[(?:spec-[0-9]+|audit|spec)\]", re.I),
             # Strict tracking of Indentation structural boundaries. (Make strictly demands Tabs, mapping space usage catches severe fragmentation).
@@ -9715,17 +9716,17 @@ LANGUAGE_DEFINITIONS = {
             # Temporal duct tape strictly applying forced pausing.
             "halt_hits": re.compile(r"\bsleep[ \t]+[0-9]+"),
             "bitwise_hits": None,  # Kept null as Bash pipe IPC limits logic math precision.
-            # Explicit locks halting temporal thread races. (The Yang to concurrency).
+            # Explicit locks halting temporal thread races. .
             "sync_locks": re.compile(
                 r"^[ \t]*\.(?:NOTPARALLEL|WAIT)[ \t]*::?|\bflock[ \t]+", re.M
             ),
-            # Enforcing strict immutability bounds on state configuration. (The Yang to flux).
+            # Enforcing strict immutability bounds on state configuration. .
             "freeze_hits": re.compile(r"^[ \t]*override[ \t]+[a-zA-Z0-9_.-]+", re.M),
-            # Janitor routines ripping apart build artifacts and cleanly tearing down output paths. (The Yang to io).
+            # Janitor routines ripping apart build artifacts and cleanly tearing down output paths. .
             "cleanup": re.compile(
                 r"^[ \t]*(?:dist)?clean[ \t]*::?|\brm[ \t]+-[a-zA-Z]*f[a-zA-Z]*\b", re.M
             ),
-            # The Vault explicitly hiding scope logic away from external API leakage boundaries. (The Yang to api).
+            # The Vault explicitly hiding scope logic away from external API leakage boundaries. .
             "encapsulation": re.compile(
                 r"^[ \t]*(?:unexport[ \t]+[a-zA-Z0-9_.-]+|[a-zA-Z0-9_.-]+[ \t]*:[ \t]*private[ \t]+|\.SILENT[ \t]*:)",
                 re.M,
@@ -9763,7 +9764,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".abap", ".asddls"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: ABAP is executed within the SAP environment; no extensionless exact configurations exist.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: SAP deployment artifacts acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: SAP deployment artifacts acting as gravity anchors.
         "discriminators": [".abap", "package.devc.xml", ".apc"],
         # EXECUTION SIGNATURES: Executed exclusively within the SAP NetWeaver/ABAP platform; no shebangs exist.
         "shebangs": [],
@@ -9771,123 +9772,124 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Strictly fixed-format legacy constraints. The engine must monitor Column 1
         # for an asterisk '*' to identify line-level Ghost Mass, while allowing '"' for inline.
         "lexical_family": "column_sensitive",
+
         "rules": {
             "_line_anchor": re.compile(r"^\*"),
             "_inline_comment": re.compile(r"\""),
             "_block_start": None,  # ABAP has no standard multi-line block comments
             "_block_end": None,
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes modern COND/SWITCH expressions.
             "branch": re.compile(
                 r"^[ \t]*(IF|ELSE|ELSEIF|CASE|WHEN|WHILE|DO|LOOP\s+AT|TRY|CATCH|CLEANUP|CHECK|EXIT|CONTINUE|RETURN|COND|SWITCH)\b",
                 re.I | re.M,
             ),
-            # 2. args: Coupling Mass. Captures explicit parameter binding keywords.
+            # 2. args: Parameters / Coupling. Captures explicit parameter binding keywords.
             "args": re.compile(
                 r"\b(IMPORTING|EXPORTING|CHANGING|RETURNING|RECEIVING|EXCEPTIONS)\s+(?:VALUE\s*\([^)]*\)[ \t]+)?[a-zA-Z_][a-zA-Z0-9_-]*",
                 re.I,
             ),
-            # 3. linear: Smooth Path. Structural boundaries. EXCLUDES access modifiers and constants.
+            # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries. EXCLUDES access modifiers and constants.
             "linear": re.compile(
                 r"^[ \t]*(DATA|TYPES|FIELD-SYMBOLS|CLASS|INTERFACE|METHOD|FORM|FUNCTION|MODULE|REPORT|PROGRAM|IMPORT|EXPORT)\b",
                 re.I | re.M,
             ),
-            # 4. func_start: Satellite Spawner. Anchors executable logic. EXCLUDES structural headers.
+            # 4. func_start: Executable Logic Anchors. Anchors executable logic. EXCLUDES structural headers.
             "func_start": re.compile(
                 r"^[ \t]*(?!(?:CLASS|INTERFACE|DATA|TYPES|CONSTANTS)\b)(?:METHOD|FORM|FUNCTION|MODULE)\s+([a-zA-Z0-9_~-]+)(?=[ \t\n\.]|$)",
                 re.I | re.M,
             ),
-            # 5. class_start: Entity Census. Defines OO boundaries and RAP CDS Entities.
+            # 5. class_start: Object / Entity Declarations. Defines OO boundaries and RAP CDS Entities.
             "class_start": re.compile(
                 r"^[ \t]*(?:CLASS|INTERFACE)\s+([a-zA-Z0-9_-]+)(?=[ \t]+DEFINITION|[ \t\n\.]|$)|^[ \t]*DEFINE\s+(?:ROOT[ \t]+)?(?:VIEW|ENTITY|PROJECTION\s+VIEW|BEHAVIOR)\s+([a-zA-Z0-9_-]+)",
                 re.I | re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety: Cyan Fortification. Binding checks and authorization boundaries.
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety: Defensive Programming. Binding checks and authorization boundaries.
             "safety": re.compile(
                 r"\b(TRY|CATCH|CLEANUP|ASSERT|AUTHORITY-CHECK|IS\s+BOUND|IS\s+ASSIGNED|IS\s+NOT\s+INITIAL|FINAL|READ-ONLY)\b",
                 re.I,
             ),
-            # 7. safety_neg: Fractures. Actively bypassing safety (casting/unchecked generics).
+            # 7. safety_neg: Safety Bypasses. Actively bypassing safety (casting/unchecked generics).
             "safety_neg": re.compile(
                 r"\b(UNASSIGNED|TYPE\s+ANY|TYPE\s+REF\s+TO\s+DATA|IGNORE\s+ERRORS)\b|ASSIGN\s+[^\n;]+\s+TO\s+<[^>]+>\s+CASTING",
                 re.I,
             ),
-            # 8. danger: Heavy Load. Raw SQL/Kernel bypasses and mass deletion.
+            # 8. danger: High-Risk Execution. Raw SQL/Kernel bypasses and mass deletion.
             "danger": re.compile(
                 r"\b(SYSTEM-CALL|EXEC\s+SQL|DELETE\s+FROM|TRUNCATE|GENERATE\s+SUBROUTINE\s+POOL)\b",
                 re.I,
             ),
-            # 9. io: Boundaries. Database interaction and File datasets.
+            # 9. io: I/O & Network Boundaries. Database interaction and File datasets.
             "io": re.compile(
                 r"^[ \t]*(SELECT|INSERT\s+(?:INTO\b)?|UPDATE\b|MODIFY\b|OPEN\s+DATASET|TRANSFER|READ\s+DATASET|CLOSE\s+DATASET|CL_HTTP_CLIENT|CL_WEB_HTTP_CLIENT)\b",
                 re.I | re.M,
             ),
-            # 10. api: Event Horizon. Exposed RFCs, OData publishing, and Public sections.
+            # 10. api: Public Surface Area. Exposed RFCs, OData publishing, and Public sections.
             "api": re.compile(
                 r"\b(REMOTE\s+FUNCTION|@OData\.publish|DEFINE\s+VIEW|DEFINE\s+SERVICE|EXPOSED|PUBLIC\s+SECTION)\b",
                 re.I,
             ),
-            # 11. flux: Boiling Plasma. State mutation (The core of ABAP data manipulation).
+            # 11. flux: State Mutation. State mutation (The core of ABAP data manipulation).
             "flux": re.compile(
                 r"^[ \t]*(MOVE|MOVE-CORRESPONDING|APPEND|MODIFY\s+TABLE|DELETE\s+TABLE)\b|^[ \t]*INSERT\s+[^\n;]+\s+INTO\s+TABLE",
                 re.I | re.M,
             ),
-            # 12. graveyard: Necrosis. Commented out structural logic (supports * and ").
+            # 12. graveyard: Dead / Commented-out Code. Commented out structural logic (supports * and ").
             "graveyard": re.compile(
                 r'^[ \t]*\*[ \t]*(?:DATA|METHOD|IF|SELECT|WRITE)\b|"[ \t]*(?:DATA|METHOD|IF|SELECT|WRITE)\b',
                 re.I | re.M,
             ),
-            # 13. doc: Intent. ABAP Doc annotations and metadata headers.
+            # 13. doc: Structured Documentation. ABAP Doc annotations and metadata headers.
             "doc": re.compile(
                 r'^"!\s*@(?:parameter|raising|return)|\b(?:AUTHOR|DESCRIPTION|PURPOSE|REMARKS):\b',
                 re.I | re.M,
             ),
-            # 14. test: Verification. ABAP Unit markers and test-injection.
+            # 14. test: Testing & Assertions. ABAP Unit markers and test-injection.
             "test": re.compile(
                 r"\b(FOR\s+TESTING|RISK\s+LEVEL|DURATION\s+SHORT|CL_ABAP_UNIT_ASSERT|ZCL_ABAP_UNIT)\b",
                 re.I,
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. Async RFCs and background tasks.
             "concurrency": re.compile(
                 r"\b(STARTING\s+NEW\s+TASK|ENQUEUE_|DEQUEUE_|WAIT\s+UP\s+TO)\b|CALL\s+FUNCTION\s+[^\n;]+\s+IN\s+BACKGROUND\s+TASK",
                 re.I,
             ),
-            # 16. ui_framework: View Layer. Screen programming and HTML viewers.
+            # 16. ui_framework: UI / View Components. Screen programming and HTML viewers.
             "ui_framework": re.compile(
                 r"\b(CALL\s+SCREEN|SELECTION-SCREEN|PARAMETERS|WDDOMODIFYVIEW|CL_GUI_HTML_VIEWER|CL_SALV_TABLE)\b",
                 re.I,
             ),
-            # 17. closures: Functional Depth. (ABAP lacks anonymous closures).
+            # 17. closures: Closures / Anonymous Functions. (ABAP lacks anonymous closures).
             "closures": None,
-            # 18. globals: Shared Void. Global program data and the system registry.
+            # 18. globals: Global / Shared State. Global program data and the system registry.
             "globals": re.compile(
                 r"\b(TABLES|STATICS|CLASS-DATA|SY-[A-Z0-9_]+)\b", re.I
             ),
-            # 19. decorators: Metadata Hooks. CDS and class annotations.
+            # 19. decorators: Decorators / Annotations. CDS and class annotations.
             "decorators": re.compile(r"@[A-Za-z0-9_.]+(?:\([^)]*\))?", re.I),
-            # 20. generics: Type Abstractions. Generic data references and field symbols.
+            # 20. generics: Generics / Type Parameters. Generic data references and field symbols.
             "generics": re.compile(
                 r"\b(TYPE\s+ANY(?:\s+TABLE)?|TYPE\s+INDEX\s+TABLE|TYPE\s+STANDARD\s+TABLE|TYPE\s+REF\s+TO\s+DATA)\b",
                 re.I,
             ),
-            # 21. comprehensions: High-Density Loops. Modern constructor expressions.
+            # 21. comprehensions: Iterators / Comprehensions. Modern constructor expressions.
             "comprehensions": re.compile(
                 r"\b(?:VALUE|REDUCE|FILTER|CORRESPONDING|NEW)\s+#?\s*\(|\bFOR\s+[a-zA-Z_]\w*\s+IN\b",
                 re.I,
             ),
-            # 22. scientific: Compute Core. Standard numerical built-ins.
+            # 22. scientific: Numerical / Compute Libraries. Standard numerical built-ins.
             "scientific": re.compile(
                 r"\b(ABS|SQRT|LOG|EXP|SIN|COS|TAN|ROUND|CEIL|FLOOR|DECFLOAT16|DECFLOAT34)\b",
                 re.I,
             ),
-            # 23. heat_triggers: Thermal Radiation. RTTS and Dynamic assignment logic.
+            # 23. heat_triggers: Metaprogramming & Reflection. RTTS and Dynamic assignment logic.
             "heat_triggers": re.compile(
                 r"\b(CL_ABAP_TYPEDESCR|CL_ABAP_CLASSDESCR|ASSIGN\s+\([a-zA-Z0-9_-]+\)\s+TO|GENERATE\s+SUBROUTINE\s+POOL)\b",
                 re.I,
             ),
-            # 24. import: Gravity Links. Includes and type pools.
+            # 24. import: Dependency Inclusions. Includes and type pools.
             "import": re.compile(r"\b(INCLUDE|TYPE-POOLS)\b", re.I),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:INCLUDE|TYPE-POOLS)[ \t\n]+([A-Za-z0-9_/]+)", re.I | re.M
@@ -9897,7 +9899,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:AUTHOR|CREATED\s+BY|MAINTAINER|Tim Berners-Lee):\s+([^\n]+)",
                 re.I | re.M,
             ),
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
@@ -9937,12 +9939,12 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(
                 r"\b(BAL_LOG_CREATE|BAL_DB_SAVE|CL_BALI_LOG|CL_BALI_MSG_SETTER)\b", re.I
             ),
-            # 39. print_hits: Amateur space debris.
+            # 39. print_hits: Standard output.
             "print_hits": re.compile(r"^[ \t]*(WRITE)\b", re.I | re.M),
             # 40. cast_hits: "Trust Me" Tax. Explicit casting and conversions.
             "cast_hits": re.compile(
@@ -9997,7 +9999,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Universally recognized XML architectural and build manifests.
         "exact_matches": ["pom.xml", "build.xml", "AndroidManifest.xml", "phpunit.xml"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Primary sibling extensions to anchor standard data serialization and frameworks.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions to anchor standard data serialization and frameworks.
         "discriminators": [".xml", ".xsd", ".xsl", "pom.xml", "build.xml"],
         # EXECUTION SIGNATURES: XML is declarative data/markup; no shebangs exist.
         "shebangs": [],
@@ -10005,6 +10007,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: (CORRECTION) Consolidated 'xml_angle' into 'singular'. Like HTML, XML
         # exclusively uses SGML-style block delimiters () for its Ghost Mass.
         "lexical_family": "single_line_only",
+
         "rules": {},
     },
     "markdown": {
@@ -10024,7 +10027,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: The universally recognized, extensionless repository documentation anchors.
         "exact_matches": ["README", "LICENSE", "CHANGELOG", "CONTRIBUTING", "SECURITY"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Static site generators and documentation build configs acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Static site generators and documentation build configs acting as gravity anchors.
         "discriminators": [
             ".md",
             ".mdx",
@@ -10051,7 +10054,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".csv", ".tsv", ".psv"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Delimited data relies strictly on extensions.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Sibling datasets and data-science logic files acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling datasets and data-science logic files acting as gravity anchors.
         "discriminators": [".csv", ".tsv", ".py", ".ipynb", ".R", ".m"],
         # EXECUTION SIGNATURES: CSV is purely static data; no shebangs exist.
         "shebangs": [],
@@ -10087,7 +10090,7 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"#"),
             "_block_start": None,
             "_block_end": None,
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             "branch": re.compile(
                 r"\b(?:if|else|elif|fi|case|esac|for|while|do|done)\b|&&|\|\|", re.I
             ),
@@ -10097,7 +10100,7 @@ LANGUAGE_DEFINITIONS = {
             "linear": re.compile(
                 r"^[ \t]*(?:env|needs|runs-on|steps|strategy|matrix):", re.M | re.I
             ),
-            # The Satellite Spawners: Explicit execution blocks
+            # Executable Logic Anchors: Explicit execution blocks
             "func_start": re.compile(
                 r"^[ \t]*(?:-?[ \t]*run:|script:|before_script:|after_script:)[ \t]*[|>]*",
                 re.M | re.I,
@@ -10106,7 +10109,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:jobs:|workflow_call:|[a-zA-Z0-9_-]+:[ \t]*\n[ \t]+(?:uses|image):)",
                 re.M | re.I,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (The Dimensions) ---
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             "safety": re.compile(
                 r"^[ \t]*continue-on-error:[ \t]*false|^[ \t]*permissions:[ \t]*\n(?:[ \t]+(?:contents|id-token|actions|security-events):[ \t]*read)",
                 re.M | re.I,
@@ -10143,7 +10146,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:npm[ \t]+test|pytest|make[ \t]+test|cargo[ \t]+test|go[ \t]+test)\b",
                 re.M | re.I,
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             "concurrency": re.compile(
                 r"^[ \t]*strategy:[ \t]*\n[ \t]+matrix:|^[ \t]*concurrency:",
                 re.M | re.I,
@@ -10172,10 +10175,10 @@ LANGUAGE_DEFINITIONS = {
                 re.M | re.I,
             ),
             "ownership": None,
-            # --- 🌌 PHASE 4: THE EXTENDED DIMENSIONS ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "private_info": re.compile(
                 r"\b(?:password|secret|token|api[_-]?key|client[_-]?secret|private[_-]?key)[ \t]*:[ \t]*[\"'][A-Za-z0-9\-_+/=]{16,}[\"']",
@@ -10196,7 +10199,7 @@ LANGUAGE_DEFINITIONS = {
             "pointers": None,
             "memory_alloc": None,
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             "telemetry": re.compile(r"^[ \t]*::(?:debug|warning|error)[ \t]+.*", re.M),
             "print_hits": re.compile(r"\b(?:echo|printf)\b", re.I),
             "cast_hits": None,
@@ -10229,7 +10232,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".pbtxt", ".textproto", ".textpb", ".pb"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: PBTXT strictly relies on its extensions.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Standard .proto schema definitions and Bazel build files acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Standard .proto schema definitions and Bazel build files acting as gravity anchors.
         "discriminators": [".proto", "WORKSPACE", "BUILD.bazel", "BUILD"],
         # EXECUTION SIGNATURES: PBTXT is purely serialized message data; no shebangs exist.
         "shebangs": [],
@@ -10250,7 +10253,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".y", ".yy", ".ypp", ".l", ".ll", ".lpp"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Parser generators rely strictly on extensions.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: The generated C/C++ outputs and standard build systems acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: The generated C/C++ outputs and standard build systems acting as gravity anchors.
         "discriminators": [
             ".c",
             ".cpp",
@@ -10270,17 +10273,17 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE ---
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
             "branch": re.compile(r"\b(if|else|switch|case|for|while|do)\b|\|"),
             "args": re.compile(r"\$\d+|\$\$"),
             "linear": re.compile(
                 r"\b(return|goto|break|continue|%token|%type|%left|%right|%nonassoc)\b"
             ),
-            # The Satellite Spawner: Anchors specifically onto Grammar Rules
+            # Executable Logic Anchor: Anchors specifically onto Grammar Rules
             # Matches "rule_name :" or "rule_name:" at the start of a line
             "func_start": re.compile(r"^[ \t]*([a-zA-Z_]\w*)(?=[ \t]*:)", re.M),
             "class_start": None,
-            # --- ⚠️ PHASE 2: RISK ENGINE ---
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             "safety": re.compile(r"\b(assert|YYABORT|YYACCEPT|YYERROR)\b"),
             "safety_neg": re.compile(r"\b(goto|void\s*\*)\b"),
             "danger": re.compile(r"\b(abort|exit|YYNOMEM)\b"),
@@ -10292,7 +10295,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             "doc": re.compile(r"/\*\*|@param|@return"),
             "test": None,
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS ---
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             "concurrency": None,
             "ui_framework": None,
             "closures": None,
@@ -10306,7 +10309,7 @@ LANGUAGE_DEFINITIONS = {
             "ownership": re.compile(
                 r"(?:@author|Author:|Created by:|Copyright)\s+(.*)", re.I
             ),
-            # --- 🌌 PHASE 4: EXTENDED DIMENSIONS ---
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             "planned_debt": GLOBAL_PLANNED_DEBT,
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(
@@ -10326,7 +10329,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(malloc|calloc|realloc|free|YYMALLOC|YYFREE)\b"
             ),
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE ---
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             "telemetry": re.compile(r"\b(?:syslog|openlog|log_info|YYDPRINTF)\b"),
             "print_hits": re.compile(r"\b(printf|fprintf|vprintf|puts|yyerror)\b"),
             "cast_hits": re.compile(
@@ -10354,7 +10357,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".m4", ".at", ".ac", ".in"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: The undeniable structural anchors of the GNU build system.
         "exact_matches": ["configure.ac", "configure.in"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Automake configurations and standard Makefiles acting as massive gravity anchors for ambiguous .in templates.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Automake configurations and standard Makefiles acting as massive gravity anchors for ambiguous .in templates.
         "discriminators": [
             ".m4",
             "Makefile.am",
@@ -10374,66 +10377,66 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"\bdnl\b"),
             "_block_start": None,
             "_block_end": None,
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # M4 branching logic and Autoconf shell-generation branches.
             "branch": re.compile(
                 r"\b(?:ifelse|ifdef|AS_IF|AS_CASE|m4_if|m4_case|m4_cond|m4_ifval|m4_ifblank)\b"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # M4 positional arguments.
             "args": re.compile(r"\$[0-9]+|\$[@*#]"),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Execution flow diversion and dependency signaling.
             "linear": re.compile(
                 r"\b(?:divert|undivert|m4_divert|m4_undivert|m4_require|AC_REQUIRE)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Defining a macro establishes an executable logic block in M4.
             "func_start": re.compile(
                 r"^[ \t]*(m4_define|define|AC_DEFUN|AC_DEFUN_ONCE|AU_DEFUN|m4_defun)(?=\s*\()",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": None,  # M4 is a macro processor, lacking objects.
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             # Autoconf environment checks and M4 assertions.
             "safety": re.compile(
                 r"\b(?:m4_assert|AS_VERSION_COMPARE|AC_CHECK_PROG|AC_CHECK_LIB|AC_CHECK_HEADER|AC_CHECK_FUNC|m4_warn)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Dynamically altering the quote characters or comment strings breaks the parser context completely.
             "safety_neg": re.compile(
                 r"\b(?:changequote|changecom|m4_changequote|m4_changecom|m4_ignore)\b"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Executing raw shell commands during macro expansion (not generation).
             "danger": re.compile(r"\b(?:syscmd|esyscmd|m4_syscmd|m4_esyscmd)\b"),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # Reading system values, creating temp files, or emitting generated configurations.
             "io": re.compile(
                 r"\b(?:sysval|mkstemp|maketemp|m4_mkstemp|m4_maketemp|AC_CONFIG_FILES|AC_OUTPUT)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # M4 macros are inherently public, but these explicitly export state into the generated Makefile/C headers.
             "api": re.compile(r"\b(?:AC_SUBST|AC_DEFINE|AC_PROVIDE|m4_provide)\b"),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Stack-based macro overriding and list appending.
             "flux": re.compile(
                 r"\b(?:pushdef|popdef|m4_pushdef|m4_popdef|m4_append|m4_append_uniq|m4_combine)\b"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Commented-out macro definitions.
             "graveyard": re.compile(
                 r"^[ \t]*dnl[ \t]+(?:m4_define|define|AC_DEFUN|ifelse|AS_IF)\b", re.M
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             # Documentation blocks or explicit copyright insertions into the output script.
             "doc": re.compile(
                 r"^[ \t]*dnl[ \t]+@(?:param|return|brief)|AC_COPYRIGHT\b", re.M
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # The GNU Autotest framework.
             "test": re.compile(r"\b(?:AT_SETUP|AT_CHECK|AT_CLEANUP|AT_INIT|AT_DATA)\b"),
             # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Architecture & Complexity) ---
@@ -10443,46 +10446,46 @@ LANGUAGE_DEFINITIONS = {
             "ui_framework": None,
             # 17. closures
             "closures": None,
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             # Environment variables mapped into the configure script.
             "globals": re.compile(r"\b(?:AC_ARG_VAR|AC_ENV_VAR|m4_divert_text)\b"),
             # 19. decorators
             "decorators": None,
             # 20. generics
             "generics": None,
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # M4 map and foreach iterative constructs.
             "comprehensions": re.compile(
                 r"\b(?:m4_foreach|m4_foreach_w|m4_map|m4_map_sep)\b"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # M4's native integer arithmetic evaluator.
             "scientific": re.compile(r"\b(?:eval|m4_eval)\b"),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Advanced string metaprogramming and regex substitutions.
             "heat_triggers": re.compile(
                 r"\b(?:translit|patsubst|regexp|m4_translit|m4_bpatsubst|m4_bregexp|m4_pattern_allow)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             # File inclusions.
             "import": re.compile(
                 r"^[ \t]*(?:include|sinclude|m4_include|m4_sinclude)\b", re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^[ \t]*dnl[ \t]+(?:Author|Maintainer|Copyright|License):|AC_COPYRIGHT",
                 re.I | re.M,
             ),
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
-            # 26. planned_debt (The Promise)
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
@@ -10491,7 +10494,7 @@ LANGUAGE_DEFINITIONS = {
             # 33. dependency_injection
             # M4 dependency chaining to ensure macros execute in the correct order.
             "dependency_injection": re.compile(r"\b(?:AC_REQUIRE|m4_require)\b"),
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             # M4 is the macro engine, but this tracks configuring C-level preprocessor hooks.
             "macros": re.compile(r"\b(?:AC_DEFINE|AC_DEFINE_UNQUOTED|AH_TEMPLATE)\b"),
             # 35. pointers
@@ -10500,23 +10503,23 @@ LANGUAGE_DEFINITIONS = {
             "memory_alloc": None,
             # 37. inline_asm
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             # Logging configure progress securely to stdout and config.log.
             "telemetry": re.compile(
                 r"\b(?:AC_MSG_CHECKING|AC_MSG_RESULT|AC_MSG_WARN|AC_MSG_NOTICE)\b"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             # Raw M4 error printing.
             "print_hits": re.compile(r"\b(?:errprint|m4_errprint)\b"),
             # 40. cast_hits
             "cast_hits": None,
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             # Hard aborts.
             "bailout_hits": re.compile(
                 r"\b(?:m4_fatal|AC_MSG_ERROR|AC_MSG_FAILURE|AS_EXIT)\b"
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             # Raw sleeps in generated scripts.
             "halt_hits": re.compile(r"\b(?:sleep)\b"),
             # 43. bitwise_hits
@@ -10525,15 +10528,15 @@ LANGUAGE_DEFINITIONS = {
             "sync_locks": None,
             # 45. freeze_hits
             "freeze_hits": None,  # M4 macros are mutable by design.
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             # Macro unloading and Autotest tear-downs.
             "cleanup": re.compile(r"\b(?:m4_popdef|popdef|AT_CLEANUP)\b"),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Forbidding specific patterns from reaching the output script.
             "encapsulation": re.compile(r"\b(?:m4_pattern_forbid)\b"),
             # 48. listeners
             "listeners": None,
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             # Skipping tests in the Autotest framework.
             "test_skip": re.compile(r"\b(?:AT_SKIP_IF)\b"),
         },
@@ -10549,14 +10552,14 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".scm", ".ss", ".rkt", ".sch", ".sld", ".sls", ".sps"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Scheme rarely uses extensionless configurations.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Guile build definitions, Racket manifests, and Lisp package formats.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Guile build definitions, Racket manifests, and Lisp package formats.
         "discriminators": [".scm", ".rkt", "info.rkt", "guix.scm"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for shell wrappers invoking Scheme/Guile/Racket.
         "shebangs": ["guile", "scheme", "csi", "racket", "racketsh"],
         # UPGRADED: Maps to Family 9 (Lisp_Semi) - *NEW FAMILY*
         # Rationale: Perfectly captures the Lisp ecosystem's reliance on ';' for line-level
         # comments and `#| |#` for nested block-level Ghost Mass.
-        "lexical_family": "lisp_style",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Scheme uses ';' for standard line-level literature.
@@ -10565,13 +10568,13 @@ LANGUAGE_DEFINITIONS = {
             # Scheme block comments (SRFI 30) use #| and |#
             "_block_start": re.compile(r"#\|"),
             "_block_end": re.compile(r"\|#"),
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Lisp control flow branches. Uses custom S-expression boundaries.
             "branch": re.compile(
                 r"(?<=[ \t(\[])(if|cond|case|and|or|when|unless)(?=[ \t)\]\n\r])"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Captures the parameter list inside a standard function definition: (define (func arg1 arg2) ...)
             "args": re.compile(
                 # =====================================================================
@@ -10585,12 +10588,12 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t\n]*\([ \t\n]*define[ \t\n]+\([ \t\n]*[^ \t\n()]+(?:[ \t\n]+[^)]*)?[ \t\n]*\)",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries defining scope and sequential execution.
             "linear": re.compile(
                 r"(?<=[ \t(\[])(let|let\*|letrec|letrec\*|begin|do)(?=[ \t)\]\n\r])"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # Anchors logic blocks. Captures the function name immediately following the parenthesis.
             "func_start": re.compile(
                 # =====================================================================
@@ -10604,71 +10607,71 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t\n]*\([ \t\n]*define[ \t\n]+\([ \t\n]*([a-zA-Z0-9_!?-]+)(?=[ \t\n)\]\r])",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Scheme lacks traditional objects; SRFI-9 Records serve as structural entities.
             "class_start": re.compile(
                 r"^[ \t]*\([ \t]*define-record-type\s+([a-zA-Z0-9_!?-]+)(?=[ \t)\]\n\r])",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             # Continuations, exception guards, and dynamic-wind state protectors.
             "safety": re.compile(
                 r"(?<=[ \t(\[])(guard|dynamic-wind|with-exception-handler|call-with-current-continuation|call/cc|assert|check)(?=[ \t)\]\n\r])"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Explicit, raw manipulation of cons cells or unrestricted environments.
             "safety_neg": re.compile(
                 r"(?<=[ \t(\[])(set-car!|set-cdr!|interaction-environment)(?=[ \t)\]\n\r])"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # Dynamic code execution and emergency system exits.
             "danger": re.compile(
                 r"(?<=[ \t(\[])(eval|exit|emergency-exit|quit)(?=[ \t)\]\n\r])"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # File operations and output ports.
             "io": re.compile(
                 r"(?<=[ \t(\[])(open-input-file|open-output-file|read|read-char|write|display|newline|call-with-input-file|call-with-output-file|load|format)(?=[ \t)\]\n\r])"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Module exports defining the public surface.
             "api": re.compile(
                 r"^[ \t]*\([ \t]*(?:export|define-public)(?=[ \t)\]\n\r])", re.M
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Mutation of state. In Scheme, all mutating functions end with a bang (!).
             "flux": re.compile(
                 r"(?<=[ \t(\[])(set!|vector-set!|string-set!|hash-table-set!|bytevector-u8-set!)(?=[ \t)\]\n\r])"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Commented out S-expressions.
             "graveyard": re.compile(
                 r"^[ \t]*;+[ \t]*\([ \t]*(?:define|let|if|cond|lambda)(?=[ \t)\]\n\r])",
                 re.M,
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             # Scheme documentation standards (triple semicolons or texinfo).
             "doc": re.compile(
                 r"^[ \t]*;;;|^[ \t]*;[ \t]*@(?:param|return|author)", re.M
             ),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # SRFI-64 and Guile testing frameworks (essential for mapping gpgscm tests).
             "test": re.compile(
                 r"(?<=\()(test-begin|test-end|test-assert|test-eqv|test-equal|test-eq|check-equal\?|check-true|test)(?=[ \t)\]\n\r])"
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             # SRFI-18 Multithreading primitives.
             "concurrency": re.compile(
                 r"(?<=[ \t(\[])(make-thread|thread-start!|thread-yield!|mutex-lock!|mutex-unlock!|condition-variable-signal!)(?=[ \t)\]\n\r])"
             ),
             # 16. ui_framework
             "ui_framework": None,
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             # Anonymous function depth.
             "closures": re.compile(r"(?<=[ \t(\[])lambda(?=[ \t)\]\n\r])"),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             # Top-level state bindings (defines that are NOT functions).
             "globals": re.compile(
                 r"^[ \t]*\([ \t]*define\s+[a-zA-Z0-9_!?-]+\s+[^(\s]", re.M
@@ -10677,27 +10680,27 @@ LANGUAGE_DEFINITIONS = {
             "decorators": None,
             # 20. generics
             "generics": None,
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             # Functional list operations (SRFI-1).
             "comprehensions": re.compile(
                 r"(?<=[ \t(\[])(map|for-each|filter|fold|reduce|fold-right|fold-left)(?=[ \t)\]\n\r])"
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # Scheme's native mathematical tower.
             "scientific": re.compile(
                 r"(?<=[ \t(\[])(sin|cos|tan|asin|acos|atan|exp|log|sqrt|expt|abs|gcd|lcm|numerator|denominator|floor|ceiling|truncate|round|exact->inexact)(?=[ \t)\]\n\r])"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Metaprogramming and syntactic abstractions.
             "heat_triggers": re.compile(
                 r"(?<=[ \t(\[])(define-macro|define-syntax|syntax-rules|syntax-case|let-syntax|letrec-syntax)(?=[ \t)\]\n\r])"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             # Scheme module resolution dependencies.
             "import": re.compile(
                 r"^[ \t]*\([ \t]*(?:import|use-modules|require)(?=[ \t)\]\n\r])", re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^[ \t]*;+\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)",
                 re.I | re.M,
@@ -10716,14 +10719,14 @@ LANGUAGE_DEFINITIONS = {
             "civil_war": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Hook paradigms common in Guile/Emacs environments.
             "events": re.compile(
                 r"(?<=[ \t(\[])(hook|add-hook!|run-hooks)(?=[ \t)\]\n\r])"
             ),
             # 33. dependency_injection
             "dependency_injection": None,
-            # 34. macros (The Preprocessor Hooks)
+            # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"(?<=[ \t(\[])(define-syntax|define-macro|syntax-rules|syntax-case)(?=[ \t)\]\n\r])"
             ),
@@ -10736,53 +10739,53 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 37. inline_asm
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"(?<=[ \t(\[])(log-info|log-error|log-warn|log-debug|syslog)(?=[ \t)\]\n\r])"
             ),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"(?<=[ \t(\[])(display|write|newline|format\s+#t)(?=[ \t)\]\n\r])"
             ),
-            # 40. cast_hits (The "Trust Me" Tax)
+            # 40. cast_hits (Explicit Type Casting)
             # Type coercions crossing memory boundaries.
             "cast_hits": re.compile(
                 r"(?<=[ \t(\[])(number->string|string->number|symbol->string|string->symbol|list->vector|vector->list|char->integer|integer->char)(?=[ \t)\]\n\r])"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(
                 r"(?<=[ \t(\[])(error|abort|exit|emergency-exit)(?=[ \t)\]\n\r])"
             ),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(
                 r"(?<=[ \t(\[])(sleep|usleep|thread-sleep!)(?=[ \t)\]\n\r])"
             ),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(
                 r"(?<=[ \t(\[])(bitwise-and|bitwise-ior|bitwise-xor|bitwise-not|arithmetic-shift|ash)(?=[ \t)\]\n\r])"
             ),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"(?<=[ \t(\[])(mutex-lock!|make-mutex)(?=[ \t)\]\n\r])"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             # Immutable strings and explicit quotations (meaning the list cannot be mutated safely).
             "freeze_hits": re.compile(
                 r"(?<=[ \t(\[])(quote|string->immutable-string)(?=[ \t)\]\n\r])|\'(?=\()"
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"(?<=[ \t(\[])(close-input-port|close-output-port|close-port)(?=[ \t)\]\n\r])"
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Module-internal definitions.
             "encapsulation": re.compile(
                 r"^[ \t]*\([ \t]*define-private(?=[ \t)\]\n\r])", re.M
             ),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"(?<=[ \t(\[])(add-hook!)(?=[ \t)\]\n\r])"),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"(?<=[ \t(\[])(test-skip|test-expect-fail)(?=[ \t)\]\n\r])"
             ),
@@ -10799,7 +10802,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".mlir"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: IR files strictly rely on their extensions.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: LLVM TableGen definitions, core LLVM IR, and CMake configs anchoring the compiler toolchain.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: LLVM TableGen definitions, core LLVM IR, and CMake configs anchoring the compiler toolchain.
         "discriminators": [".mlir", ".td", ".ll", "CMakeLists.txt"],
         # EXECUTION SIGNATURES: MLIR is ingested by tools like mlir-opt; no shebangs exist.
         "shebangs": [],
@@ -10825,7 +10828,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".proto"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Schemas strictly rely on their extensions.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: Buf configuration files, Bazel build files, and generated code markers acting as anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Buf configuration files, Bazel build files, and generated code markers acting as anchors.
         "discriminators": [
             ".proto",
             "buf.yaml",
@@ -10857,7 +10860,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".hlo"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: IR text files strictly rely on their extensions.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: JAX, TensorFlow, and MLIR toolchain markers acting as gravity anchors for ML compilers.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: JAX, TensorFlow, and MLIR toolchain markers acting as gravity anchors for ML compilers.
         "discriminators": [".hlo", ".mlir", ".pbtxt", ".py", "BUILD.bazel", "BUILD"],
         # EXECUTION SIGNATURES: HLO is compiler intermediate representation; no shebangs exist.
         "shebangs": [],
@@ -10882,7 +10885,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".td"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: TableGen relies entirely on its extensions.
         "exact_matches": [],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION: LLVM/Clang core C++ source files, generated includes (.inc), and CMake configs anchoring the compiler backend.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: LLVM/Clang core C++ source files, generated includes (.inc), and CMake configs anchoring the compiler backend.
         "discriminators": [
             ".td",
             ".cpp",
@@ -10970,7 +10973,7 @@ LANGUAGE_DEFINITIONS = {
             "auth.json",
             "shadow",
         ],
-        # ECOSYSTEM GRAVITY: Universal fallback discriminators.
+        # ECOSYSTEM ANCHORS: Universal fallback discriminators.
         "discriminators": [".txt", ".md", "README", "LICENSE"],
         # EXECUTION SIGNATURES: Plaintext is unexecuted raw string data.
         "shebangs": [],
@@ -10994,7 +10997,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".tcl", ".itcl", ".tbc", ".tm"],  # Removed .test
         # ABSOLUTE IDENTITY & EXACT FILENAMES:
         "exact_matches": ["tclIndex", "pkgIndex.tcl"],
-        # ECOSYSTEM GRAVITY: Added .test here so it only anchors, but doesn't claim globally.
+        # ECOSYSTEM ANCHORS: Added .test here so it only anchors, but doesn't claim globally.
         "discriminators": [".tcl", "tclIndex", ".test", "Makefile"],
         # EXECUTION SIGNATURES: Standard interpreters found on Line 1.
         "shebangs": ["tclsh", "wish", "bin/expect", "jimsh"],
@@ -11008,13 +11011,13 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"#"),
             "_block_start": None,
             "_block_end": None,
-            # --- 🪐 PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             # Tcl control flow keywords.
             "branch": re.compile(
                 r"\b(?:if|elseif|else|switch|while|for|foreach|catch|try|trap|finally)\b"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Safely captures the parameter list `{...}` immediately following a proc name.
             "args": re.compile(
                 # =====================================================================
@@ -11026,76 +11029,76 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*proc[ \t\n]+[a-zA-Z0-9_:]+[ \t\n]+\{([^}]*)\}",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: global/upvar (globals/heat).
             "linear": re.compile(
                 r"\b(?:proc|return|break|continue|namespace|variable|yield)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # MUST HAVE EXACTLY ONE CAPTURE GROUP.
             # Captures standard procs and namespaced procs (e.g., `proc ::my::func`).
             "func_start": re.compile(
                 r"^[ \t]*proc[ \t]+([a-zA-Z0-9_:]+)(?=[ \t]*\{|[ \t\n]|$)", re.M
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             # Captures TclOO, Snit, and Itcl class definitions.
             "class_start": re.compile(
                 r"^[ \t]*(?:oo::class[ \t]+create|snit::type|itcl::class)[ \t]+([a-zA-Z0-9_:]+)(?=[ \t]*\{|[ \t\n]|$)",
                 re.M,
             ),
-            # --- ⚠️ PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety (The Defenders)
+            # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+            # 6. safety (Defensive Programming / Validation)
             # Safe evaluation and error catching.
             "safety": re.compile(
                 r"\b(?:catch|try|trap|finally|info[ \t]+exists|assert)\b"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Unrestricted evaluation and context manipulation.
             "safety_neg": re.compile(r"\b(?:eval|uplevel|upvar)\b"),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             # OS command execution and process termination.
             "danger": re.compile(r"\b(?:exec|exit)\b|file[ \t]+delete[ \t]+-force"),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             # File system, sockets, and configuration. (Excludes puts which is mapped to print_hits).
             "io": re.compile(
                 r"\b(?:open|close|read|gets|socket|fconfigure|file|source|vfs::)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Exposing packages or namespace exports.
             "api": re.compile(
                 r"^[ \t]*(?:package[ \t]+provide|namespace[ \t]+export)\b", re.M
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             # Variable state mutations.
             "flux": re.compile(
                 r"\b(?:set|lappend|dict[ \t]+set|array[ \t]+set|incr|append)\b[ \t]+[a-zA-Z0-9_:]+"
             ),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Commented out structural code.
             "graveyard": re.compile(
                 r"^[ \t]*#[ \t]*(?:proc|set|if|while|foreach|return)\b", re.M
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             # Tcl doc blocks.
             "doc": re.compile(r"^[ \t]*#[ \t]*@(?:param|return|brief|author)", re.M),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # *THE SQLITE MEGA-SENSOR*: Accurately maps the SQLite custom test harnesses alongside standard tcltest.
             "test": re.compile(
                 r"\b(?:do_test|do_execsql_test|do_catchsql_test|do_eqp_test|do_ioerr_test|do_faultsim_test|test\s+[a-zA-Z0-9_-]+|tcltest::|finish_test)\b"
             ),
-            # --- 🔬 PHASE 3: SPECIALIZED SENSORS (Context Awareness) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             # Event loops, delays, and threads.
             "concurrency": re.compile(r"\b(?:vwait|after|thread::|coroutine|yield)\b"),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             # Tkinter/Tk graphical elements.
             "ui_framework": re.compile(
                 r"\b(?:button|pack|grid|place|canvas|frame|label|ttk::)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             # Tcl 8.6 anonymous functions.
             "closures": re.compile(r"\bapply[ \t]+\{"),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             # Tcl relies heavily on global imports and environment arrays.
             "globals": re.compile(r"\b(?:global|::env)\b|upvar[ \t]+#0"),
             # 19. decorators
@@ -11105,39 +11108,39 @@ LANGUAGE_DEFINITIONS = {
             # 21. comprehensions
             # Tcl 8.6 list map.
             "comprehensions": re.compile(r"\blmap\b"),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             # Explicit math invocations via expr.
             "scientific": re.compile(
                 r"\b(?:expr|math::)\b|\b(?:sin|cos|tan|sqrt|exp|log|pow)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Massive cognitive heat: Intercepting variables, tracking execution, and runtime aliasing.
             "heat_triggers": re.compile(
                 r"\b(?:trace[ \t]+add|rename|interp[ \t]+create|interp[ \t]+alias)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             # Package and module loading.
             "import": re.compile(
                 r"^[ \t]*(?:package[ \t]+require|source|load)\b", re.M
             ),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^[ \t]*#[ \t]*(?:Author|Created by|Maintainer|Copyright):\s+(.*)",
                 re.I | re.M,
             ),
-            # --- 🌌 PHASE 4: EXTENDED DIMENSIONS ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             # Tcl standardizes on spaces. Tabs indicate formatter friction.
             "civil_war": None,
             "ssr_boundaries": None,
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             # Tcl event bindings and file event handlers.
             "events": re.compile(r"\b(?:bind|fileevent|vwait|trace[ \t]+add)\b"),
             "dependency_injection": None,
@@ -11145,40 +11148,40 @@ LANGUAGE_DEFINITIONS = {
             "pointers": None,
             "memory_alloc": None,
             "inline_asm": None,
-            # --- ⚖️ PHASE 5: THERMODYNAMIC BALANCE ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(r"\b(?:log::log|logger::|syslog)\b"),
-            # 39. print_hits (The Amateur / Space Debris)
+            # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\bputs\b"),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(r"\bexpr[ \t]+(?:int|double|wide)\("),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(?:error|exit)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\bafter[ \t]+[0-9]+\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~|<<|>>"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(?:thread::mutex|thread::rwmutex|thread::cond)\b"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             # Tcl lacks `const`, but setting a trace to prevent writes is the Tcl idiom for freezing.
             "freeze_hits": re.compile(
                 r"\btrace[ \t]+add[ \t]+variable[ \t]+[a-zA-Z0-9_:]+[ \t]+write\b"
             ),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r'\b(?:close|unset)\b|rename[ \t]+[a-zA-Z0-9_:]+[ \t]+""'
             ),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             # Internal namespaces and private `_` prefixed procs.
             "encapsulation": re.compile(
                 r"\bnamespace[ \t]+eval\b|^[ \t]*proc[ \t]+_[a-zA-Z0-9_:]+", re.M
             ),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(?:bind|fileevent)\b"),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             # Using TclTest constraints to silently skip tests on certain OS environments.
             "test_skip": re.compile(
                 r"-constraints[ \t]+[a-zA-Z0-9_]+\b|\btestConstraint\b"
@@ -11196,7 +11199,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".groovy", ".gradle", ".gvy", ".gy", ".gsh"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES
         "exact_matches": ["Jenkinsfile"],
-        # ECOSYSTEM GRAVITY & DISAMBIGUATION
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION
         "discriminators": [
             "build.gradle",
             "settings.gradle",
@@ -11214,12 +11217,12 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: PHYSICS ENGINE (Geometry & Structure) ---
-            # 1. branch (The Forks in the Road)
+            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # 1. branch (Control Flow / Branching)
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|in|try|catch|finally)\b|\?|:"
             ),
-            # 2. args (The Coupling Mass)
+            # 2. args (Parameters / Coupling)
             # Captures standard method arguments and Groovy closures (x, y ->)
             # CRITICAL FIX: Anchored the parenthesis capture to method signatures so it
             # doesn't hallucinate every standard method call or if-statement in the file.
@@ -11227,129 +11230,129 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(?:(?:public|private|protected|static|final|def|abstract)[ \t]+){0,5}(?:[A-Z][a-zA-Z0-9_<>\[\]?]*[ \t]+){0,2}[A-Za-z_$][\w_$]*\s*\([^)]*\)|(?:\([^)]*\)|[a-zA-Z_$][\w_$]*)\s*->",
                 re.M,
             ),
-            # 3. linear (The Smooth Path)
+            # 3. linear (Sequential Boundaries)
             "linear": re.compile(
                 r"\b(def|class|interface|trait|enum|record|import|package|extends|implements|return|yield)\b"
             ),
-            # 4. func_start (The Satellite Spawner)
+            # 4. func_start (Executable Logic Anchors)
             # HIGHLY TUNED: Uses Negative Lookahead to explicitly ignore Gradle DSL keywords (implementation, api, task)
             # Uses Positive Lookahead (?=[ \t]*\() to stop exactly at the function name without consuming punctuation.
             "func_start": re.compile(
                 r"^[ \t]*(?:(?:public|private|protected|static|final|def)[ \t]+){0,5}(?:[A-Z][a-zA-Z0-9_<>\[\]?]*[ \t]+){0,2}(?!(?:if|for|while|switch|catch|new|return|class|interface|enum|trait|implementation|testImplementation|api|compileOnly|runtimeOnly|classpath|dependency|from|file|mavenCentral|plugins|dependencies|repositories|task|project|allprojects|subprojects|ext)\b)([A-Za-z_$][\w_$]*)(?=[ \t]*\()",
                 re.M,
             ),
-            # 5. class_start (The Entity Census)
+            # 5. class_start (Object / Entity Declarations)
             "class_start": re.compile(
                 r"^[ \t]*(?:(?:public|private|protected|static|final|abstract)[ \t]+){0,5}(?:class|interface|trait|enum|record)\s+[A-Za-z_$][\w_$]*",
                 re.M,
             ),
             # --- PHASE 2: RISK ENGINE (Structural Integrity) ---
-            # 6. safety (The Defenders)
+            # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
                 r"\b(try|catch|finally|assert|instanceof|Optional)\b|@(?:Valid|Validated|NotNull|NonNull|Immutable)"
             ),
-            # 7. safety_neg (The Fractures)
+            # 7. safety_neg (Safety Bypasses / Unchecked Types)
             "safety_neg": re.compile(
                 r"\b(null)\b|return\s+null|catch\s*\(\s*(?:Exception|Throwable)\b|@SuppressWarnings|@SneakyThrows|\.get\(\)"
             ),
-            # 8. danger (The Heavy Load)
+            # 8. danger (High-Risk Execution / System Calls)
             "danger": re.compile(
                 r"\b(System\.exit|Runtime\.getRuntime\(\)\.exec|execute)\b"
             ),
-            # 9. io (The Boundaries)
+            # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|Files|Paths|FileReader|FileWriter|file|copy|sync|uri|url|Socket|Connection|ResultSet)\b"
             ),
-            # 10. api (The Event Horizon)
+            # 10. api (Public Surface Area)
             # Groovy classes/methods are implicitly public by default, making the whole file highly exposed.
             "api": re.compile(
                 r"\b(public)\b|@(RestController|Controller|Service|Component|Bean|RequestMapping|GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping)\b"
             ),
-            # 11. flux (The Boiling Plasma)
+            # 11. flux (State Mutation)
             "flux": re.compile(r"^[ \t]*\w+(?:\.\w+)*[ \t]*=|@(?:Setter|Data)\b", re.M),
-            # 12. graveyard (The Necrosis)
+            # 12. graveyard (Dead / Commented-out Code)
             # Tuned to catch dead Gradle definitions and Groovy logic.
             "graveyard": re.compile(
                 r"//[ \t]*(?:def|class|void|if|for|while|import|implementation|compile|api|testImplementation)\b"
             ),
-            # 13. doc (The Intent)
+            # 13. doc (Structured Documentation)
             "doc": re.compile(r"/\*\*|@param|@return|@throws|@deprecated|@see"),
-            # 14. test (The Verification)
+            # 14. test (Testing & Assertions)
             # Integrates Spock Framework keywords (given:, when:, then:, expect:) alongside JUnit.
             "test": re.compile(
                 r"@(?:Test|Before|After|BeforeEach|AfterEach|Mock)|assert\w*\s*\(|^\s*(?:given|when|then|expect|setup|cleanup|where):",
                 re.M,
             ),
-            # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Domain) ---
-            # 15. concurrency (The Temporal Static)
+            # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+            # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
                 r"\b(synchronized|Thread|Runnable|Future|ExecutorService|Promise|Atomic\w+|task)\b|@(?:Async|Scheduled)"
             ),
-            # 16. ui_framework (The View Layer)
+            # 16. ui_framework (UI / View Components)
             "ui_framework": re.compile(
                 r"\b(SwingBuilder|JFrame|JPanel|ModelAndView|ModelMap|Model|UIComponent)\b"
             ),
-            # 17. closures (The Functional Depth)
+            # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"->|\{\s*(?:it|[\w\s,]+)\s*->"),
-            # 18. globals (The Shared Void)
+            # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(System\.getProperty|System\.getenv|project\.ext)\b|@Value"
             ),
-            # 19. decorators (The Metadata Hooks)
+            # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"^[ \t]*@[\w.]+(?:\([^)]*\))?", re.M),
-            # 20. generics (The Type Abstractions)
+            # 20. generics (Generics / Type Parameters)
             "generics": re.compile(r"<\s*[A-Z?][^>]*>"),
-            # 21. comprehensions (The High-Density Loops)
+            # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:collect|find|findAll|grep|inject|each|eachWithIndex|map|filter|reduce)\("
             ),
-            # 22. scientific (The Compute Core)
+            # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(
                 r"\b(Math\.|BigDecimal|BigInteger|Random|SecureRandom)\b"
             ),
-            # 23. heat_triggers (The Thermal Radiation)
+            # 23. heat_triggers (Metaprogramming & Reflection)
             # Groovy's highly dynamic Meta-Object Protocol (MOP).
             "heat_triggers": re.compile(
                 r"\b(invokeMethod|getProperty|setProperty|methodMissing|propertyMissing|ExpandoMetaClass|metaClass)\b"
             ),
-            # 24. import (The Gravity Links)
+            # 24. import (Dependency Inclusions)
             "import": re.compile(r"^[ \t]*import\s+(?:static[ \t]+)?[\w.]+;?", re.M),
-            # 25. ownership (The Authorship)
+            # 25. ownership (Authorship Metadata)
             "ownership": re.compile(r"@author\s+(.*)", re.I),
-            # --- PHASE 4: EXTRACTED SUB-EQUATIONS (Specialized Systems) ---
-            # 26. planned_debt (The Promise)
+            # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+            # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
-            # 27. fragile_debt (The Fracture)
+            # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            # 29. spec_exposure (The Map vs. Territory)
+            # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
             ),
-            # 30. civil_war (The Indentation Tracker)
+            # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
-            # 31. ssr_boundaries (The View Horizon)
+            # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
                 r"\b(MarkupBuilder|StreamingMarkupBuilder|TemplateEngine|HttpServletRequest|HttpServletResponse|@ResponseBody)\b"
             ),
-            # 32. events (The Pub/Sub Network)
+            # 32. events (Event Emitters / Pub-Sub)
             "events": re.compile(
                 r"\b(ApplicationEvent|ApplicationListener|@EventListener|publishEvent)\b"
             ),
-            # 33. dependency_injection (The Inversion of Control)
+            # 33. dependency_injection (Dependency Injection / IoC)
             # Heavily captures Gradle plugin and dependency architecture.
             "dependency_injection": re.compile(
                 r"\b(@Autowired|@Inject|@Component|@Service|@Repository|@Bean|@Configuration|apply\s+plugin|plugins\s*\{|dependencies\s*\{)\b"
             ),
             # 34. macros
             "macros": None,
-            # 35. pointers (The Memory Map)
+            # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": None,
-            # 36. memory_alloc (The Yin to cleanup)
+            # 36. memory_alloc 
             "memory_alloc": None,
             # 37. inline_asm
             "inline_asm": None,
-            # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-            # 38. telemetry (The Professional)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+            # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
                 r"\b(log|logger|LOGGER|LoggerFactory)\.(?:info|error|warn|warning|debug|trace)\b|@Slf4j|@Log4j2|@Log"
             ),
@@ -11357,30 +11360,30 @@ LANGUAGE_DEFINITIONS = {
             "print_hits": re.compile(
                 r"\b(println|print|printf|System\.out\.print|System\.err\.print|\.printStackTrace\(\))\b"
             ),
-            # 40. cast_hits (The Trust Me Tax)
+            # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\bas\s+[A-Z]\w*|\(\s*(?:int|long|short|byte|char|float|double|boolean|[A-Z][A-Za-z0-9_]*)\s*\)\s*[a-zA-Z_$]"
             ),
-            # 41. bailout_hits (The Detonators)
+            # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|System\.exit|GradleException)\b"),
-            # 42. halt_hits (Temporal Duct Tape)
+            # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(Thread\.sleep|sleep)\b"),
-            # 43. bitwise_hits (The Sub-Atomic Math)
+            # 43. bitwise_hits (Bitwise Operations)
             # EXCLUDES `<<` and `>>` because Groovy heavily overloads `<<` for list/stream appending.
             "bitwise_hits": re.compile(r"\^|~"),
-            # 44. sync_locks (The Barricades)
+            # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": re.compile(
                 r"\b(synchronized|ReentrantLock|ReadWriteLock|Semaphore|Lock|Mutex)\b"
             ),
-            # 45. freeze_hits (The Data Cryogenics)
+            # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(final|@Immutable)\b"),
-            # 46. cleanup (The Janitor)
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|dispose|shutdown)\b\s*\("),
-            # 47. encapsulation (The Vault)
+            # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected)\b"),
-            # 48. listeners (The Sinks)
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(addListener|on[A-Z]\w*|subscribe)\b"),
-            # 49. test_skip (Safety Theater)
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(
                 r"@(?:Ignore|Disabled|PendingFeature)\b|mock\s*\(|spy\s*\("
             ),
@@ -11426,7 +11429,7 @@ LANGUAGE_DEFINITIONS = {
             #    This is why JSON must map to the 'std_c' lexical_family, not 'pure_hash' or 'inert'.
             # 2. THE RE.COMPILE TRAP: Every rule here MUST be wrapped in re.compile().
             #    If passed as raw strings, the engine's physics loop will crash with
-            #    "'str' object has no attribute 'pattern'" during the Ghost Mass extraction.
+            #    "'str' object has no attribute 'pattern'" during the Commented / Non-Executable Text extraction.
             # =====================================================================
             # JSON has no concept of a "column 1" or line-start-only comment anchor.
             "_line_anchor": None,

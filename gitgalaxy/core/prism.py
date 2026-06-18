@@ -233,80 +233,62 @@ class Prism:
             raise PrismError(f"Prism failure: {e}")
 
     def _strip_segment_comments(self, text: str, lang_id: str, family: str) -> Tuple[str, str]:
-        """Surgically strips documentation from a single segment using pre-compiled rules."""
+        """Surgically strips documentation using an ordered, additive pipeline."""
+        lits = []
         
-        # 1. Handle specialized lexical families
+        # 1. PRE-PROCESSING: Extract doc-mass BEFORE any early returns
+        if lang_id in ("python", "micropython", "ruby"):
+            text, python_lits = self._strip_python_docstrings(text)
+            lits.extend(python_lits)
+        elif lang_id == "php":
+            text, php_lits = self._strip_php_string_mass(text)
+            lits.extend(php_lits)
+
+        # 2. SPECIALIZED LEXICAL FAMILY ROUTING
         if family == "recursive_c_style":
-            code, lits = self._strip_nested_comments(text)
+            code, nested_lits = self._strip_nested_comments(text)
+            lits.extend(nested_lits)
+            return code, "\n".join(lits)
+            
+        if family == "column_sensitive":
+            code, pos_lits = self._strip_positional_comments(text)
+            if pos_lits:
+                lits.extend(pos_lits.splitlines())
+            return code, "\n".join(lits)
+            
+        if family == "single_line_only":
+            code, single_lits = self._strip_single_line_comments(text)
+            if single_lits:
+                lits.extend(single_lits.splitlines())
             return code, "\n".join(lits)
 
-        if family == "column_sensitive":
-            return self._strip_positional_comments(text)
+        # 3. ATOMIC SHIELDING: Mask literals to prevent generic stripping
+        masked_literals = []
+        def shield_callback(m: re.Match) -> str:
+            masked_literals.append(m.group(0))
+            return f"__MASK_{len(masked_literals)-1}__"
 
-        # 2. Retrieve the pre-compiled pattern for all other families
+        text = re.sub(self.LITERAL_MASK_PATTERN, shield_callback, text, flags=re.S|re.M)
+
+        # 4. GENERIC STRIPPER
         pattern = self.REGEX_MATRIX.get(family)
         if not pattern:
-            self.logger.debug(
-                f"No pre-compiled rule for family '{family}'. Returning unmodified."
-            )
-            return text, ""
+            # Restore mask tokens before returning if no pattern is registered
+            code = re.sub(r"__MASK_(\d+)__", lambda m: masked_literals[int(m.group(1))], text)
+            return code, "\n".join(lits)
 
-        lits = []
-
-        def callback(m: re.Match) -> str:
-            if m.group(1):
-                # Shielded Literal Hit (e.g. String containing a URL)
-                return m.group(1)
-            if m.group(2):
-                # Documentation Hit (Comment)
+        def strip_callback(m: re.Match) -> str:
+            if m.group(2): # Match group 2 is your documentation group
                 lits.append(m.group(2).strip())
             return ""
 
-        # Execute stripping pass
-        code = pattern.sub(callback, text)
-
-        # 3. Post-Processing Hooks
-        if lang_id in ("python", "micropython", "ruby"):
-            code, extra_lits = self._strip_python_docstrings(code)
-            lits.extend(extra_lits)
-
-        if lang_id == "php":
-            code, php_lits = self._strip_php_string_mass(code)
-            lits.extend(php_lits)
+        code = pattern.sub(strip_callback, text)
+        
+        # 5. RESTORE SHIELDED LITERALS
+        code = re.sub(r"__MASK_(\d+)__", lambda m: masked_literals[int(m.group(1))], code)
 
         return code, "\n".join(lits)
-
-        def callback(m: re.Match) -> str:
-            if m.group(1):
-                # Shielded Literal Hit (e.g. String containing a URL)
-                return m.group(1)
-            if m.group(2):
-                # Documentation Hit (Comment)
-                lits.append(m.group(2).strip())
-            return ""
-
-        code = pattern.sub(callback, text)
-
-        # Hardened Python Post-Processing
-        if lang_id in ("python", "micropython", "ruby"):
-            code, extra_lits = self._strip_python_docstrings(code)
-            if extra_lits:
-                self.logger.debug(
-                    f"Post-processor extracted {len(extra_lits)} standalone docstrings."
-                )
-            lits.extend(extra_lits)
-
-        # ---> ADD THIS: Hardened PHP Post-Processing (Heredoc & Multi-line Strings)
-        if lang_id == "php":
-            code, php_lits = self._strip_php_string_mass(code)
-            if php_lits:
-                self.logger.debug(
-                    f"Post-processor extracted {len(php_lits)} PHP Heredoc/Multi-line strings."
-                )
-            lits.extend(php_lits)
-
-        return code, "\n".join(lits)
-
+    
     def _compile_regex_matrix(self) -> Dict[str, re.Pattern]:
         """Safely pre-compiles the standard regex matrix based on dynamic config lengths."""
         matrix = {}
@@ -328,16 +310,18 @@ class Prism:
                 p = rf"({d[0]}[^\n]*|{d[1]}.*?{d[2]})"
             elif fam_key == "single_line_only" and len(d) >= 1:
                 p = rf"({d[0]}[^\n]*)"
-            elif fam_key == "hybrid_hash" and len(d) >= 3:
+            elif fam_key == "embedded_syntax" and len(d) >= 3:
                 p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*)"
             elif fam_key == "multi_style_dash" and len(d) >= 5:
                 p = rf"({d[1]}.*?{d[2]}|{d[3]}.*?{d[4]}|{d[0]}[^\n]*)"
             elif fam_key == "multi_style_dash" and len(d) >= 3:  # Fallback
                 p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*)"
-            elif fam_key == "embedded_syntax" and len(d) >= 4:
-                p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*|{d[3]}[^\n]*)"
-            elif fam_key == "embedded_syntax" and len(d) >= 3:  # Fallback
-                p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*)"
+            elif fam_key == "embedded_syntax" and len(d) >= 3:
+                # If len is 4, include d[3], otherwise just [0,1,2]
+                if len(d) >= 4:
+                    p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*|{d[3]}[^\n]*)"
+                else:
+                    p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*)"
             elif fam_key == "single_line_only":
                 # =====================================================================
                 # THE FIX: Neutralized the Zero-Width ReDoS Bomb.
@@ -391,14 +375,16 @@ class Prism:
         return matrix
 
     def _strip_python_docstrings(self, text: str) -> Tuple[str, List[str]]:
-        """Hardened extraction for standalone triple-quoted documentation blocks (O(N) Single Pass)."""
+        """Extracts triple-quoted strings as documentation."""
         docs = []
-
+        
+        # Use the relaxed pattern
         def callback(m: re.Match) -> str:
             docs.append(m.group(0).strip())
-            return "\n"
+            return "\n" # Maintain line count stability
 
-        clean = self.PYTHON_DOC_PATTERN.sub(callback, text)
+        # Using re.DOTALL ensures [\s\S] matches newlines correctly
+        clean = re.sub(r'(?:"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')', callback, text)
         return clean, docs
 
     def _strip_php_string_mass(self, text: str) -> Tuple[str, List[str]]:
@@ -663,3 +649,18 @@ class Prism:
             return first + "\n", lines[1] if len(lines) > 1 else ""
 
         return "", content
+    
+    def _strip_single_line_comments(self, text: str) -> Tuple[str, str]:
+        """Generic single-line comment stripper (for '#' or ';' or '--')."""
+        lines = text.splitlines()
+        code, comments = [], []
+        pattern = re.compile(r"(#|--|;|//)") 
+        
+        for line in lines:
+            if pattern.search(line):
+                parts = pattern.split(line, 1)
+                code.append(parts[0])
+                comments.append(parts[1] + (parts[2] if len(parts) > 2 else ""))
+            else:
+                code.append(line)
+        return "\n".join(code), "\n".join(comments)

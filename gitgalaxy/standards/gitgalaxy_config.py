@@ -14,7 +14,7 @@ Phase 0 & 1: Repository Ingestion, Filtering, and Pre-Flight Context.
 
 This file serves as the core configuration payload. It defines the global
 security exceptions and the lightweight ingestion rules used to filter
-out noise before the heavy physics engines are loaded into memory.
+out noise before the heavy static analysis engines are loaded into memory.
 """
 
 # ------------------------------------------------------------------
@@ -64,10 +64,10 @@ ALLOWLIST_PATHS = [
 ]
 
 # ------------------------------------------------------------------
-# X-RAY INSPECTOR BYPASSES
-# X-Ray uses thermodynamic math (Shannon Entropy) which naturally flags
+# BINARY / ENTROPY SCANNER BYPASSES
+# X-Ray uses information theory (Shannon Entropy) which naturally flags
 # compression, foreign languages, and hashes. Add extensions or paths here
-# to bypass the X-Ray engine without blinding the Vault Sentinel.
+# to bypass the X-Ray engine without blinding the Secrets Scanner.
 # ------------------------------------------------------------------
 XRAY_BYPASS_EXTENSIONS = [
     ".json",
@@ -99,7 +99,7 @@ XRAY_BYPASS_PATHS = [
 
 
 # ------------------------------------------------------------------------------
-# 1. THE APERTURE SHIELD (Ingestion & Exclusion Rules)
+# 1. THE INGESTION FILTER (Ingestion & Exclusion Rules)
 # Consumed by: aperture.py
 # ------------------------------------------------------------------------------
 APERTURE_CONFIG = {
@@ -141,8 +141,8 @@ APERTURE_CONFIG = {
         "auth.json",
         "shadow",
     },
-    # --- 1. The "Solar Shield" Blocklist ---
-    "BLACK_HOLES": {
+    # --- 1. The Global Blocklist ---
+    "IGNORED_DIRECTORIES": {
         # 1. Version Control Ghosts
         ".git",
         ".svn",
@@ -211,7 +211,7 @@ APERTURE_CONFIG = {
         ".fleet",
         "DerivedData",
         "__MACOSX",
-        # 8. Transitory Runtime Data & Temp Matter
+        # 8. Transitory Runtime Data & Temp Files / Data
         "tmp",
         "temp",
         "logs",
@@ -227,8 +227,8 @@ APERTURE_CONFIG = {
         "legal",
         "site",
     },
-    # --- 2. Extension-Level Solar Shield ---
-    "BLACK_HOLE_EXTENSIONS": {
+    # --- 2. Extension Denylist ---
+    "IGNORED_EXTENSIONS": {
         # 1. Vector & 3D Traps
         ".svg",
         ".eps",
@@ -341,15 +341,15 @@ APERTURE_CONFIG = {
         "/node_modules/",
         "/bower_components/",
     ],
-    # --- 5. Spectral Band Definitions ---
+    # --- 5. Classification Categories ---
     "BANDS": {
-        "RADIO": "ignored_system_or_hidden_file",
-        "MICROWAVE": "unreadable_binary_or_media",
-        "DARK_MATTER": "unsupported_file_type",
-        "INFRARED": "minified_or_massive_data",
-        "VISIBLE": "valid_source_code",
+        "IGNORED": "ignored_system_or_hidden_file",
+        "BINARY": "unreadable_binary_or_media",
+        "UNSUPPORTED": "unsupported_file_type",
+        "MINIFIED": "minified_or_massive_data",
+        "SOURCE_CODE": "valid_source_code",
         "QUARANTINE": "critical_contraband_leak",
-        "RADIOACTIVE": "exposed_secret_or_key",
+        "SECRET": "exposed_secret_or_key",
     },
 }
 
@@ -363,7 +363,7 @@ APERTURE_CONFIG = {
 # remain visible in the 3D map as high-priority architectural anchors.
 PRIORITY_WHITELIST = [
     # --- AI Ecosystem Anchor ---
-    "__galaxy_brain__.ai",
+    "__gitgalaxy_meta__.json",
     # --- Universal Entry Points ---
     "main.py",
     "app.py",
@@ -399,7 +399,7 @@ PRIORITY_WHITELIST = [
 
 
 # ------------------------------------------------------------------------------
-# 3. GUIDESTAR INTELLIGENCE (Manifests & Sector Biases)
+# 3. HEURISTIC INTELLIGENCE (Manifests & Sector Biases)
 # Consumed by: guidestar_lens.py
 # ------------------------------------------------------------------------------
 # Defines the rules for Bayesian Intent inference used by the GuideStar Lens
@@ -439,7 +439,7 @@ GUIDESTAR_CONFIG = {
 
 
 # ------------------------------------------------------------------------------
-# 4. PRISM OPTICS (Comment Delimiters by Family)
+# 4. LEXICAL SCANNER CONFIG (Comment Delimiters by Family)
 # Consumed by: prism.py, language_lens.py
 # ------------------------------------------------------------------------------
 # Defines the structural delimiters for extracting literature (comment_stream)
@@ -447,14 +447,15 @@ COMMENT_DEFINITIONS = {
     "mechanical_families": {
         "c_style_comment": {"delimiters": ["//", "/*", "*/"]},
         "recursive_c_style": {"delimiters": ["//", "/*", "*/"]},
-        "hybrid_hash": {
-            "delimiters": ["#", "<#", "#>", "=begin", "=end", "=pod", "=cut"]
-        },
         "multi_style_dash": {"delimiters": ["--", "--[[", "]]", "{-", "-}"]},
         "embedded_syntax": {"delimiters": ["//", "/*", "*/", "#"]},
         "column_sensitive": {"delimiters": ["*>", "!", "C", "*", "D"]},
-        "single_line_only": {"delimiters": ["#", ";", "//", "dnl", "%", "%{", "%}"]},
-        "lisp_style": {"delimiters": [";", "#|", "|#"]},
+        "single_line_only": {
+            "delimiters": [
+                "#", "<#", "#>", "=begin", "=end", "=pod", "=cut", 
+                ";", "//", "dnl", "%", "%{", "%}", "#|", "|#"
+            ]
+        },
     }
 }
 
@@ -522,7 +523,7 @@ ORCHESTRATOR_RULES = {
         "config",
         "core",
         "base",
-        # --- THE SHADOW IMPORT SHIELD ---
+        # --- STANDARD LIBRARY IGNORE LIST ---
         # Python Stdlib:
         "sys",
         "os",
@@ -549,7 +550,7 @@ ORCHESTRATOR_RULES = {
 
 
 # ------------------------------------------------------------------------------
-# 7. CHRONOMETER CONFIGURATION (Temporal Scanning Limits)
+# 7. TEMPORAL SCANNER CONFIGURATION (Temporal Scanning Limits)
 # Consumed by: chronometer.py
 # ------------------------------------------------------------------------------
 CHRONOMETER_CONFIG = {
@@ -567,7 +568,7 @@ CHRONOMETER_CONFIG = {
 
 
 # ------------------------------------------------------------------------------
-# 8. STATIC ARCHETYPES (Inert Matter Labels)
+# 8. STATIC ARCHETYPES (Static Asset Labels)
 # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
 # Single Source of Truth for files that bypass active ML logic processing.
@@ -575,15 +576,15 @@ STATIC_ARCHETYPES = {
     "literature": "Static: Literature & Documentation",
     "data": "Static: Declarative Data & Configurations",
     "minified": "Static: Minified & Vendor Opaque Mass",
-    "unknown": "Static: Unmapped Dark Matter",
+    "unknown": "Static: Unmapped / Unsupported Format",
 }
 
 # ------------------------------------------------------------------------------
-# 9. PROJECT STORIES (Dynamic Lore Injection)
+# 9. PROJECT STORIES (Project Context Injection)
 # Consumed by: gpu_recorder.py
 # ------------------------------------------------------------------------------
 PROJECT_STORIES = {
-    # You can add your repository-specific lore and UI story payloads here later.
+    # You can add your repository-specific context and UI story payloads here later.
 }
 
 # ------------------------------------------------------------------------------

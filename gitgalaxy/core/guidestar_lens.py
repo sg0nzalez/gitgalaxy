@@ -226,7 +226,7 @@ class GuideStarLens:
         if found:
             self.logger.info(f"🧠 AI ECOSYSTEM DETECTED: Found {found} in {filename}. Flagging repository archetype.")
             # Inject a synthetic lock so the downstream pipeline knows this is an AI repo
-            self._inject_intent_lock("__galaxy_brain__.ai", "json", 1.0, f"AI Ecosystem Lock ({found[0]})")
+            self._inject_intent_lock("__gitgalaxy_meta__.json", "json", 1.0, f"AI Ecosystem Lock ({found[0]})")
 
     def _parse_package_json(self, path: Path):
         """Extracts 'main', 'bin', and 'scripts' from Node/JS manifests."""
@@ -431,7 +431,7 @@ class GuideStarLens:
         for root_dir, dirs, files in os.walk(self.root):
             dir_path = Path(root_dir)
 
-            if any(part in self._gs_config.get("BLACK_HOLES", set()) for part in dir_path.parts):
+            if any(part in self._gs_config.get("IGNORED_DIRECTORIES", set()) for part in dir_path.parts):
                 continue
 
             local_shield_mass = 0

@@ -39,8 +39,8 @@ This dictionary will be used by an AST-free physics engine to create a system of
 
 ### 🚨 CRITICAL ENGINE RULES
 1. **The Physical Reality Rule (Implicit vs. Explicit):** Do not just hunt for explicit keywords; capture the physical reality. If defining API Exposure (Key 10), determine if the language is implicitly public (e.g., Python, Fortran). If so, the regex must capture standard function/subroutine definitions, not just the rare use of an explicit public or export tag.
-2. **The Paradigm Forgiveness Rule (No "Trust Me" Taxes):** Do not punish a language for operating within its standard paradigm. Example: Standard C-style pointer casting is standard operating procedure, not a structural fracture. It must be routed to Phase 5 (Thermodynamic Balance) as friction, NOT placed in Phase 2 `safety_neg` where it will trigger the Breach Cap.
-3. **The "Ghost Logic" Rule (Contextual Debt):** When assessing Tech Debt or Danger, isolate human commentary from execution flow. Example: `TODO` and `FIXME` are planned debt. They must NEVER be placed in execution-blocking keys like `danger`, otherwise a file with high developer documentation will be falsely penalized as a volatile execution risk.
+2. **The Paradigm Forgiveness Rule:** Do not punish a language for operating within its standard paradigm. Example: Standard C-style pointer casting is standard operating procedure, not a structural fracture. It must be routed to Phase 5 (Resource Management & Stability) as friction, NOT placed in Phase 2 `safety_neg` where it will trigger the Breach Cap.
+3. **The "Commented-out Code" Rule (Contextual Debt):** When assessing Tech Debt or Danger, isolate human commentary from execution flow. Example: `TODO` and `FIXME` are planned debt. They must NEVER be placed in execution-blocking keys like `danger`, otherwise a file with high developer documentation will be falsely penalized as a volatile execution risk.
 4. **The Comparative Map Rule (Use `None`):** If a dimension does not exist natively in the target language (e.g., pointers in JavaScript, decorators in C), you MUST explicitly set its key to `None`. Do not force a fit.
 5. **Absolute ReDoS Immunity (No Catastrophic Backtracking):** Bound all wildcards. Never use `.*` inside brackets. Always use negation (e.g., `<[^>]*>`). In `re.M` mode, `\s` matches newlines (`\n`). 
     * ❌ NEVER use `^\s*`. ✅ ALWAYS use `^[ \t]*`.
@@ -48,11 +48,11 @@ This dictionary will be used by an AST-free physics engine to create a system of
     * ❌ NEVER use `\s*=`. ✅ ALWAYS use `[ \t]*=`.
     * ❌ NEVER nest unbounded quantifiers like `(?:[ \t]*\*+)*` or `(?:(?:public|private)\s+)*`. ✅ ALWAYS use strict numeric clamps like `(?:[ \t*&]+){0,10}` or `(?:(?:public|static)[ \t]+){0,3}`.
 6. **The Geometry Inflator Bug:** Do NOT put access modifiers (e.g., public, private, static) in the `linear` array. This artificially inflates the math and turns all files into smooth spheres, destroying visual 3D complexity.
-7. **Ghost Satellites:** `func_start` must ONLY match executable logic blocks (methods/functions/constructors). Do NOT match interfaces, types, or classes here.
-8. **Thermodynamic Balance (Yin & Yang):** Pay special attention to Phase 5. Ensure that chaos (e.g., concurrency, events, flux) and order (e.g., sync_locks, listeners, freeze_hits) are cleanly separated into their specific regex keys so the physics engine can balance them.
+7. **Object/Entity Spurious Matches:** `func_start` must ONLY match executable logic blocks (methods/functions/constructors). Do NOT match interfaces, types, or classes here.
+8. **Resource Management & Stability:** Pay special attention to Phase 5. Ensure that chaos (e.g., concurrency, events, flux) and order (e.g., sync_locks, listeners, freeze_hits) are cleanly separated into their specific regex keys so the physics engine can balance them.
 
 ### THE LEXICAL FAMILIES
-You must assign the language to one of these optical parsing families based on how it handles comments (Ghost Mass):
+You must assign the language to one of these optical parsing families based on how it handles comments / non-executable text:
 * `std_c`: Standard C-style (Line: `//`, Block: `/* ... */`). Examples: C, C++, Java, JS, Go.
 * `nested_c`: Supports recursive block nesting (Line: `//`, Block: `/* /* */ */`). Examples: Rust, Swift, Scala.
 * `pure_hash`: Hash-style only (Line: `#`, Block: None). Examples: Python, Shell, Makefile.
@@ -76,7 +76,7 @@ Generate a valid Python dictionary matching this exact structure.
     },
     "extensions": [], # e.g. [".js", ".jsx"]
     "exact_matches": [], # e.g. ["Makefile"]
-    "discriminators": [], # Ecosystem gravity anchors (e.g. "package.json")
+    "discriminators": [], # Ecosystem anchors (e.g. "package.json")
     "shebangs": [], 
     "lexical_family": "", # See Lexical Families list above
     "rules": {
@@ -86,114 +86,114 @@ Generate a valid Python dictionary matching this exact structure.
         "_block_start": re.compile(r""),
         "_block_end": re.compile(r""),
 
-        # --- PHASE 1: GEOMETRY (The Physical Stars) ---
-        # branch: Control flow that forces the CPU to make a decision or jump. High density creates jagged shapes. Includes: if, else, switch, for, while, catch, try, &&, ||, ternary. EXCLUDES: Exceptions (throw, raise) — these belong in bailout_hits.
+        # --- PHASE 1: GEOMETRY & STRUCTURE ---
+        # branch (Control Flow / Branching): Control flow that forces the CPU to make a decision or jump. High density creates jagged shapes. Includes: if, else, switch, for, while, catch, try, &&, ||, ternary. EXCLUDES: Exceptions (throw, raise) — these belong in bailout_hits.
         "branch": re.compile(r""), 
-        # args: Signatures defining input parameters. Drives the physical size/mass of the function. Includes: parameter blocks of functions, methods, and lambdas. Must safely step over type hints.
+        # args (Parameters / Coupling): Signatures defining input parameters. Drives the physical size/mass of the function. Includes: parameter blocks of functions, methods, and lambdas. Must safely step over type hints.
         "args": re.compile(r""), 
-        # linear: Keywords defining structural boundaries and straight-line execution. Smooths the geometry into spheres. Includes: var, return, class, import. EXCLUDES: Access modifiers (public, private) and Immutability keywords (const, final — these belong in freeze_hits).
+        # linear (Sequential Boundaries): Keywords defining structural boundaries and straight-line execution. Smooths the geometry into spheres. Includes: var, return, class, import. EXCLUDES: Access modifiers (public, private) and Immutability keywords (const, final — these belong in freeze_hits).
         "linear": re.compile(r""), 
-        # func_start: SATELLITE SPAWNER. Exact syntax anchoring the start of an executable block of logic. Includes: Method signatures, constructors. EXCLUDES: Interfaces, types, and classes.
+        # func_start (Executable Logic Anchors): Exact syntax anchoring the start of an executable block of logic. Includes: Method signatures, constructors. EXCLUDES: Interfaces, types, and classes.
         "func_start": re.compile(r""), 
-        # class_start: ENTITY CENSUS. The syntax that defines an object-oriented class, struct, or record. Drives API Surface Area math.
+        # class_start (Object / Entity Declarations): The syntax that defines an object-oriented class, struct, or record. Drives API Surface Area math.
         "class_start": re.compile(r""), 
 
-        # --- PHASE 2: RISK ENGINE (Integrity & Debt) ---
-        # safety: Cyan Fortification. Defensive programming constructs that prevent crashes at runtime. Includes: try/catch, explicit null checks, guard. EXCLUDES: Immutability.
+        # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
+        # safety (Defensive Programming / Validation): Defensive programming constructs that prevent crashes at runtime. Includes: try/catch, explicit null checks, guard. EXCLUDES: Immutability.
         "safety": re.compile(r""), 
-        # safety_neg: Red Fragility. Syntax that actively bypasses type safety, swallows errors, or relies on unpredictable state. Includes: Force unwrapping (!), any, raw memory casting, linter bypasses (@ts-ignore).
+        # safety_neg (Safety Bypasses / Unchecked Types): Syntax that actively bypasses type safety, swallows errors, or relies on unpredictable state. Includes: Force unwrapping (!), any, raw memory casting, linter bypasses (@ts-ignore).
         "safety_neg": re.compile(r""), 
-        # danger: The Heavy Load. Extreme tech debt, process-killing commands, and catastrophic runtime vulnerabilities. Includes: eval, exec, process.exit. EXCLUDES: TODO/HACK (debt) and print (print_hits).
+        # danger (High-Risk Execution / System Calls): Extreme tech debt, process-killing commands, and catastrophic runtime vulnerabilities. Includes: eval, exec, process.exit. EXCLUDES: TODO/HACK (debt) and print (print_hits).
         "danger": re.compile(r""), 
-        # io: Interaction with the disk, network, or external systems. Includes: File writing/reading, HTTP clients, sockets. EXCLUDES: Logging/printing.
+        # io (I/O & Network Boundaries): Interaction with the disk, network, or external systems. Includes: File writing/reading, HTTP clients, sockets. EXCLUDES: Logging/printing.
         "io": re.compile(r""), 
-        # api: The Event Horizon. Code exposed to the outside world. Measures physical surface area (The Yin to encapsulation). Captures explicit visibility markers (export, public) AND implicit architectural defaults. If the linker can touch it, it possesses surface area.
+        # api (Public Surface Area): Code exposed to the outside world. Measures physical surface area (Mitigated by encapsulation). Captures explicit visibility markers (export, public) AND implicit architectural defaults. If the linker can touch it, it possesses surface area.
         "api": re.compile(r""), 
-        # flux: Boiling Plasma. Mutation of state. Reassignment of variables or modifying collections. (The Yin to freeze_hits). Includes: let, mut, volatile, .push(), .set().
+        # flux (State Mutation): Mutation of state. Reassignment of variables or modifying collections. (Mitigated by freeze_hits). Includes: let, mut, volatile, .push(), .set().
         "flux": re.compile(r""), 
-        # graveyard: Necrosis. Commented-out structural code and ghost logic trails. Includes: // if (x), /* var y */.
+        # graveyard (Dead / Commented-out Code): Commented-out structural code and unused logic trails. Includes: // if (x), /* var y */.
         "graveyard": re.compile(r""), 
-        # doc: The Intent. Structured documentation meant to be parsed by IDEs or generators. Includes: JSDoc, Docstrings.
+        # doc (Structured Documentation): Structured documentation meant to be parsed by IDEs or generators. Includes: JSDoc, Docstrings.
         "doc": re.compile(r""), 
-        # test: Assertions and unit testing framework keywords. (The Yang to test_skip). Includes: describe, it, assert, expect.
+        # test (Testing & Assertions): Assertions and unit testing framework keywords. (Mitigates test_skip). Includes: describe, it, assert, expect.
         "test": re.compile(r""), 
 
-        # --- PHASE 3: SENSORS (Domain & Architecture) ---
-        # concurrency: Temporal Static. Time-bending logic and parallel execution. (The Yin to sync_locks). Includes: async, await, Promise, Thread.
+        # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
+        # concurrency (Asynchronous Execution): Time-bending logic and parallel execution. (Mitigated by sync_locks). Includes: async, await, Promise, Thread.
         "concurrency": re.compile(r""), 
-        # ui_framework: The View Layer. DOM manipulation, UI components. Includes: HTML tags, React hooks.
+        # ui_framework (UI / View Components): DOM manipulation, UI components. Includes: HTML tags, React hooks.
         "ui_framework": re.compile(r""), 
-        # closures: Functional Depth. Anonymous functions, lambdas, inline callbacks. Includes: Fat arrows (=>).
+        # closures (Closures / Anonymous Functions): Anonymous functions, lambdas, inline callbacks. Includes: Fat arrows (=>).
         "closures": re.compile(r""), 
-        # globals: Shared Void. Accessing global state, environment variables, or system registries. Includes: window., process.env.
+        # globals (Global / Shared State): Accessing global state, environment variables, or system registries. Includes: window., process.env.
         "globals": re.compile(r""), 
-        # decorators: Metadata Hooks. Annotations applied to classes/methods. Includes: @Injectable, [Obsolete].
+        # decorators (Decorators / Annotations): Annotations applied to classes/methods. Includes: @Injectable, [Obsolete].
         "decorators": re.compile(r""), 
-        # generics: Type Abstractions. Type parameters that make logic reusable but harder to read. Includes: <T>, List<T>.
+        # generics (Generics / Type Parameters): Type parameters that make logic reusable but harder to read. Includes: <T>, List<T>.
         "generics": re.compile(r""), 
-        # comprehensions: High-Density Loops. Functional array transformations or inline looping. Includes: .map(, .filter(.
+        # comprehensions (Iterators / Comprehensions): Functional array transformations or inline looping. Includes: .map(, .filter(.
         "comprehensions": re.compile(r""), 
-        # scientific: Compute Core. Math, data science, and complex rendering libraries. Includes: Math., numpy.
+        # scientific (Numerical / Compute Libraries): Math, data science, and complex rendering libraries. Includes: Math., numpy.
         "scientific": re.compile(r""), 
-        # heat_triggers: Thermal Radiation. Highly complex, "clever" code that causes cognitive meltdown. Includes: Reflection, Proxy, .bind().
+        # heat_triggers (Metaprogramming & Reflection): Highly complex, "clever" code that causes cognitive meltdown. Includes: Reflection, Proxy, .bind().
         "heat_triggers": re.compile(r""), 
-        # import: Gravity Links. Dependency resolution and module loading. Includes: import, require, using.
+        # import (Dependency Inclusions): Dependency resolution and module loading. Includes: import, require, using.
         "import": re.compile(r""), 
         # _dependency_capture: Regex strictly capturing group 1 as the exact dependency path string.
         "_dependency_capture": re.compile(r""), 
-        # ownership: Authorship metadata. Includes: @author, Created by:.
+        # ownership (Authorship Metadata): Authorship metadata. Includes: @author, Created by:.
         "ownership": re.compile(r""), 
 
-        # --- PHASE 4: EXTENDED (Specialized Systems) ---
-        # planned_debt: The Promise. Future work that doesn't necessarily imply brokenness. Includes: TODO, WIP, STUB.
+        # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
+        # planned_debt (Annotated Debt / TODOs): Future work that doesn't necessarily imply brokenness. Includes: TODO, WIP, STUB.
         "planned_debt": re.compile(r""), 
-        # fragile_debt: The Fracture. Explicit admissions of fragile, dangerous, or ugly logic. Includes: HACK, FIXME, XXX, WTF.
+        # fragile_debt (Acknowledged Hacks / FIXMEs): Explicit admissions of fragile, dangerous, or ugly logic. Includes: HACK, FIXME, XXX, WTF.
         "fragile_debt": re.compile(r""), 
-        # private_info: The Sensitive Assets. Hardcoded secrets, static credentials, or API keys baked into code. Includes: password, secret, token, api_key.
+        # private_info (Hardcoded Secrets / Credentials): Hardcoded secrets, static credentials, or API keys baked into code. Includes: password, secret, token, api_key.
         "private_info": re.compile(r""), 
-        # spec_exposure: The Map vs. Territory. Audit tags establishing traceability of intent. Includes: [SPEC-123], [audit].
+        # spec_exposure (Spec / Audit Traceability): Audit tags establishing traceability of intent. Includes: [SPEC-123], [audit].
         "spec_exposure": re.compile(r""), 
-        # civil_war: The Indentation Tracker. Structural formatting markers used to calculate Tabs vs. Spaces ratio. Often None.
+        # civil_war (Formatting Inconsistencies): Structural formatting markers used to calculate Tabs vs. Spaces ratio. Often None.
         "civil_war": None, 
-        # ssr_boundaries: Server-Side Rendering computation boundaries where backend meets frontend. Includes: getServerSideProps.
+        # ssr_boundaries (Server-Side Rendering): Server-Side Rendering computation boundaries where backend meets frontend. Includes: getServerSideProps.
         "ssr_boundaries": re.compile(r""), 
-        # events: Pub/Sub Network. Event-driven architecture signatures and message brokers. (The Yin to listeners). Includes: emit, EventEmitter, Kafka, Publisher.
+        # events (Event Emitters / Pub-Sub): Event-driven architecture signatures and message brokers. (Mitigated by listeners). Includes: emit, EventEmitter, Kafka, Publisher.
         "events": re.compile(r""), 
-        # dependency_injection: Inversion of Control (IoC) injection markers. Includes: @Autowired, @Inject.
+        # dependency_injection (Dependency Injection / IoC): Inversion of Control (IoC) injection markers. Includes: @Autowired, @Inject.
         "dependency_injection": re.compile(r""), 
-        # macros: Preprocessor Hooks. Compiler pragmas or macro definitions that generate code at compile-time. Includes: #define, macro_rules!.
+        # macros (Preprocessor Directives / Macros): Compiler pragmas or macro definitions that generate code at compile-time. Includes: #define, macro_rules!.
         "macros": re.compile(r""), 
-        # pointers: The Memory Map. Explicit tracking of raw memory addressing and pointer dereferencing. Includes: *const, &mut, IntPtr.
+        # pointers (Pointer Arithmetic / Memory Addressing): Explicit tracking of raw memory addressing and pointer dereferencing. Includes: *const, &mut, IntPtr.
         "pointers": re.compile(r""), 
-        # memory_alloc: Manual Memory Management. Explicit unmanaged memory allocations and raw heap manipulations. (The Yin to cleanup). Includes: malloc, new.
+        # memory_alloc (Manual Memory Management): Explicit unmanaged memory allocations and raw heap manipulations. (Mitigated by cleanup). Includes: malloc, new.
         "memory_alloc": re.compile(r""), 
-        # inline_asm: The Bare Metal. Direct CPU architecture bridging. Includes: __asm__, asm!.
+        # inline_asm (Inline Assembly): Direct CPU architecture bridging. Includes: __asm__, asm!.
         "inline_asm": re.compile(r""), 
 
-        # --- PHASE 5: THERMODYNAMIC BALANCE (Yin & Yang) ---
-        # telemetry: The Professional. Structured logging and observability frameworks used safely in production. Acts as executable documentation.
+        # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
+        # telemetry (Structured Logging / Telemetry): Structured logging and observability frameworks used safely in production. Acts as executable documentation.
         "telemetry": re.compile(r""), 
-        # print_hits: The Amateur / Space Debris. Ad-hoc, temporary debug statements pushed to production. Includes: print(, console.log(.
+        # print_hits (Standard Output / Debug Prints): Ad-hoc, temporary debug statements pushed to production. Includes: print(, console.log(.
         "print_hits": re.compile(r""), 
-        # cast_hits: The "Trust Me" Tax. Explicitly bypassing the compiler's type-checker. Indicates misaligned data structures. Includes: as String, (int), static_cast.
+        # cast_hits (Explicit Type Casting): Explicitly bypassing the compiler's type-checker. Indicates misaligned data structures. Includes: as String, (int), static_cast.
         "cast_hits": re.compile(r""), 
-        # bailout_hits: The Detonators. Forcefully destroying the current execution context. Includes: throw, raise, panic!, abort().
+        # bailout_hits (Execution Halts / Panics): Forcefully destroying the current execution context. Includes: throw, raise, panic!, abort().
         "bailout_hits": re.compile(r""), 
-        # halt_hits: Temporal Duct Tape. Forcing a thread to sleep (often an admission of a race condition). Includes: sleep(, delay(.
+        # halt_hits (Thread Blocking / Sleeps): Forcing a thread to sleep (often an admission of a race condition). Includes: sleep(, delay(.
         "halt_hits": re.compile(r""), 
-        # bitwise_hits: Sub-Atomic Math. Manipulating raw bytes and memory registers. Extremely dense, low-level logic. EXCLUDES logical &&/||.
+        # bitwise_hits (Bitwise Operations): Manipulating raw bytes and memory registers. Extremely dense, low-level logic. EXCLUDES logical &&/||.
         "bitwise_hits": re.compile(r""), 
-        # sync_locks: The Barricades. Explicitly coordinating threaded logic to prevent race conditions. (The Yang to concurrency).
+        # sync_locks (Thread Synchronization / Locks): Explicitly coordinating threaded logic to prevent race conditions. (Mitigates concurrency).
         "sync_locks": re.compile(r""), 
-        # freeze_hits: Data Cryogenics. Explicitly locking data so it cannot be mutated. (The Yang to flux). Includes: const, final, readonly.
+        # freeze_hits (Immutability Constraints): Explicitly locking data so it cannot be mutated. (Mitigates flux). Includes: const, final, readonly.
         "freeze_hits": re.compile(r""), 
-        # cleanup: The Janitor. Explicitly destroying state or releasing resources to prevent leaks. (The Yang to memory_alloc and io). Includes: free(, dispose(), .close().
+        # cleanup (Resource Cleanup / Teardown): Explicitly destroying state or releasing resources to prevent leaks. (Mitigates memory_alloc and io). Includes: free(, dispose(), .close().
         "cleanup": re.compile(r""), 
-        # encapsulation: The Vault. Explicitly hiding logic from the rest of the application. (The Yang to api). Includes: private, protected, internal.
+        # encapsulation (Access Modifiers / Encapsulation): Explicitly hiding logic from the rest of the application. (Mitigates api). Includes: private, protected, internal.
         "encapsulation": re.compile(r""), 
-        # listeners: The Sinks. Waiting to receive state from an external broadcast. (The Yang to events). Includes: on(, addEventListener, subscribe(.
+        # listeners (Event Listeners / Observers): Waiting to receive state from an external broadcast. (Mitigates events). Includes: on(, addEventListener, subscribe(.
         "listeners": re.compile(r""), 
-        # test_skip: Safety Theater. Code that uses the testing framework but explicitly bypasses verification. (The Yin to test). Includes: @Ignore, test.skip(.
+        # test_skip (Bypassed Tests / Ignored Specs): Code that uses the testing framework but explicitly bypasses verification. (Anti-pattern to test). Includes: @Ignore, test.skip(.
         "test_skip": re.compile(r""), 
 
         # --- HYBRID DOMAIN SENSORS ---
@@ -207,4 +207,3 @@ Generate a valid Python dictionary matching this exact structure.
         "ipc_rpc_bridges": re.compile(r"") 
     }
 }
-```

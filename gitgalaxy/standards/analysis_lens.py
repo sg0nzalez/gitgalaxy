@@ -60,7 +60,7 @@ class ThreatPolicy:
 # 2. CORE PHYSICS CONSTANTS
 # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
-PHYSICS_CONSTANTS = {
+ENGINE_CONSTANTS = {
     "WEIGHT_RISK": 2.5,
     "WEIGHT_DEFENSE": 1.0,
     # Trust Dampeners & Opacity Taxes
@@ -120,7 +120,7 @@ FIDELITY_TIERS = {
 # 3. STRUCTURAL ASSET MASKS
 # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
-PHYSICS_ASSET_MASKS = {
+ASSET_MASKS = {
     # Files strictly treated as literature (Bypasses active logic math)
     "DOCUMENTATION_LANGUAGES": {
         "plaintext",
@@ -132,10 +132,11 @@ PHYSICS_ASSET_MASKS = {
         "latex",
     },
     # ==============================================================================
-    # FILES EXCLUDED FROM UNIT TEST EXPOSURE (The "Cannot Be Tested" Mask)
-    # RATIONALE: We do not penalize inert data, stylesheets, or documentation
-    # for lacking unit tests. Crucially, we also exclude test artifacts themselves
-    # (snapshots, mock data) to prevent the recursive trap of "testing the tester."
+    # DEFENSIVE DESIGN: RECURSIVE TESTING TRAP PREVENTION
+    # SAST tools frequently generate false-positive "Lack of Coverage" alerts on 
+    # configuration files or the test artifacts themselves. This explicit exclusion 
+    # mask ensures the engine never demands unit tests for inert data, generated 
+    # scaffolding, or test snapshots, drastically reducing alert fatigue.
     # ==============================================================================
     "UNTESTABLE_EXTENSIONS": {
         # 1. UI, Styling & Markup (Declarative layout, no active logic)
@@ -294,7 +295,7 @@ PATH_MODIFIERS = {
         ),
     ],
     "Error & Exception Exposure": [
-        # 1. The Sentinel (Core Security & Auth)
+        # 1. Security & Auth Boundaries (Core Security & Auth)
         # Highly secure zones dedicated to authentication, authorization, and cryptography.
         # Massive reduction in risk exposure because this is explicit defensive mass.
         (
@@ -324,7 +325,7 @@ PATH_MODIFIERS = {
             ),
             0.90,
         ),
-        # 4. The Unsafe Zone (Raw & Unchecked Data)
+        # 4. Unchecked Execution Zones (Raw & Unchecked Data)
         # Areas where memory management or input sanitization is deliberately turned off.
         # Added 'danger' (e.g., dangerouslySetInnerHTML) and 'unverified'.
         (re.compile(r"(?:^|/)(?:unsafe|raw|danger|escape|unverified)/", re.I), 1.25),
@@ -334,14 +335,14 @@ PATH_MODIFIERS = {
         (re.compile(r"(?:^|/)(?:bypasses?|overrides?|ignores?|force)/", re.I), 1.20),
     ],
     "Tech Debt Exposure": [
-        # 1. The Museum (Safely Retired / Ignored)
+        # 1. Retired / Legacy Assets (Safely Retired / Ignored)
         # Amplifies slightly, but dampens overall execution risk because it's not active.
         # Added 'obsolete' and 'old'
         (
             re.compile(r"(?:^|/)(?:archive|legacy|deprecated|obsolete|old)s?/", re.I),
             0.50,
         ),
-        # 2. The Scratchpad (Unfinished / Volatile)
+        # 2. Volatile Workspaces (Unfinished / Volatile)
         # High volatility. Added 'temp' and 'draft'.
         (re.compile(r"(?:^|/)(?:tmp|temp|scratch|wip|draft)s?/", re.I), 1.05),
         # 3. The Laboratory (Experimental Code)
@@ -351,7 +352,7 @@ PATH_MODIFIERS = {
             re.compile(r"(?:^|/)(?:experimental|experiments|sandbox|spikes?)/", re.I),
             1.10,
         ),
-        # 4. The Duct Tape (Hacks & Workarounds)
+        # 4. Acknowledged Tech Debt (Hacks & Workarounds)
         # Code explicitly named as a patch, shim, or hack. This is the definition
         # of structural tech debt and deserves a high exposure penalty.
         (
@@ -488,7 +489,7 @@ PATH_MODIFIERS = {
             ),
             1.15,
         ),
-        # 4. The Brainstem (Application Entrypoints)
+        # 4. Application Entrypoints (Application Entrypoints)
         # The absolute worst place for dead code. Files like index.js, main.go, or App.tsx
         # are the first things a new developer reads. Commented-out garbage here
         # sets a terrible precedent and deserves maximum penalty.
@@ -508,7 +509,7 @@ PATH_MODIFIERS = {
             re.compile(r"(?:^|/)(?:webhooks?|listeners?|subscribers?|events?)/", re.I),
             1.10,
         ),
-        # 2. The Billboard (Standard HTTP/REST)
+        # 2. Public Routing Interfaces (Standard HTTP/REST)
         # Expanded to catch routes, routers, handlers, and endpoints.
         # This is the standard "front door" for client-to-server traffic.
         (
@@ -555,7 +556,7 @@ PATH_MODIFIERS = {
             ),
             1.05,
         ),
-        # 3. The UI Tangle (Client-Side Race Conditions)
+        # 3. View-Layer Synchronization (Client-Side Race Conditions)
         # Expanded to catch pages and screens. UI components that execute heavy asynchronous
         # logic are the classic source of "unmounted-component" memory leaks and visual race conditions.
         (re.compile(r"(?:^|/)(?:ui|views?|components?|pages?|screens?)/", re.I), 1.15),
@@ -569,7 +570,7 @@ PATH_MODIFIERS = {
         (re.compile(r"\.(html|htm|css|scss|svg|xml)$", re.I), 00.0),
     ],
     "State Flux Exposure": [
-        # 1. The Warehouse (Expected State Mutations)
+        # 1. Dedicated State Managers (Expected State Mutations)
         # Dedicated state managers, databases, and caches. Flux here is the
         # primary purpose of the file, so we dampen the risk exposure.
         # Expanded to catch modern stores like Pinia, Zustand, and Vuex.
@@ -589,12 +590,12 @@ PATH_MODIFIERS = {
         # High state flux in a /components/ or /views/ directory indicates massive
         # prop-drilling, "spaghetti" hooks, and a high risk of render loop bugs.
         (re.compile(r"(?:^|/)(?:components?|views?|pages?|screens?)/", re.I), 1.10),
-        # 4. The Magic Side-Effect (Junk Drawer Mutations)
+        # 4. Impure Utility Functions (Junk Drawer Mutations)
         # Utility and helper functions should strictly be "pure functions" (input -> output).
         # If a file in /utils/ is heavily mutating variables or triggering state
         # changes, it is a hidden side-effect and highly dangerous.
         (re.compile(r"(?:^|/)(?:utils?|helpers?|shared|common)/", re.I), 1.15),
-        # 5. The Global Poison (Runtime Configuration Changes)
+        # 5. Global Configuration State (Runtime Configuration Changes)
         # The absolute highest state flux risk. Files designated for environments,
         # constants, or configs should be completely static after boot. If the
         # engine detects state mutations here, the application is poisoning its own roots.
@@ -618,6 +619,14 @@ PATH_MODIFIERS = {
         (re.compile(r"(?:^|/)examples?/", re.I), 0.0),
     ],
     "Structural Mass": [
+        # ==============================================================================
+        # DEFENSIVE DESIGN: PARSER SATURATION & AST BLOAT PREVENTION
+        # Massive auto-generated files (e.g., Protobufs, Swagger, Webpack chunks) 
+        # will mathematically crush standard AST parsers and inflate a repository's 
+        # structural mass. These targeted dampeners artificially reduce the gravitational 
+        # weight of generated code, ensuring human-written architecture remains the 
+        # focal point of the analysis without risking OOM (Out of Memory) crashes.
+        # ==============================================================================
         # The Cryptographic & Test Vector Dampener
         # Auto-generated data arrays explode parser argument math. Extreme reduction
         # prevents these static payloads from registering as massive logic hubs.
@@ -962,8 +971,15 @@ LANGUAGE_SECURITY_PROFILES = {
             "injection": 1.5,
         },  # Standard aggressive baseline
     },
-    # Aggressive penalties applied when the file is an ALIEN in its neighborhood
-    "ALIEN_WEIGHTS": {
+    # ==============================================================================
+    # DEFENSIVE DESIGN: POLYGLOT CONTEXTUAL ANOMALY DETECTION
+    # A vulnerability's severity is dictated by its environment. Standard OS execution 
+    # is expected in a shell script, but highly anomalous in a frontend UI component. 
+    # This matrix multiplies threat scores when an asset exhibits behaviors hostile 
+    # to its native ecosystem (e.g., detecting C-style memory pointers inside a Node.js 
+    # web layer), flagging potential Trojans or backdoors.
+    # ==============================================================================
+    "ECOSYSTEM_MISMATCH_WEIGHTS": {
         "systems_in_web": {
             "memory": 5.0,
             "logic_bomb": 3.0,
@@ -977,7 +993,7 @@ LANGUAGE_SECURITY_PROFILES = {
     },
     # ---> THE ARCHETYPE VIOLATION MATRIX (k=10 Edition) <---
     # Multiplies threat mass based on how anomalous the behavior is for the file's physical DNA.
-    "ARCHETYPE_VIOLATION_MATRIX": {
+    "CONTEXT_VIOLATION_MATRIX": {
         "Cluster 1: High-Dependency Config & Object Nodes": {
             # The New Config/JSON/Typescript Interface nodes.
             # These should NEVER execute logic, manage memory, or be obfuscated.

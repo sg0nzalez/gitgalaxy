@@ -81,7 +81,7 @@ def test_prism_metadata_guard(prism_engine):
 def test_prism_string_shield_protection(prism_engine):
     """Proves that string literals containing comment delimiters do not trigger the stripper."""
     content = (
-        'let url = "[https://github.com](https://github.com)"; // Set the target URL\n'
+        'let url = "https://github.com"; // Set the target URL\n'
         'let str_block = "/* DO NOT STRIP ME */";\n'
         "/* Real block comment */"
     )

@@ -84,7 +84,7 @@ class SignalProcessor:
         )
 
         # Fetch Physics Constants
-        physics = getattr(config, "PHYSICS_CONSTANTS", {})
+        physics = getattr(config, "ENGINE_CONSTANTS", {})
         self.WEIGHT_RISK = physics.get("WEIGHT_RISK", 2.5)
         self.WEIGHT_DEFENSE = physics.get("WEIGHT_DEFENSE", 1.0)
         self.TIER_VARS = physics.get(
@@ -100,7 +100,7 @@ class SignalProcessor:
 
         # Fetch Path Modifiers & Asset Masks
         self.path_modifiers = getattr(config, "PATH_MODIFIERS", {})
-        self.asset_masks = getattr(config, "PHYSICS_ASSET_MASKS", {})
+        self.asset_masks = getattr(config, "ASSET_MASKS", {})
         self.risk_tuning = getattr(config, "RISK_EQUATION_TUNING", {})
         self.is_paranoid = self.config.get("PARANOID_MODE", False)
 
@@ -112,9 +112,9 @@ class SignalProcessor:
         self.ECOSYSTEMS = security_profiles.get("ECOSYSTEMS", {})
         self.NATIVE_WEIGHTS = security_profiles.get("NATIVE_WEIGHTS", {})
 
-        # Fetch ECOSYSTEM_MISMATCH_PENALTIES dynamically, with a fallback to the hardcoded dictionary
-        self.ECOSYSTEM_MISMATCH_PENALTIES = security_profiles.get(
-            "ALIEN_WEIGHTS",
+        # Fetch ECOSYSTEM_MISMATCH_WEIGHTS dynamically, with a fallback to the hardcoded dictionary
+        self.ECOSYSTEM_MISMATCH_WEIGHTS = security_profiles.get(
+            "ECOSYSTEM_MISMATCH_WEIGHTS",
             {
                 "systems_in_web": {
                     "memory": 5.0,
@@ -130,8 +130,8 @@ class SignalProcessor:
         )
 
         # ---> NEW: Fetch the Archetype Matrix
-        self.ARCHETYPE_VIOLATION_MATRIX = security_profiles.get(
-            "ARCHETYPE_VIOLATION_MATRIX", {}
+        self.CONTEXT_VIOLATION_MATRIX = security_profiles.get(
+            "CONTEXT_VIOLATION_MATRIX", {}
         )
 
         self.logger.info(
@@ -198,17 +198,18 @@ class SignalProcessor:
         if file_eco == folder_eco:
             return self.NATIVE_WEIGHTS.get(file_eco, multipliers)
 
-        # SCENARIO 2: The Entity is Out-of-Context (Ecosystem Mismatch)
-        mismatch_key = f"{file_eco}_in_{folder_eco}"
-        mismatch_penalties = self.ECOSYSTEM_MISMATCH_PENALTIES.get(mismatch_key, {})
+
+        # SCENARIO 2: The Entity is an Alien (Context Mismatch)
+        alien_key = f"{file_eco}_in_{folder_eco}"
+        alien_penalties = self.ECOSYSTEM_MISMATCH_WEIGHTS.get(alien_key, {})
 
         # Apply standard weights of the file, but overwrite with severe mismatch penalties
         base_weights = self.NATIVE_WEIGHTS.get(file_eco, multipliers).copy()
-        base_weights.update(mismatch_penalties)
+        base_weights.update(alien_penalties)
 
-        if mismatch_penalties:
+        if alien_penalties:
             self.logger.debug(
-                f"🚨 CONTEXTUAL MISMATCH DETECTED: {file_lang} asset embedded in a {folder_eco} domain. Applying out-of-bounds security penalties: {mismatch_penalties}"
+                f"🚨 CONTEXTUAL MISMATCH DETECTED: {file_lang} asset embedded in a {folder_eco} domain. Applying out-of-bounds security penalties: {alien_penalties}"
             )
 
         return base_weights
@@ -1975,7 +1976,7 @@ class SignalProcessor:
         Combines passive Security Lens observers with hardcoded secret detection.
         """
         # Fetch the archetype multiplier
-        arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
+        arch_matrix = self.CONTEXT_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("obscured_payload_multiplier", 1.0)
 
         obfuscation_indicators = (raw_signals.get("sec_heat_triggers", 0) * 5.0) + (
@@ -2071,7 +2072,7 @@ class SignalProcessor:
         Looks for delayed or condition-heavy execution leading to destructive commands.
         """
         # Fetch the archetype multiplier
-        arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
+        arch_matrix = self.CONTEXT_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("logic_bomb_multiplier", 1.0)
 
         trigger = raw_signals.get("branch", 0) + (raw_signals.get("halt_hits", 0) * 3.0)
@@ -2164,7 +2165,7 @@ class SignalProcessor:
         Looks for external network input flowing near dynamic execution without safety nets.
         """
         # Fetch the archetype multiplier
-        arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
+        arch_matrix = self.CONTEXT_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("injection_surface_multiplier", 1.0)
 
         input_vectors = raw_signals.get("sec_io", 0) + (raw_signals.get("ssr_boundaries", 0) * 2.0)
@@ -2242,7 +2243,7 @@ class SignalProcessor:
         Strictly Opt-In: Only applies to languages with manual memory/pointers.
         """
         # Fetch the archetype multiplier
-        arch_matrix = self.ARCHETYPE_VIOLATION_MATRIX.get(archetype, {})
+        arch_matrix = self.CONTEXT_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("memory_corruption_multiplier", 1.0)
 
         # ---> THE ARCHITECTURAL FIX: Opt-In Vulnerability Whitelist <---
