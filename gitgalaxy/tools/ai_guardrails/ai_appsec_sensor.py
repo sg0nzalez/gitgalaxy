@@ -28,7 +28,7 @@ class AIAppSecSensor:
         for file_data in parsed_files:
             # Extract the raw DNA triggers (assuming they are tallied in 'telemetry')
             telemetry = file_data.get("telemetry", {})
-            risk_vector = file_data.get("risk_vector", [])
+            _risk_vector = file_data.get("_risk_vector", [])
 
             # Extract specific architectural signals
             ai_orchestrator = telemetry.get("ai_orchestrator", 0) > 0
