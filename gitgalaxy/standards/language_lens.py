@@ -841,7 +841,7 @@ class LanguageDetector:
                 raw_score *= 1.25
 
             # Comment Delimiter Bonus
-            family_key = data.get("lexical_family", "std_c")
+            family_key = data.get("lexical_family", "c_style_comment")
             delims = (
                 self.comment_defs.get("mechanical_families", {})
                 .get(family_key, {})
@@ -908,11 +908,11 @@ class LanguageDetector:
             # Safely breaking apart the XML delimiter to prevent markdown render crashes
             xml_delim = "<" + "!--"
             family_scores = {
-                "std_c": content.count("//") + content.count("/*"),
-                "pure_hash": content.count("#"),
-                "hybrid_dash": content.count("--"),
+                "c_style_comment": content.count("//") + content.count("/*"),
+                "single_line_only": content.count("#"),
+                "multi_style_dash": content.count("--"),
                 "xml_angle": content.count(xml_delim),
-                "lisp_semi": content.count(";"),
+                "lisp_style": content.count(";"),
                 "tex_percent": content.count("%"),
                 "bat_rem": len(re.findall(r"(?im)^REM\b", content)),
                 "quote_string": content.count('"""') + content.count("'''"),
@@ -1012,7 +1012,7 @@ class LanguageDetector:
 
             # ---> HEURISTIC BOOST: C/C++ Macro Execution <---
             family_key = self.languages.get(lid, {}).get("lexical_family")
-            if family_key == "std_c":
+            if family_key == "c_style_comment":
                 macro_hits = len(
                     re.findall(
                         r"^\s*#(?:define|ifdef|ifndef|endif|include|pragma|if)\b",

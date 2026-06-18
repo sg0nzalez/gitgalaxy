@@ -77,14 +77,12 @@ LENS_CONFIG = {
         "README_BUFRLIB",
     },
     "DISQUALIFIERS": {
-        "pure_hash": r"(?:^\s*using\s+namespace\b|^\s*public\s+(?:class|interface)\b|<\?php)",
-        "positional": r"(?:^\s*(?:import|export)\s+\{|<html\b|<\?php|^\s*namespace\s+\w+)",
-        "std_c": r"(?:<\?php|^\s*IDENTIFICATION\s+DIVISION\.)",
-        "nested_c": r"(?:<\?php|<html\b|^\s*IDENTIFICATION\s+DIVISION\.)",
-        "hybrid_dash": r"(?:^\s*public\s+class\b|<\?php|<html\b)",
-        "hybrid_hash": r"(?:<\?php|^\s*IDENTIFICATION\s+DIVISION\.)",
-        "singular": r"(?:<\?php|^\s*public\s+class\b|^\s*IDENTIFICATION\s+DIVISION\.)",
-        "polyglot": r"^\s*IDENTIFICATION\s+DIVISION\.",
+        "single_line_only": r"(?:^\s*using\s+namespace\b|^\s*public\s+(?:class|interface)\b|<\?php)",
+        "column_sensitive": r"(?:^\s*(?:import|export)\s+\{|<html\b|<\?php|^\s*namespace\s+\w+)",
+        "c_style_comment": r"(?:<\?php|^\s*IDENTIFICATION\s*DIVISION\.)",
+        "recursive_c_style": r"(?:<\?php|<html\b|^\s*IDENTIFICATION\s*DIVISION\.)",
+        "multi_style_dash": r"(?:^\s*public\s+class\b|<\?php|<html\b)",
+        "embedded_syntax": r"^\s*IDENTIFICATION\s*DIVISION\.",
     },
     "HANDSHAKE_REGISTRY": [
         {
@@ -257,7 +255,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Uses '#' for line-level literature; multi-line literature
         # (docstrings) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             # =====================================================================
             # [ CRITICAL ROADMAP: JSONC/JSON5 LEXICAL DELIMITERS & THE RE.COMPILE TRAP ]
@@ -544,7 +542,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes JSDoc // style)
@@ -862,7 +860,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes TSDoc /// references)
@@ -1164,7 +1162,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes Javadoc /**)
@@ -1444,7 +1442,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes XML Doc ///)
@@ -1768,7 +1766,7 @@ LANGUAGE_DEFINITIONS = {
             "vendor/modules.txt",
         ],
         "shebangs": ["go", "gorun", "yaegi"],
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token.
@@ -2040,7 +2038,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: Rust explicitly allows nested block comments (/* /* */ */),
         # unlike standard C/C++. Standard C parsing would prematurely terminate here.
-        "lexical_family": "nested_c",
+        "lexical_family": "recursive_c_style",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes /// and //!)
@@ -2332,7 +2330,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # C++ uses '//' for standard line-level Literature (Ghost Mass).
@@ -2655,7 +2653,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Modern C (C99+) uses '//' for standard line-level Ghost Mass.
@@ -2981,7 +2979,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: PHP fundamentally operates within an HTML context, requiring the parser
         # to explicitly hunt for <?php execution boundaries. It also supports multiple
         # comment styles (//, #, and /* */).
-        "lexical_family": "polyglot",
+        "lexical_family": "embedded_syntax",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # PHP supports both '//' and '#' for line-level Ghost Mass.
@@ -3517,7 +3515,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["bash", "sh", "zsh", "ksh", "dash", "ash", "rbash"],
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Relies strictly on '#' for line-level Ghost Mass; no native block delimiters.
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Shell uses '#' for standard line-level literature.
@@ -4066,7 +4064,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: Supports nested block comments (/* /* */ */), necessitating depth-aware stripping
         # rather than standard C-style early termination.
-        "lexical_family": "nested_c",
+        "lexical_family": "recursive_c_style",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token
@@ -4328,7 +4326,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: (CORRECTION) While Kotlin uses // and /* */, it officially allows nested
         # block comments (/* /* */ */). Using standard C parsing would cause early termination here.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token
@@ -4591,7 +4589,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["sqlite3", "sqlite"],
         # UPGRADED: Maps to Family 5 (Hybrid Dash)
         # Rationale: Uses '--' for line-level and '/*' '*/' for block-level Ghost Mass.
-        "lexical_family": "hybrid_dash",
+        "lexical_family": "multi_style_dash",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # SQLite uses '--' for standard line-level literature.
@@ -4875,7 +4873,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: Uses SGML-style block delimiters () exclusively; no single-line anchor.
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # EXPLICIT: HTML has no native single-line comment anchor.
@@ -5124,7 +5122,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Uses '/*' and '*/' for blocks; preprocessors add '//' for lines.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Supported in SCSS/SASS/LESS).
@@ -5383,7 +5381,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["fortran", "f90", "f77", "gfortran"],
         # UPGRADED: Maps to Family 7 (The Positional Ancients)
         # Rationale: Fixed-format requires Column 1 monitoring ('C' or '*'); Free-format uses '!'.
-        "lexical_family": "positional",
+        "lexical_family": "column_sensitive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Line Anchor Logic:
@@ -5739,7 +5737,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: Uses unique line delimiters ';' (NASM/Intel) and '#' (GAS/ARM).
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Assembly uses ';' or '#' for standard line-level literature.
@@ -5985,7 +5983,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Digitized source uses '#' for line-level Ghost Mass.
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # AGC digitized source uses '#' for standard line-level literature.
@@ -6203,7 +6201,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["lua", "luajit", "luau", "texlua"],
         # UPGRADED: Maps to Family 5 (Hybrid Dash)
         # Rationale: Uses '--' for lines and '--[[ ... ]]' for blocks.
-        "lexical_family": "hybrid_dash",
+        "lexical_family": "multi_style_dash",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Lua uses '--' for standard line-level literature.
@@ -6453,7 +6451,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["perl", "perl5", "perl6"],
         # UPGRADED: Maps to Family 6 (Polyglot)
         # Rationale: Perl’s interaction with POD documentation blocks (=head, =cut) and embedded regex makes it a true polyglot lexical engine.
-        "lexical_family": "polyglot",
+        "lexical_family": "embedded_syntax",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Perl uses '#' for standard line-level literature.
@@ -6709,7 +6707,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["runhaskell", "runghc", "stack", "ghci"],
         # UPGRADED: Maps to Family 5 (Hybrid Dash)
         # Rationale: Uses '--' for lines and '{- -}' for blocks, which strictly supports recursive nesting.
-        "lexical_family": "hybrid_dash",
+        "lexical_family": "multi_style_dash",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Haskell uses '--' for line-level Ghost Mass.
@@ -6935,7 +6933,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Uses '#' for line-level literature; multi-line literature
         # (docstrings) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # MicroPython uses '#' for line-level Ghost Mass.
@@ -7174,7 +7172,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 7 (The Positional Ancients)
         # Rationale: Strictly fixed-format. The engine must monitor Column 7 for an asterisk '*'
         # or slash '/' to identify line-level Ghost Mass.
-        "lexical_family": "positional",
+        "lexical_family": "column_sensitive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Fixed Format Logic: Column 7 is the 'Indicator Area'.
@@ -7451,7 +7449,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["zig"],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: Zig intentionally omits multi-line block comments to keep parsing simple, exclusively using '//'.
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -7647,7 +7645,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Uses standard '//' for lines and '/*' '*/' for block-level Ghost Mass.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -7886,7 +7884,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: (CORRECTION) Like Swift and Rust, Dart officially supports nested multi-line
         # comments (/* /* */ */). Standard C parsing would prematurely terminate here causing geometry failure.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
@@ -8152,7 +8150,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: Scala explicitly supports nested multi-line comments (/* /* */ */),
         # requiring depth-aware stripping to prevent premature termination.
-        "lexical_family": "nested_c",
+        "lexical_family": "recursive_c_style",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -8414,7 +8412,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Docker natively uses '#' exclusively for line-level comments and parser directives.
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             "_line_anchor": re.compile(r"#"),
             "_inline_comment": re.compile(r"#"),
@@ -8674,7 +8672,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: (CORRECTION) Uses '%' for lines and '%{ %}' for blocks. Mapping this to
         # hybrid_dash would cause the engine to look for '--', missing the math entirely.
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             "_line_anchor": re.compile(r"%"),
             "_inline_comment": re.compile(r"%"),
@@ -8900,7 +8898,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["livecode-server"],
         # UPGRADED: Maps to Family 6 (Polyglot)
         # Rationale: Accepts '--', '//', '#', and '/* */' to support both its legacy HyperTalk roots and modern C-style syntax.
-        "lexical_family": "polyglot",
+        "lexical_family": "embedded_syntax",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Handles all three line-comment styles found in the xTalk family.
@@ -9144,7 +9142,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Solidity strictly adheres to C-style line (//) and block (/* */) comments.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -9347,7 +9345,7 @@ LANGUAGE_DEFINITIONS = {
         ),
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Uses standard '//' for line-level literature and '/*' '*/' for blocks.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -9573,7 +9571,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["make", "gmake"],
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Make natively uses '#' exclusively for line-level comments.
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             # Makefiles natively use '#' for both line and inline comments.
             "_line_anchor": re.compile(r"#"),
@@ -9772,7 +9770,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 7 (The Positional Ancients)
         # Rationale: Strictly fixed-format legacy constraints. The engine must monitor Column 1
         # for an asterisk '*' to identify line-level Ghost Mass, while allowing '"' for inline.
-        "lexical_family": "positional",
+        "lexical_family": "column_sensitive",
         "rules": {
             "_line_anchor": re.compile(r"^\*"),
             "_inline_comment": re.compile(r"\""),
@@ -10006,7 +10004,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: (CORRECTION) Consolidated 'xml_angle' into 'singular'. Like HTML, XML
         # exclusively uses SGML-style block delimiters () for its Ghost Mass.
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {},
     },
     "markdown": {
@@ -10039,7 +10037,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: (CORRECTION) Markdown relies entirely on HTML's SGML-style block comments ().
         # Mapping this to 'hybrid_dash' would cause the engine to miss hidden documentation mass.
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             "lit_code_blocks": re.compile(r"^```[a-zA-Z0-9]*$", re.M),
             "lit_diagrams": re.compile(r"^```(?:mermaid|plantuml)$", re.M),
@@ -10060,7 +10058,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: While strictly data, when CSVs *do* contain comments (supported by
         # parsers like Pandas or DuckDB), they almost exclusively use the '#' symbol at the start of a line.
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {},
     },
     "yaml": {
@@ -10083,7 +10081,7 @@ LANGUAGE_DEFINITIONS = {
             ".github/workflows",
         ],
         "shebangs": [],
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             "_line_anchor": re.compile(r"#"),
             "_inline_comment": re.compile(r"#"),
@@ -10238,7 +10236,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: While standard .proto schemas use C-style (//) comments, the instantiated
         # Text Format (.pbtxt) strictly uses '#' for comments.
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {},
     },
     "yacc": {
@@ -10266,7 +10264,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Yacc and Lex files interleave grammar definitions with pure C/C++ code
         # blocks (enclosed in %{ %}), relying entirely on standard '/* */' and '//' comments.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10369,7 +10367,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: M4 uniquely uses the `dnl` (Delete to NewLine) macro to act as its
         # line-level Ghost Mass.
-        "lexical_family": "singular",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"\bdnl\b"),
@@ -10558,7 +10556,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 9 (Lisp_Semi) - *NEW FAMILY*
         # Rationale: Perfectly captures the Lisp ecosystem's reliance on ';' for line-level
         # comments and `#| |#` for nested block-level Ghost Mass.
-        "lexical_family": "lisp_semi",
+        "lexical_family": "lisp_style",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Scheme uses ';' for standard line-level literature.
@@ -10808,7 +10806,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: MLIR intentionally adopts standard LLVM assembly syntax conventions,
         # using '//' exclusively for line comments to maintain C++ ecosystem familiarity.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10840,7 +10838,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Protobuf schemas strictly use standard '//' and '/* */' comments.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10865,7 +10863,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: HLO text format exclusively utilizes '//' for line-level comments, maintaining C++ ecosystem alignment.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10897,7 +10895,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: TableGen was built to integrate seamlessly into LLVM's C++ codebase, natively supporting '//' and '/* */' comments.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10977,7 +10975,7 @@ LANGUAGE_DEFINITIONS = {
         # EXECUTION SIGNATURES: Plaintext is unexecuted raw string data.
         "shebangs": [],
         # THE FIX: Plaintext is mathematically inert. It has no lexical family.
-        "lexical_family": "inert",
+        "lexical_family": "non_lexical",
         "rules": {
             "_line_anchor": None,
             "_inline_comment": None,
@@ -11003,7 +11001,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Tcl natively uses '#' exclusively for line-level comments. It does not
         # have native block comments (developers sometimes hack `if 0 { ... }`, but `#` is the standard).
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"#"),
@@ -11209,7 +11207,7 @@ LANGUAGE_DEFINITIONS = {
         # EXECUTION SIGNATURES
         "shebangs": ["groovy"],
         # LEXICAL FAMILY
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -11419,7 +11417,7 @@ LANGUAGE_DEFINITIONS = {
         "discriminators": [".json", ".jsonc", ".json5", ".arb"],
         "shebangs": [],
         # THE FIX: JSON with comments relies on C-style comment structures, not Python/Ruby hashes.
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             # =====================================================================
             # [ CRITICAL ROADMAP: JSONC/JSON5 LEXICAL DELIMITERS & THE RE.COMPILE TRAP ]
@@ -11445,7 +11443,7 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         "discriminators": [".glsl", ".vert", ".frag"],
         "shebangs": [],
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -11459,7 +11457,7 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         "discriminators": ["flake.nix", "default.nix", "shell.nix"],
         "shebangs": [],
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             "_line_anchor": re.compile(r"#"),
             "_inline_comment": re.compile(r"#"),
@@ -11473,7 +11471,7 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         "discriminators": [".blp", ".ui"],
         "shebangs": [],
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -11487,7 +11485,7 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         "discriminators": [],
         "shebangs": [],
-        "lexical_family": "pure_hash",
+        "lexical_family": "single_line_only",
         "rules": {
             # Uses REM or :: for comments. No active logic rules needed (Inert Matter Bypass).
             "_line_anchor": re.compile(r"^[ \t]*(?:REM|::)", re.I | re.M),

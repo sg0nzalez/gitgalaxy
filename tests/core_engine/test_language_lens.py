@@ -48,23 +48,23 @@ def isolated_detector():
     mock_langs = {
         "python": {"extensions": [".py"], "shebangs": ["python"]},
         "shell": {"extensions": [".sh"], "shebangs": ["bash"]},
-        "cpp": {"extensions": [".cpp", ".h"], "lexical_family": "std_c"},
+        "cpp": {"extensions": [".cpp", ".h"], "lexical_family": "c_style_comment"},
         "c": {
             "extensions": [".c", ".h"],
-            "lexical_family": "std_c",
+            "lexical_family": "c_style_comment",
             "rules": {
                 "main": re.compile(r"int\s+main")
             },  # <-- The engine needs a rule to detect C!
         },
         "objective-c": {
             "extensions": [".m", ".h"],
-            "lexical_family": "std_c",
+            "lexical_family": "c_style_comment",
             "rules": {
                 "interface": re.compile(r"@interface\s+")
             },  # Needed for Lexical Scan score
         },
         "html": {"extensions": [".html"], "lexical_family": "xml_angle"},
-        "javascript": {"extensions": [".js"], "lexical_family": "std_c"},
+        "javascript": {"extensions": [".js"], "lexical_family": "c_style_comment"},
         "markdown": {"extensions": [".md"], "lexical_family": "prose"},
     }
 
@@ -101,7 +101,7 @@ def isolated_detector():
     detector.DISQUALIFIERS = {}
 
     detector.comment_defs = {
-        "mechanical_families": {"std_c": {"delimiters": ["//", "/*"]}}
+        "mechanical_families": {"c_style_comment": {"delimiters": ["//", "/*"]}}
     }
 
     detector.HANDSHAKE_REGISTRY = [
@@ -351,7 +351,7 @@ def test_tier_4_macro_and_handicaps(mock_time, isolated_detector):
 
     # Inject ABAP into the isolated detector
     isolated_detector.languages["abap"] = {
-        "lexical_family": "std_c",
+        "lexical_family": "c_style_comment",
         "rules": {"keyword": re.compile(r"REPORT")},
     }
 
