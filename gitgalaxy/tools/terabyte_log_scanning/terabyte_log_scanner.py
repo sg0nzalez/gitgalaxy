@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Mega Log Parser
+# GitGalaxy Tool: High-Volume Log Scanner
 # Purpose: High-speed, single-pass log analyzer with ASCII time-series histograms.
 # ==============================================================================
 import argparse
@@ -28,7 +28,7 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
     avg_hits = sum(time_buckets.values()) / len(time_buckets)
     anomaly_threshold = avg_hits * 3
 
-    # UX Safeguard: If there are too many buckets, only show the Top 15 worst ones
+    # UX Safeguard: If there are too many buckets, only show the Top 15 highest volume spikes
     if len(time_buckets) > 15:
         print(" (Filtering to Top 15 Highest Volume Spikes)")
         # Sort by highest hits, grab top 15, then resort chronologically for the graph
@@ -45,27 +45,27 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
         bar = "█" * max(1, bar_len)
 
         # Flag statistical anomalies visually
-        alert = "  <-- ANOMALY SPIKE" if hits >= anomaly_threshold and hits > 10 else ""
+        alert = "  <-- VOLUME ANOMALY DETECTED" if hits >= anomaly_threshold and hits > 10 else ""
         print(f" [{time_bucket}] {bar} ({hits:,} hits){alert}")
 
 
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("Mega Log Parser")
+    enforce_licensing_guard("High-Volume Log Scanner")
 
     # -------------------------------------------------------------------------
     # 1. CLI ARGUMENT PARSING & DOCUMENTATION
     # -------------------------------------------------------------------------
     parser = argparse.ArgumentParser(
-        description="GitGalaxy Mega Log Parser: High-speed, single-pass log analyzer with ASCII time-series histograms.",
+        description="GitGalaxy High-Volume Log Scanner: High-speed, single-pass log analyzer with ASCII time-series histograms.",
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="""
 ==============================================================================
 JSON IR State Structure:
 If using --input_state, the script expects a GitGalaxy Intermediate 
 Representation (IR) JSON file. It specifically targets the 'known_programs' 
-array to hunt for dead code and execution volumes.
+array to detect execution patterns and identify dead code.
 
 Expected JSON Schema:
 {
@@ -76,7 +76,7 @@ Expected JSON Schema:
 ==============================================================================
         """,
     )
-    parser.add_argument("target", help="Path to the log file (Translated ASCII SMF)")
+    parser.add_argument("target", help="Path to the log file (Translated ASCII SMF or Server Logs)")
     parser.add_argument(
         "-k",
         "--keywords",
@@ -93,23 +93,23 @@ Expected JSON Schema:
     )
     args = parser.parse_args()
 
-    # Validate target log file exists before doing any work
+    # Validate target log file exists before initializing the stream
     target_path = Path(args.target).resolve()
     if not target_path.exists() or not target_path.is_file():
         print(
-            f"\n[!] ERROR: Target log file does not exist or is not a file: {target_path}"
+            f"\n[ERROR] Target log file does not exist or is not a file: {target_path}"
         )
         sys.exit(1)
 
     # -------------------------------------------------------------------------
-    # 2. INPUT HANDSHAKE & VALIDATION (No Silent Failures)
+    # 2. INPUT VALIDATION & STATE INGESTION
     # -------------------------------------------------------------------------
     search_targets = []
 
     if args.input_state:
         state_path = Path(args.input_state).resolve()
         if not state_path.exists():
-            print(f"\n[!] ERROR: Input state JSON file not found: {state_path}")
+            print(f"\n[ERROR] Input state JSON file not found: {state_path}")
             sys.exit(1)
 
         try:
@@ -131,24 +131,24 @@ Expected JSON Schema:
 
             if not isinstance(search_targets, list) or not search_targets:
                 print(
-                    "\n[!] WARNING: 'known_programs' array is empty or invalid. Nothing to search."
+                    "\n[WARNING] 'known_programs' array is empty or invalid. Nothing to search."
                 )
                 sys.exit(0)
 
-            print(f"📡 Loaded {len(search_targets)} targets from {state_path.name}")
+            print(f"Loaded {len(search_targets)} targets from {state_path.name}")
 
         except json.JSONDecodeError as e:
-            print(f"\n[!] ERROR: Invalid JSON format in {state_path.name}:\n    {e}")
+            print(f"\n[ERROR] Invalid JSON format in {state_path.name}:\n    {e}")
             sys.exit(1)
         except Exception as e:
-            print(f"\n[!] ERROR: Failed to parse input state:\n    {e}")
+            print(f"\n[ERROR] Failed to parse input state:\n    {e}")
             sys.exit(1)
 
     elif args.keywords:
         search_targets = args.keywords
     else:
         print(
-            "\n[!] ERROR: You must provide targets using either -k/--keywords or --input_state."
+            "\n[ERROR] You must provide targets using either -k/--keywords or --input_state."
         )
         parser.print_help()
         sys.exit(1)
@@ -165,7 +165,7 @@ Expected JSON Schema:
                 pattern_str.encode("utf-8"), re.IGNORECASE
             )
         except re.error as e:
-            print(f"\n[!] ERROR: Invalid regex generated for keyword '{kw}': {e}")
+            print(f"\n[ERROR] Invalid regex generated for keyword '{kw}': {e}")
             sys.exit(1)
 
     ts_pattern = re.compile(
@@ -182,17 +182,17 @@ Expected JSON Schema:
     try:
         out_dir.mkdir(parents=True, exist_ok=True)
     except PermissionError:
-        print(f"\n[!] ERROR: Permission denied to create output directory: {out_dir}")
+        print(f"\n[ERROR] Permission denied to create output directory: {out_dir}")
         sys.exit(1)
 
     results_path = out_dir / f"{target_path.stem}_results.txt"
     sidecar_path = out_dir / "dynamic_telemetry.json"
 
     start_time = time.time()
-    print(f"🚀 Scanning {target_path.name} for {len(search_targets)} keywords...")
+    print(f"🔍 Initializing stream analysis of {target_path.name} for {len(search_targets)} keywords...")
 
     # -------------------------------------------------------------------------
-    # 4. HIGH-SPEED SCANNING (The Memory Shield)
+    # 4. STREAMING LOG ANALYSIS (Memory-Optimized)
     # -------------------------------------------------------------------------
     try:
         with (
@@ -216,7 +216,7 @@ Expected JSON Schema:
                         f_out.write(f"{decoded_line}\n")
                         break  # Stop checking keywords once a hit is found on this line
     except IOError as e:
-        print(f"\n[!] FATAL I/O ERROR during scanning: {e}")
+        print(f"\n[FATAL ERROR] I/O failure during streaming: {e}")
         sys.exit(1)
 
     time_elapsed = time.time() - start_time
@@ -227,8 +227,8 @@ Expected JSON Schema:
     for kw, buckets in histograms.items():
         draw_ascii_histogram(buckets, kw)
 
-    print(f"\n✅ Scan completed in {time_elapsed:.2f} seconds.")
-    print(f"📄 Filtered results saved to: {results_path}")
+    print(f"\n[SUCCESS] Scan completed in {time_elapsed:.2f} seconds.")
+    print(f"Filtered results saved to: {results_path}")
 
     # Calculate total hits for the JSON sidecar
     total_counts = {kw: sum(buckets.values()) for kw, buckets in histograms.items()}
@@ -237,9 +237,9 @@ Expected JSON Schema:
     try:
         with open(sidecar_path, "w", encoding="utf-8") as f_json:
             json.dump(telemetry_payload, f_json, indent=4)
-        print(f"💾 JSON State Sidecar written to: {sidecar_path}")
+        print(f"JSON State Sidecar written to: {sidecar_path}")
     except IOError as e:
-        print(f"\n[!] ERROR: Failed to write telemetry sidecar: {e}")
+        print(f"\n[ERROR] Failed to write telemetry sidecar: {e}")
 
     print("=" * 75 + "\n")
 
