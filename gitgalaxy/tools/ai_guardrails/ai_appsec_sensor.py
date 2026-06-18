@@ -64,4 +64,21 @@ def hunt_threats(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any
 
             # 2. The "God-Mode" Tool Binding (Autonomous Escalation)
             # AI Agent Tools + State Mutation (DB or Disk) + Low Defensive Safety
-            if ai_
+            if ai_tools and (db_complexity >= 2 or arch_io) and safety_density < 0.5:
+                appsec_report["over_permissioned_agent"] = True
+                appsec_report["critical_warnings"].append(
+                    "CRITICAL [God-Mode Agent]: AI is bound to tools with raw Database/IO write access and < 50% safety density. High risk of autonomous data corruption."
+                )
+
+            # 3. The Exfiltration Vector (Unsandboxed Sockets)
+            # LLM Logic + Outbound Sockets/Fetch + Access to Secrets
+            if llm_api and arch_io and sec_secrets:
+                appsec_report["agentic_exfiltration_risk"] = True
+                appsec_report["critical_warnings"].append(
+                    "CRITICAL [Exfiltration Vector]: LLM logic has access to network sockets AND environment secrets. High risk of SSRF and key exfiltration via prompt injection."
+                )
+
+            # Inject the AppSec report back into the file's telemetry
+            file_data["telemetry"]["ai_appsec"] = appsec_report
+
+        return parsed_files
