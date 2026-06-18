@@ -448,7 +448,9 @@ COMMENT_DEFINITIONS = {
         "std_c": {"delimiters": ["//", "/*", "*/"]},
         "nested_c": {"delimiters": ["//", "/*", "*/"]},
         "pure_hash": {"delimiters": ["#"]},
-        "hybrid_hash": {"delimiters": ["#", "<#", "#>", "=begin", "=end", "=pod", "=cut"]},
+        "hybrid_hash": {
+            "delimiters": ["#", "<#", "#>", "=begin", "=end", "=pod", "=cut"]
+        },
         "hybrid_dash": {"delimiters": ["--", "--[[", "]]", "{-", "-}"]},
         "polyglot": {"delimiters": ["//", "/*", "*/", "#"]},
         "positional": {"delimiters": ["*>", "!", "C", "*", "D"]},
