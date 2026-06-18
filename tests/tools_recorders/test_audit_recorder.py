@@ -1,0 +1,195 @@
+import json
+import pytest
+from pathlib import Path
+from unittest.mock import patch
+from gitgalaxy.recorders.audit_recorder import AuditRecorder
+
+
+@pytest.fixture
+def recorder():
+    """Initializes the AuditRecorder for forensic JSON generation testing."""
+    # We patch the schema dynamically so our tests are immune to upstream schema changes
+    mock_schemas = {
+        "RISK_SCHEMA": ["secrets_risk", "indentation_faction", "logic_bomb"],
+        "SIGNAL_SCHEMA": ["sec_private_info", "sec_danger"],
+        "EXPOSURE_LABELS": {
+            "secrets_risk": "Secrets Risk Exposure",
+            "indentation_faction": "Indentation Consistency",
+            "logic_bomb": "Logic Bomb / Sabotage Risk Exposure"
+        }
+    }
+    with patch("gitgalaxy.recorders.audit_recorder.config.RECORDING_SCHEMAS", mock_schemas):
+        yield AuditRecorder()  # <--- CHANGED TO YIELD
+
+
+# ==============================================================================
+# TEST 1: TERMINOLOGY TRANSLATION & DESCALING
+# ==============================================================================
+def test_audit_recorder_format_label_and_descale(recorder):
+    """Proves the recorder correctly strips internal suffixes and scales metrics."""
+    assert recorder.format_label("raw_cognitive_complexity_x10") == "Raw Cognitive Complexity"
+    assert recorder.descale("metric_x1000", 5500) == 5.5
+    assert recorder.descale("metric_x10", 25) == 2.5
+    assert recorder.descale("standard_metric", 10) == 10
+
+
+# ==============================================================================
+# TEST 2: FORENSIC JSON PAYLOAD (ML THREATS & BYPASSES)
+# ==============================================================================
+def test_audit_recorder_generate_ml_threat_report(recorder, tmp_path):
+    """
+    Proves the recorder prioritizes ML threats, processes Parser Bypasses,
+    and correctly maps 'System Purpose'.
+    """
+    output_file = tmp_path / "forensic_ml_audit.json"
+
+    mock_parsed = [
+        {
+            "path": "src/core/auth.py",
+            "name": "auth.py",
+            "lang_id": "python",
+            "directory_group": "src/core",
+            "telemetry": {
+                "domain_context": {
+                    "Purpose": "Handles JWT Validation",
+                    "AI Threat Score": "99.9%"
+                },
+            },
+            "is_ml_threat": True,
+            "risk_vector": [10.0, 50.0, 0.0],
+            "hit_vector": [1, 1],
+            "total_loc": 150
+        }
+    ]
+
+    mock_unparsable = [
+        {
+            "path": "configs/secret.key",
+            "reason": "Security Shielding (Format Excluded)",
+            "size_bytes": 2048,
+            "identity_confidence": 1.0
+        }
+    ]
+
+    mock_summary = {
+        "directory_groups": {"src/core": {"total_mass": 45.5, "file_count": 1}},
+        "unparsable_files": {"unparsable_artifacts": ["dist/bundle.min.js"]} 
+    }
+
+    mock_session = {"engine": "Test", "target_directory": str(tmp_path)}
+
+    recorder.generate_report(mock_parsed, mock_unparsable, mock_summary, {}, mock_session, str(output_file))
+
+    with open(output_file, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    # Validate File Identity overrides
+    artifact = payload["6. Parsed Files (Scanned Artifacts)"]["src/core"]["Files"]["src/core/auth.py"]
+    assert artifact["1. Artifact Identity"]["System Purpose"] == "Handles JWT Validation"
+    
+    # Validate Unparsable formatting
+    unparsable = payload["5. Unparsable Files (Excluded Artifacts Queue)"]
+    assert len(unparsable) == 2
+    assert unparsable[1]["Forensic Category"] == "Parser Bypass"
+
+    # Validate ML Threat Supremacy
+    security = payload["3. Forensic Security & Vulnerability Audit"]
+    assert security["Audit Status"] == "ML_CONFIRMED_THREAT_DETECTED"
+    assert security["ML Threat Intelligence (XGBoost)"]["Infected Files Detected"] == 1
+
+
+# ==============================================================================
+# TEST 3: RULE-BASED THREAT FALLBACK
+# ==============================================================================
+def test_audit_recorder_rule_based_threat_routing(recorder, tmp_path):
+    """
+    Proves that if XGBoost clears a file, but the rule-based engine flags a 
+    quarantined hardcoded secret, the Audit Status downgrades to Rule-Based safely.
+    """
+    output_file = tmp_path / "forensic_rule_audit.json"
+
+    mock_parsed = [
+        {
+            "path": "src/hardcoded.py",
+            "telemetry": {
+                "domain_context": {"alert": "CRITICAL LEAK BYPASS"}
+            },
+            "is_ml_threat": False, # ML missed it or deemed it safe
+            "risk_vector": [100.0, 50.0, 0.0], # 100% Secrets Risk
+        }
+    ]
+
+    recorder.generate_report(mock_parsed, [], {}, {}, {}, str(output_file))
+
+    with open(output_file, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    security = payload["3. Forensic Security & Vulnerability Audit"]
+    assert security["Audit Status"] == "CRITICAL_THREATS_DETECTED (Rule-Based)"
+    assert len(security["Exposed Secrets & Credentials (Quarantined Files)"]) == 1
+
+
+# ==============================================================================
+# TEST 4: INDENTATION FACTION & DOC SYNTHESIS
+# ==============================================================================
+def test_audit_recorder_formatting_edge_cases(recorder, tmp_path):
+    """
+    Proves the recorder dynamically pads missing Markdown risk vectors to prevent 
+    dimension desyncs, and successfully translates indentation floats to strings.
+    """
+    output_file = tmp_path / "forensic_edge_cases.json"
+
+    mock_parsed = [
+        {
+            "path": "README.md",
+            "lang_id": "markdown",
+            "risk_vector": [], # Pipeline stripped the vector because it's text
+            "telemetry": {}
+        },
+        {
+            "path": "src/tabs.py",
+            "lang_id": "python",
+            "risk_vector": [0.0, 0.0, 0.0], # 0.0 Indentation = Tabs
+            "telemetry": {}
+        },
+        {
+            "path": "src/spaces.py",
+            "lang_id": "python",
+            "risk_vector": [0.0, 100.0, 0.0], # 100.0 Indentation = Spaces
+            "telemetry": {}
+        }
+    ]
+
+    recorder.generate_report(mock_parsed, [], {}, {}, {}, str(output_file))
+
+    with open(output_file, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    files = payload["6. Parsed Files (Scanned Artifacts)"]["__monolith__"]["Files"]
+    
+    # 1. Verify Markdown Padding
+    readme = files["README.md"]["4. Vulnerability & Risk Exposures"]
+    assert len(readme) == 3, "Failed to pad the missing markdown risk vector!"
+    
+    # 2. Verify Indentation String Translation
+    assert files["src/tabs.py"]["4. Vulnerability & Risk Exposures"]["Indentation Consistency"] == "Tabs"
+    assert files["src/spaces.py"]["4. Vulnerability & Risk Exposures"]["Indentation Consistency"] == "Spaces"
+
+
+# ==============================================================================
+# TEST 5: EMPTY STATE / VOID HANDLING
+# ==============================================================================
+def test_audit_recorder_empty_state(recorder, tmp_path):
+    """Proves the JSON generator survives a completely empty repository."""
+    output_file = tmp_path / "forensic_empty.json"
+
+    # Pass completely empty arrays and dictionaries
+    recorder.generate_report([], [], {}, {}, {}, str(output_file))
+
+    assert output_file.exists(), "Recorder crashed on an empty repository state!"
+
+    with open(output_file, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    assert payload["6. Parsed Files (Scanned Artifacts)"] == {}
+    assert payload["3. Forensic Security & Vulnerability Audit"]["Audit Status"] == "SECURE_NO_THREATS_DETECTED"
