@@ -35,7 +35,9 @@ def assert_redos_immune(pattern: re.Pattern, payload: str, timeout_sec: float = 
         # THE FIX: Violently kill the OS process so it doesn't trap pytest's atexit handler
         p.terminate()
         p.join()  # Reap the zombie process instantly
-        raise AssertionError(f"🔥 ReDoS TRIGGERED! Regex hung on payload:\n{payload}\nRegex: {pattern.pattern}")
+        raise AssertionError(
+            f"🔥 ReDoS TRIGGERED! Regex hung on payload:\n{payload}\nRegex: {pattern.pattern}"
+        )
 
     if not result_queue.empty():
         duration = result_queue.get()
@@ -55,7 +57,11 @@ def test_c_knr_ambiguity_trap():
 
     # The Pathological String: 100 parameters, no semicolon, ending in an invalid token.
     # Without the negative lookahead and {0,150} bounds, this will freeze the CPU.
-    poison_knr = "int legacy_func(a, b, c) \n" + "    int a; int b; int c;\n" * 50 + "    INVALID_MACRO"
+    poison_knr = (
+        "int legacy_func(a, b, c) \n"
+        + "    int a; int b; int c;\n" * 50
+        + "    INVALID_MACRO"
+    )
 
     assert_redos_immune(c_func, poison_knr)
 
@@ -79,7 +85,11 @@ def test_csharp_iron_wall_redos():
 
     # The Pathological String: Deeply nested generics, missing the final brace,
     # packed with spaces that would normally trigger (Space)+ Space+ overlaps.
-    poison_cs = "    public static async Task<Dictionary<string, List<Tuple<int, string>>>>\n" * 20 + "    BrokenMethod"
+    poison_cs = (
+        "    public static async Task<Dictionary<string, List<Tuple<int, string>>>>\n"
+        * 20
+        + "    BrokenMethod"
+    )
 
     assert_redos_immune(cs_func, poison_cs)
 
@@ -147,11 +157,15 @@ def test_cobol_ghost_satellite_prevention():
 
     # 1. The SQL Ghost (Indented table column with a period)
     sql_ghost = "           POLICY.CUSTOMERNUMBER."
-    assert len(list(cobol_func.finditer(sql_ghost))) == 0, "Hallucinated an SQL column as a paragraph!"
+    assert len(list(cobol_func.finditer(sql_ghost))) == 0, (
+        "Hallucinated an SQL column as a paragraph!"
+    )
 
     # 2. The Data Ghost (01 Level)
     data_ghost = "       01  WS-POLICY-RECORD."
-    assert len(list(cobol_func.finditer(data_ghost))) == 0, "Hallucinated a Data Division struct as a paragraph!"
+    assert len(list(cobol_func.finditer(data_ghost))) == 0, (
+        "Hallucinated a Data Division struct as a paragraph!"
+    )
 
     # 3. The Valid Paragraph
     valid_para = "       100-PROCESS-RECORDS SECTION."
@@ -171,18 +185,30 @@ def test_thermodynamic_operator_collisions():
     """
     # 1. C++ Bitwise vs. I/O Streams
     cpp_bitwise = LANGUAGE_DEFINITIONS["cpp"]["rules"]["bitwise_hits"]
-    assert len(list(cpp_bitwise.finditer("std::cout << 'Hello'"))) == 0, "C++ bitwise tripped on a cout stream!"
-    assert len(list(cpp_bitwise.finditer("x <<= 1;"))) == 1, "C++ bitwise failed to catch explicit shift assignment!"
+    assert len(list(cpp_bitwise.finditer("std::cout << 'Hello'"))) == 0, (
+        "C++ bitwise tripped on a cout stream!"
+    )
+    assert len(list(cpp_bitwise.finditer("x <<= 1;"))) == 1, (
+        "C++ bitwise failed to catch explicit shift assignment!"
+    )
 
     # 2. Rust Closures vs. Bitwise
     rust_bitwise = LANGUAGE_DEFINITIONS["rust"]["rules"]["bitwise_hits"]
-    assert len(list(rust_bitwise.finditer("let x = |a| a + 1;"))) == 0, "Rust bitwise tripped on a closure!"
-    assert len(list(rust_bitwise.finditer("a ^ b"))) == 1, "Rust bitwise failed to catch XOR!"
+    assert len(list(rust_bitwise.finditer("let x = |a| a + 1;"))) == 0, (
+        "Rust bitwise tripped on a closure!"
+    )
+    assert len(list(rust_bitwise.finditer("a ^ b"))) == 1, (
+        "Rust bitwise failed to catch XOR!"
+    )
 
     # 3. TypeScript Test Assertions vs. Object Methods
     ts_test = LANGUAGE_DEFINITIONS["typescript"]["rules"]["test"]
-    assert len(list(ts_test.finditer("myRegex.test('string')"))) == 0, "TS test metric tripped on a regex.test() call!"
-    assert len(list(ts_test.finditer("test('should work', () => {"))) == 1, "TS test metric missed a real test block!"
+    assert len(list(ts_test.finditer("myRegex.test('string')"))) == 0, (
+        "TS test metric tripped on a regex.test() call!"
+    )
+    assert len(list(ts_test.finditer("test('should work', () => {"))) == 1, (
+        "TS test metric missed a real test block!"
+    )
 
 
 # ==============================================================================
@@ -205,7 +231,10 @@ def test_global_regex_syntax_integrity():
                 except Exception as e:
                     failed.append(f"{lang}::{rule_name} -> {e}")
 
-    assert not failed, f"Found {len(failed)} uncompiled or broken regexes in production schema:\n" + "\n".join(failed)
+    assert not failed, (
+        f"Found {len(failed)} uncompiled or broken regexes in production schema:\n"
+        + "\n".join(failed)
+    )
 
 
 # ==============================================================================
@@ -231,7 +260,11 @@ def test_global_regex_syntax_integrity_catch(monkeypatch):
     import sys
 
     # Inject a fake broken regex to trigger the exception block
-    fake_defs = {"fake_lang": {"rules": {"broken_rule": "This is a string, not a compiled regex object!"}}}
+    fake_defs = {
+        "fake_lang": {
+            "rules": {"broken_rule": "This is a string, not a compiled regex object!"}
+        }
+    }
 
     # Patch the locally imported variable inside THIS file's namespace!
     monkeypatch.setattr(sys.modules[__name__], "LANGUAGE_DEFINITIONS", fake_defs)
