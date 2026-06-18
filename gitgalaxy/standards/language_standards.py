@@ -6451,9 +6451,9 @@ LANGUAGE_DEFINITIONS = {
         ],
         # EXECUTION SIGNATURES: Interpreters found on Line 1.
         "shebangs": ["perl", "perl5", "perl6"],
-        # UPGRADED: Maps to Family 1 (Standard C-Style)
-        # Rationale: FIXED: Changed from 'hybrid_hash' to 'std_c' so it correctly routes to the brace parser for structural mapping.
-        "lexical_family": "std_c",
+        # UPGRADED: Maps to Family 6 (Polyglot)
+        # Rationale: Perl’s interaction with POD documentation blocks (=head, =cut) and embedded regex makes it a true polyglot lexical engine.
+        "lexical_family": "polyglot",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Perl uses '#' for standard line-level literature.
@@ -8414,7 +8414,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Docker natively uses '#' exclusively for line-level comments and parser directives.
-        "lexical_family": "pure_hash",
+        "lexical_family": "singular",
         "rules": {
             "_line_anchor": re.compile(r"#"),
             "_inline_comment": re.compile(r"#"),
