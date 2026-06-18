@@ -1,6 +1,7 @@
 import pytest
 import importlib
 import re
+from unittest.mock import patch
 
 from gitgalaxy.standards import language_lens
 from gitgalaxy.standards.language_lens import LanguageDetector
@@ -237,9 +238,6 @@ def test_prose_and_metadata_anchors(isolated_detector):
 
     assert result["lang_id"] == "markdown"
     assert result["lock_tier"] == 1
-
-
-from unittest.mock import patch
 
 
 # ==============================================================================
