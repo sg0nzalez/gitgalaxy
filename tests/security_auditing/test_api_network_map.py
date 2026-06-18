@@ -310,7 +310,7 @@ def test_cli_explicit_swagger_flag(tmp_path, capsys):
         "sys.argv",
         ["api_map", str(repo_dir), "--swagger", str(repo_dir / "missing.json")],
     ):
-        with pytest.raises(SystemExit) as exc_info:
+        with pytest.raises(SystemExit):
             main()
     assert "Error: Provided Swagger file" in capsys.readouterr().out
 
