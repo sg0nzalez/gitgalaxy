@@ -35,7 +35,7 @@ from gitgalaxy.core.spatial_mapper import SpatialMapper
 from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
 from gitgalaxy.metrics.chronometer import Chronometer
 from gitgalaxy.metrics.signal_processor import SignalProcessor
-from gitgalaxy.metrics.spectral_auditor import SpectralAuditor
+from gitgalaxy.metrics.statistical_auditor import StatisticalAuditor
 from gitgalaxy.tools.network_auditing.full_api_network_map import run_api_audit
 from gitgalaxy.tools.supply_chain_security.binary_anomaly_detector import run_xray_audit
 from gitgalaxy.tools.supply_chain_security.supply_chain_firewall import (
@@ -696,7 +696,7 @@ class Orchestrator:
         self.processor = SignalProcessor(aperture_config=config, parent_logger=logger)
 
         # Third-Gate gatekeeper identifying and dropping un-parseable data dumps
-        self.auditor = SpectralAuditor(parent_logger=logger)
+        self.auditor = StatisticalAuditor(parent_logger=logger)
 
         # Constructs the physical import DAG and calculates PageRank/Blast Radius
         self.network_sensor = NetworkRiskSensor(parent_logger=logger)
@@ -924,7 +924,7 @@ class Orchestrator:
             if repository_graph:
                 # Pass the Shadow Patch flag to the Security Auditor
                 is_shadow_patch = self.config.get("SHADOW_PATCH_DETECTED", False)
-                repository_graph = self.model_auditor.audit_galaxy(
+                repository_graph = self.model_auditor.audit_repository(
                     repository_graph, is_shadow_patch=is_shadow_patch
                 )
             logger.info(
@@ -950,7 +950,7 @@ class Orchestrator:
             # 2. Build the global translation map
             from gitgalaxy.security.manifest_parser import ManifestParser
 
-            alias_map = ManifestParser(parent_logger=logger).build_translation_map(
+            alias_map = ManifestParser(parent_logger=logger).build_resolution_map(
                 manifest_paths
             )
 
@@ -2420,7 +2420,7 @@ class Orchestrator:
             # 6. Audit Verification & ML Threat Inference
             repository_graph, unparsable_audits = self.auditor.audit(self.parsed_files)
             if repository_graph:
-                repository_graph = self.model_auditor.audit_galaxy(repository_graph)
+                repository_graph = self.model_auditor.audit_repository(repository_graph)
 
             # 7. Synthesis and Database Forging
             summary = self.processor.summarize_galaxy_metrics(
