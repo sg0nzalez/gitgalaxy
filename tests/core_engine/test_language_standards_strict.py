@@ -1,36 +1,45 @@
 import pytest
 import re
 import time
-import concurrent.futures
+import multiprocessing
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
 
 
 # ==============================================================================
 # THE BLAST CHAMBER (ReDoS Detonator)
 # ==============================================================================
-def _detonate(pattern: re.Pattern, payload: str) -> float:
+def _detonate(pattern: re.Pattern, payload: str, result_queue: multiprocessing.Queue):
     """
-    Executes a regex against a payload.
-    Returns the execution time. If it hangs, the ProcessPool kills it.
+    Executes a regex against a payload inside an isolated OS process.
+    Passes the duration back via a multiprocessing Queue.
     """
     start = time.perf_counter()
     list(pattern.finditer(payload))
-    return time.perf_counter() - start
+    result_queue.put(time.perf_counter() - start)
 
 
 def assert_redos_immune(pattern: re.Pattern, payload: str, timeout_sec: float = 1.0):
     """
     Runs a regex in an isolated process. If it exceeds timeout_sec, it is
-    flagged as a Catastrophic Backtracking (ReDoS) vulnerability.
+    flagged as a Catastrophic Backtracking (ReDoS) vulnerability, and the
+    OS process is violently terminated to prevent pytest from hanging.
     """
-    with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(_detonate, pattern, payload)
-        try:
-            duration = future.result(timeout=timeout_sec)
-            assert duration < timeout_sec, f"Regex took too long: {duration:.4f}s"
-        except concurrent.futures.TimeoutError:
-            executor.shutdown(wait=False, cancel_futures=True)
-            raise AssertionError(f"🔥 ReDoS TRIGGERED! Regex hung on payload:\n{payload}\nRegex: {pattern.pattern}")
+    ctx = multiprocessing.get_context("spawn")
+    result_queue = ctx.Queue()
+
+    p = ctx.Process(target=_detonate, args=(pattern, payload, result_queue))
+    p.start()
+    p.join(timeout_sec)
+
+    if p.is_alive():
+        # THE FIX: Violently kill the OS process so it doesn't trap pytest's atexit handler
+        p.terminate()
+        p.join()  # Reap the zombie process instantly
+        raise AssertionError(f"🔥 ReDoS TRIGGERED! Regex hung on payload:\n{payload}\nRegex: {pattern.pattern}")
+
+    if not result_queue.empty():
+        duration = result_queue.get()
+        assert duration < timeout_sec, f"Regex took too long: {duration:.4f}s"
 
 
 # ==============================================================================
