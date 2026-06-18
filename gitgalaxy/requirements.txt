@@ -28,7 +28,7 @@ fonttools==4.62.1
 ghp-import==2.1.0
 -e git+ssh://git@github.com/squid-protocol/gitgalaxy.git@feca2fd424d74b0ff826be04aeab72b7cee350eb#egg=gitgalaxy
 id==1.6.1
-idna==3.15
+idna==3.18
 iniconfig==2.3.0
 ipython==8.12.3
 itsdangerous==2.2.0
