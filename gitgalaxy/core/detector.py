@@ -2377,7 +2377,7 @@ class LogicSplicer:
 
         # Allow standard characters, plus Makefiles ($/%), and C++ Scopes (:)
         words = [
-            w for w in re.findall(r"[a-zA-Z0-9_./%$()-:]+", clean) if w.strip("_-:")
+            w for w in re.findall(r"[a-zA-Z0-9_./%$():-]+", clean) if w.strip("_-:")
         ]
 
         return words[-1] if words else "Unknown_Sat"
