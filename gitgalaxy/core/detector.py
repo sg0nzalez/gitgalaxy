@@ -247,19 +247,20 @@ class ScopeParsingRegistry:
 # ------------------------------------------------------------------------------
 
 
-class OpticalDetector:
+class StructuralExtractor:
     """
-    The GitGalaxy Optical Detector (Primary Logic & Function Extractor).
+    GitGalaxy Structural Extractor (Primary Heuristic Logic & Function Mapper).
 
-    PURPOSE: Scans the executable logic stream to extract bounded functions, 
-    calculate cyclomatic complexity, and detect structural threat signatures.
+    PURPOSE: Performs AST-less analysis of executable logic streams to extract 
+    functional nodes, calculate complexity, and detect structural security signatures.
 
-    DEFENSIVE ARCHITECTURE (Why Regex over AST?):
-    We are visualizing functional intent, not rigid syntax. Standard AST parsers 
-    fail instantly on syntax errors, missing dependencies, or embedded languages. 
-    By utilizing a Fluid State Counter and bounded O(1) string masking, this detector 
-    achieves full polyglot extraction at ~100,000 LOC/sec with complete ReDoS immunity.
-
+    DEFENSIVE ARCHITECTURE (Lexical Heuristics vs. AST Parsing):
+    AST parsers often fail when encountering non-standard syntax, legacy dialects, 
+    or partially-broken codebases. This extractor utilizes Fluid State Counters 
+    and O(1) lexical masking to achieve high-fidelity node extraction at 
+    ~100,000 LOC/sec, maintaining high performance without requiring 
+    fully-compilable source code.
+    
     ARCHITECTURE:
     1. Fluid State Counter: Dynamically swaps regex registries mid-file for embedded languages.
     2. Bucket Continuation: Accumulates secondary language hits into the primary vector.

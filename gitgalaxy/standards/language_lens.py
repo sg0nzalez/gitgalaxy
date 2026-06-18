@@ -18,13 +18,13 @@ from gitgalaxy.standards.language_standards import LENS_CONFIG
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS  # noqa: F401
 
 # ==============================================================================
-# GitGalaxy Phase 1: The Entity Census (The Linguistic Detector Chip)
-# Strategy v6.2.0 Protocol: Bayesian Optics & The Trust Matrix
+# GitGalaxy Phase 1: The Entity Census (Linguistic Classification Engine)
+# Strategy v6.2.0 Protocol: Bayesian Inference & Confidence Hierarchy
 # ==============================================================================
 
 
 class DetectorResult(TypedDict):
-    """Structured Bayesian metadata for the Pipeline Orchestrator."""
+    """Structured classification metadata for the Pipeline Orchestrator."""
 
     lang_id: str
     intensity: float
@@ -36,27 +36,30 @@ class DetectorResult(TypedDict):
     lang_mix: List[Dict[str, Any]]
     loc: int
     size_bytes: int
-    anomaly_flags: List[str]  # <--- NEW: Security RAM Cache
+    anomaly_flags: List[str]  # Security RAM Cache for conflicting identity indicators
 
 
 class FocusingError(Exception):
-    """Exception raised for hardware-level failures during linguistic focusing."""
+    """Exception raised for I/O or execution failures during linguistic classification."""
 
     pass
 
 
 class LanguageDetector:
     """
-    PURPOSE:
-    Converts raw text signals and Bayesian Priors into a high-fidelity 'Identity Lock'.
+    Linguistic Classification Engine.
 
-    ARCHITECTURE (The Trust Matrix):
-    - Tier 0: Convergent Lock (Dual Evidence: Ext+Shebang, or Ext+Manifest)
-    - Tier 1: Roadmap Lock (GuideStar Manifest Alignment)
-    - Tier 1.5: Ecosystem Gravity Lock (Resolves Collisions via Macro-Environment)
-    - Tier 2: Single Signature (Extension or Shebang alone)
-    - Tier 3: Contextual Proof (GuideStar README / Folder Bias)
-    - Tier 4: Discovery (Deep Space Mystery - requires high spectral density)
+    PURPOSE:
+    Converts raw text signals, file metadata, and Bayesian priors into a high-fidelity 
+    language classification ('Identity Lock').
+
+    ARCHITECTURE (The Confidence Hierarchy):
+    - Tier 0: Absolute Consensus (Dual Evidence: Ext+Shebang, or Ext+Manifest)
+    - Tier 1: High-Confidence Prior (Manifest Alignment)
+    - Tier 1.5: Ecosystem Consensus (Resolves Collisions via Macro-Environment)
+    - Tier 2: Single Indicator (Extension or Shebang alone)
+    - Tier 3: Contextual Indicator (README / Folder Bias)
+    - Tier 4: Heuristic Discovery (Requires high lexical density threshold)
     """
 
     def __init__(
@@ -85,12 +88,12 @@ class LanguageDetector:
         )
         self.PROSE_ANCHORS = set(LENS_CONFIG.get("PROSE_ANCHORS", set()))
 
-        # Compile disqualifiers on boot
+        # Compile syntactic disqualifiers on boot to save CPU cycles per file
         self.DISQUALIFIERS = {}
         for key, regex_str in LENS_CONFIG.get("DISQUALIFIERS", {}).items():
             self.DISQUALIFIERS[key] = re.compile(regex_str, re.M | re.I)
 
-        # Compile handshake triggers on boot
+        # Compile hybrid language handshake triggers (e.g., HTML inside PHP)
         self.HANDSHAKE_REGISTRY = []
         for hs in LENS_CONFIG.get("HANDSHAKE_REGISTRY", []):
             self.HANDSHAKE_REGISTRY.append(
@@ -102,20 +105,22 @@ class LanguageDetector:
                 }
             )
 
-        self.logger.debug("Initializing O(1) lookup maps for Linguistic Detector...")
+        self.logger.debug("Initializing O(1) lookup maps for Linguistic Classifier...")
         self._calibrate_lookup_maps()
         self.logger.debug(
-            f"Detector Chip Online | {len(self.extension_map)} Extensions | {len(self.anchor_map)} Anchors"
+            f"Classifier Online | {len(self.extension_map)} Extensions | {len(self.anchor_map)} Anchors"
         )
 
     def _calibrate_lookup_maps(self):
+        """Builds O(1) dictionaries mapping extensions and exact filenames to languages."""
         for lang_id, data in self.languages.items():
             for ext in data.get("extensions", []):
                 self.extension_map[ext.lower()] = lang_id
             for anchor in data.get("exact_matches", []):
                 self.anchor_map[anchor] = lang_id
 
-            # ---> THE REGEX PRE-COMPILER <---
+            # ---> DEFENSIVE GUARD: REGEX PRE-COMPILER <---
+            # Validates and compiles definitions from external JSON/YAML safely
             if "rules" in data:
                 for rule_name, regex in data["rules"].items():
                     if isinstance(regex, str):
@@ -133,11 +138,11 @@ class LanguageDetector:
     def focus(
         self, file_path: Union[str, Path], content_sample: str = "", **kwargs
     ) -> Tuple[str, float, Optional[str]]:
-        """Legacy Support Gateway."""
+        """Legacy Support Gateway for systems expecting the older Tuple return format."""
         result = self.inspect(file_path, content_sample, **kwargs)
         if result["intensity"] < 0.25:
             self.logger.debug(
-                f"Focus Loss on '{Path(file_path).name}': Intensity {result['intensity']:.2f} is purely ambiguous."
+                f"Classification Failure on '{Path(file_path).name}': Intensity {result['intensity']:.2f} is purely ambiguous."
             )
             return "undeterminable", 0.0, None
         return result["lang_id"], result["intensity"], result["family"]
@@ -152,20 +157,22 @@ class LanguageDetector:
         ext_tally: Optional[Dict[str, int]] = None,
         **kwargs,
     ) -> DetectorResult:
+        """Primary classification orchestrator combining metadata, context, and lexical analysis."""
 
         path_obj = Path(file_path)
         name = path_obj.name
         ext = path_obj.suffix.lower()
 
         # =====================================================================
-        # FIX: MULTI-DOT & DOTFILE RESOLUTION
+        # DEFENSIVE GUARD: MULTI-DOT & DOTFILE RESOLUTION
         # =====================================================================
-        # 1. Dotfiles (like .bashrc) shouldn't be treated as having an extension
+        # 1. Dotfiles (like .bashrc) shouldn't be treated as having a file extension
         if name.startswith(".") and name.count(".") == 1:
             ext = ""
 
         # 2. Extract hidden true extensions (e.g. script.sh.template -> .sh)
-        # ONLY extract if the final extension is a known, safe wrapper.
+        # ONLY extract if the final extension is a known, safe wrapper. This prevents 
+        # spoofing attacks like malware.exe.txt
         else:
             SAFE_WRAPPERS = {
                 ".template",
@@ -185,7 +192,7 @@ class LanguageDetector:
                         if middle_ext.lower() in self.extension_map:
                             ext = middle_ext.lower()
                             self.logger.debug(
-                                f"[{name}] Extracted hidden extension '{ext}' from wrapper"
+                                f"[{name}] Extracted underlying extension '{ext}' from template wrapper"
                             )
                             break
 
@@ -213,13 +220,13 @@ class LanguageDetector:
             "intensity": 0.0,
             "family": None,
             "lock_tier": 4,
-            "source_proof": "Singularity Default",
+            "source_proof": "Unclassified Baseline",
             "candidates": [],
             "path": str(file_path),
             "lang_mix": [],
             "loc": 0,
             "size_bytes": 0,
-            "anomaly_flags": [],  # <--- Initialize RAM
+            "anomaly_flags": [],
         }
 
         if not content_sample:
@@ -230,7 +237,7 @@ class LanguageDetector:
                 lang_id=EXACT_FILE_MATCH[name],
                 intensity=0.95,
                 tier=2,
-                proof="Single Signature (Exact Match)",
+                proof="Single Indicator (Exact Match)",
                 base=result,
                 content_sample=content_sample,
             )
@@ -240,17 +247,17 @@ class LanguageDetector:
         # =====================================================================
         upper_stem = path_obj.stem.upper()
 
-        # We explicitly add .txt and .log to the prose override list
         if ext in {".md", ".mdx", ".rst", ".rtf", ".txt", ".log"}:
-            # ---> THE FIX: Catch disguised payloads before the early exit! <---
+            # ---> DEFENSIVE GUARD: Catch disguised payloads before early exit <---
             shebang_lang = self._tier_2_fingerprint_check(content_sample, ext)
             if shebang_lang and shebang_lang != "undeterminable":
                 self.logger.warning(
-                    f"[{name}] IDENTITY CRISIS: Prose Ext '{ext}' contradicts Shebang '{shebang_lang}'"
+                    f"[{name}] IDENTITY CONFLICT: Prose Ext '{ext}' contradicts Executable Shebang '{shebang_lang}'"
                 )
                 result["anomaly_flags"].append(
-                    f"Identity Masking: Prose Extension ({ext}) vs Shebang ({shebang_lang})"
+                    f"Identity Masking: Prose Extension ({ext}) vs Executable Shebang ({shebang_lang})"
                 )
+                # Drop to lowest trust tier
                 return self._forge_result(
                     "undeterminable",
                     0.0,
@@ -270,8 +277,8 @@ class LanguageDetector:
                 content_sample,
             )
 
-        # ---> THE FIX: The Code Shield <---
-        # Do not allow prose hijacking if the file has a known executable extension!
+        # ---> DEFENSIVE GUARD: The Executable Shield <---
+        # Do not allow textual anchor hijacking (e.g., a file named README.sh) if it has an executable extension
         is_known_code_ext = ext in self.extension_map and ext not in {
             ".txt",
             ".md",
@@ -280,10 +287,8 @@ class LanguageDetector:
 
         is_prose = False
         if not is_known_code_ext:
-            # 1. Check exact match first
             is_prose = upper_stem in self.PROSE_ANCHORS
 
-            # 2. Check for prefixed/suffixed anchors (e.g., PSF_LICENSE, README-EN)
             if not is_prose:
                 is_prose = any(
                     upper_stem.endswith(f"_{anchor}")
@@ -320,7 +325,8 @@ class LanguageDetector:
                 content_sample,
             )
 
-        # ---> THE FIX: Use ext_tally which holds full filenames <---
+        # ---> HEURISTIC: Sibling Anchors <---
+        # Fast-tracks C/C++/Obj-C header files based on the presence of implementation siblings
         if ext in self.COLLISION_FREQUENCIES and ext_tally:
             base_stem = path_obj.stem.lower()
             if ext == ".h":
@@ -341,7 +347,6 @@ class LanguageDetector:
                         result,
                         content_sample,
                     )
-            # ---> THE OBJECTIVE-C SIBLING ANCHOR <---
             elif ext == ".m":
                 if f"{base_stem}.h" in ext_tally:
                     return self._forge_result(
@@ -358,10 +363,10 @@ class LanguageDetector:
         shebang_lang = self._tier_2_fingerprint_check(content_sample, ext)
 
         # =========================================================================
-        # THE IDENTITY CRISIS TRAP (Security Lens Integration)
+        # DEFENSIVE GUARD: IDENTITY CONFLICT TRAP
         # =========================================================================
         # If both a known extension AND a known shebang exist, but they contradict
-        # each other, the file is lying about its physical identity.
+        # each other, the file is lying about its structural identity.
         is_conflict = (
             (ext_lang and ext_lang != "undeterminable")
             and (shebang_lang and shebang_lang != "undeterminable")
@@ -370,15 +375,15 @@ class LanguageDetector:
 
         if is_conflict:
             self.logger.warning(
-                f"[{name}] IDENTITY CRISIS: Ext '{ext_lang}' contradicts Shebang '{shebang_lang}'"
+                f"[{name}] IDENTITY CONFLICT: Ext '{ext_lang}' contradicts Shebang '{shebang_lang}'"
             )
 
-            # 1. Cache the threat into RAM for the Security Lens
+            # 1. Cache the threat into RAM for the SAST Engine
             result["anomaly_flags"].append(
                 f"Identity Masking: Extension ({ext_lang}) vs Shebang ({shebang_lang})"
             )
 
-            # 2. Force the file into the Singularity by destroying its identity
+            # 2. Force the file into the Unclassified Baseline
             return self._forge_result(
                 lang_id="undeterminable",
                 intensity=0.0,
@@ -389,14 +394,14 @@ class LanguageDetector:
             )
 
         # =========================================================================
-        # THE TRUST MATRIX (Bayesian Evidence Hierarchy)
+        # THE CONFIDENCE HIERARCHY (Bayesian Inference)
         # =========================================================================
         best_lang = "undeterminable"
         best_conf = 0.10
         lock_tier = 4
-        source_proof = "Discovery"
+        source_proof = "Heuristic Discovery"
 
-        # TIER 0: CONVERGENT LOCK
+        # TIER 0: ABSOLUTE CONSENSUS
         if (
             ext_lang
             and ext_lang != "undeterminable"
@@ -408,7 +413,7 @@ class LanguageDetector:
                 ext_lang,
                 0.999,
                 0,
-                "Convergent Lock (Ext + Shebang)",
+                "Absolute Consensus (Ext + Shebang)",
             )
         elif (
             ext_lang
@@ -420,7 +425,7 @@ class LanguageDetector:
                 ext_lang,
                 0.999,
                 0,
-                f"Convergent Lock (Ext + {prior_proof})",
+                f"Absolute Consensus (Ext + {prior_proof})",
             )
         elif (
             shebang_lang
@@ -432,10 +437,10 @@ class LanguageDetector:
                 shebang_lang,
                 0.999,
                 0,
-                f"Convergent Lock (Shebang + {prior_proof})",
+                f"Absolute Consensus (Shebang + {prior_proof})",
             )
 
-        # TIER 1: ROADMAP LOCK
+        # TIER 1: HIGH-CONFIDENCE PRIOR
         elif prior_conf >= 0.95 and prior_lang != "unknown":
             best_lang, best_conf, lock_tier, source_proof = (
                 prior_lang,
@@ -444,23 +449,23 @@ class LanguageDetector:
                 prior_proof,
             )
 
-        # TIER 2: SINGLE SIGNATURE
+        # TIER 2: SINGLE INDICATOR
         elif shebang_lang and shebang_lang != "undeterminable":
             best_lang, best_conf, lock_tier, source_proof = (
                 shebang_lang,
                 0.91,
                 2,
-                "Single Signature (Shebang)",
+                "Single Indicator (Shebang)",
             )
         elif ext_lang and ext_lang != "undeterminable":
             best_lang, best_conf, lock_tier, source_proof = (
                 ext_lang,
                 0.91,
                 2,
-                f"Single Signature (Ext: {ext})",
+                f"Single Indicator (Ext: {ext})",
             )
 
-        # TIER 3: CONTEXTUAL PROOF
+        # TIER 3: CONTEXTUAL INDICATOR
         elif prior_conf >= 0.90 and prior_lang != "unknown":
             best_lang, best_conf, lock_tier, source_proof = (
                 prior_lang,
@@ -470,31 +475,32 @@ class LanguageDetector:
             )
 
         # =========================================================================
-        # TIER 1.5: THE ECOSYSTEM GRAVITY LOCK (Collision Resolution)
+        # TIER 1.5: ECOSYSTEM CONSENSUS (Collision Resolution)
         # =========================================================================
         gravity_lang = None
-        # Only apply Ecosystem Gravity if we don't already have a strong Tier 2 internal signature
+        # Only apply Ecosystem Consensus if we don't already have a strong Tier 2 internal signature
         if ext in self.COLLISION_FREQUENCIES and ext_tally and lock_tier > 2:
             gravity_lang, dominance = self._evaluate_ecosystem_gravity(
                 file_path, ext, ext_tally
             )
 
             if gravity_lang:
-                # Small File Bypass OR Overwhelming Ecosystem Dominance
                 if dominance >= self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70):
                     best_lang = gravity_lang
                     best_conf = 0.95
                     lock_tier = 1.5
                     source_proof = (
-                        f"Ecosystem Gravity Lock ({dominance * 100:.0f}% Anchor Share)"
+                        f"Ecosystem Consensus Lock ({dominance * 100:.0f}% Local Dominance)"
                     )
                     self.logger.debug(
-                        f"[{name}] Fast-tracked via Ecosystem Gravity -> {gravity_lang}"
+                        f"[{name}] Fast-tracked via Ecosystem Consensus -> {gravity_lang}"
                     )
 
         # =========================================================================
-        # TIER 1.7: THE EXO-SPECIES FALLBACK (Unknown Extension Trust)
+        # TIER 1.7: UNKNOWN EXTENSION FALLBACK
         # =========================================================================
+        # If an extension is not in our definition maps but meets standard alphanumeric rules,
+        # register it as a distinct identity so that it is properly grouped in audits.
         is_known_ext = ext in self.extension_map
         if ext and not is_known_ext and lock_tier == 4:
             clean_ext = ext.lstrip(".").lower()
@@ -502,25 +508,22 @@ class LanguageDetector:
                 best_lang = clean_ext
                 best_conf = 0.95
                 lock_tier = 1.7
-                source_proof = f"Exo-Species Fallback (Ext: {ext})"
-                self.logger.debug(f"[{name}] Exo-Species Fallback -> '{best_lang}'")
+                source_proof = f"Unknown Extension Fallback (Ext: {ext})"
+                self.logger.debug(f"[{name}] Unknown Extension Fallback -> '{best_lang}'")
 
         # =========================================================================
-        # MANDATORY SPECTRAL VERIFICATION
+        # MANDATORY LEXICAL VERIFICATION
         # =========================================================================
-
+        # Triggered if confidence falls below baseline OR the extension is highly contested.
         needs_spectral = (best_conf < self.thresholds.get("INTENSITY_FLOOR", 0.78)) or (
             ext in self.COLLISION_FREQUENCIES and lock_tier > 2
         )
 
         if needs_spectral:
             self.logger.debug(
-                f"[{name}] Claim Unverified ({best_lang} at Tier {lock_tier}). Engaging Spectral Verification."
+                f"[{name}] Classification Unverified ({best_lang} at Tier {lock_tier}). Engaging Lexical Scan."
             )
 
-            # ---> THE ROUTING FIX <---
-            # Only send to Tier 4 Deep Space if it's TRULY an unknown extension.
-            # Collisions MUST go to Tier 3 to evaluate their specific candidates.
             is_true_unknown = (
                 lock_tier == 4
                 and best_lang in ("undeterminable", "unknown")
@@ -531,11 +534,11 @@ class LanguageDetector:
                 coding_loc = max(
                     content_sample.count("\n") + (1 if content_sample else 0), 1
                 )
-                spectral_id, spec_intensity = self._tier_4_deep_space_discovery(
+                spectral_id, spec_intensity = self._tier_4_heuristic_discovery(
                     content_sample, coding_loc, ext, gravity_lang
                 )
             else:
-                spectral_id, spec_intensity = self._tier_3_spectral_scan(
+                spectral_id, spec_intensity = self._tier_3_lexical_scan(
                     content_sample,
                     ext,
                     claimed_lang=best_lang,
@@ -547,7 +550,7 @@ class LanguageDetector:
                     best_conf = max(best_conf, 0.95)
                     lock_tier = 0
                     source_proof = (
-                        f"Convergent Lock (Spectral Verified: {source_proof})"
+                        f"Absolute Consensus (Lexically Verified: {source_proof})"
                     )
                     self.logger.debug(
                         f"[{name}] Verification Success -> {source_proof}"
@@ -561,21 +564,21 @@ class LanguageDetector:
                     elif lock_tier == 4:
                         if spec_intensity >= self.thresholds.get("FLOOR_TIER_4", 0.92):
                             best_lang, best_conf = spectral_id, spec_intensity
-                            source_proof = f"Spectral Discovery (Passed {self.thresholds.get('FLOOR_TIER_4', 0.92)} Floor)"
+                            source_proof = f"Heuristic Discovery (Passed {self.thresholds.get('FLOOR_TIER_4', 0.92)} Baseline)"
                         else:
                             best_lang, best_conf = "undeterminable", spec_intensity
                             source_proof = (
-                                f"Failed Discovery Floor ({spec_intensity:.2f})"
+                                f"Failed Discovery Baseline ({spec_intensity:.2f})"
                             )
                     elif lock_tier >= 2:
                         if spec_intensity > best_conf:
                             best_lang = spectral_id
                             best_conf = spec_intensity
                             lock_tier = 4
-                            source_proof = f"Spectral Override (Evidence {spec_intensity:.2f} > {source_proof})"
+                            source_proof = f"Lexical Override (Evidence {spec_intensity:.2f} > {source_proof})"
                         else:
                             best_conf = min(best_conf, spec_intensity)
-                            source_proof += " (Unverified / Conflicted)"
+                            source_proof += " (Unverified / Conflicting Lexical Score)"
             else:
                 if lock_tier == 4:
                     if not ext:
@@ -586,10 +589,10 @@ class LanguageDetector:
                             "Prose Fallback (Low Signal)",
                         )
                 else:
-                    source_proof += " (Unverified)"
+                    source_proof += " (Unverified Lexical Score)"
 
         self.logger.debug(
-            f"[{name}] Focus Lock -> '{best_lang}' (Tier: {lock_tier} | Conf: {best_conf:.2f})"
+            f"[{name}] Final Classification -> '{best_lang}' (Tier: {lock_tier} | Conf: {best_conf:.2f})"
         )
 
         if (
@@ -605,6 +608,10 @@ class LanguageDetector:
     def _evaluate_ecosystem_gravity(
         self, file_path: Union[str, Path], ext: str, global_tally: Dict[str, int]
     ) -> Tuple[Optional[str], float]:
+        """
+        Resolves identical extension collisions (e.g., .h) by surveying the surrounding 
+        directory neighborhood for dominating implementation languages (C vs C++ vs Obj-C).
+        """
         # 1. GATHER CANDIDATES
         candidates = [
             lid
@@ -618,7 +625,7 @@ class LanguageDetector:
         if not candidates:
             return None, 0.0
 
-        # 2. NEW: GATHER LOCAL FOLDER CENSUS
+        # 2. GATHER LOCAL FOLDER CENSUS
         local_tally = {}
         try:
             parent_dir = Path(file_path).parent
@@ -651,7 +658,7 @@ class LanguageDetector:
                     if tally.get(e.lower(), 0) > 0
                 }
 
-                # ---> THE MATLAB FIX (Single-Extension Ecosystems) <---
+                # Single-Extension Ecosystem Support (e.g., MATLAB)
                 if sum(base_contributors.values()) == 0:
                     base_contributors[ext] = tally.get(ext.lower(), 0)
 
@@ -710,17 +717,17 @@ class LanguageDetector:
                         dominance, self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70)
                     )
 
-            # Evaluate if this scope produced a winner
+            # Evaluate if this scope produced a statistical winner
             threshold = self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70)
             if scope_name == "Local":
                 threshold = (
-                    0.60  # Local folders need slightly less dominance to prove a point
+                    0.60  # Local folders need slightly less dominance to prove intent
                 )
 
             if dominance >= threshold:
                 if self.logger.isEnabledFor(logging.DEBUG):
                     self.logger.debug(
-                        f"\n{scope_name} Ecosystem Gravity for '{ext}': Winner {top_lid} ({dominance * 100:.1f}%)\n"
+                        f"\n{scope_name} Ecosystem Consensus for '{ext}': Winner {top_lid} ({dominance * 100:.1f}%)\n"
                     )
                 return top_lid, dominance
 
@@ -730,9 +737,8 @@ class LanguageDetector:
         if file_name in self.anchor_map:
             return self.anchor_map[file_name]
 
-        # THE FIX: If the extension is highly contested, refuse to lock it at Tier 1.
-        # This forces the pipeline to fall back to Tier 1.5 Ecosystem Gravity
-        # or Tier 3 Spectral Verification to prove its true identity.
+        # DEFENSIVE GUARD: Collisions cannot be locked at Tier 1 based on extension alone.
+        # This prevents generic files from bypassing deep-inspection.
         if ext in self.COLLISION_FREQUENCIES:
             return None
 
@@ -741,7 +747,7 @@ class LanguageDetector:
         return None
 
     def _tier_2_fingerprint_check(self, content: str, ext: str) -> Optional[str]:
-        # 1. Standard Shebang Check (Only runs if a shebang exists)
+        # 1. Standard Executable Shebang Check
         if content.startswith("#!"):
             first_line = content.split("\n", 1)[0].lower()
             self.logger.debug(
@@ -753,10 +759,10 @@ class LanguageDetector:
                     if trigger in first_line:
                         return lang_id
 
-        # 2. ---> THE INTERNAL DISCRIMINATOR (Collision Resolution Only) <---
-        # THE FIX: Internal discriminators are strictly for resolving known extension
-        # collisions (e.g., .m). They MUST NOT be used as global scanners for
-        # extensionless or shebang-less files.
+        # 2. INTERNAL DISCRIMINATOR (Collision Resolution Only)
+        # DEFENSIVE GUARD: Internal discriminators are strictly for resolving known 
+        # extension collisions (e.g., Obj-C vs MATLAB .m files). They MUST NOT be used 
+        # as global scanners for extensionless files, as their regexes are highly specific.
         if ext:
             for lang_id, data in self.languages.items():
                 if ext in data.get("extensions", []):
@@ -769,7 +775,7 @@ class LanguageDetector:
 
         return None
 
-    def _tier_3_spectral_scan(
+    def _tier_3_lexical_scan(
         self,
         content: str,
         ext: str,
@@ -777,9 +783,10 @@ class LanguageDetector:
         gravity_lang: Optional[str] = None,
     ) -> Tuple[str, float]:
         """
-        The Iron Wall Scanner.
-        If a file has an extension, it MUST be claimed by a known language.
-        Falling back to 'all languages' is forbidden if an extension is present.
+        The Strict Boundary Scanner.
+        Evaluates the specific structural syntax of a file to verify a claimed extension.
+        If a file has an extension, it MUST be claimed by one of the known languages 
+        for that extension; it is not allowed to randomly match an unrelated schema.
         """
         candidates = []
         if ext:
@@ -787,14 +794,14 @@ class LanguageDetector:
                 l for l, d in self.languages.items() if ext in d.get("extensions", [])
             ]
 
-            # --- THE IRON WALL ---
+            # --- DEFENSIVE GUARD: STRICT BOUNDARY ---
             if not candidates:
                 self.logger.debug(
-                    f"Iron Wall: Extension '{ext}' is unknown. Aborting spectral scan to prevent hallucination."
+                    f"Strict Boundary Lock: Extension '{ext}' is entirely unknown. Aborting lexical scan to prevent regex hallucination."
                 )
                 return "undeterminable", 0.0
 
-        # Only allow 'Scan All' fallback for truly extensionless files
+        # Only allow 'Scan All Definitions' fallback for truly extensionless files
         if not candidates and not ext:
             candidates = list(self.languages.keys())
 
@@ -809,7 +816,7 @@ class LanguageDetector:
             data = self.languages.get(lid, {})
             family = data.get("lexical_family")
 
-            # Phase 2 Pruning
+            # Syntax Disqualification Phase
             if family in self.DISQUALIFIERS and self.DISQUALIFIERS[family].search(
                 content
             ):
@@ -824,16 +831,16 @@ class LanguageDetector:
                 try:
                     c = len(regex.findall(content))
                     if c > content_len:
-                        c = 0  # Hallucination shield
+                        c = 0  # Prevents runaway overlaps
                     raw_score += c * 10.0
                 except Exception:
                     pass
 
+            # Apply Ecosystem Consensus Boost
             if lid == gravity_lang:
                 raw_score *= 1.25
 
-            # Delimiter Bonus
-
+            # Comment Delimiter Bonus
             family_key = data.get("lexical_family", "std_c")
             delims = (
                 self.comment_defs.get("mechanical_families", {})
@@ -844,7 +851,7 @@ class LanguageDetector:
                 if d in content:
                     raw_score += 15.0
 
-            # Language Handicaps
+            # Historic Language Handicaps
             if lid in ("abap", "fortran", "cobol"):
                 raw_score *= 0.4
 
@@ -859,14 +866,13 @@ class LanguageDetector:
         if top_signal < self.thresholds.get("PROSE_BASELINE_SIGNAL", 3.0):
             return "plaintext", 0.5
 
-        # Margin and Confidence logic
         confidence = min(top_signal / 50.0, 1.0)
         return top_id, confidence
 
     # =========================================================================
-    # THE TIER 4 DEEP SPACE DISCOVERY FUNNEL
+    # THE TIER 4 HEURISTIC DISCOVERY FUNNEL
     # =========================================================================
-    def _tier_4_deep_space_discovery(
+    def _tier_4_heuristic_discovery(
         self,
         content: str,
         coding_loc: int,
@@ -874,8 +880,9 @@ class LanguageDetector:
         gravity_lang: Optional[str] = None,
     ) -> Tuple[str, float]:
         """
-        The redesigned Tier 4 Deep Space Discovery Funnel.
-        Prioritizes graceful failure over guessing by enforcing a strict 1.5x margin logic.
+        Heuristic Discovery for unknown or extensionless files.
+        Prioritizes graceful failure over blind guessing by enforcing a strict 1.5x margin 
+        between the leading language candidate and the runner-up.
         """
         if coding_loc < self.thresholds.get("TIER_4_MIN_LINES", 20):
             self.logger.debug(
@@ -897,7 +904,7 @@ class LanguageDetector:
                 delims = fam_data.get("delimiters", [])
                 family_scores[fam_key] = sum(content.count(d) for d in delims)
         else:
-            # Fallback for the 8 standardized mechanical delimiters if not defined
+            # Fallback for the 8 standardized mechanical delimiters if not externally defined
             # Safely breaking apart the XML delimiter to prevent markdown render crashes
             xml_delim = "<" + "!--"
             family_scores = {
@@ -913,15 +920,15 @@ class LanguageDetector:
 
         winning_family = max(family_scores, key=family_scores.get, default=None)
 
-        # Fail gracefully if no comments/structure exist to even establish a family
+        # Fail gracefully if no comments/structure exist to establish a lexical family
         if not winning_family or family_scores.get(winning_family, 0) == 0:
             self.logger.debug(
-                "Tier 4 [Phase 1]: Failed to establish a comment family (No delimiters found)."
+                "Tier 4 [Phase 1]: Failed to establish a lexical comment family (No delimiters found)."
             )
             return "undeterminable", 0.0
 
         self.logger.debug(
-            f"Tier 4 [Phase 1]: Comment Family Isolated -> '{winning_family}' (Score: {family_scores[winning_family]})"
+            f"Tier 4 [Phase 1]: Lexical Family Isolated -> '{winning_family}' (Score: {family_scores[winning_family]})"
         )
 
         candidates = [
@@ -948,7 +955,7 @@ class LanguageDetector:
                 self.logger.debug(
                     f"Tier 4 [Phase 2]: Pruning '{lid}' via Heuristic Blacklist."
                 )
-                continue  # Pruned by blacklist
+                continue  # Pruned by specific anti-patterns
             surviving_candidates.append(lid)
 
         if not surviving_candidates:
@@ -976,7 +983,9 @@ class LanguageDetector:
                 if not regex:
                     continue
 
-                # ---> THE RUNAWAY REGEX SHIELD <---
+                # ---> DEFENSIVE GUARD: REGEX BACKTRACKING PREVENTION <---
+                # Aborts execution on extremely greedy, non-terminating patterns 
+                # that would lock the CPU during multi-line heuristic scanning.
                 raw_pat = getattr(regex, "pattern", str(regex))
                 clean_pat = (
                     raw_pat.replace("(?i)", "")
@@ -993,7 +1002,7 @@ class LanguageDetector:
                     else:
                         hits = len(re.findall(str(regex), content))
 
-                    # Anti-Hallucination: Clamp if logic hits > total characters
+                    # Safety clamp: Regex hits cannot exceed total string length
                     if hits > content_len and content_len > 0:
                         hits = 0
 
@@ -1001,7 +1010,7 @@ class LanguageDetector:
                 except Exception:
                     pass
 
-            # ---> PART 3: THE MACRO BLINDSPOT FIX (Density Boost) <---
+            # ---> HEURISTIC BOOST: C/C++ Macro Execution <---
             family_key = self.languages.get(lid, {}).get("lexical_family")
             if family_key == "std_c":
                 macro_hits = len(
@@ -1011,12 +1020,11 @@ class LanguageDetector:
                         re.M,
                     )
                 )
-                # Anti-Hallucination clamp
                 if macro_hits > content_len and content_len > 0:
                     macro_hits = 0
                 regex_hits += macro_hits
 
-            # ---> NEW: THE ABAP HANDICAP <---
+            # Specific Language Handicap
             if lid == "abap":
                 regex_hits *= 0.7
 
@@ -1024,6 +1032,8 @@ class LanguageDetector:
             # PHASE 4: The Density Equation (Hits / loc)
             # =====================================================================
             density_scores[lid] = regex_hits / loc
+            
+            # Record execution time to penalize extremely slow, backtracking regex evaluations
             friction_scores[lid] = time.time() - t_start
 
         if not density_scores:
@@ -1032,7 +1042,6 @@ class LanguageDetector:
             )
             return "undeterminable", 0.0
 
-        # Sort to find the winner and the runner-up
         sorted_scores = sorted(density_scores.items(), key=lambda x: x[1], reverse=True)
         top_id, top_density = sorted_scores[0]
 
@@ -1040,7 +1049,6 @@ class LanguageDetector:
             f"Tier 4 [Phase 3]: Top signals -> {[(k, round(v, 4)) for k, v in sorted_scores[:3]]}"
         )
 
-        # No structural signals at all
         if top_density == 0.0:
             self.logger.debug(
                 "Tier 4 [Phase 3]: Top density is 0.0. Failing gracefully."
@@ -1048,7 +1056,7 @@ class LanguageDetector:
             return "undeterminable", 0.0
 
         # =========================================================================
-        # PHASE 5: The Ensemble Reconciliation Engine
+        # PHASE 5: Ensemble Reconciliation Engine
         # =========================================================================
         if len(sorted_scores) > 1:
             runner_up_id = sorted_scores[1][0]
@@ -1060,21 +1068,21 @@ class LanguageDetector:
             runner_up_friction = friction_scores[runner_up_id]
             friction_ratio = top_friction / max(runner_up_friction, 0.000001)
 
-            # --- THE SLIDING SCALE OF TRUST ---
+            # --- DYNAMIC THRESHOLD ALIGNMENT ---
 
-            # 1. The Strong Structural Lock
+            # 1. Strong Structural Lead (Must be 1.5x denser than runner-up)
             if density_margin >= 1.5:
+                # If it's vastly slower, the regex engine is likely thrashing on false positives
                 if friction_ratio > 5.0:
                     self.logger.warning(
-                        f"Tier 4 [Reconciliation]: TEMPORAL ANOMALY on {top_id}..."
+                        f"Tier 4 [Reconciliation]: TEMPORAL FRICTION ANOMALY on {top_id}..."
                     )
                     return "undeterminable", 0.0
 
                 return top_id, top_density
 
-            # 2. The Friction Tie-Breaker
+            # 2. Friction Tie-Breaker (If margin is tight, penalize slow regex execution)
             elif density_margin >= self.thresholds.get("TIER_4_OUTLIER_MARGIN", 1.10):
-                # The density win was weak, so we demand a strong temporal friction win (e.g., 2x faster)
                 if friction_ratio > 0.5:
                     self.logger.debug(
                         f"Tier 4 [Reconciliation]: Collision. {top_id} density margin ({density_margin:.2f}x) was too weak, and friction ratio ({friction_ratio:.2f}x) failed to break the tie."
@@ -1085,20 +1093,19 @@ class LanguageDetector:
                 )
                 return top_id, top_density
 
-            # 3. Absolute Ambiguity
+            # 3. Absolute Ambiguity Resolution
             else:
-                # ---> THE FIX: Add objective-c to the allowed subset <---
                 if ext == ".h" and {top_id, runner_up_id}.issubset(
                     {"c", "cpp", "objective-c"}
                 ):
                     if gravity_lang in {"c", "cpp", "objective-c"}:
                         self.logger.debug(
-                            f"Tier 4 [Reconciliation]: C/C++ Tie broken by Ecosystem Gravity -> {gravity_lang}"
+                            f"Tier 4 [Reconciliation]: C/C++ Tie broken by Ecosystem Consensus -> {gravity_lang}"
                         )
                         return gravity_lang, top_density
-                    # If no gravity exists, default to C as the structural base for .h files
+                    # If no consensus exists, default to C as the lowest-level structural base
                     self.logger.debug(
-                        "Tier 4 [Reconciliation]: C/C++ Tie broken by default base -> c"
+                        "Tier 4 [Reconciliation]: C/C++ Tie broken by default architectural base -> c"
                     )
                     return "c", top_density
 
@@ -1116,9 +1123,9 @@ class LanguageDetector:
         base: DetectorResult,
         content_sample: str = "",
     ) -> DetectorResult:
+        """Packs metadata and metrics into the formal classification dictionary structure."""
         family = self.languages.get(lang_id, {}).get("lexical_family")
 
-        # Calculate our metrics from the ghost parameter!
         file_loc = content_sample.count("\n") + 1 if content_sample else 0
         file_size = len(content_sample.encode("utf-8")) if content_sample else 0
 
@@ -1137,12 +1144,16 @@ class LanguageDetector:
         return base
 
     def _capture_raw_signal(self, file_path: Union[str, Path]) -> str:
+        """
+        DEFENSIVE GUARD: Restricts I/O memory allocation to 50KB.
+        Prevents Out-Of-Memory (OOM) crashes if the user accidentally points the 
+        analyzer at massive log dumps or multi-gigabyte auto-generated monoliths.
+        """
         try:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 return f.read(1024 * 50)
         except (PermissionError, FileNotFoundError, IOError, OSError) as e:
-            self.logger.error(f"Hardware failure reading '{file_path}': {str(e)}")
-            # Wire up the dead exception:
+            self.logger.error(f"Hardware/IO failure reading '{file_path}': {str(e)}")
             raise FocusingError(f"Failed to focus lens on {file_path}") from e
 
     def _find_balanced_end(
@@ -1178,6 +1189,7 @@ class LanguageDetector:
         return limit
 
     def _detect_hybrids(self, content: str, primary_id: str) -> List[Dict[str, Any]]:
+        """Identifies secondary logic streams (like HTML inside PHP files) via syntax handshakes."""
         total_len = len(content)
         if total_len == 0:
             return []
