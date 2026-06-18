@@ -105,7 +105,7 @@ class SpatialMapper:
         # 2. Hull Calculation
         sector_stats = []
         for name, items in sectors.items():
-            items.sort(key=lambda x: self._get_mass(x), reverse=True)
+            items.sort(key=self._get_mass, reverse=True)
             central_node_mass = self._get_mass(items[0])
             central_footprint = self._calculate_spatial_clearance(central_node_mass)
             hull_radius = central_footprint + (math.sqrt(len(items)) * self.MICRO_SPACING)
