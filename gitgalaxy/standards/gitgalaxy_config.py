@@ -445,17 +445,16 @@ GUIDESTAR_CONFIG = {
 # Defines the structural delimiters for extracting literature (comment_stream)
 COMMENT_DEFINITIONS = {
     "mechanical_families": {
-        "std_c": {"delimiters": ["//", "/*", "*/"]},
-        "nested_c": {"delimiters": ["//", "/*", "*/"]},
-        "pure_hash": {"delimiters": ["#"]},
+        "c_style_comment": {"delimiters": ["//", "/*", "*/"]},
+        "recursive_c_style": {"delimiters": ["//", "/*", "*/"]},
         "hybrid_hash": {
             "delimiters": ["#", "<#", "#>", "=begin", "=end", "=pod", "=cut"]
         },
-        "hybrid_dash": {"delimiters": ["--", "--[[", "]]", "{-", "-}"]},
-        "polyglot": {"delimiters": ["//", "/*", "*/", "#"]},
-        "positional": {"delimiters": ["*>", "!", "C", "*", "D"]},
-        "singular": {"delimiters": ["", ";", "//", "dnl", "%", "%{", "%}"]},
-        "lisp_semi": {"delimiters": [";", "#|", "|#"]},
+        "multi_style_dash": {"delimiters": ["--", "--[[", "]]", "{-", "-}"]},
+        "embedded_syntax": {"delimiters": ["//", "/*", "*/", "#"]},
+        "column_sensitive": {"delimiters": ["*>", "!", "C", "*", "D"]},
+        "single_line_only": {"delimiters": ["#", ";", "//", "dnl", "%", "%{", "%}"]},
+        "lisp_style": {"delimiters": [";", "#|", "|#"]},
     }
 }
 

@@ -106,7 +106,6 @@ class LLMRecorder:
                         outbound_set_map[curr].add(target_path)
 
         inbound_map = {k: list(v) for k, v in inbound_set_map.items()}
-        outbound_map = {k: list(v) for k, v in outbound_set_map.items()}
 
         # 1. Build the Relational Knowledge Graph (SQLite)
         self._generate_sqlite_graph(
