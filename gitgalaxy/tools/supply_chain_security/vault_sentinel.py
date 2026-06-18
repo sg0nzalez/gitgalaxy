@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Vault Sentinel
+# GitGalaxy Spoke: Secrets Scanner
 # Purpose: High-speed pre-commit hook to detect hardcoded secrets.
 # ==============================================================================
 import argparse
@@ -33,10 +33,10 @@ except ImportError:
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("Vault Sentinel")
+    enforce_licensing_guard("Secrets Scanner")
 
     parser = argparse.ArgumentParser(
-        description="Vault Sentinel: High-Speed Secrets Scanner"
+        description="Secrets Scanner: High-Speed Secrets Scanner"
     )
     parser.add_argument("target", help="Directory or file to scan")
     args = parser.parse_args()
@@ -46,7 +46,7 @@ def main():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
 
-    print(f"🛡️  Vault Sentinel engaging on {target_path.name}...")
+    print(f"🛡️  Secrets Scanner engaging on {target_path.name}...")
 
     # Initialize lightweight filters
     filter_engine = ApertureFilter(target_path, LANGUAGE_DEFINITIONS, APERTURE_CONFIG)

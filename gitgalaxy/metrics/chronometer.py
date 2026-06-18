@@ -151,7 +151,7 @@ class Chronometer:
                 )
 
         # Fallback: OS Walk for boundaries utilizing global Aperture configs
-        black_holes = self.aperture_config.get("BLACK_HOLES", set())
+        black_holes = self.aperture_config.get("IGNORED_DIRECTORIES", set())
         scan_limit = self.chrono_config.get("FALLBACK_SCAN_LIMIT", 25000)
 
         min_t, max_t = float("inf"), 0.0

@@ -20,8 +20,8 @@ MOCK_CONFIG = {
     "SECRETS_EXTENSIONS": {".pem", ".key"},
     "MAX_FILE_SIZE_MB": 10,
     "MAX_LINE_LENGTH": 500,
-    "BLACK_HOLES": {"node_modules", ".git"},
-    "BLACK_HOLE_EXTENSIONS": {".exe", ".dll"},
+    "IGNORED_DIRECTORIES": {"node_modules", ".git"},
+    "IGNORED_EXTENSIONS": {".exe", ".dll"},
     "CONTRABAND_PATTERNS": ["*-min.js", "*.bundle.js"],
 }
 

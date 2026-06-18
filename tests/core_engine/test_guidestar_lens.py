@@ -69,7 +69,7 @@ def test_guidestar_manifest_and_ai_detection(guidestar, tmp_path):
     assert lock["intensity"] == 0.85
 
     # 3. Test AI Ecosystem Detection
-    found, lock = guidestar.get_intent_status("__galaxy_brain__.ai")
+    found, lock = guidestar.get_intent_status("__gitgalaxy_meta__.json")
     assert found is True
     assert lock["intensity"] == 1.0
     assert "AI Ecosystem Lock" in lock["source_proof"]
