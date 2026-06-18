@@ -5,7 +5,7 @@
 # This source code is licensed under the PolyForm Noncommercial License 1.0.0.
 # You may not use this file except in compliance with the License.
 # A copy of the license can be found in the LICENSE file in the root directory
-# of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
+# of this project, or at [https://polyformproject.org/licenses/noncommercial/1.0.0/](https://polyformproject.org/licenses/noncommercial/1.0.0/)
 # ==============================================================================
 import os
 import subprocess
@@ -16,8 +16,8 @@ from typing import Dict, Any, Optional, List, Tuple
 from gitgalaxy.standards import gitgalaxy_config as config
 
 # ==============================================================================
-# GitGalaxy Phase 3: Chronometer (Temporal Sensor)
-# Strategy v6.3.0 Melded Protocol: Bulk Survey, Dynamic Windowing & Thread-Safety
+# GitGalaxy Phase 3: Chronometer (Time-Series Analyzer)
+# Strategy v6.3.0 Protocol: Bulk Survey, Dynamic Windowing & Thread-Safety
 # ==============================================================================
 
 
@@ -25,11 +25,11 @@ class Chronometer:
     """
     The GitGalaxy Chronometer.
 
-    PURPOSE: Acts as a high-fidelity Temporal Sensor. It measures Git churn
+    PURPOSE: Acts as a high-fidelity VCS Analyzer. It measures Git churn
     and physical file-system stability, providing raw telemetry to the
     Signal Processor for exposure calculations.
 
-    ARCHITECTURE (v6.3.0 Melded):
+    ARCHITECTURE (v6.3.0):
     1. Survey-First Logic: Performs a bulk metadata sweep during initialization
        to ensure Pass 2 threading is a zero-I/O memory lookup.
     2. Dynamic Windowing: Calculates a rolling window based on 10% of the project's
@@ -41,7 +41,7 @@ class Chronometer:
     """
 
     def __init__(self, root_path: Path, parent_logger: Optional[logging.Logger] = None):
-        """Initializes the Temporal Sensor and ignites the Bulk Survey Pass."""
+        """Initializes the Time-Series Analyzer and ignites the Bulk Survey Pass."""
         if parent_logger:
             self.logger = parent_logger.getChild("chronometer")
             self.logger.setLevel(parent_logger.level)
@@ -50,14 +50,14 @@ class Chronometer:
             self.logger.setLevel(logging.INFO)
 
         self.root = Path(root_path).resolve()
-        self.is_resilient = False
+        self.is_git_enabled = False
 
         # Pull configurations safely
         self.chrono_config = getattr(config, "CHRONOMETER_CONFIG", {})
         self.aperture_config = getattr(config, "APERTURE_CONFIG", {})
 
         # --- INTERNAL STATE (The Sensor Cache) ---
-        self.entropy_map: Dict[str, int] = {}
+        self.churn_map: Dict[str, int] = {}
         self.mtime_map: Dict[str, float] = {}
         self.author_map: Dict[str, Dict[str, int]] = {}
 
@@ -66,33 +66,33 @@ class Chronometer:
         self.repo_max_time = time.time()
 
         self.logger.debug(
-            f"Initializing Melded Temporal Sensor for: '{self.root.name}'..."
+            f"Initializing Time-Series Analyzer for: '{self.root.name}'..."
         )
 
-        # 1. Hardware Verification & Boundary Survey
-        self._calibrate_temporal_field()
+        # 1. Git Binary Verification & Boundary Survey
+        self._initialize_history_scan()
 
-    def _calibrate_temporal_field(self):
+    def _initialize_history_scan(self):
         """Dispatches the survey engines to establish boundaries and churn cache."""
         t_start = time.time()
 
-        # Step A: Check for Git Hardware
+        # Step A: Git Binary Verification
         if (self.root / ".git").exists():
             try:
                 subprocess.run(["git", "--version"], capture_output=True, check=True)
-                self.is_resilient = True
+                self.is_git_enabled = True
                 self.logger.debug(
-                    "Git hardware verified. Commencing Deep Boundary Survey."
+                    "Git binary verified. Commencing Deep Boundary Survey."
                 )
             except (subprocess.CalledProcessError, FileNotFoundError):
                 self.logger.warning("Git binary not found. Falling back to OS Walk.")
 
         # Step B: Establish Absolute Project Boundaries (Min/Max Time)
-        self._survey_boundaries()
+        self._determine_commit_bounds()
 
         # Step C: Populate Churn and MTime Maps
-        if self.is_resilient:
-            self._ignite_hybrid_log_scan()
+        if self.is_git_enabled:
+            self._scan_git_history()
         else:
             self._survey_filesystem_mtimes()
 
@@ -103,12 +103,12 @@ class Chronometer:
             f"Cached Artifacts: {len(self.mtime_map)}"
         )
 
-    def _survey_boundaries(self):
+    def _determine_commit_bounds(self):
         """
         [SIGNAL 1: ABSOLUTE BOUNDARIES]
         Determines the project's start and end dates for temporal normalization.
         """
-        if self.is_resilient:
+        if self.is_git_enabled:
             try:
                 # Get Most Recent Commit (Max Time)
                 res_max = subprocess.run(
@@ -197,9 +197,9 @@ class Chronometer:
 
         return ignored
 
-    def _ignite_hybrid_log_scan(self):
+    def _scan_git_history(self):
         """
-        [MUSEUM DEMO PROTOCOL]
+        [BOUNDED HISTORY SCAN]
         Streams history backwards for exactly 1 year to guarantee deep churn data,
         bypassing the coverage early-exit trap while respecting the strict time budget.
         """
@@ -220,16 +220,19 @@ class Chronometer:
             tracked_files = set()
             total_files = 1000  # Fallback safety
 
-        # 2. Configure the Dynamic Thresholds
-        # Stop grinding the Git history once we've mapped 50% of the active repository,
-        # or hit a hard cap of 5000 files to save RAM and CPU.
+        # ======================================================================
+        # DEFENSIVE ARCHITECTURE: Compute & RAM Starvation Guard
+        # Parsing a decade-long Git log for a monolithic repository will crash 
+        # the CI/CD runner by exhausting available RAM and stalling the CPU. 
+        # We enforce a dual-axis kill switch: 
+        # Axis 1 (Volume): Stop scanning once 50% of active files are mapped (max 5000).
+        # Axis 2 (Time): Hard abort after 'timeout_limit' seconds.
+        # ======================================================================
         required_files = min(int(total_files * 0.50), 5000)
-
-        # The Kiosk Safety Net: Ensure this pulls from your config (e.g., 15.0 or 60.0)
         timeout_limit = self.chrono_config.get("STREAM_TIMEOUT_SECONDS", 15.0)
 
         self.logger.info(
-            f"Chronometer: Engaging 1-Year Historical Sweep (Kiosk Mode). "
+            f"Chronometer: Engaging 1-Year Historical Sweep. "
             f"Budget: {timeout_limit}s"
         )
 
@@ -247,7 +250,7 @@ class Chronometer:
         ]
 
         # Execute the stream
-        processed_events, _ = self._run_git_stream_escalator(
+        processed_events, _ = self._stream_git_log(
             cmd,
             ignored_hashes,
             tracked_files,
@@ -258,9 +261,9 @@ class Chronometer:
 
         duration = time.time() - start_time
 
-        # Filter our entropy map to only count currently tracked files for the final pct
+        # Filter our churn map to only count currently tracked files for the final pct
         coverage_achieved = len(
-            [k for k in self.entropy_map.keys() if k in tracked_files]
+            [k for k in self.churn_map.keys() if k in tracked_files]
         )
         pct = coverage_achieved / max(total_files, 1) * 100
 
@@ -269,7 +272,7 @@ class Chronometer:
             f"Achieved {pct:.1f}% active coverage ({coverage_achieved}/{total_files} files via {processed_events} events)."
         )
 
-    def _run_git_stream_escalator(
+    def _stream_git_log(
         self,
         cmd: List[str],
         ignored_hashes: set,
@@ -300,11 +303,11 @@ class Chronometer:
             )
 
             for line in process.stdout:
-                # [THE KILL SWITCH 1] Enforce the hard compute timeout
+                # [TIMEOUT GUARD] Enforce the hard compute timeout
                 if time.time() - start_time > timeout_limit:
                     break
 
-                # [THE KILL SWITCH 2] Enforce the dynamic file coverage target
+                # [COVERAGE GUARD] Enforce the dynamic file coverage target
                 if len(valid_files_seen) >= required_files:
                     reached_target = True
                     break
@@ -343,7 +346,7 @@ class Chronometer:
                     valid_files_seen.add(path_key)
 
                 # Track Churn
-                self.entropy_map[path_key] = self.entropy_map.get(path_key, 0) + 1
+                self.churn_map[path_key] = self.churn_map.get(path_key, 0) + 1
 
                 # Track Ownership Entropy
                 if path_key not in self.author_map:
@@ -361,9 +364,14 @@ class Chronometer:
         except Exception as e:
             self.logger.error(f"Git log streaming failure: {e}")
         finally:
-            # THE CRITICAL CLEANUP: Because we are breaking the stream early, we MUST
-            # violently kill the Popen process, otherwise it creates zombie processes
-            # and broken pipes in the OS.
+            # ==================================================================
+            # DEFENSIVE ARCHITECTURE: Zombie Process & FD Leak Prevention
+            # Because our Compute Guards will frequently break the Popen stream 
+            # *before* Git finishes outputting the log, the OS pipe remains open.
+            # If we do not explicitly send a SIGKILL and flush the File Descriptors 
+            # via communicate(), we will spawn thousands of Zombie Processes that 
+            # will eventually take down the host machine.
+            # ==================================================================
             if process:
                 process.kill()
                 process.communicate()
@@ -385,10 +393,15 @@ class Chronometer:
                 except (OSError, ValueError):
                     continue
 
-    def get_temporal_signals(self, rel_path: str) -> Dict[str, Any]:
+    def get_file_history_metrics(self, rel_path: str) -> Dict[str, Any]:
         """
-        [THE HANDOVER]
-        Returns raw temporal telemetry. Optimized for Thread-Safe O(1) lookups.
+        ========================================================================
+        DEFENSIVE ARCHITECTURE: Zero-I/O Thread Safety
+        This method is called thousands of times per second by the isolated 
+        Multi-Processing worker pool during Phase 1. If it triggered disk reads 
+        or Git CLI commands, it would cause an IPC deadlock. All lookups here 
+        are guaranteed to be O(1) RAM dictionary accesses.
+        ========================================================================
         """
         lookup_key = Path(rel_path).as_posix()
 
@@ -401,13 +414,13 @@ class Chronometer:
                 mtime = self.repo_max_time
 
         # Churn lookup
-        commit_count = self.entropy_map.get(lookup_key, 0)
+        commit_count = self.churn_map.get(lookup_key, 0)
 
         return {
             "commit_count": commit_count,
             "mtime": mtime,
             "repo_min_time": self.repo_min_time,
             "repo_max_time": self.repo_max_time,
-            "is_git_tracked": self.is_resilient,
+            "is_git_tracked": self.is_git_enabled,
             "authors": self.author_map.get(lookup_key, {}),
         }

@@ -10,7 +10,7 @@ from gitgalaxy.metrics.chronometer import Chronometer
 class TestChronometerTimeout(unittest.TestCase):
     @patch("gitgalaxy.metrics.chronometer.subprocess.Popen")
     @patch.object(
-        Chronometer, "_calibrate_temporal_field"
+        Chronometer, "_initialize_history_scan"
     )  # Skip the heavy init sequence
     def test_zombie_process_kill_switch(self, mock_calibrate, mock_popen):
         """
@@ -40,11 +40,11 @@ class TestChronometerTimeout(unittest.TestCase):
         # 3. Initialize Chronometer (calibration is bypassed)
         chrono = Chronometer(Path("/mock/repo"))
 
-        # 4. Ignite the escalator with a tiny timeout (50ms)
+        # 4. Ignite the stream with a tiny timeout (50ms)
         timeout_limit = 0.05
         start_time = time.time()
 
-        processed_lines, reached_target = chrono._run_git_stream_escalator(
+        processed_lines, reached_target = chrono._stream_git_log(
             cmd=["git", "log", "mock_args"],
             ignored_hashes=set(),
             tracked_files=set(),
@@ -64,7 +64,7 @@ class TestChronometerTimeout(unittest.TestCase):
         )
         self.assertFalse(
             reached_target,
-            "The escalator should have aborted before reaching the file target.",
+            "The stream should have aborted before reaching the file target.",
         )
 
         # --- THE ZOMBIE KILL SWITCH VERIFICATION ---
