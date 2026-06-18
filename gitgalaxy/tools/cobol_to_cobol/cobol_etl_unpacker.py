@@ -100,7 +100,7 @@ def unpack_ebcdic_file(
         schema_json = json.loads(schema_filepath.read_text(encoding="utf-8"))
     except Exception as e:
         print(f"Error loading schema: {e}")
-        return
+        return 0
 
     layout = calculate_byte_layout(schema_json)
     record_length = sum(field["bytes"] for field in layout)
