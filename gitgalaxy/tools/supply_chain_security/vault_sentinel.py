@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Secrets Scanner
-# Purpose: High-speed pre-commit hook to detect hardcoded secrets.
+# GitGalaxy Tool: Vault Sentinel
+# Purpose: High-speed pre-commit hook to detect hardcoded secrets and credentials.
 # ==============================================================================
 import argparse
 import sys
@@ -33,10 +33,10 @@ except ImportError:
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("Secrets Scanner")
+    enforce_licensing_guard("Vault Sentinel")
 
     parser = argparse.ArgumentParser(
-        description="Secrets Scanner: High-Speed Secrets Scanner"
+        description="Vault Sentinel: High-Speed Secrets Scanner"
     )
     parser.add_argument("target", help="Directory or file to scan")
     args = parser.parse_args()
@@ -46,13 +46,13 @@ def main():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
 
-    print(f"🛡️  Secrets Scanner engaging on {target_path.name}...")
+    print(f"🛡️  Initializing Vault Sentinel on {target_path.name}...")
 
     # Initialize lightweight filters
     filter_engine = ApertureFilter(target_path, LANGUAGE_DEFINITIONS, APERTURE_CONFIG)
     security = SecurityLens(policy=ThreatPolicy.get_policy("paranoid"))
 
-    # NEUTER THE LENS: Only look for keys and graveyard logic for maximum speed
+    # SENSOR OPTIMIZATION: Only evaluate keys and dead-code logic for maximum performance
     security.THREAT_SIGNATURES = {
         "private_info": security.THREAT_SIGNATURES["private_info"],
         "graveyard": security.THREAT_SIGNATURES["graveyard"],
@@ -66,15 +66,15 @@ def main():
     files_to_deep_scan = []
 
     # ==============================================================================
-    # PASS 1: The Funnel (Build the Queue & Catch Surface Threats)
+    # PHASE 1: Path Filtering & Surface Threat Detection
     # ==============================================================================
     for root, dirs, files in os.walk(target_path):
         rel_root = str(Path(root).relative_to(target_path))
 
-        # Shield Bypass & Top-Level Optimization
+        # Path Optimization: Evaluate top-level directories against ignore rules.
         if rel_root == ".":
-            dirs[:] = [d for d in dirs if filter_engine._check_solar_shield(d)]
-        elif not filter_engine._check_solar_shield(rel_root):
+            dirs[:] = [d for d in dirs if filter_engine._check_ignore_rules(d)]
+        elif not filter_engine._check_ignore_rules(rel_root):
             dirs[:] = []
             continue
 
@@ -88,29 +88,29 @@ def main():
                 approved in rel_path_str for approved in ALLOWLIST_PATHS
             )
 
-            # 1. THE DENYLIST CHECK (Wildcard Pattern Matching)
+            # 1. DENYLIST ENFORCEMENT (Wildcard Pattern Matching)
             is_forbidden = any(
                 fnmatch.fnmatch(file, pattern) for pattern in DENYLIST_PATTERNS
             )
             if is_forbidden and not is_whitelisted:
                 print(
-                    f"🚨 [FORBIDDEN FILE BREACH] Illegal file pattern detected: {rel_path_str}"
+                    f"[DENYLIST MATCH] Unauthorized file pattern detected: {rel_path_str}"
                 )
                 forbidden_blocked += 1
                 leaks_found += 1
                 continue  # Skip deep scanning
 
-            # 2. Tier 0 Path Scan (Catches .pem, id_rsa, .env immediately)
+            # 2. Tier 0 Path Scan (Catches .pem, id_rsa, .env immediately without I/O)
             is_valid, size, reason = filter_engine.evaluate_path_integrity(file_path)
 
             if reason and "CRITICAL LEAK" in reason:
                 if is_whitelisted:
                     print(
-                        f"⚠️  [ALLOWED BYPASS] Known safe test key ignored: {rel_path_str}"
+                        f"[ALLOWLIST BYPASS] Known safe test key ignored: {rel_path_str}"
                     )
                     leaks_allowed += 1
                 else:
-                    print(f"🚨 [PATH BREACH] Exposed Secret File: {rel_path_str}")
+                    print(f"[PATH BREACH] Exposed Secret File: {rel_path_str}")
                     leaks_found += 1
                 continue
 
@@ -118,7 +118,7 @@ def main():
                 files_to_deep_scan.append((file_path, rel_path_str, is_whitelisted))
 
     # ==============================================================================
-    # PASS 2: The Deep Scan (Internal Contents)
+    # PHASE 2: Deep Content Inspection
     # ==============================================================================
     print(f"\n🔎 Scanning {len(files_to_deep_scan):,} files for internal contents of:")
     print("   - Cloud Infrastructure Keys")
@@ -137,11 +137,11 @@ def main():
             if sec_results["counts"].get("private_info", 0) > 0:
                 if is_whitelisted:
                     print(
-                        f"⚠️  [ALLOWED BYPASS] Known safe secret ignored in: {rel_path_str}"
+                        f"[ALLOWLIST BYPASS] Known safe secret ignored in: {rel_path_str}"
                     )
                     leaks_allowed += 1
                 else:
-                    print(f"🚨 [CONTENT BREACH] Hardcoded Credential: {rel_path_str}")
+                    print(f"[CONTENT BREACH] Hardcoded Credential: {rel_path_str}")
                     for snip in sec_results["snippets"].get("private_info", []):
                         print(f"   -> {snip}")
                     leaks_found += 1
@@ -153,35 +153,35 @@ def main():
     scan_rate = len(files_to_deep_scan) / time_delta if time_delta > 0 else 0
 
     # ==============================================================================
-    # MISSION REPORT
+    # SCAN SUMMARY
     # ==============================================================================
     print("\n" + "=" * 75)
-    print(" 🛡️  VAULT SENTINEL: MISSION REPORT")
+    print(" 🛡️  VAULT SENTINEL: SCAN SUMMARY")
     print("=" * 75)
     print(f" Files Evaluated    : {files_evaluated:,}")
     print(f" Files Deep Scanned : {len(files_to_deep_scan):,}")
     print(f" Time Elapsed       : {time_delta:.2f} seconds")
     print(f" Scan Velocity      : {scan_rate:,.0f} files/sec")
     print("-" * 75)
-    print(f" UNCONTROLLED LEAKS     : {leaks_found:,}")
-    print(f" Denylist Blocks    : {forbidden_blocked:,}")
-    print(f" Allowlist Bypasses : {leaks_allowed:,}")
+    print(f" SECRETS DETECTED     : {leaks_found:,}")
+    print(f" Denylist Blocks      : {forbidden_blocked:,}")
+    print(f" Allowlist Bypasses   : {leaks_allowed:,}")
     print("-" * 75)
 
     if leaks_found > 0:
         print(
-            f" ❌ FAILED: {leaks_found} unauthorized secrets exposed. Blocking commit/PR."
+            f" [BLOCKING ACTION] {leaks_found} unauthorized secrets exposed. Failing pipeline."
         )
         print(
-            " 💡 TIP: If this is a false positive, add the file path to ALLOWLIST_PATHS"
+            " TIP: If this is a false positive, add the file path to ALLOWLIST_PATHS"
         )
         print("         inside gitgalaxy/standards/gitgalaxy_config.py")
         sys.exit(1)
     else:
-        print(" ✅ PASS: No unauthorized secrets detected. Vault is secure.")
+        print(" [SUCCESS] No unauthorized secrets detected.")
         if leaks_allowed > 0:
             print(
-                f" 💡 NOTE: {leaks_allowed} known mock/safe files were bypassed via configuration."
+                f" NOTE: {leaks_allowed} known mock/safe files were bypassed via configuration."
             )
     print("=" * 75 + "\n")
 
