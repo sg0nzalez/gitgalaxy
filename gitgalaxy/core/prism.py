@@ -13,20 +13,20 @@ from typing import Dict, List, Optional, Tuple, Any, TypedDict
 from gitgalaxy.standards.language_standards import LENS_CONFIG, PRISM_CONFIG
 
 # ==============================================================================
-# GitGalaxy Phase 2: Structural Refractor (The Prism)
-# Strategy v6.2.0 Protocol: Safe Delimiter Extraction & Singularity Bypasses
+# GitGalaxy Phase 2: Lexical Comment Scanner (The Prism)
+# Strategy v6.2.0 Protocol: Safe Delimiter Extraction & Format Bypasses
 # ==============================================================================
 
 
-class RefractionResult(TypedDict):
+class PrismResult(TypedDict):
     """
-    The dual-stream output of the Prism engine.
+    The dual-stream output of the Prism.
 
     Attributes:
-        code_stream (str): The pure logic stream (Active Matter).
-        comment_stream (str): The pure literature stream (Ghost Mass).
-        coding_loc (int): Lines of code (non-empty, non-literature).
-        doc_loc (int): Lines of literature/documentation.
+        code_stream (str): The pure executable logic stream.
+        comment_stream (str): The pure documentation/comment stream.
+        coding_loc (int): Lines of code (non-empty, non-comment).
+        doc_loc (int): Lines of comments/documentation.
     """
 
     code_stream: str
@@ -35,24 +35,31 @@ class RefractionResult(TypedDict):
     doc_loc: int
 
 
-class RefractionError(Exception):
-    """Exception raised for structural failures during the Optical Split."""
+class PrismError(Exception):
+    """Exception raised for structural failures during the lexical scan."""
 
     pass
 
 
 class Prism:
     """
-    GitGalaxy Phase 2: The Optical Split (Structural Refraction)
+    GitGalaxy Phase 2: The Prism (Lexical Stream Splitter)
 
-    PURPOSE: Performs high-fidelity structural refraction. Separates executable
-    logic (Active Matter) from documentation (Ghost Mass) while preserving string literals.
+    PURPOSE: Just as a physical prism splits a unified beam of light into distinct 
+    spectrums, this class performs high-speed lexical scanning to separate a unified 
+    file into pure executable logic and documentation streams while preserving string literals.
 
-    ARCHITECTURE (v6.2.0):
-    1. Singularity Bypass: Respects 'undeterminable' files by leaving them whole.
-    2. Dynamic Matrix: Safely compiles regex based on dynamic JSON config lengths.
-    3. String Literal Masking: Prevents logic erosion in recursive block comments (Rust/Swift).
-    4. Polyglot Delegation: 'lang_mix' tracking is now fully delegated to the Detector.
+    DEFENSIVE ARCHITECTURE (Why Regex over AST?):
+    Standard Abstract Syntax Trees (ASTs) are brittle, language-specific, and require 
+    compilable code. To achieve polyglot velocity and prioritize functional intent across 
+    50+ languages, the Prism utilizes highly bounded, ReDoS-proof regular expressions.
+
+    PIPELINE RULES (v6.2.0):
+    1. Format Bypass: Respects 'undeterminable' files by passing them untouched to prevent pipeline stalls.
+    2. Dynamic Regex Matrix: Pre-compiles standard comment rules at runtime based on the JSON configuration.
+    3. O(1) String Literal Masking: Temporarily masks string literals to prevent the scanner from 
+       accidentally mutating URLs or string contents that mimic comment delimiters.
+    4. Polyglot Delegation: Defers embedded language-mixing resolution to the primary Detector.
     """
 
     def __init__(
@@ -61,7 +68,7 @@ class Prism:
         language_definitions: Dict[str, Any],
         parent_logger: Optional[logging.Logger] = None,
     ):
-        """Initializes the Prism hardware and pre-compiles the optical matrix."""
+        """Initializes the Prism and pre-compiles the regex matrix."""
 
         # --- TELEMETRY SYNC ---
         if parent_logger:
@@ -71,33 +78,34 @@ class Prism:
             self.logger = logging.getLogger("prism")
             self.logger.setLevel(logging.INFO)
 
-        self.families = comment_definitions.get("mechanical_families", {})
+        self.lexical_families = comment_definitions.get("mechanical_families", {})
         self.languages = language_definitions
 
         self.logger.debug(
-            "Initializing Prism hardware and warming up optical matrix..."
+            "Initializing Prism and warming up regex matrix..."
         )
 
-        # --- TIER 1: THE STRING LITERAL SHIELD ---
-        self.SHIELD_PATTERN = PRISM_CONFIG.get("SHIELD_PATTERN", "")
+        # --- TIER 1: STRING LITERAL MASKING ---
+        # Defends against catastrophic backtracking and logic erosion inside strings
+        self.LITERAL_MASK_PATTERN = PRISM_CONFIG.get("SHIELD_PATTERN", "")
 
-        # --- TIER 2: OPTICAL CALIBRATION (Regex Pre-compilation) ---
-        self.PRISM_MATRIX: Dict[str, re.Pattern] = self._calibrate_matrix()
+        # --- TIER 2: REGEX PRE-COMPILATION ---
+        self.REGEX_MATRIX: Dict[str, re.Pattern] = self._compile_regex_matrix()
 
         # Phase 6.1 Handshake Registry (Synchronized securely via Universal Laws)
-        self.HANDSHAKES = []
-        for hs in LENS_CONFIG.get("HANDSHAKE_REGISTRY", []):
-            self.HANDSHAKES.append(
+        self.EMBEDDED_TRIGGERS = []
+        for trigger_config in LENS_CONFIG.get("HANDSHAKE_REGISTRY", []):
+            self.EMBEDDED_TRIGGERS.append(
                 {
-                    "trigger": re.compile(hs["trigger"], re.I),
-                    "end": re.compile(hs["end"], re.I),
-                    "target": hs["target"],
-                    "pair": hs["pair"],
+                    "trigger": re.compile(trigger_config["trigger"], re.I),
+                    "end": re.compile(trigger_config["end"], re.I),
+                    "target": trigger_config["target"],
+                    "pair": trigger_config["pair"],
                 }
             )
 
         # Performance Constants
-        self.HANDSHAKE_LOOKAHEAD_LIMIT = LENS_CONFIG.get("THRESHOLDS", {}).get(
+        self.EMBEDDED_LOOKAHEAD_LIMIT = LENS_CONFIG.get("THRESHOLDS", {}).get(
             "HANDSHAKE_LOOKAHEAD_LIMIT", 50000
         )
         self.NESTED_PEEL_LIMIT = PRISM_CONFIG.get("THRESHOLDS", {}).get(
@@ -119,13 +127,13 @@ class Prism:
         )
 
         self.logger.info(
-            f"Prism Engine Online | Calibrated {len(self.PRISM_MATRIX)} mechanical lenses."
+            f"Lexical Scanner Online | Calibrated {len(self.REGEX_MATRIX)} syntax rules."
         )
 
-    def refract(self, content: str, primary_lang: str) -> RefractionResult:
-        """Decouples the signal into mutually exclusive streams (Logic vs Literature)."""
+    def split_streams(self, content: str, primary_lang: str) -> PrismResult:
+        """Decouples the signal into mutually exclusive streams (Executable Logic vs Documentation)."""
         if not content:
-            self.logger.debug("Refraction skipped: Empty content buffer.")
+            self.logger.debug("Lexical Scan skipped: Empty content buffer.")
             return {
                 "code_stream": "",
                 "comment_stream": "",
@@ -136,7 +144,7 @@ class Prism:
         # --- THE UNPARSABLE BYPASS (Spec 2.3.4.A.1) ---
         if primary_lang in ("undeterminable", "unknown"):
             self.logger.debug(
-                f"Unparsable Bypass: '{primary_lang}' signal routed to Active Matter intact."
+                f"Unparsable Bypass: '{primary_lang}' signal routed to Executable Logic intact."
             )
             coding_loc = len([l for l in content.split("\n") if l.strip()])
             return {
@@ -150,7 +158,7 @@ class Prism:
         # Simply add "xml" to the tuple!
         if primary_lang in ("markdown", "plaintext", "xml"):
             self.logger.debug(
-                f"Prose Bypass: '{primary_lang}' signal routed to Ghost Mass intact."
+                f"Prose Bypass: '{primary_lang}' signal routed to Documentation intact."
             )
             doc_loc = len([l for l in content.split("\n") if l.strip()])
             return {
@@ -169,22 +177,22 @@ class Prism:
 
         try:
             # 3. THE SLIDING LOOP (Phase 6)
-            # We partition the file so embedded languages get their native comment lens applied.
-            segments = self._partition_segments(body, primary_lang)
+            # We partition the file so embedded languages get their native comment rules applied.
+            segments = self._partition_embedded_languages(body, primary_lang)
 
             if len(segments) > 1:
                 self.logger.info(
-                    f"Multi-language file detected in [{primary_lang}]. - Engaging dynamic language lens swap across {len(segments)} distinct file sections."
+                    f"Multi-language file detected in [{primary_lang}]. - Engaging dynamic syntax rule swap across {len(segments)} distinct file sections."
                 )
 
             for lang_id, segment_text in segments:
                 family = self.languages.get(lang_id, {}).get("lexical_family", "std_c")
                 self.logger.debug(
-                    f"Refracting segment [{lang_id}] using optical family '{family}'..."
+                    f"Scanning segment [{lang_id}] using syntax family '{family}'..."
                 )
 
-                # Refract the segment
-                seg_code, seg_comments = self._refract_segment(
+                # Strip comments from the segment
+                seg_code, seg_comments = self._strip_segment_comments(
                     segment_text, lang_id, family
                 )
 
@@ -207,7 +215,7 @@ class Prism:
             doc_loc = max(0, total_active_lines - coding_loc)
 
             self.logger.debug(
-                f"Refraction Complete: {coding_loc} Active LOC | {doc_loc} Ghost LOC."
+                f"Lexical Scan Complete: {coding_loc} Executable LOC | {doc_loc} Documentation LOC."
             )
 
             return {
@@ -219,25 +227,25 @@ class Prism:
 
         except Exception as e:
             self.logger.error(
-                f"Catastrophic structural failure during optical split: {e}",
+                f"Catastrophic structural failure during lexical scan: {e}",
                 exc_info=True,
             )
-            raise RefractionError(f"Prism failure: {e}")
+            raise PrismError(f"Prism failure: {e}")
 
-    def _refract_segment(self, text: str, lang_id: str, family: str) -> Tuple[str, str]:
-        """Surgically strips literature from a single segment using pre-compiled lenses."""
+    def _strip_segment_comments(self, text: str, lang_id: str, family: str) -> Tuple[str, str]:
+        """Surgically strips documentation from a single segment using pre-compiled rules."""
         if family == "nested_c":
-            code, lits = self._refract_nested(text)
+            code, lits = self._strip_nested_comments(text)
             return code, "\n".join(lits)
 
         if family == "positional":
-            return self._refract_positional(text)
+            return self._strip_positional_comments(text)
 
         # Retrieve the pre-compiled pattern (Zero redundant compilation)
-        pattern = self.PRISM_MATRIX.get(family)
+        pattern = self.REGEX_MATRIX.get(family)
         if not pattern:
             self.logger.debug(
-                f"No pre-compiled lens for family '{family}'. Returning unrefracted."
+                f"No pre-compiled rule for family '{family}'. Returning unmodified."
             )
             return text, ""
 
@@ -248,7 +256,7 @@ class Prism:
                 # Shielded Literal Hit (e.g. String containing a URL)
                 return m.group(1)
             if m.group(2):
-                # Literature Hit (Comment)
+                # Documentation Hit (Comment)
                 lits.append(m.group(2).strip())
             return ""
 
@@ -274,11 +282,11 @@ class Prism:
 
         return code, "\n".join(lits)
 
-    def _calibrate_matrix(self) -> Dict[str, re.Pattern]:
-        """Safely pre-compiles the standard prisms based on dynamic config lengths."""
+    def _compile_regex_matrix(self) -> Dict[str, re.Pattern]:
+        """Safely pre-compiles the standard regex matrix based on dynamic config lengths."""
         matrix = {}
 
-        for fam_key, data in self.families.items():
+        for fam_key, data in self.lexical_families.items():
             if fam_key in ("nested_c", "positional"):
                 continue
 
@@ -340,7 +348,7 @@ class Prism:
                 try:
                     # ---> THE FIX: Strip any rogue inline flags injected by the config <---
                     p = p.replace("(?i)", "").replace("(?m)", "").replace("(?s)", "")
-                    full_pattern = f"{self.SHIELD_PATTERN}|{p}"
+                    full_pattern = f"{self.LITERAL_MASK_PATTERN}|{p}"
 
                     flags = re.S | re.M
                     if fam_key == "singular":
@@ -348,7 +356,7 @@ class Prism:
 
                     matrix[fam_key] = re.compile(full_pattern, flags)
                     self.logger.debug(
-                        f"Optical matrix calibrated for family: {fam_key}"
+                        f"Regex matrix compiled for family: {fam_key}"
                     )
                 except re.error as e:
                     self.logger.error(
@@ -358,7 +366,7 @@ class Prism:
         return matrix
 
     def _strip_python_docstrings(self, text: str) -> Tuple[str, List[str]]:
-        """Hardened extraction for standalone triple-quoted literature blocks (O(N) Single Pass)."""
+        """Hardened extraction for standalone triple-quoted documentation blocks (O(N) Single Pass)."""
         docs = []
 
         def callback(m: re.Match) -> str:
@@ -373,7 +381,7 @@ class Prism:
         lits = []
 
         def capture_lit(m: re.Match) -> str:
-            # Save the literal into the Ghost Mass stream
+            # Save the literal into the Documentation stream
             lits.append(m.group(0).strip())
             # Replace with a safe, empty string literal to preserve PHP array syntax
             return '""'
@@ -386,10 +394,10 @@ class Prism:
 
         return text, lits
 
-    def _partition_segments(
+    def _partition_embedded_languages(
         self, content: str, primary_id: str
     ) -> List[Tuple[str, str]]:
-        """Splits content into language segments based on handshake triggers."""
+        """Splits content into language segments based on embedded language triggers."""
         segments = []
         last_idx = 0
 
@@ -398,10 +406,10 @@ class Prism:
         # Bypasses expensive case-insensitive regex scans unless the trigger literal is actually present.
         content_lower = None
 
-        for h in self.HANDSHAKES:
+        for t_config in self.EMBEDDED_TRIGGERS:
             # Extract a reliable literal hint (e.g., 'script', 'style', 'asm')
             hint = (
-                h["trigger"]
+                t_config["trigger"]
                 .pattern.lower()
                 .replace("\\s*", "")
                 .replace("\\b", "")
@@ -418,13 +426,13 @@ class Prism:
                 if hint not in content_lower:
                     continue  # Skip the expensive regex entirely!
 
-            for m in h["trigger"].finditer(content):
+            for m in t_config["trigger"].finditer(content):
                 triggers.append(
                     {
                         "start": m.start(),
-                        "end_pattern": h["end"],
-                        "target": h["target"],
-                        "pair": h["pair"],
+                        "end_pattern": t_config["end"],
+                        "target": t_config["target"],
+                        "pair": t_config["pair"],
                         "trigger_end": m.end(),
                     }
                 )
@@ -436,7 +444,7 @@ class Prism:
                 continue
 
             self.logger.debug(
-                f"Handshake Trigger: Alien segment '{t['target']}' discovered at offset {t['start']}."
+                f"Embedded Trigger: Embedded Language Block '{t['target']}' discovered at offset {t['start']}."
             )
 
             if t["start"] > last_idx:
@@ -449,7 +457,7 @@ class Prism:
                 )
             else:
                 search_limit = min(
-                    t["trigger_end"] + self.HANDSHAKE_LOOKAHEAD_LIMIT, len(content)
+                    t["trigger_end"] + self.EMBEDDED_LOOKAHEAD_LIMIT, len(content)
                 )
                 end_match = t["end_pattern"].search(
                     content, pos=t["trigger_end"], endpos=search_limit
@@ -457,7 +465,7 @@ class Prism:
                 end_idx = end_match.end() if end_match else len(content)
                 if not end_match and end_idx == search_limit:
                     self.logger.warning(
-                        "Lens Scope Guard: Failed to find closure within limit. Forcing clip."
+                        "Scanner Scope Guard: Failed to find closure within limit. Forcing clip."
                     )
 
             segments.append((t["target"], content[t["start"] : end_idx]))
@@ -471,10 +479,10 @@ class Prism:
     def _find_balanced_end(
         self, text: str, start_pos: int, opener: str, closer: str
     ) -> int:
-        """Balanced scoping implementation for paired-bracket alien segments."""
+        """Balanced scoping implementation for paired-bracket embedded segments."""
         depth = 0
         in_string: Optional[str] = None
-        limit = min(start_pos + self.HANDSHAKE_LOOKAHEAD_LIMIT, len(text))
+        limit = min(start_pos + self.EMBEDDED_LOOKAHEAD_LIMIT, len(text))
 
         i = start_pos
         while i < limit:
@@ -511,16 +519,16 @@ class Prism:
             i += 1
 
         self.logger.warning(
-            f"Lens Scope Guard: Failed to find balanced '{opener}{closer}'. Forcing closure."
+            f"Scanner Scope Guard: Failed to find balanced '{opener}{closer}'. Forcing closure."
         )
         return limit
 
-    def _refract_nested(self, text: str) -> Tuple[str, List[str]]:
+    def _strip_nested_comments(self, text: str) -> Tuple[str, List[str]]:
         """
-        While-Peel loop for recursively nested block comments (e.g. Rust/Swift/Scala).
+        Iterative Peel loop for recursively nested block comments (e.g. Rust/Swift/Scala).
         Hardened with active string-masking to prevent logic erosion.
         """
-        delims = self.families.get("nested_c", {}).get("delimiters", ["//", "/*", "*/"])
+        delims = self.lexical_families.get("nested_c", {}).get("delimiters", ["//", "/*", "*/"])
         if len(delims) < 3:
             return text, []
 
@@ -529,7 +537,7 @@ class Prism:
 
         # 1. Protect Strings via Safe Masking
         # Masking prevents the `.rfind` mathematical loop from tearing apart string literals
-        shield = re.compile(self.SHIELD_PATTERN, re.S | re.M)
+        shield = re.compile(self.LITERAL_MASK_PATTERN, re.S | re.M)
         string_cache = {}
 
         def _shield_replacer(m: re.Match) -> str:
@@ -592,8 +600,8 @@ class Prism:
         # 4. Final Logic Unmasking
         return unmask(protected_code), lits
 
-    def _refract_positional(self, text: str) -> Tuple[str, str]:
-        """Column-anchored and Inline stripping for legacy species (COBOL/Fortran)."""
+    def _strip_positional_comments(self, text: str) -> Tuple[str, str]:
+        """Column-anchored and Inline stripping for legacy languages (COBOL/Fortran)."""
         code, lits = [], []
 
         for line in text.split("\n"):

@@ -251,7 +251,7 @@ class SpectralAuditor:
             # THE DYNAMIC AUDITABILITY CHECK (Code vs. Structure vs. Data)
             # =================================================================
             is_inert = False
-            is_structural = False
+            _is_structural = False
 
             if hasattr(self, "lang_defs") and lid in self.lang_defs:
                 rules = self.lang_defs[lid].get("rules", {})
@@ -273,7 +273,7 @@ class SpectralAuditor:
                 # If a language is missing ~25% or more of its sensors (like pointers,
                 # memory allocation, or closures), it is Structural, not Turing-complete.
                 elif active_signals <= (total_signals * 0.75):
-                    is_structural = True
+                    _is_structural = True
             else:
                 is_inert = True  # Unknown/Undefined languages are inert by default
 

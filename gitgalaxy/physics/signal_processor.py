@@ -524,7 +524,7 @@ class SignalProcessor:
             func_ml_brain = getattr(
                 analysis_lens, "GENERAL_FUNCTION_INFERENCE_MODEL", {}
             )
-            f_features = func_ml_brain.get("features", [])
+            _f_features = func_ml_brain.get("features", [])
             f_medians = func_ml_brain.get("SCALER_MEDIANS", [])
             f_iqrs = func_ml_brain.get("SCALER_IQRS", [])
             f_arch_key = next(
@@ -583,7 +583,7 @@ class SignalProcessor:
 
                     # 2. Archetype Euclidean Classification
                     s["archetype"] = "Unclassified"
-                    if f_centroids:  # <--- REMOVED f_features STRICT REQUIREMENT
+                    if f_centroids:  # <--- REMOVED _f_features STRICT REQUIREMENT
                         raw_vec = [
                             float(s.get("branch", 0)),
                             float(s.get("loc", 0)),

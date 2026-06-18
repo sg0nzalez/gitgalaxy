@@ -76,8 +76,8 @@ def main():
 
         # Shield Bypass & Top-Level Optimization (Fixed Root Traversal Bug)
         if rel_root == ".":
-            dirs[:] = [d for d in dirs if filter_engine._check_solar_shield(d)]
-        elif not filter_engine._check_solar_shield(rel_root):
+            dirs[:] = [d for d in dirs if filter_engine._check_ignore_rules(d)]
+        elif not filter_engine._check_ignore_rules(rel_root):
             dirs[:] = []
             continue
 
@@ -249,8 +249,8 @@ def run_xray_audit(target_path: Path) -> dict:
     for root, dirs, files in os.walk(target_path):
         rel_root = str(Path(root).relative_to(target_path))
         if rel_root == ".":
-            dirs[:] = [d for d in dirs if filter_engine._check_solar_shield(d)]
-        elif not filter_engine._check_solar_shield(rel_root):
+            dirs[:] = [d for d in dirs if filter_engine._check_ignore_rules(d)]
+        elif not filter_engine._check_ignore_rules(rel_root):
             dirs[:] = []
             continue
 

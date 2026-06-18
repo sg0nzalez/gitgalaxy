@@ -153,7 +153,6 @@ class LLMRecorder:
         """Constructs a high-density, context-rich Markdown brief for LLM agents."""
         target = session_meta.get("target", "Project")
         sum_data = summary.get("summary", {})
-        health = summary.get("health", {})
         comp = summary.get("composition", {})
         git_audit = session_meta.get("git_audit", {})
 
@@ -1461,7 +1460,7 @@ class LLMRecorder:
             "> 3. **Security & Vulnerabilities:** Immediately surface any critical threats flagged in the `AI THREAT INTELLIGENCE (XGBoost)` section. If none exist, briefly confirm the repository is secure from recognized structural threats."
         )
         lines.append(
-            "> 4. **Outliers & Extremes:** Focus strictly on statistical anomalies. Highlight files or constellations with massive Cumulative Risk, severe Z-Scores (Architectural Drift), or extreme spikes in individual risk vectors (like State Flux or Cognitive Load). Ignore normal, healthy code."
+            "> 4. **Outliers & Extremes:** Focus strictly on statistical anomalies. Highlight files or constellations with massive Cumulative Risk, severe Z-Scores (Architectural Drift), or extreme spikes in individual risk vectors (like State Flux or Cognitive Load). Ignore normal, _healthy code."
         )
         lines.append(
             "> 5. **Recommended Next Steps (Refactoring for Stability):** Provide 2-3 highly specific, pragmatic suggestions focused strictly on reducing outliers. Instruct the user on how to refactor high Z-score files, decouple massive 'God Nodes', or mitigate extreme risk exposures to stabilize the system's architecture."
