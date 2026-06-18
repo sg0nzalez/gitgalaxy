@@ -144,9 +144,9 @@ def _init_worker(
 
     # --- NEW: Decide the Rules of Engagement before booting the engines ---
     if config.get("PARANOID_MODE", False):
-        active_policy = ThreatPolicy.get_policy("paranoid")
+        _active_policy = ThreatPolicy.get_policy("paranoid")
     else:
-        active_policy = ThreatPolicy.get_policy("baseline")
+        _active_policy = ThreatPolicy.get_policy("baseline")
 
     _worker_state.update(
         {
@@ -172,7 +172,7 @@ def _init_worker(
             "signal": SignalProcessor(
                 aperture_config=config, parent_logger=worker_logger
             ),
-            "security": SecurityLens(policy=active_policy),
+            "security": SecurityLens(policy=_active_policy),
             # --------------------------------------------------------
         }
     )
@@ -210,10 +210,6 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     tokenizer = _worker_state["word_tokenizer"]
 
     # --- NEW: Extract the Analysis Engines from worker memory ---
-    chronometer = _worker_state["chronometer"]
-    signal_engine = _worker_state[
-        "signal"
-    ]  # Renamed to avoid shadowing 'import signal'
     security = _worker_state["security"]
     # -----------------------------------------------------------
 
@@ -676,7 +672,6 @@ class Orchestrator:
         self.root = self._prepare_target(target_input)
 
         lang_defs = config.get("LANGUAGE_DEFINITIONS", {})
-        comm_defs = config.get("COMMENT_DEFINITIONS", {})
         aperture_cfg = config.get("APERTURE_CONFIG", {})
         priority_whitelist = config.get("PRIORITY_WHITELIST", [])
 
@@ -720,12 +715,12 @@ class Orchestrator:
 
         # --- NEW: THE SMART THREAT SWITCH (MAIN THREAD) ---
         if self.config.get("PARANOID_MODE", False):
-            active_policy = ThreatPolicy.get_policy("paranoid")
+            _active_policy = ThreatPolicy.get_policy("paranoid")
         else:
-            active_policy = ThreatPolicy.get_policy("baseline")
+            _active_policy = ThreatPolicy.get_policy("baseline")
 
         # Zero-Trust execution validation
-        self.security_analyzer = SecurityLens(policy=active_policy)
+        self.security_analyzer = SecurityLens(policy=_active_policy)
 
         # Multi-class XGBoost threat classification model
         self.model_auditor = SecurityAuditor(
@@ -2618,15 +2613,12 @@ def main():
 
         # --- THE SMART THREAT SWITCH ---
         if args.paranoid:
-            active_policy = ThreatPolicy.get_policy("paranoid")
+            _active_policy = ThreatPolicy.get_policy("paranoid")
             logging.getLogger("GalaxyScope").info(
                 "🔒 ZERO-TRUST MODE: Security Lens thresholds set to maximum sensitivity."
             )
         else:
-            active_policy = ThreatPolicy.get_policy("baseline")
-
-        # Boot the lens with the chosen policy
-        security_lens = SecurityLens(policy=active_policy)
+            _active_policy = ThreatPolicy.get_policy("baseline")
         # -------------------------------
 
         # ---------------------------------------------------------
