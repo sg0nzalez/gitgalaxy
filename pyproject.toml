@@ -108,3 +108,6 @@ exclude = [
     "tests/fixtures/*",
 ]
 line-length = 120
+
+[tool.ruff.lint]
+extend-ignore = ["E741"]
