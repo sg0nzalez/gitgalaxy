@@ -1,6 +1,5 @@
 import sqlite3
 import pytest
-import json
 from unittest.mock import patch
 from gitgalaxy.recorders.record_keeper import RecordKeeper
 
