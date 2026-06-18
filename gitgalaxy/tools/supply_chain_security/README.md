@@ -1,83 +1,64 @@
-# GitGalaxy: Supply Chain Security & Pre-Commit Sentinels
+# GitGalaxy Tools: Supply Chain Security Suite
 
-[![Integration](https://img.shields.io/badge/Integration-CI%2FCD_Ready-00C957.svg)](#)
-[![Accuracy](https://img.shields.io/badge/Accuracy-Internal_File_Scanning-00BFFF.svg)](#)
-[![Defense](https://img.shields.io/badge/Defense-Zero__Trust-FF4500.svg)](#)
+This directory contains the CI/CD gating mechanisms, pre-commit hooks, and dependency validation engines for GitGalaxy.
 
-Welcome to the **GitGalaxy Supply Chain Security Suite**.
+Standard software composition analysis (SCA) tools inherently possess a critical blind spot: they act as manifest readers. They scan `package.json` or `requirements.txt` and cross-reference those declarations against known CVE databases. Modern supply chain compromises bypass this entirely by omitting malicious payloads from the manifest declarations.
 
-Standard security scanners ([like Snyk, Dependabot, or Trivy](https://squid-protocol.github.io/gitgalaxy/04-00-security_landscape/)) have a massive blind spot: they read your `package.json` or `requirements.txt` and check those names against CVE databases. They act as manifest readers, never looking inside the actual downloaded files. 
+The GitGalaxy Supply Chain Security Suite operates on a strict Zero-Trust model. Powered by the core blAST Engine, these tools bypass manifest assumptions and physically scan the structural mechanics of every dependency file on disk before it enters the build pipeline.
 
-Modern attackers (like the **XZ-Utils** or **Glassworm** campaigns) exploit this. They don't announce their malware in a manifest.
+## Architectural Philosophy & Defensive Engineering
 
-GitGalaxy operates differently. Powered by the [blAST Engine](https://squid-protocol.github.io/gitgalaxy/01-03-the-blast-paradigm/), we bypass compilation and rigid ASTs entirely. We scan the physical internals of every dependency file at extreme velocities (100k+ LOC/sec) before it enters your system, identifying threats via minimal keyword permutations rather than waiting for a CVE to be published.
+To intercept zero-day supply chain compromises, steganography, and credential leaks without introducing developer friction or CI/CD bottlenecks, these modules employ several high-velocity defensive paradigms:
 
-### 🛡️ What We Stop
-We provide highly effective, zero-trust defense against structural threats:
-* **Hidden Executables:** Steganography and [XZ-Utils attack patterns](https://squid-protocol.github.io/gitgalaxy/04-05-binary-anomaly-detector/).
-* **Malicious Typosquatting:** Unicode homoglyphs tricking developer imports.
-* **Encrypted Payloads:** Sub-atomic XOR decryption loops hiding inside utility files.
-* **Hostile I/O:** Shadow imports establishing covert outbound connections.
-* **API Drift:** Network sockets hidden inside undocumented [Shadow APIs](https://squid-protocol.github.io/gitgalaxy/04-01-full-api-network-map/).
+### 1. Zero-Trust Dependency Verification
+Manifests can be spoofed. The `supply_chain_firewall.py` ignores dependency declarations and instead parses the actual, physical `import` and `require` statements within the downloaded `node_modules` or `venv` directories. It maps this physical execution graph against strict enterprise allowlists, instantly flagging unauthorized network requests, nested typosquatting, or anomalous I/O hooks.
 
----
+### 2. High-Velocity Secret Detection
+Pre-commit hooks must operate in milliseconds, or developers will bypass them. `vault_sentinel.py` utilizes a two-tier approach. Tier 0 performs instant O(1) path evaluation, blocking high-risk file extensions (e.g., `.pem`, `id_rsa`) before disk I/O occurs. Tier 1 executes deep content scanning to isolate exposed cryptographic keys and SaaS tokens—even if they are buried in commented-out dead code.
 
-### 🛠️ The Sentinel Tools
-
-Wired directly into your Git Pre-Commit hooks or CI/CD pipelines, these sentinels act as a physical firewall to fail poisoned builds early.
-
-#### 1. [The Supply Chain Firewall](https://squid-protocol.github.io/gitgalaxy/04-03-supply-chain-firewall/) (`supply-chain-firewall`)
-Scans massive `node_modules` or `venv` directories in seconds.
-* **Zero-Trust Verification:** Checks every physical `import` against strict allowlists.
-* **Behavioral Heuristics:** Scans for tainted data injection routines and parasitic logic.
-
-#### 2. [Zero-Trust SBOM Generator](https://squid-protocol.github.io/gitgalaxy/04-02-sbom-generator/) (`sbom-generator`)
-Standard SBOMs blindly trust manifests. Ours doesn't.
-* **Physical Audits:** Extracts and micro-scans files from every downloaded dependency.
-* **CycloneDX 1.4:** Generates compliant manifests injected with physical threat telemetry.
-
-#### 3. [X-Ray Inspector](https://squid-protocol.github.io/gitgalaxy/04-05-binary-anomaly-detector/) (`xray-inspector`)
-Designed to fast-triage binary files and encrypted malware without cloud processing.
-* **Magic Byte Validation:** Catches executable scripts disguised as harmless `.png` images.
-* **Entropy Math:** Flags high-entropy encrypted text payloads (Shannon Entropy > 4.8).
-* **Parasitic Headers:** Detects executable logic inside static data blobs.
-
-#### 4. [Vault Sentinel](https://squid-protocol.github.io/gitgalaxy/04-04-vault-sentinel/) (`vault-sentinel`)
-A hyper-speed pre-commit hook strictly for localized secret detection.
-* **Tier 0 Path Blocking:** Instantly blocks sensitive file path commits (e.g., `.pem`, `id_rsa`).
-* **Deep Content Scanning:** Hunts for hardcoded cloud cryptographic keys and SaaS tokens.
-* **Graveyard Detection:** Finds abandoned passwords sitting in [commented-out dead code](https://squid-protocol.github.io/gitgalaxy/08-13-graveyard-detector/).
+### 3. Heuristic Binary Triage (Zero-Cloud Execution)
+Advanced compromises often hide executable logic inside seemingly inert data blobs. `binary_anomaly_detector.py` performs localized binary triage without uploading artifacts to cloud sandboxes. It validates structural magic bytes to catch scripts disguised as images, and utilizes mathematically optimized Shannon Entropy calculations to flag highly obfuscated or packed payloads (Entropy > 4.8).
 
 ---
 
-### ⚡ Performance Showcases
+## Core Modules (The Sentinels)
+
+Each file in this directory acts as a discrete, specialized firewall for your development and deployment pipelines:
+
+* **`supply_chain_firewall.py` (Dependency Integrity Gate):** Scans the physical execution graph of downloaded dependencies. It cross-references the core engine's structural telemetry to block packages exhibiting unauthorized behavioral heuristics (e.g., unexpected data injection routines, execution of OS-level processes during installation).
+* **`binary_anomaly_detector.py` (Binary Anomaly Detector):** Designed for rapid triage of binaries and obfuscated files. It detects embedded execution headers hidden inside static data, validates file extension integrity, and flags extreme cryptographic entropy indicating packed malware or byte-level obfuscation loops.
+* **`vault_sentinel.py` (Vault Sentinel):** A hyper-speed pre-commit hook strictly for localized credential detection. It enforces Tier 0 path blocking and executes deep-content cryptographic scans to prevent hardcoded cloud keys, database passwords, and API tokens from entering version control.
+
+---
+
+## ⚡ Performance Showcases
 
 #### Showcase A: Vault Sentinel (Secret Detection)
-To prove this engine operates fast enough to be a synchronous pre-commit hook without frustrating developers, we unleashed the **Vault Sentinel** on the massive **tRPC** TypeScript monorepo. 
+To prove this engine operates fast enough to be a synchronous pre-commit hook without frustrating developers, we executed the **Vault Sentinel** against the massive **tRPC** TypeScript monorepo. 
 
 The engine evaluated 871 files and performed deep-content cryptographic scans on 695 of them in **0.53 seconds** (processing over 1,300 files per second). It successfully intercepted 7 exposed environment files and caught a hardcoded API key before the commit could execute.
 
-![Vault Sentinel Demo](../../../docs/wiki/assets/vault_sentinel_scan.gif)
+![Vault Sentinel Demo](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/vault_sentinel_scan.gif)
 
-#### Showcase B: X-Ray Inspector (Malware & Binary Triage)
-To test binary detection, we ran the **X-Ray Inspector** against **pwntools**, an exploit development framework containing actual compiled binaries and shellcode.
+#### Showcase B: Binary Anomaly Detector (Malware & Binary Triage)
+To test binary detection, we ran the **Binary Anomaly Detector** against **pwntools**, an exploit development framework containing actual compiled binaries and shellcode.
 
-The engine ripped through the repository at **2,825 files per second**. By reading the raw physical bytes rather than trusting file extensions, it instantly detected 13 parasitic `ELF` execution headers embedded inside the source tree.
+The engine processed the repository at a velocity of **2,825 files per second**. By reading the raw physical bytes rather than trusting file extensions, it instantly detected 13 embedded `ELF` execution headers hidden inside the source tree.
 
-![X-Ray Inspector Demo](../../../docs/wiki/assets/xray_inspector_scan.gif)
+![Binary Anomaly Detector Demo](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/xray_inspector_scan.gif)
 
 ```text
 ===========================================================================
- ☢️  X-RAY INSPECTOR: MISSION REPORT
+ BINARY ANOMALY DETECTOR: SCAN SUMMARY
 ===========================================================================
  Files Evaluated    : 95
  Files Deep Scanned : 95
  Time Elapsed       : 0.03 seconds
  Scan Velocity      : 2,825 files/sec
 ---------------------------------------------------------------------------
- Active Anomalies   : 13
+ Anomalies Detected : 13
 ---------------------------------------------------------------------------
- ❌ TRIAGE ALERT: 13 structural anomalies detected. Blocking commit/PR.
+ [BLOCKING ACTION] 13 structural anomalies detected. Failing pipeline.
 ```
 
 #### Showcase C: Supply Chain Firewall (Infrastructure-as-Code Audit)
@@ -85,11 +66,11 @@ To prove the firewall can handle diverse polyglot ecosystems without throwing fa
 
 The engine parsed 1,834 files at a velocity of **436 files per second**. It successfully verified the integrity of the dependency tree, identified 54 unknown packages for audit, and cleared the build without tripping any false alarms on standard Go/HCL syntax.
 
-![Supply Chain Firewall Demo](../../../docs/wiki/assets/terraform_firewall_scan.gif)
+![Supply Chain Firewall Demo](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/terraform_firewall_scan.gif)
 
 ```text
 ===========================================================================
- 🧱 SUPPLY CHAIN FIREWALL: MISSION REPORT
+ SUPPLY CHAIN FIREWALL: SCAN SUMMARY
 ===========================================================================
  Mode               : Audit (Allow Whitelist + Unknown, Exclude Blacklist)
  Files Deep Scanned : 1,834
@@ -101,19 +82,32 @@ The engine parsed 1,834 files at a velocity of **436 files per second**. It succ
 ---------------------------------------------------------------------------
  Active Threats       : 0
 ---------------------------------------------------------------------------
- ✅ BUILD PASSED: Dependency supply chain is clean.
+ [SUCCESS] Dependency supply chain is clean.
 ```
 
 ---
 
-### 🚀 Quickstart: CI/CD & Pre-Commit Integration
+## CI/CD & Pre-Commit Integration
 
-GitGalaxy is designed for frictionless adoption. You can install it globally via PyPI (`pip install gitgalaxy`) or run it natively in GitHub Actions without installing anything. 
+These sentinels are designed to be wired directly into your Git workflows to fail compromised builds autonomously.
 
-#### 1. Global GitHub Marketplace Action (Recommended)
-You can drop GitGalaxy into any repository immediately using our official [GitHub Marketplace Action](https://github.com/marketplace/actions/gitgalaxy-scanner).
+**Local Pre-Commit Hook Integration:**
+To run the Vault Sentinel automatically before every commit, add this configuration to your `.pre-commit-config.yaml` file:
 
-Add this to your `.github/workflows/security.yml` file:
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: gitgalaxy-vault-sentinel
+        name: GitGalaxy Vault Sentinel
+        entry: vault-sentinel
+        language: system
+        types: [text]
+        pass_filenames: true
+```
+
+**GitHub Actions Integration:**
+You can deploy these sentinels directly into your CI/CD pipeline using the official [GitGalaxy GitHub Action](https://github.com/marketplace/actions/gitgalaxy-scanner).
 
 ```yaml
 name: GitGalaxy Zero-Trust Audit
@@ -130,34 +124,13 @@ jobs:
           tool: 'supply-chain-firewall'
 ```
 
-#### 2. Local CLI Execution
-```bash
-supply-chain-firewall ./node_modules/
-xray-inspector ./src/
-vault-sentinel .
-```
-
-#### 3. Local Pre-Commit Hook Integration
-To run the Vault Sentinel automatically before every commit, add this to your `.pre-commit-config.yaml` file:
-
-```yaml
-repos:
-  - repo: local
-    hooks:
-      - id: gitgalaxy-vault-sentinel
-        name: GitGalaxy Vault Sentinel
-        entry: vault-sentinel
-        language: system
-        types: [text]
-        pass_filenames: true
-```
-
 ---
-### 🌌 Explore the GitGalaxy Wiki
-This toolsuite is just one spoke in the larger GitGalaxy ecosystem. Explore the official documentation to see the math and methodology behind our AST-free engine:
 
-* 📖 **[The Competitive Landscape (How We Beat the Status Quo)](https://squid-protocol.github.io/gitgalaxy/04-00-security_landscape/)**
-* 📖 **[Supply Chain Firewall Architecture](https://squid-protocol.github.io/gitgalaxy/04-03-supply-chain-firewall/)**
-* 📖 **[Binary Anomaly & Entropy Mathematics](https://squid-protocol.github.io/gitgalaxy/04-05-binary-anomaly-detector/)**
-* 📖 **[Hardcoded Secrets Exposure Equations](https://squid-protocol.github.io/gitgalaxy/08-23-hardcoded-secrets-exposure/)**
-* 🪐 **[Return to the Main GitGalaxy Hub](https://github.com/squid-protocol/gitgalaxy)**
+## 🌌 Powered by the blAST Engine
+
+This documentation is part of the [GitGalaxy Ecosystem](https://squid-protocol.github.io/gitgalaxy/), an AST-free, LLM-free heuristic knowledge graph engine.
+
+* 🪐 **[GitGalaxy Official Documentation](https://squid-protocol.github.io/gitgalaxy/)** - Deep dives into the mathematics and pipeline architecture.
+* 🔭 **[GitGalaxy Visualizer](http://gitgalaxy.io/)** - Render your codebase locally in 3D using WebGPU.
+* 📖 **[The blAST Paradigm Wiki](https://squid-protocol.github.io/gitgalaxy/docs/wiki/01-03-the-blast-paradigm/)** - The academic and structural thesis backing the engine.
+* ⚙️ **[Language Calibration Standards](https://github.com/squid-protocol/gitgalaxy/blob/main/gitgalaxy/standards/how_to_add_a_language.md)** - Guide to extending the comparative lexical taxonomy.
