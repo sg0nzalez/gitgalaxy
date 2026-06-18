@@ -23,13 +23,9 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Union, Set
 from collections import defaultdict
 
-# Hardware Layer (Strategy v6.2 Protocol - Optical Pipeline)
 from gitgalaxy.core.network_risk_sensor import HAS_NETWORKX
 from gitgalaxy.core.detector import HAS_TIKTOKEN
-from gitgalaxy.core.aperture import (
-    ApertureFilter,
-    InaccessibleArtifactError,
-)
+from gitgalaxy.core.aperture import ApertureFilter, InaccessibleArtifactError
 from gitgalaxy.core.guidestar_lens import GuideStarLens
 from gitgalaxy.standards.language_lens import LanguageDetector
 from gitgalaxy.core.prism import Prism
@@ -38,41 +34,26 @@ from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
 from gitgalaxy.physics.chronometer import Chronometer
 from gitgalaxy.physics.signal_processor import SignalProcessor
 from gitgalaxy.physics.spectral_auditor import SpectralAuditor
+from gitgalaxy.tools.network_auditing.full_api_network_map import run_api_audit
+from gitgalaxy.tools.supply_chain_security.binary_anomaly_detector import run_xray_audit
+from gitgalaxy.tools.supply_chain_security.supply_chain_firewall import run_firewall_audit
 from gitgalaxy.recorders.gpu_recorder import GPURecorder
 from gitgalaxy.recorders.audit_recorder import AuditRecorder
 from gitgalaxy.recorders.llm_recorder import LLMRecorder
 from gitgalaxy.recorders.record_keeper import RecordKeeper
 from gitgalaxy.security.security_lens import SecurityLens
 from gitgalaxy.security.security_auditor import SecurityAuditor, ML_AVAILABLE
+from gitgalaxy.tools.ai_guardrails.dev_agent_firewall import DevAgentFirewall
+from gitgalaxy.tools.ai_guardrails.ai_appsec_sensor import AIAppSecSensor
+from gitgalaxy.standards.gitgalaxy_config import APERTURE_CONFIG,PRIORITY_WHITELIST,COMMENT_DEFINITIONS, GUIDESTAR_CONFIG, TEST_NAMING_CONVENTIONS
+from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS, PROJECT_OVERRIDES
+from gitgalaxy.standards.analysis_lens import ThreatPolicy, PATH_MODIFIERS, PHYSICS_ASSET_MASKS
 
 try:
     import yaml
-
     HAS_PYYAML = True
 except ImportError:
     HAS_PYYAML = False
-
-from gitgalaxy.tools.ai_guardrails.dev_agent_firewall import DevAgentFirewall
-from gitgalaxy.tools.ai_guardrails.ai_appsec_sensor import AIAppSecSensor
-from gitgalaxy.standards.gitgalaxy_config import (
-    APERTURE_CONFIG,
-    PRIORITY_WHITELIST,
-    COMMENT_DEFINITIONS,
-)
-from gitgalaxy.standards.language_standards import (
-    LANGUAGE_DEFINITIONS,
-    PROJECT_OVERRIDES,
-)
-from gitgalaxy.standards.analysis_lens import (
-    ThreatPolicy,
-    PATH_MODIFIERS,
-    PHYSICS_ASSET_MASKS,
-)
-from gitgalaxy.tools.network_auditing.full_api_network_map import run_api_audit
-from gitgalaxy.tools.supply_chain_security.binary_anomaly_detector import run_xray_audit
-from gitgalaxy.tools.supply_chain_security.supply_chain_firewall import (
-    run_firewall_audit,
-)
 
 logger = logging.getLogger("GalaxyScope")
 
@@ -87,9 +68,14 @@ _worker_state = {}
 
 
 def redos_guillotine(signum, frame):
-    """Hardware-level interrupt for regex saturation."""
+    """
+    Hardware-level OS interrupt for Catastrophic Backtracking (ReDoS) protection.
+    
+    Registered via the Unix 'signal' library, this guillotine forcibly halts the worker 
+    process if a malformed file traps the regex engine in an exponential evaluation loop 
+    for more than 15 seconds, preventing pipeline starvation.
+    """
     raise TimeoutError("Structural Saturation (ReDoS Timeout)")
-
 
 def _init_worker(
     root_str: str,
@@ -101,10 +87,12 @@ def _init_worker(
 ):
     """
     Initializes the CPU-bound optical modules within the worker process's isolated memory.
-
-    PERFORMANCE FIX:
-    Force-warms pseudo-languages (plaintext/markdown) to kill the 'Plaintext Stutter'.
-    This prevents [AUTO-HEAL] log spam and redundant regex compilation.
+    Python's Global Interpreter Lock (GIL) prevents true multi-threading for CPU-bound tasks. 
+    To map a massive repository at extreme velocity, GitGalaxy spawns entirely separate OS 
+    processes. This function acts as the boot-loader for those child processes. It instantiates 
+    the heavy regex matrices (The Splicer, Prism, etc.) entirely within the child's isolated 
+    RAM. This prevents the OS from attempting to pickle/serialize massive compiled regex objects 
+    across the IPC (Inter-Process Communication) boundary, which would instantly crash the pipeline.
     """
 
     logging.getLogger().setLevel(log_level)
@@ -363,7 +351,10 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                 if avg_line_length > 800 or (size_bytes > 50000 and total_loc < 15):
                     is_minified = True
 
-            if re.search(r"\.min\.[a-z]+$|/vendor/|node_modules/", full_path_str, re.I):
+            vendor_paths = _worker_state["config"].get("APERTURE_CONFIG", {}).get("VENDOR_MINIFICATION_PATHS", [])
+            safe_path = full_path_str.replace("\\", "/")
+            
+            if re.search(r"\.min\.[a-z]+$", full_path_str, re.I) or any(v in safe_path for v in vendor_paths):
                 is_minified = True
 
             if is_minified:
@@ -554,12 +545,29 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
 
 # ==============================================================================
 # GitGalaxy Phase 3: Pipeline Orchestrator (The GalaxyScope)
-# Strategy v6.2 Protocol: Bayesian Optics & Parser Bypasses
+# Bayesian Optics & Parser Bypasses
 # ==============================================================================
 
 
 class Orchestrator:
-    """Mission Control: The GitGalaxy Central Processing Core."""
+    """
+    Mission Control: The GitGalaxy Central Processing Core.
+    This class operates as the Hub in GitGalaxy's Hub-and-Spoke architecture. It is strictly 
+    a traffic cop—it delegates all heavy lifting to specialized computational engines.
+    
+    Information Flow:
+    1. Pre-Flight (Phase 0): The root path is scanned to build a 'Census' of tracked files, 
+       consulting Git/OS boundaries, .gitattributes, and dynamic micro-mass limits.
+    2. Parallel Extraction (Phase 1): Bypasses the GIL by spawning isolated worker processes. 
+       Workers perform the heavy regex DNA/token extraction and filter out inert data.
+    3. Structural Physics (Phases 2-4): Returns extracted features to the main thread. Maps out
+       DAGs (Directed Acyclic Graphs) and converts token frequencies into actionable metrics. Note: 
+       risk exposures are calculated metrics from the DNA/regex hits, not the hits themselves.
+    4. Threat Inference (Phases 5-10): Executes ML pipelines (XGBoost) and zero-trust policies 
+       (AppSec/Supply Chain Firewalls) to hunt behavioral anomalies.
+    5. Output Routing (Phases 11-12): Destructively pivots the global RAM state into columnar 
+       JSON payloads, native SQLite bases, and LLM-ready markdown artifacts.
+    """
 
     def __init__(
         self,
@@ -577,19 +585,38 @@ class Orchestrator:
         aperture_cfg = config.get("APERTURE_CONFIG", {})
         priority_whitelist = config.get("PRIORITY_WHITELIST", [])
 
-        # Sensor Submodules
+        # ==============================================================================
+        # CORE SENSOR SUBMODULES (The Spokes)
+        # ==============================================================================
+        # Perimeter shield rejecting unreadable/binary matter before deep scanning
         self.filter = ApertureFilter(self.root, lang_defs, aperture_cfg, parent_logger=logger)
+        
+        # Bayesian prior injector (evaluates intent via Manifests, Readmes, .gitattributes)
         self.guidestar = GuideStarLens(self.root, priority_whitelist, parent_logger=logger)
+        
+        # Temporal engine extracting Git volatility, churn velocity, and ownership entropy
         self.chronometer = Chronometer(self.root, parent_logger=logger)
         self.cartographer = Cartographer(parent_logger=logger)
+        
+        # The primary heuristic math engine converting raw DNA hits to risk exposure vectors
         self.processor = SignalProcessor(aperture_config=config, parent_logger=logger)
+        
+        # Third-Gate gatekeeper identifying and dropping un-parseable data dumps
         self.auditor = SpectralAuditor(parent_logger=logger)
+        
+        # Constructs the physical import DAG and calculates PageRank/Blast Radius
         self.network_sensor = NetworkRiskSensor(parent_logger=logger)
 
-        # --- UPDATED: Instantiate New Dual Recorders ---
+        # ==============================================================================
+        # THE EXIT STRATEGY (Recorders & Payload Generation)
+        # ==============================================================================
+        # GPU Recorder: Performs destructive columnar pivot for WebGL consumption
         self.gpu_recorder = GPURecorder(version=self.version, parent_logger=logger)
+        # Audit Recorder: Emits human-readable forensic traceability reports
         self.audit_recorder = AuditRecorder(parent_logger=logger)
+        # LLM Recorder: Generates token-compressed RAG context text for AI Agents
         self.llm_recorder = LLMRecorder(parent_logger=logger)
+        # DB Recorder: Archives relational tables natively to SQLite3
         self.db_recorder = RecordKeeper(parent_logger=logger)  # <--- Add this line
 
         # --- NEW: THE SMART THREAT SWITCH (MAIN THREAD) ---
@@ -598,11 +625,17 @@ class Orchestrator:
         else:
             active_policy = ThreatPolicy.get_policy("baseline")
 
+        # Zero-Trust execution validation
         self.security_analyzer = SecurityLens(policy=active_policy)
+        
+        # Multi-class XGBoost threat classification model
         self.model_auditor = SecurityAuditor(model_path="gitgalaxy_malware_xgb_multiclass.json", parent_logger=logger)
         # --------------------------------------------------
 
-        # State Arrays
+        # ==============================================================================
+        # GLOBAL STATE ARRAYS
+        # Shared memory constructs used to aggregate worker output and manage state
+        # ==============================================================================
         self.census: Set[str] = set()
         self.stem_map: Dict[str, str] = {}
         self.ram_cache: Dict[str, Dict[str, Any]] = {}
@@ -614,6 +647,8 @@ class Orchestrator:
         self.git_tracked_files: Set[str] = set()
 
         # ---> NEW: NEIGHBORHOOD MICRO-MASS QUOTA STATE <---
+        # Prevents high-density utility directories (like icons/ or config blocks) 
+        # from overloading localized physical mass calculations.
         self.MICRO_MASS_BYTES = 50
         self.MICRO_MASS_GRACE_LIMIT = 15
         self.neighborhood_tracker = defaultdict(int)
@@ -629,9 +664,18 @@ class Orchestrator:
             "phase_totals": defaultdict(float),
             "file_count": 0,
         }
-
-    def run_mission(self, output_file: str = "galaxy.json"):
-        """Executes the synthesis protocol with dual-recorder exit strategy."""
+        
+    def execute_pipeline(self, output_file: str = "galaxy.json"):
+        """
+        Executes the synthesis protocol with a multi-recorder exit strategy.
+        
+        PIPELINE ONBOARDING (Execution Flow):
+        The method enforces a strict chronological dependency chain. For example, 
+        Workers (Phase 1) must run before Relational Analysis (Phase 3) so that 
+        we have exact code tokens in RAM before mapping the API Blast Radius.
+        Likewise, Network Topology (Phase 4) is required before XGBoost Inference 
+        (Phase 9) since a file's centrality influences its logic bomb threat weighting.
+        """
         start_time = time.time()
         logger.info(f"--- MISSION_IGNITION: {self.root.name} (v{self.version}) ---")
 
@@ -669,78 +713,92 @@ class Orchestrator:
 
         try:
             # PHASE 0: Radar & Pre-Flight
+            # OS-level walk determining physical existence, OS permissions, and intent.
             t_phase = time.time()
             self.guidestar.align_telescope()
             self._build_file_census()
             logger.info(f"⏱️ MACRO-CLOCK [Phase 0 - Radar]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 1: Workers & IPC Transfer
+            # PHASE 1: Workers & IPC Extraction
+            # Bypasses the GIL, deploying CPU-heavy regex scanning into isolated Memory spaces.
             t_phase = time.time()
-            self._first_pass_extraction()
+            self._extract_features_parallel()
             logger.info(f"⏱️ MACRO-CLOCK [Phase 1 - Workers & IPC]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 1.5: Dependency Resolution
+            # PHASE 2: Dependency Resolution (Import Graph)
+            # Reconstructs inter-file linkages. Executes *before* Relational Analysis so we 
+            # can mathematically define a file's public exposure index.
             t_phase = time.time()
-            self._calculate_galactic_popularity()
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 1.5 - Imports]: {time.time() - t_phase:.2f}s")
+            self._resolve_dependency_graph()
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 2 - Dependency Resolution]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 2: Relational Physics
+            # PHASE 3: Relational Analysis (Structural Physics)
+            # Fuses chronological Git telemetry with raw token counts to calculate multi-dimensional
+            # risks (e.g., Tech Debt, Cognitive Load, State Flux).
             t_phase = time.time()
-            self._second_pass_relational()
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 2 - Relational]: {time.time() - t_phase:.2f}s")
+            self._calculate_risk_exposures()
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 3 - Relational Analysis]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 3: Network Topology & Blast Radius
+            # PHASE 4: Network Topology & Blast Radius
+            # Computes PageRank and Betweenness Centrality on the assembled Dependency Graph.
             t_phase = time.time()
             self.parsed_files, network_macro = self.network_sensor.map_ecosystem(self.parsed_files)
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 3 - Network Topology]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 4 - Network Topology]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 3.5: AI Guardrails & AppSec Threat Hunting
+            # PHASE 5: Zero-Trust Guardrails (AI & AppSec)
+            # Enforces explicit system rules identifying Prompt Injections or Context Window shredders.
             t_phase = time.time()
             dev_firewall = DevAgentFirewall(parent_logger=logger)
             self.parsed_files = dev_firewall.evaluate_ecosystem(self.parsed_files)
 
             appsec_sensor = AIAppSecSensor(parent_logger=logger)
             self.parsed_files = appsec_sensor.hunt_threats(self.parsed_files)
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 3.5 - AI Defense]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 5 - Zero-Trust Guardrails]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 4: Audit Verification
+            # PHASE 6: Spectral Audit & Verification
+            # Uses standard deviations to identify and drop un-parseable data dumps or log files.
             t_phase = time.time()
             repository_graph, unparsable_audits = self.auditor.audit(self.parsed_files)
             total_unparsable = self.unparsable_files + unparsable_audits
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 4 - Auditor]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 6 - Spectral Audit]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 5: 3D Cartography
+            # PHASE 7: Cartography & 3D Mapping
+            # Assigns coordinates based on topological hierarchies for WebGL.
             t_phase = time.time()
             if repository_graph:
                 repository_graph = self.cartographer.map_repository(repository_graph)
             files_mapped_count = len(repository_graph) if repository_graph else 0
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 5 - Cartography]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 7 - 3D Cartography]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 6: Metrics Synthesis
+            # PHASE 8: Metrics Synthesis & Forensics
+            # Aggregates raw outputs for the LLM payload generation.
             t_phase = time.time()
             summary = self.processor.summarize_galaxy_metrics(repository_graph, total_unparsable)
             summary["network_macro"] = network_macro
             report = self.processor.generate_forensic_report(repository_graph)
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 6 - Synthesis]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 8 - Metrics Synthesis]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 7.8: Advanced ML Threat Hunting & Graph Resolution
+            # PHASE 9: ML Threat Inference & Graph Resolution
+            # Processes the fully formed context through XGBoost trees to isolate embedded Trojans/Stealers.
             t_phase = time.time()
             if repository_graph:
                 # Pass the Shadow Patch flag to the Security Auditor
                 is_shadow_patch = self.config.get("SHADOW_PATCH_DETECTED", False)
                 repository_graph = self.model_auditor.audit_galaxy(repository_graph, is_shadow_patch=is_shadow_patch)
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 7.8 - ML Auditor]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ MACRO-CLOCK [Phase 9 - ML Threat Inference]: {time.time() - t_phase:.2f}s")
 
             # ==========================================================
-            # PHASE 7.9: ECOSYSTEM SECURITY AUDITS
+            # PHASE 10: ECOSYSTEM SECURITY AUDITS
+            # Evaluates structural boundaries (Ghost APIs, Supply Chain spoofing).
             # ==========================================================
-            logger.info("Phase 7.9: Executing Ecosystem Security Audits (X-Ray, Firewall, API Mapper)...")
+            logger.info("Phase 10: Executing Ecosystem Security Audits (X-Ray, Firewall, API Mapper)...")
 
             # 1. Gather all manifests instantly using the Phase 0 stem_map (Zero Disk Walk)
+            target_manifests = set(GUIDESTAR_CONFIG.get("MANIFEST_MAP", {}).keys())
             manifest_paths = [
                 str(self.root / rel_path)
                 for rel_path in self.stem_map.values()
-                if Path(rel_path).name == "package.json"
+                if Path(rel_path).name in target_manifests
             ]
 
             # 2. Build the global translation map
@@ -758,7 +816,9 @@ class Orchestrator:
             # Attach it to the summary payload
             summary["ecosystem_audits"] = ecosystem_audits
 
-            # --- PHASE 7.5: SHARED METADATA LOCKING ---
+            # ==========================================================
+            # PHASE 11: GLOBAL TELEMETRY & METADATA LOCKING
+            # ==========================================================
             # Calculate physical mass before the GPU Recorder destroys the repository_graph list
             total_loc = sum(s.get("total_loc", 0) for s in (repository_graph or []))
 
@@ -806,8 +866,11 @@ class Orchestrator:
             audit_output = "Skipped"
 
             # ==========================================================
-            # PHASE 8: AUDIT RECORDER (Non-Destructive Forensic Fork)
+            # PHASE 12: ARCHIVAL & EXPORT ROUTING
+            # Delegates the sealed state objects to output-specific engines.
             # ==========================================================
+            
+            # --- Phase 12.1: Audit Recorder (Forensic Log) ---
             if not exclusive_mode or self.config.get("AUDIT_ONLY"):
                 try:
                     out_path = Path(output_file)
@@ -829,9 +892,7 @@ class Orchestrator:
                         exc_info=True,
                     )
 
-            # ==========================================================
-            # PHASE 8.5: LLM RECORDER (The AI Translation Layer)
-            # ==========================================================
+            # --- Phase 12.2: LLM Recorder (AI Context) ---
             if not exclusive_mode or self.config.get("LLM_ONLY"):
                 try:
                     output_dir = str(Path(output_file).parent)
@@ -851,9 +912,7 @@ class Orchestrator:
                         exc_info=True,
                     )
 
-            # ==========================================================
-            # PHASE 8.8: NATIVE SQLITE RECORDER
-            # ==========================================================
+            # --- Phase 12.3: SQLite Recorder (Native Database) ---
             if not exclusive_mode or self.config.get("DB_ONLY"):
                 try:
                     db_output = str(Path(output_file).with_name(f"{Path(output_file).stem}_master.db"))
@@ -872,9 +931,7 @@ class Orchestrator:
                         exc_info=True,
                     )
 
-            # ==========================================================
-            # PHASE 9: GPU RECORDER (Destructive Columnar Pivot)
-            # ==========================================================
+            # --- Phase 12.4: GPU Recorder (Destructive Columnar Pivot) ---
             gpu_output = str(Path(output_file).with_name(f"{Path(output_file).stem}_gpu.json"))
 
             if not exclusive_mode or self.config.get("GPU_ONLY"):
@@ -916,7 +973,7 @@ class Orchestrator:
                 print(" 🌌 READY FOR VISUALIZATION (100% LOCAL / ZERO UPLOAD)")
 
             print("=" * 75)
-            print(" 1. Open your browser to: \033[94m\033[4mhttps://gitgalaxy.io/\033[0m")
+            print(" 1. Open your browser to: \033[94m\033[4m[https://gitgalaxy.io/](https://gitgalaxy.io/)\033[0m")
             print(f" 2. Drag and drop '{output_file}'")
             print("\n * PRIVACY SECURED: Your data never leaves your machine.")
             print("   All architectural rendering executes locally in your browser.")
@@ -951,13 +1008,13 @@ class Orchestrator:
 
             # Process the results synchronously to prevent race conditions on state maps
             for rel_path, path_obj, is_valid, size_bytes, reason in inspections:
-
                 # ---> NEW: THE NEIGHBORHOOD MICRO-MASS QUOTA <---
                 # Exempt mainframe files (COBOL/JCL) from being flagged as micro-debris
                 safe_ext = path_obj.suffix.lower()
                 if is_valid and size_bytes < self.MICRO_MASS_BYTES and safe_ext not in {".cpy", ".cbl", ".cob", ".jcl"}:
                     dir_path = str(path_obj.parent)
                     self.neighborhood_tracker[dir_path] += 1
+
                     if self.neighborhood_tracker[dir_path] > self.MICRO_MASS_GRACE_LIMIT:
                         is_valid = False
                         reason = "Excluded: Neighborhood Micro-Mass Limit Exceeded"
@@ -971,10 +1028,11 @@ class Orchestrator:
                     self.census.add(stem)
                     self.stem_map[rel_path] = rel_path
 
+                    # ---> Tally both the extension AND the full filename
                     self.ext_tally[ext] = self.ext_tally.get(ext, 0) + 1
                     self.ext_tally[name] = self.ext_tally.get(name, 0) + 1
                 else:
-                    # Route directly to Excluded Artifacts, bypassing the Multi-Processing pool
+                    # Route directly to Dark Matter, bypassing the Multi-Processing pool
                     self.unparsable_files.append(
                         {
                             "path": rel_path,
@@ -990,10 +1048,21 @@ class Orchestrator:
         except (subprocess.CalledProcessError, FileNotFoundError):
             self.git_tracked_files = set()
             logger.warning("GIT_NOT_FOUND: Reverting to standard filesystem walk.")
-            self._standard_radar_walk()
+            self._fallback_filesystem_walk()
 
-    def _standard_radar_walk(self):
-        """Standard filesystem walk for non-Git projects or ZIP archives."""
+    def _fallback_filesystem_walk(self):
+        """
+        Standard OS-level filesystem walk for non-Git projects or ZIP archives.
+        """
+        self.cleanup()
+    def _fallback_filesystem_walk(self):
+        """
+        Standard OS-level filesystem walk for non-Git projects or ZIP archives.
+        
+        Acts as the fallback mechanism if `git ls-files` fails. Evaluates every file against 
+        the Aperture filter's Black Holes and dynamic micro-mass quotas, discarding ignored 
+        assets before they are added to the active Census.
+        """
         for root, dirs, files in os.walk(self.root):
             # Add [0] to extract just the boolean 'is_valid'
             dirs[:] = [d for d in dirs if self.filter.evaluate_path_integrity(Path(root) / d)[0]]
@@ -1036,8 +1105,16 @@ class Orchestrator:
                     )
                     self._record_anomaly(rel_p, reason)
 
-    def _first_pass_extraction(self):
-        """Pass 1: Parallel Refraction & Matter Eviction via Multi-Core Map-Reduce."""
+    def _extract_features_parallel(self):
+        """
+        Phase 1: Parallel Refraction & Matter Eviction via Multi-Core Map-Reduce.
+        
+        Dispatches the physical file paths to the isolated worker pool (bypassing the GIL). 
+        As the workers complete their high-speed regex extraction, this method consumes the 
+        futures dynamically to prevent O(N^2) polling wait states. It catches structural 
+        saturations (ReDoS), logs processing telemetry, and aggregates the extracted DNA into 
+        the global RAM cache.
+        """
         total_files = len(self.stem_map)
         logger.info(f"PASS_1: Optical sequence initiated for {total_files} artifacts via ProcessPoolExecutor.")
 
@@ -1170,7 +1247,7 @@ class Orchestrator:
                 executor.shutdown(wait=False, cancel_futures=True)
                 raise TimeoutError("Mission aborted due to worker starvation (ReDoS or IPC Deadlock).")
 
-    def _calculate_galactic_popularity(self):
+    def _resolve_dependency_graph(self):
         """
         Pass 1.5: Optimized relational token aggregation & Fuzzy Suffix Matching.
         Defused O(N^2) Bomb using O(1) Pre-Sliced Suffix Hash Maps.
@@ -1436,8 +1513,15 @@ class Orchestrator:
             if "popularity_hits" in meta:
                 del meta["popularity_hits"]
 
-    def _second_pass_relational(self):
-        """Pass 2: Universal Exposure Framework & Signal Processing."""
+    def _calculate_risk_exposures(self):
+        """
+        Phase 3: Universal Exposure Framework & Signal Processing.
+        
+        Translates raw regex DNA hits into 18-point physical risk vectors (e.g., Tech Debt, 
+        Cognitive Load, State Flux). This pass applies architectural dampeners (like testing 
+        umbrellas and documentation shields), resolves test coverage graphs, and routes 
+        extracted metadata to the SignalProcessor for final heuristic scoring.
+        """
         logger.info("PASS_2: Calculating structural physics and Tiered Normalization.")
 
         # ==============================================================
@@ -1573,21 +1657,8 @@ class Orchestrator:
             # The Enterprise Bridge: Expanding sibling detection to catch Java/C# standards.
             # Because 'self.census' is global, this naturally bridges 'src/main' and 'src/test'
             # without writing brittle directory-parsing logic.
-            sibling_candidates = [
-                # Node / Python / Ruby / Go conventions
-                f"{stem}_test",
-                f"test_{stem}",
-                f"{stem}.test",
-                f"{stem}_spec",
-                f"spec_{stem}",
-                f"{stem}.spec",
-                # Java / C# / Enterprise conventions (CamelCase becomes flat strings)
-                f"{stem}test",
-                f"test{stem}",
-                f"{stem}tests",
-                f"{stem}testcase",
-                f"{stem}spec",
-            ]
+            test_patterns = self.config.get("TEST_NAMING_CONVENTIONS", [])
+            sibling_candidates = [pattern.format(stem=stem) for pattern in test_patterns]
             meta["is_protected"] = any(cand in self.census for cand in sibling_candidates)
 
             # Pass the mapped test coverage data to the risk engine
@@ -1661,9 +1732,11 @@ class Orchestrator:
                 }
             )
 
+        
         # ==================================================================
-        # THE SECRETS Threat Escalation (Synthetic Visualization)
-        # Pull critical leaks out of Excluded Artifacts and force them onto the map
+        # CRITICAL LEAKS: Synthetic Node Generation
+        # Extract files flagged as secret leaks from the unparsable queue 
+        # and forcefully inject them into the parsed map for visualization.
         # ==================================================================
         leaks = [cand for cand in self.unparsable_files if "CRITICAL LEAK" in cand.get("reason", "")]
 
@@ -1706,8 +1779,9 @@ class Orchestrator:
             self.parsed_files.append(synthetic_star)
 
         # ==================================================================
-        # THE NEURAL Threat Escalation (Local AI Weights)
-        # Pull model weights out of Excluded Artifacts, parse headers, and map them
+        # AI MODEL WEIGHTS: Binary Header Extraction
+        # Extract large model binaries (.gguf, .safetensors) from the unparsable queue,
+        # parse their metadata headers without loading them into RAM, and map them.
         # ==================================================================
         models = [cand for cand in self.unparsable_files if "AI MODEL WEIGHTS" in cand.get("reason", "")]
         self.unparsable_files = [
@@ -1765,7 +1839,13 @@ class Orchestrator:
                 self.parsed_files.append(synthetic_star)
 
     def _prepare_target(self, target_input: Union[str, Path]) -> Path:
-        """Prepares the filesystem for analysis."""
+        """
+        Validates the user's target input and constructs an ephemeral extraction environment if necessary.
+        
+        If the target is a compressed archive (.zip), this method generates a secure, isolated temporary 
+        directory in the host OS to unpack the contents. This ensures the physics engine can analyze 
+        cloud-downloaded repositories without permanently polluting the user's local file system.
+        """
         input_path = Path(target_input)
         if not input_path.exists():
             raise InaccessibleArtifactError(f"Target missing: {target_input}")
@@ -1784,7 +1864,13 @@ class Orchestrator:
         return input_path.resolve(strict=True)
 
     def cleanup(self):
-        """Purges temporary extraction site."""
+        """
+        Executes a mandatory garbage collection routine to securely purge any ephemeral environments.
+        
+        Called within the `finally` block of the main orchestration loop. This guarantees that even 
+        if the pipeline experiences a catastrophic Out-Of-Memory (OOM) crash or a Regex Timeout, 
+        the system will recursively delete the temporary extraction directories, preventing disk bloat.
+        """
         if self.temp_dir and Path(self.temp_dir).exists():
             try:
                 shutil.rmtree(self.temp_dir)
@@ -1798,7 +1884,13 @@ class Orchestrator:
         self.anomalies.append({"star": name, "diagnostic": message})
 
     def _summarize_anomalies(self, total_singularity: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Gathers unparsable artifacts and builds the hierarchical extension breakdown."""
+        """
+        Bridges isolated worker failures back to the main thread's forensic ledger.
+        
+        Instead of halting the entire pipeline when a single file triggers an OS permission error, 
+        a binary saturation threshold, or a regex timeout, this method captures the diagnostic 
+        string and appends it to the global anomalies array for the final Audit Recorder payload.
+        """
         summary = {"size_limit": 0, "binary": 0, "unparsable": 0, "os_permissions": 0}
         unparsable_artifacts: List[str] = []
 
@@ -1916,7 +2008,13 @@ class Orchestrator:
         print("=" * 75 + "\n")
 
     def _get_git_audit(self) -> Dict[str, str]:
-        """Extracts forensic Git metadata for audit tracking."""
+        """
+        Extracts forensic Git metadata (Commit SHA, Branch, Remote URL, Date) via subprocess.
+        
+        This metadata acts as the immutable anchor for the generated SHBOM (Structural Health 
+        Bill of Materials). It ensures that the resulting JSON/SQLite databases are cryptographically 
+        tied to a specific point in the repository's history for strict audit compliance.
+        """
         audit = {
             "branch": "Unknown",
             "commit_hash": "Unknown",
@@ -1964,7 +2062,7 @@ class Orchestrator:
 
         return audit
 
-    def execute_delta_mission(
+    def execute_incremental_scan(
         self,
         ram_cache: Dict[str, Any],
         added: List[str],
@@ -1972,7 +2070,15 @@ class Orchestrator:
         deleted: List[str],
         db_output_path: str,
     ):
-        """Surgically updates the codebase physics using a rehydrated RAM state."""
+        """
+        Executes a high-efficiency 'Continuous Delta' scan for CI/CD environments.
+        
+        Instead of re-scanning a 10,000-file repository for a 2-file PR, this method ingests 
+        the previous structural state from RAM/SQLite, evicts the deleted/modified files, 
+        and only runs the heavy regex optics on the newly added or changed files. It then 
+        triggers the 'Ripple Effect' to recalculate global blast radiuses and PageRank 
+        scores for the entire ecosystem before sealing the updated database.
+        """
         start_time = time.time()
         logger.info(f"--- DELTA_IGNITION: {self.root.name} (v{self.version}) ---")
 
@@ -2008,12 +2114,12 @@ class Orchestrator:
                 self.stem_map[rel_path] = rel_path  # Instruct Pass 1 to ONLY process these
 
             # 4. Execute the Surgical Scan (Only parses new files)
-            self._first_pass_extraction()
+            self._extract_features_parallel()
 
             # 5. The Ripple Effect (Recalculate Blast Radius for ALL files)
             self.stem_map = {f: f for f in self.ram_cache.keys()}
-            self._calculate_galactic_popularity()
-            self._second_pass_relational()
+            self._resolve_dependency_graph()
+            self._calculate_risk_exposures()
 
             # Re-map the directed graph because nodes/edges have mutated
             self.parsed_files, network_macro = self.network_sensor.map_ecosystem(self.parsed_files)
@@ -2067,7 +2173,7 @@ class Orchestrator:
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("GalaxyScope v6.2.0")
+    enforce_licensing_guard("GalaxyScope v2")
 
     import argparse
     import copy
@@ -2077,38 +2183,22 @@ def main():
     # Required for safe execution limits with the multiprocessing pool on Windows
     multiprocessing.freeze_support()
 
-    parser = argparse.ArgumentParser(description="GitGalaxy GalaxyScope v6.2.0")
+    parser = argparse.ArgumentParser(description="GitGalaxy GalaxyScope v2")
     parser.add_argument("target", help="Path to repo or ZIP")
     parser.add_argument("--output", default=None, help="Optional output filename override")
     parser.add_argument("--debug", action="store_true", help="Turn on verbose Analytical logging")
-    parser.add_argument(
-        "--paranoid",
-        action="store_true",
-        help="Lower security thresholds to flag more potential threats.",
-    )
+    parser.add_argument("--paranoid", action="store_true", help="Lower security thresholds to flag more potential threats.")
 
     # ---> NEW: THE SHADOW PATCH OVERRIDE <---
-    parser.add_argument(
-        "--shadow-patch-detected",
-        action="store_true",
-        help="Indicates the payload hash mutated without a version bump.",
-    )
+    parser.add_argument("--shadow-patch-detected", action="store_true", help="Indicates the payload hash mutated without a version bump.")
 
     # --- EXCLUSIVE RECORDER FLAGS ---
     parser.add_argument("--llm-only", action="store_true", help="Run ONLY the LLM recorder")
     parser.add_argument("--gpu-only", action="store_true", help="Run ONLY the GPU recorder")
     parser.add_argument("--audit-only", action="store_true", help="Run ONLY the Audit recorder")
     parser.add_argument("--db-only", action="store_true", help="Run ONLY the native SQLite recorder")
-    parser.add_argument(
-        "--splicing-speed",
-        action="store_true",
-        help="Profile regex and file processing speeds (capped at 5000 files)",
-    )
-    parser.add_argument(
-        "--file-speed",
-        action="store_true",
-        help="Profile the macro lifecycle phases of file processing",
-    )
+    parser.add_argument("--splicing-speed", action="store_true", help="Profile regex and file processing speeds (capped at 5000 files)")
+    parser.add_argument("--file-speed", action="store_true", help="Profile the macro lifecycle phases of file processing")
 
     args = parser.parse_args()
 
@@ -2213,6 +2303,7 @@ def main():
             "APERTURE_CONFIG": merged_aperture,
             "PATH_MODIFIERS": PATH_MODIFIERS,
             "PRIORITY_WHITELIST": PRIORITY_WHITELIST,
+            "TEST_NAMING_CONVENTIONS": TEST_NAMING_CONVENTIONS,
             "DOCUMENTATION_LANGUAGES": PHYSICS_ASSET_MASKS.get("DOCUMENTATION_LANGUAGES", set()),
             "PARANOID_MODE": args.paranoid,
             "SHADOW_PATCH_DETECTED": args.shadow_patch_detected,  # <--- Pass the flag
@@ -2228,7 +2319,7 @@ def main():
         # 4. Ignite the Engine
         # ---------------------------------------------------------
         scope = Orchestrator(args.target, full_config)
-        scope.run_mission(final_output)
+        scope.execute_pipeline(final_output)
 
         # --- THE FIX: INSTANT RAM EVICTION ---
         os._exit(0)
