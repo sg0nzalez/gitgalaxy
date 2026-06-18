@@ -909,10 +909,9 @@ class LanguageDetector:
             xml_delim = "<" + "!--"
             family_scores = {
                 "c_style_comment": content.count("//") + content.count("/*"),
-                "single_line_only": content.count("#"),
+                "single_line_only": content.count("#") + content.count(";"),
                 "multi_style_dash": content.count("--"),
                 "xml_angle": content.count(xml_delim),
-                "lisp_style": content.count(";"),
                 "tex_percent": content.count("%"),
                 "bat_rem": len(re.findall(r"(?im)^REM\b", content)),
                 "quote_string": content.count('"""') + content.count("'''"),
