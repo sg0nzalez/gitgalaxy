@@ -4,11 +4,11 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 # Adjust the import path if necessary based on your actual module structure
-from gitgalaxy.physics.chronometer import Chronometer
+from gitgalaxy.metrics.chronometer import Chronometer
 
 
 class TestChronometerTimeout(unittest.TestCase):
-    @patch("gitgalaxy.physics.chronometer.subprocess.Popen")
+    @patch("gitgalaxy.metrics.chronometer.subprocess.Popen")
     @patch.object(
         Chronometer, "_calibrate_temporal_field"
     )  # Skip the heavy init sequence

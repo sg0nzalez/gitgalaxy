@@ -33,9 +33,9 @@ from gitgalaxy.core.prism import Prism
 from gitgalaxy.core.detector import OpticalDetector
 from gitgalaxy.core.spatial_mapper import SpatialMapper
 from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
-from gitgalaxy.physics.chronometer import Chronometer
-from gitgalaxy.physics.signal_processor import SignalProcessor
-from gitgalaxy.physics.spectral_auditor import SpectralAuditor
+from gitgalaxy.metrics.chronometer import Chronometer
+from gitgalaxy.metrics.signal_processor import SignalProcessor
+from gitgalaxy.metrics.spectral_auditor import SpectralAuditor
 from gitgalaxy.tools.network_auditing.full_api_network_map import run_api_audit
 from gitgalaxy.tools.supply_chain_security.binary_anomaly_detector import run_xray_audit
 from gitgalaxy.tools.supply_chain_security.supply_chain_firewall import (
@@ -257,7 +257,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                         )
 
                         # Threat Escalation: Forge a synthetic star and force it into the visible galaxy
-                        from gitgalaxy.physics.signal_processor import SignalProcessor
+                        from gitgalaxy.metrics.signal_processor import SignalProcessor
 
                         hit_vector = [0] * len(SignalProcessor.SIGNAL_SCHEMA)
                         for t_key, t_val in binary_threats.items():
@@ -2017,7 +2017,7 @@ class Orchestrator:
             if "CRITICAL LEAK" not in cand.get("reason", "")
         ]
 
-        from gitgalaxy.physics.signal_processor import SignalProcessor
+        from gitgalaxy.metrics.signal_processor import SignalProcessor
 
         for leak in leaks:
             rel_path = leak["path"]
@@ -2067,7 +2067,7 @@ class Orchestrator:
         ]
 
         if models:
-            from gitgalaxy.physics.neural_auditor import NeuralAuditor
+            from gitgalaxy.metrics.neural_auditor import NeuralAuditor
 
             neural_auditor = NeuralAuditor(parent_logger=logger)
 

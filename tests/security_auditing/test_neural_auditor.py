@@ -3,7 +3,7 @@ import json
 import struct
 
 # Adjust this import to match your project structure
-from gitgalaxy.physics.neural_auditor import NeuralAuditor
+from gitgalaxy.metrics.neural_auditor import NeuralAuditor
 
 
 @pytest.fixture

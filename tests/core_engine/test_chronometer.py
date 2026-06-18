@@ -1,15 +1,15 @@
 import logging
 from unittest.mock import patch, MagicMock
 
-from gitgalaxy.physics.chronometer import Chronometer
+from gitgalaxy.metrics.chronometer import Chronometer
 
 
 # ==============================================================================
 # TEST 1: NO GIT FALLBACK & OS WALK (Lines 45-46, 74-95, 295-296)
 # ==============================================================================
-@patch("gitgalaxy.physics.chronometer.subprocess.run")
-@patch("gitgalaxy.physics.chronometer.os.walk")
-@patch("gitgalaxy.physics.chronometer.os.path.getmtime")
+@patch("gitgalaxy.metrics.chronometer.subprocess.run")
+@patch("gitgalaxy.metrics.chronometer.os.walk")
+@patch("gitgalaxy.metrics.chronometer.os.path.getmtime")
 def test_chronometer_no_git_fallback(mock_getmtime, mock_walk, mock_run, tmp_path):
     """Proves the chronometer gracefully falls back to OS Walk if Git is missing."""
     # Simulate Git binary not found
@@ -32,7 +32,7 @@ def test_chronometer_no_git_fallback(mock_getmtime, mock_walk, mock_run, tmp_pat
 # ==============================================================================
 # TEST 2: GIT BOUNDARY SURVEY (Lines 106-146)
 # ==============================================================================
-@patch("gitgalaxy.physics.chronometer.subprocess.run")
+@patch("gitgalaxy.metrics.chronometer.subprocess.run")
 def test_chronometer_git_boundaries(mock_run, tmp_path):
     """Proves the boundary scanner correctly extracts min/max times from git logs."""
 
@@ -57,7 +57,7 @@ def test_chronometer_git_boundaries(mock_run, tmp_path):
     mock_run.side_effect = git_side_effect
 
     # Block the actual Popen log streaming so we just test the boundaries
-    with patch("gitgalaxy.physics.chronometer.subprocess.Popen"):
+    with patch("gitgalaxy.metrics.chronometer.subprocess.Popen"):
         chrono = Chronometer(tmp_path, parent_logger=logging.getLogger("test"))
 
     assert chrono.is_resilient, "Failed to verify Git hardware!"
@@ -86,8 +86,8 @@ def test_load_ignored_revs(tmp_path):
 # ==============================================================================
 # TEST 4: LOG ESCALATOR EDGE CASES (Lines 172-217, 248-249, 261-262, 270, 273)
 # ==============================================================================
-@patch("gitgalaxy.physics.chronometer.subprocess.run")
-@patch("gitgalaxy.physics.chronometer.subprocess.Popen")
+@patch("gitgalaxy.metrics.chronometer.subprocess.run")
+@patch("gitgalaxy.metrics.chronometer.subprocess.Popen")
 def test_hybrid_log_scan_and_escalator(mock_popen, mock_run, tmp_path):
     """Proves the Popen stream handles quoted paths, skipped hashes, and empty lines."""
     # 1. Mock ls-files
@@ -129,7 +129,7 @@ def test_hybrid_log_scan_and_escalator(mock_popen, mock_run, tmp_path):
 # ==============================================================================
 # TEST 5: TEMPORAL SIGNAL HANDOVER (Lines 311-317, 324-337)
 # ==============================================================================
-@patch("gitgalaxy.physics.chronometer.os.path.getmtime")
+@patch("gitgalaxy.metrics.chronometer.os.path.getmtime")
 def test_get_temporal_signals(mock_getmtime, tmp_path):
     """Proves the Handover method returns cache hits and falls back cleanly."""
     with patch.object(Chronometer, "_calibrate_temporal_field"):
