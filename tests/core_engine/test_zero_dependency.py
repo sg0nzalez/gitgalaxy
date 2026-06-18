@@ -71,7 +71,7 @@ class TestZeroDependencyMode(unittest.TestCase):
 
         try:
             # 3. Force the auditor to process the stars
-            result_stars = auditor.audit_galaxy(mock_stars)
+            result_stars = auditor.audit_repository(mock_stars)
 
             # 4. INVARIANT ASSERTIONS
             self.assertEqual(

@@ -26,7 +26,14 @@ from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS, AI_THREAT_THRES
 
 
 class SecurityAuditor:
-    """Calculates deep dependency graphs and executes XGBoost Threat Inference."""
+    """
+    Machine Learning Threat Inference Engine.
+
+    Calculates deep N-th degree dependency graphs to map the systemic blast radius 
+    of every artifact. Passes the fused structural and topological context through 
+    a multi-class XGBoost classifier to identify behavioral signatures of malware 
+    (e.g., Trojans, Stealers, Droppers) that evade traditional static analysis.
+    """
 
     # The taxonomy map for the Multiclass engine
     CLASS_NAMES = {
@@ -37,7 +44,7 @@ class SecurityAuditor:
         4: "Native Infector",
     }
 
-    # Updated default to the new multiclass brain
+    # Updated default to the new multiclass model
     def __init__(
         self, model_path="gitgalaxy_malware_xgb_multiclass.json", parent_logger=None
     ):
@@ -62,7 +69,7 @@ class SecurityAuditor:
         self.feature_names = []
 
         if ML_AVAILABLE:
-            # Bulletproof Path Resolution
+            # DEFENSIVE GUARD: Bulletproof Path Resolution
             local_model = Path(__file__).parent / model_path
             util_model = Path(__file__).parent.parent / "utilities" / model_path
 
@@ -96,13 +103,17 @@ class SecurityAuditor:
                 "⚠️ Pandas or XGBoost not installed in this environment. Running graph resolution only."
             )
 
-    def audit_galaxy(self, stars, is_shadow_patch=False):
-        if not stars:
-            return stars
+    def audit_repository(self, artifacts, is_shadow_patch=False):
+        """
+        Orchestrates the resolution of transitive dependency graphs and 
+        executes the XGBoost model against the generated feature matrix.
+        """
+        if not artifacts:
+            return artifacts
 
         self.logger.info("Resolving N-th degree dependency graphs...")
         try:
-            stars = self._resolve_dependency_graph(stars)
+            artifacts = self._resolve_dependency_graph(artifacts)
         except Exception as e:
             self.logger.error(
                 f"❌ Catastrophic failure during dependency graph resolution: {e}",
@@ -111,21 +122,22 @@ class SecurityAuditor:
 
         if not self.model:
             self.logger.warning("Skipping ML Threat Inference (Model not loaded).")
-            return stars
+            return artifacts
 
         self.logger.info("Executing XGBoost Threat Inference across all artifacts...")
 
         try:
-            # 1. Build the DataFrame matching the training extraction
-            df = self._construct_feature_matrix(stars)
+            # 1. Build the DataFrame matching the exact extraction schema used during training
+            df = self._construct_feature_matrix(artifacts)
 
             if df.empty:
                 self.logger.warning(
                     "Feature matrix is empty after extraction. Aborting inference."
                 )
-                return stars
+                return artifacts
 
-            # 2. Reindex to guarantee columns match the exact training schema (fills missing langs with 0)
+            # 2. DEFENSIVE GUARD: Schema Alignment
+            # Reindex to guarantee columns match the exact training schema. Missing language one-hots are filled with 0.
             X = df.reindex(columns=self.feature_names, fill_value=0)
 
             # 3. Ultimate Sanitization: Ensure no Inf or NaN values can choke XGBoost
@@ -134,16 +146,16 @@ class SecurityAuditor:
             # 4. Predict MULTICLASS Probabilities
             probabilities = self.model.predict_proba(X)
 
-            # 5. Sanity Check: Ensure index alignment
-            if len(probabilities) != len(stars):
+            # 5. Sanity Check: Ensure index alignment between predictions and input data
+            if len(probabilities) != len(artifacts):
                 self.logger.error(
-                    f"❌ FATAL DESYNC: Model returned {len(probabilities)} predictions for {len(stars)} stars. Aborting injection."
+                    f"❌ FATAL DESYNC: Model returned {len(probabilities)} predictions for {len(artifacts)} artifacts. Aborting injection."
                 )
-                return stars
+                return artifacts
 
-            # 6. Inject back into RAM
+            # 6. Inject threat classification back into artifact RAM state
             threats_found = 0
-            for i, star in enumerate(stars):
+            for i, artifact in enumerate(artifacts):
                 probs_row = probabilities[i]
 
                 # Find the index (0-4) with the highest probability
@@ -151,35 +163,38 @@ class SecurityAuditor:
                 ml_score = round(float(probs_row[predicted_class]) * 100.0, 2)
 
                 # ---> THE SHADOW PATCH OVERRIDE <---
-                if is_shadow_patch and star.get("structural_mass", 0.0) > 0.5:
+                # If a file's hash mutated without a version bump (detected by the Pipeline Orchestrator),
+                # and the file has actual structural mass (not just a 1-line whitespace change),
+                # we forcefully override the ML model to flag it as a Trojan.
+                if is_shadow_patch and artifact.get("file_impact", 0.0) > 0.5:
                     predicted_class = 2  # Force it to "Stealer / Trojan"
                     ml_score = 100.0
-                    if "domain_context" not in star["telemetry"]:
-                        star["telemetry"]["domain_context"] = {}
-                    star["telemetry"]["domain_context"]["alert"] = (
+                    if "domain_context" not in artifact["telemetry"]:
+                        artifact["telemetry"]["domain_context"] = {}
+                    artifact["telemetry"]["domain_context"]["alert"] = (
                         "SHADOW PATCH: Hash mutated without version bump!"
                     )
 
                 is_threat = predicted_class > 0 and ml_score >= self.ai_threshold
 
-                if "domain_context" not in star["telemetry"]:
-                    star["telemetry"]["domain_context"] = {}
+                if "domain_context" not in artifact["telemetry"]:
+                    artifact["telemetry"]["domain_context"] = {}
 
                 if is_threat:
                     threat_name = self.CLASS_NAMES.get(
                         predicted_class, "Unknown Threat"
                     )
-                    star["telemetry"]["domain_context"]["AI Threat Class"] = threat_name
-                    star["telemetry"]["domain_context"]["AI Threat Confidence"] = (
+                    artifact["telemetry"]["domain_context"]["AI Threat Class"] = threat_name
+                    artifact["telemetry"]["domain_context"]["AI Threat Confidence"] = (
                         f"{ml_score}%"
                     )
-                    star["is_ml_threat"] = True
+                    artifact["is_ml_threat"] = True
                     threats_found += 1
                     self.logger.warning(
-                        f"🚨 AI THREAT DETECTED: {star.get('path')} ({threat_name} | {ml_score}%)"
+                        f"🚨 AI THREAT DETECTED: {artifact.get('path')} ({threat_name} | {ml_score}%)"
                     )
                 else:
-                    star["is_ml_threat"] = False
+                    artifact["is_ml_threat"] = False
 
             self.logger.info(
                 f"XGBoost Inference Complete. Found {threats_found} potential threats."
@@ -190,14 +205,17 @@ class SecurityAuditor:
                 f"❌ Fatal error during XGBoost Inference: {e}", exc_info=True
             )
 
-        return stars
+        return artifacts
 
-    def _resolve_dependency_graph(self, stars):
-        """Resolves transitive fragility and blast radius using C-optimized traversals if available."""
+    def _resolve_dependency_graph(self, artifacts):
+        """
+        Resolves transitive fragility and blast radius using C-optimized traversals (NetworkX) 
+        if available, falling back to a pure Python BFS deque if missing.
+        """
         resolution_map = {}
-        for s in stars:
-            p = s.get("path", "")
-            name = s.get("name", Path(p).name)
+        for artifact in artifacts:
+            p = artifact.get("path", "")
+            name = artifact.get("name", Path(p).name)
             stem = Path(p).stem
             if p:
                 resolution_map[p] = p
@@ -206,26 +224,26 @@ class SecurityAuditor:
             if stem:
                 resolution_map[stem] = p
 
-        total_repo_files = max(len(stars), 1)
+        total_repo_files = max(len(artifacts), 1)
 
         # =========================================================
         # FAST PATH: NetworkX (C-Backend)
         # =========================================================
         if HAS_NETWORKX:
             G = nx.DiGraph()
-            for s in stars:
-                curr = s.get("path", "")
+            for artifact in artifacts:
+                curr = artifact.get("path", "")
                 G.add_node(curr)
-                for imp in s.get("raw_imports", []):
+                for imp in artifact.get("raw_imports", []):
                     if imp in resolution_map:
                         target = resolution_map[imp]
                         if target != curr:
                             G.add_edge(curr, target)
 
-            for s in stars:
-                path = s.get("path", "")
-                dir_up = len(s.get("raw_imports", []))
-                dir_down = s.get("telemetry", {}).get("popularity", 0)
+            for artifact in artifacts:
+                path = artifact.get("path", "")
+                dir_up = len(artifact.get("raw_imports", []))
+                dir_down = artifact.get("telemetry", {}).get("popularity", 0)
 
                 if path in G:
                     # Cap depth at 500 to prevent OOM/Stalls on massive circular monoliths
@@ -234,7 +252,7 @@ class SecurityAuditor:
                 else:
                     tot_up, tot_down = 0, 0
 
-                s["dependency_network"] = {
+                artifact["dependency_network"] = {
                     "direct_upstream": dir_up,
                     "direct_downstream": dir_down,
                     "total_upstream": tot_up,
@@ -242,17 +260,17 @@ class SecurityAuditor:
                     "upstream_ratio": round(tot_up / total_repo_files, 4),
                     "downstream_ratio": round(tot_down / total_repo_files, 4),
                 }
-            return stars
+            return artifacts
 
         # =========================================================
         # FALLBACK PATH: Pure Python (Deque Optimized)
         # =========================================================
-        outbound_graph = {s.get("path", ""): [] for s in stars}
-        inbound_graph = {s.get("path", ""): [] for s in stars}
+        outbound_graph = {artifact.get("path", ""): [] for artifact in artifacts}
+        inbound_graph = {artifact.get("path", ""): [] for artifact in artifacts}
 
-        for s in stars:
-            curr = s.get("path", "")
-            for imp in s.get("raw_imports", []):
+        for artifact in artifacts:
+            curr = artifact.get("path", "")
+            for imp in artifact.get("raw_imports", []):
                 if imp in resolution_map:
                     target = resolution_map[imp]
                     if target != curr:
@@ -273,16 +291,16 @@ class SecurityAuditor:
                         queue.append(neighbor)
             return len(visited)
 
-        for s in stars:
-            path = s.get("path", "")
-            dir_up = len(s.get("raw_imports", []))
-            dir_down = s.get("telemetry", {}).get("popularity", 0)
+        for artifact in artifacts:
+            path = artifact.get("path", "")
+            dir_up = len(artifact.get("raw_imports", []))
+            dir_down = artifact.get("telemetry", {}).get("popularity", 0)
 
             # Reduced max_nodes to 500 to match NetworkX ceiling
             tot_up = get_nth_degree(path, outbound_graph, max_nodes=500)
             tot_down = get_nth_degree(path, inbound_graph, max_nodes=500)
 
-            s["dependency_network"] = {
+            artifact["dependency_network"] = {
                 "direct_upstream": dir_up,
                 "direct_downstream": dir_down,
                 "total_upstream": tot_up,
@@ -291,12 +309,13 @@ class SecurityAuditor:
                 "downstream_ratio": round(tot_down / total_repo_files, 4),
             }
 
-        return stars
+        return artifacts
 
-    def _construct_feature_matrix(self, stars):
+    def _construct_feature_matrix(self, artifacts):
         """Reconstructs the Pandas DataFrame exactly as train_threat_model.py did."""
         rows = []
 
+        # Variables excluded during XGBoost training to prevent overfitting or noise
         exclusion_list = {
             "hit_structural_tab_indentations",
             "hit_structural_space_indentations",
@@ -317,24 +336,24 @@ class SecurityAuditor:
             "hit_non_standard_steganographic_imports",
         }
 
-        for s in stars:
+        for artifact in artifacts:
             try:
-                tel = s.get("telemetry", {})
-                dep = s.get("dependency_network", {})
-                hits = s.get("hit_vector", [0] * len(self.SIGNAL_SCHEMA))
+                tel = artifact.get("telemetry", {})
+                dep = artifact.get("dependency_network", {})
+                hits = artifact.get("hit_vector", [0] * len(self.SIGNAL_SCHEMA))
 
                 # 1. Base Variables
                 cfr = tel.get("control_flow_ratio", 0.0)
-                coding_loc = s.get("coding_loc", 0)
+                coding_loc = artifact.get("coding_loc", 0)
                 logic_loc = max(int(round(coding_loc * cfr)), 1)
                 safe_denom = max(logic_loc, coding_loc, 1)
 
-                sats = s.get("satellites", [])
+                functions = artifact.get("functions", [])
                 max_func_comp = max(
-                    [sat.get("branch", 0) for sat in sats] if sats else [0]
+                    [func.get("branch", 0) for func in functions] if functions else [0]
                 )
-                avg_func_args = sum([sat.get("args", 0) for sat in sats]) / max(
-                    len(sats), 1
+                avg_func_args = sum([func.get("args", 0) for func in functions]) / max(
+                    len(functions), 1
                 )
 
                 hit_dict = {
@@ -345,8 +364,8 @@ class SecurityAuditor:
 
                 # 2. Build the Row Dictionary
                 row = {
-                    "language": str(s.get("lang_id", "unknown")).lower(),
-                    "structural_mass": float(s.get("file_impact", 0.0)),
+                    "language": str(artifact.get("lang_id", "unknown")).lower(),
+                    "structural_mass": float(artifact.get("file_impact", 0.0)),
                     "cog_raw": float(tel.get("densities", {}).get("cog_raw", 0.0)),
                     "ownership_entropy": float(tel.get("ownership_entropy", 0.0)),
                     "silo_risk": float(tel.get("author_distribution", 0.0)),
@@ -408,8 +427,10 @@ class SecurityAuditor:
                         np.maximum(raw_density, 0)
                     )
 
-                row["assigned_macro_species"] = tel.get("repo_macro_species", 0)
-                row["primary_z_score"] = float(tel.get("repo_z_score", 0.0))
+                # Bind to the new Ecosystem Baseline variables established in the Statistical Auditor
+                row["assigned_macro_species"] = tel.get("ecosystem_baseline_cluster", 0)
+                row["primary_z_score"] = float(tel.get("ecosystem_z_score", 0.0))
+                
                 for i in range(11):
                     row[f"dist_to_{i}"] = float(tel.get(f"dist_to_{i}", 0.0))
 
@@ -417,7 +438,7 @@ class SecurityAuditor:
 
             except Exception as e:
                 self.logger.error(
-                    f"Feature extraction failed for '{s.get('path', 'Unknown')}': {e}. Injecting safe fallback vector."
+                    f"Feature extraction failed for '{artifact.get('path', 'Unknown')}': {e}. Injecting safe fallback vector."
                 )
                 rows.append({"language": "unknown", "structural_mass": 0.0})
 
