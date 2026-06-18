@@ -186,7 +186,7 @@ class Prism:
                 )
 
             for lang_id, segment_text in segments:
-                family = self.languages.get(lang_id, {}).get("lexical_family", "std_c")
+                family = self.languages.get(lang_id, {}).get("lexical_family", "c_style_comment")
                 self.logger.debug(
                     f"Scanning segment [{lang_id}] using syntax family '{family}'..."
                 )
@@ -234,14 +234,16 @@ class Prism:
 
     def _strip_segment_comments(self, text: str, lang_id: str, family: str) -> Tuple[str, str]:
         """Surgically strips documentation from a single segment using pre-compiled rules."""
-        if family == "nested_c":
+        
+        # 1. Handle specialized lexical families
+        if family == "recursive_c_style":
             code, lits = self._strip_nested_comments(text)
             return code, "\n".join(lits)
 
-        if family == "positional":
+        if family == "column_sensitive":
             return self._strip_positional_comments(text)
 
-        # Retrieve the pre-compiled pattern (Zero redundant compilation)
+        # 2. Retrieve the pre-compiled pattern for all other families
         pattern = self.REGEX_MATRIX.get(family)
         if not pattern:
             self.logger.debug(
@@ -250,6 +252,29 @@ class Prism:
             return text, ""
 
         lits = []
+
+        def callback(m: re.Match) -> str:
+            if m.group(1):
+                # Shielded Literal Hit (e.g. String containing a URL)
+                return m.group(1)
+            if m.group(2):
+                # Documentation Hit (Comment)
+                lits.append(m.group(2).strip())
+            return ""
+
+        # Execute stripping pass
+        code = pattern.sub(callback, text)
+
+        # 3. Post-Processing Hooks
+        if lang_id in ("python", "micropython", "ruby"):
+            code, extra_lits = self._strip_python_docstrings(code)
+            lits.extend(extra_lits)
+
+        if lang_id == "php":
+            code, php_lits = self._strip_php_string_mass(code)
+            lits.extend(php_lits)
+
+        return code, "\n".join(lits)
 
         def callback(m: re.Match) -> str:
             if m.group(1):
@@ -287,7 +312,7 @@ class Prism:
         matrix = {}
 
         for fam_key, data in self.lexical_families.items():
-            if fam_key in ("nested_c", "positional"):
+            if fam_key in ("recursive_c_style", "column_sensitive"):
                 continue
 
             delims = data.get("delimiters", [])
@@ -299,21 +324,21 @@ class Prism:
             p = ""
 
             # Dynamically build regex based on family type and safe bounds checks
-            if fam_key == "std_c" and len(d) >= 3:
+            if fam_key == "c_style_comment" and len(d) >= 3:
                 p = rf"({d[0]}[^\n]*|{d[1]}.*?{d[2]})"
-            elif fam_key == "pure_hash" and len(d) >= 1:
+            elif fam_key == "single_line_only" and len(d) >= 1:
                 p = rf"({d[0]}[^\n]*)"
             elif fam_key == "hybrid_hash" and len(d) >= 3:
                 p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*)"
-            elif fam_key == "hybrid_dash" and len(d) >= 5:
+            elif fam_key == "multi_style_dash" and len(d) >= 5:
                 p = rf"({d[1]}.*?{d[2]}|{d[3]}.*?{d[4]}|{d[0]}[^\n]*)"
-            elif fam_key == "hybrid_dash" and len(d) >= 3:  # Fallback
+            elif fam_key == "multi_style_dash" and len(d) >= 3:  # Fallback
                 p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*)"
-            elif fam_key == "polyglot" and len(d) >= 4:
+            elif fam_key == "embedded_syntax" and len(d) >= 4:
                 p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*|{d[3]}[^\n]*)"
-            elif fam_key == "polyglot" and len(d) >= 3:  # Fallback
+            elif fam_key == "embedded_syntax" and len(d) >= 3:  # Fallback
                 p = rf"({d[1]}.*?{d[2]}|{d[0]}[^\n]*)"
-            elif fam_key == "singular":
+            elif fam_key == "single_line_only":
                 # =====================================================================
                 # THE FIX: Neutralized the Zero-Width ReDoS Bomb.
                 #
@@ -351,7 +376,7 @@ class Prism:
                     full_pattern = f"{self.LITERAL_MASK_PATTERN}|{p}"
 
                     flags = re.S | re.M
-                    if fam_key == "singular":
+                    if fam_key == "single_line_only":
                         flags |= re.IGNORECASE
 
                     matrix[fam_key] = re.compile(full_pattern, flags)
@@ -528,7 +553,7 @@ class Prism:
         Iterative Peel loop for recursively nested block comments (e.g. Rust/Swift/Scala).
         Hardened with active string-masking to prevent logic erosion.
         """
-        delims = self.lexical_families.get("nested_c", {}).get("delimiters", ["//", "/*", "*/"])
+        delims = self.lexical_families.get("recursive_c_style", {}).get("delimiters", ["//", "/*", "*/"])
         if len(delims) < 3:
             return text, []
 
