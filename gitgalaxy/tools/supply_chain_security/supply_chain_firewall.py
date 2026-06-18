@@ -57,7 +57,6 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
         # 1. ZERO-TRUST IMPORT VERIFICATION
         # =====================================================================
         for raw_pkg in star.get("raw_imports", []):
-
             # The Relative Path Shield: Ignore native internal routing
             if raw_pkg.startswith("."):
                 continue
@@ -77,9 +76,13 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                 threats_found += 1
                 # The Whitelist Loophole Fix: A blacklisted import is ALWAYS a threat. Never suppress it.
                 if true_pkg != pkg:
-                    print(f"🚨 [BLACKLISTED IMPORT] Spoofed alias blocked: '{pkg}' -> '{true_pkg}' in: {rel_path_str}")
+                    print(
+                        f"🚨 [BLACKLISTED IMPORT] Spoofed alias blocked: '{pkg}' -> '{true_pkg}' in: {rel_path_str}"
+                    )
                 else:
-                    print(f"🚨 [BLACKLISTED IMPORT] Malicious package '{pkg}' blocked in: {rel_path_str}")
+                    print(
+                        f"🚨 [BLACKLISTED IMPORT] Malicious package '{pkg}' blocked in: {rel_path_str}"
+                    )
             elif true_pkg in APPROVED_IMPORTS:
                 imports_whitelisted += 1
             else:
@@ -111,7 +114,13 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
         # I/O or Danger hits instantly detonate the firewall.
         build_time_multiplier = 1.0
         filename = Path(rel_path_str).name
-        if filename in ["setup.py", "build.rs", "preinstall.js", "postinstall.js", "package.json"]:
+        if filename in [
+            "setup.py",
+            "build.rs",
+            "preinstall.js",
+            "postinstall.js",
+            "package.json",
+        ]:
             build_time_multiplier = 10.0
 
         safe_loc = max(loc + 150, 1)
@@ -134,7 +143,9 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
             if is_whitelisted:
                 threats_allowed += 1
             else:
-                print(f"\n🚨 [SUPPLY CHAIN COMPROMISE] Density Threshold Breached in: {rel_path_str}")
+                print(
+                    f"\n🚨 [SUPPLY CHAIN COMPROMISE] Density Threshold Breached in: {rel_path_str}"
+                )
                 for risk, density in exposures.items():
                     print(f"   -> {risk}: {density * 100:.1f}%")
                 threats_found += 1
@@ -158,8 +169,12 @@ def main():
 
     enforce_licensing_guard("Supply Chain Firewall")
 
-    parser = argparse.ArgumentParser(description="Supply Chain Firewall (RAM-Exclusive Mode)")
-    parser.add_argument("target", help="Path to the compiled GalaxyScope RAM graph (e.g., results.json)")
+    parser = argparse.ArgumentParser(
+        description="Supply Chain Firewall (RAM-Exclusive Mode)"
+    )
+    parser.add_argument(
+        "target", help="Path to the compiled GalaxyScope RAM graph (e.g., results.json)"
+    )
     args = parser.parse_args()
 
     target_path = Path(args.target).resolve()
@@ -167,7 +182,9 @@ def main():
         print(f"Error: RAM graph '{target_path}' does not exist.")
         sys.exit(1)
 
-    print(f"🧱 Supply Chain Firewall ingesting orchestrator RAM graph from {target_path.name}...")
+    print(
+        f"🧱 Supply Chain Firewall ingesting orchestrator RAM graph from {target_path.name}..."
+    )
 
     try:
         with open(target_path, "r", encoding="utf-8") as f:
@@ -181,7 +198,11 @@ def main():
     # relying purely on strict exact-match dependencies and behavioral math.
     results = run_firewall_audit(parsed_files, alias_map={})
 
-    mode_str = "Strict (Exclude Blacklist and Unknown)" if STRICT_IMPORT_MODE else "Audit (Allow Whitelist + Unknown)"
+    mode_str = (
+        "Strict (Exclude Blacklist and Unknown)"
+        if STRICT_IMPORT_MODE
+        else "Audit (Allow Whitelist + Unknown)"
+    )
 
     print("\n" + "=" * 75)
     print(" 🧱 SUPPLY CHAIN FIREWALL: MISSION REPORT (RAM-EXCLUSIVE)")
@@ -198,7 +219,9 @@ def main():
     print("-" * 75)
 
     if results["threats_found"] > 0:
-        print(f" ❌ BUILD FAILED: {results['threats_found']} infected dependencies or policy violations blocked.")
+        print(
+            f" ❌ BUILD FAILED: {results['threats_found']} infected dependencies or policy violations blocked."
+        )
         sys.exit(1)
     else:
         print(" ✅ BUILD PASSED: Dependency supply chain is clean.")

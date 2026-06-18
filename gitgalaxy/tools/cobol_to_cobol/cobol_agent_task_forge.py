@@ -8,7 +8,9 @@ import json
 from pathlib import Path
 
 
-def generate_agent_ticket(file_name: str, source_file: Path, anomalies: list, ir_state: dict) -> dict:
+def generate_agent_ticket(
+    file_name: str, source_file: Path, anomalies: list, ir_state: dict
+) -> dict:
     """Forges a structured JSON task ticket for an autonomous agent."""
 
     # Extract lineage to give the agent dependency context
@@ -16,7 +18,9 @@ def generate_agent_ticket(file_name: str, source_file: Path, anomalies: list, ir
     if ir_state:
         lineage = ir_state.get("analysis", {}).get("lineage", {})
 
-    clean_anomalies = [a.split("]", 1)[-1].strip() if "]" in a else a for a in anomalies]
+    clean_anomalies = [
+        a.split("]", 1)[-1].strip() if "]" in a else a for a in anomalies
+    ]
 
     ticket = {
         "job_id": f"{file_name.split('.')[0]}_REMEDIATION",
@@ -67,7 +71,11 @@ def forge_agent_jobs(clean_room_dir: Path, source_dir: Path, honesty_flags: list
         # Grab the IR state for extra context if it exists
         prog_id = file_name.split(".")[0]
         ir_file = ir_dir / f"{prog_id}_ir.json"
-        ir_state = json.loads(ir_file.read_text(encoding="utf-8")) if ir_file.exists() else None
+        ir_state = (
+            json.loads(ir_file.read_text(encoding="utf-8"))
+            if ir_file.exists()
+            else None
+        )
 
         ticket = generate_agent_ticket(file_name, source_file, anomalies, ir_state)
 

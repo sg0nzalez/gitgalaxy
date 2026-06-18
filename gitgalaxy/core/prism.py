@@ -74,7 +74,9 @@ class Prism:
         self.families = comment_definitions.get("mechanical_families", {})
         self.languages = language_definitions
 
-        self.logger.debug("Initializing Prism hardware and warming up optical matrix...")
+        self.logger.debug(
+            "Initializing Prism hardware and warming up optical matrix..."
+        )
 
         # --- TIER 1: THE STRING LITERAL SHIELD ---
         self.SHIELD_PATTERN = PRISM_CONFIG.get("SHIELD_PATTERN", "")
@@ -95,16 +97,30 @@ class Prism:
             )
 
         # Performance Constants
-        self.HANDSHAKE_LOOKAHEAD_LIMIT = LENS_CONFIG.get("THRESHOLDS", {}).get("HANDSHAKE_LOOKAHEAD_LIMIT", 50000)
-        self.NESTED_PEEL_LIMIT = PRISM_CONFIG.get("THRESHOLDS", {}).get("NESTED_PEEL_LIMIT", 500)
-        self.POSITIONAL_ANCHORS = PRISM_CONFIG.get("POSITIONAL_ANCHORS", {"*", "C", "c", "/", "!"})
+        self.HANDSHAKE_LOOKAHEAD_LIMIT = LENS_CONFIG.get("THRESHOLDS", {}).get(
+            "HANDSHAKE_LOOKAHEAD_LIMIT", 50000
+        )
+        self.NESTED_PEEL_LIMIT = PRISM_CONFIG.get("THRESHOLDS", {}).get(
+            "NESTED_PEEL_LIMIT", 500
+        )
+        self.POSITIONAL_ANCHORS = PRISM_CONFIG.get(
+            "POSITIONAL_ANCHORS", {"*", "C", "c", "/", "!"}
+        )
 
         # Hardened Language Specific Extractors
-        self.PYTHON_DOC_PATTERN = re.compile(PRISM_CONFIG.get("PYTHON_DOC_PATTERN", ""), re.M)
-        self.PHP_HEREDOC_PATTERN = re.compile(PRISM_CONFIG.get("PHP_HEREDOC_PATTERN", ""), re.M)
-        self.PHP_MULTILINE_STRING = re.compile(PRISM_CONFIG.get("PHP_MULTILINE_STRING", ""), re.M)
+        self.PYTHON_DOC_PATTERN = re.compile(
+            PRISM_CONFIG.get("PYTHON_DOC_PATTERN", ""), re.M
+        )
+        self.PHP_HEREDOC_PATTERN = re.compile(
+            PRISM_CONFIG.get("PHP_HEREDOC_PATTERN", ""), re.M
+        )
+        self.PHP_MULTILINE_STRING = re.compile(
+            PRISM_CONFIG.get("PHP_MULTILINE_STRING", ""), re.M
+        )
 
-        self.logger.info(f"Prism Engine Online | Calibrated {len(self.PRISM_MATRIX)} mechanical lenses.")
+        self.logger.info(
+            f"Prism Engine Online | Calibrated {len(self.PRISM_MATRIX)} mechanical lenses."
+        )
 
     def refract(self, content: str, primary_lang: str) -> RefractionResult:
         """Decouples the signal into mutually exclusive streams (Logic vs Literature)."""
@@ -119,7 +135,9 @@ class Prism:
 
         # --- THE UNPARSABLE BYPASS (Spec 2.3.4.A.1) ---
         if primary_lang in ("undeterminable", "unknown"):
-            self.logger.debug(f"Unparsable Bypass: '{primary_lang}' signal routed to Active Matter intact.")
+            self.logger.debug(
+                f"Unparsable Bypass: '{primary_lang}' signal routed to Active Matter intact."
+            )
             coding_loc = len([l for l in content.split("\n") if l.strip()])
             return {
                 "code_stream": content,
@@ -131,7 +149,9 @@ class Prism:
         # --- THE PROSE BYPASS ---
         # Simply add "xml" to the tuple!
         if primary_lang in ("markdown", "plaintext", "xml"):
-            self.logger.debug(f"Prose Bypass: '{primary_lang}' signal routed to Ghost Mass intact.")
+            self.logger.debug(
+                f"Prose Bypass: '{primary_lang}' signal routed to Ghost Mass intact."
+            )
             doc_loc = len([l for l in content.split("\n") if l.strip()])
             return {
                 "code_stream": "",
@@ -159,10 +179,14 @@ class Prism:
 
             for lang_id, segment_text in segments:
                 family = self.languages.get(lang_id, {}).get("lexical_family", "std_c")
-                self.logger.debug(f"Refracting segment [{lang_id}] using optical family '{family}'...")
+                self.logger.debug(
+                    f"Refracting segment [{lang_id}] using optical family '{family}'..."
+                )
 
                 # Refract the segment
-                seg_code, seg_comments = self._refract_segment(segment_text, lang_id, family)
+                seg_code, seg_comments = self._refract_segment(
+                    segment_text, lang_id, family
+                )
 
                 code_parts.append(seg_code)
                 comment_parts.append(seg_comments)
@@ -182,7 +206,9 @@ class Prism:
             # This forces mutual exclusivity: if a line has code and a comment, it counts as Code.
             doc_loc = max(0, total_active_lines - coding_loc)
 
-            self.logger.debug(f"Refraction Complete: {coding_loc} Active LOC | {doc_loc} Ghost LOC.")
+            self.logger.debug(
+                f"Refraction Complete: {coding_loc} Active LOC | {doc_loc} Ghost LOC."
+            )
 
             return {
                 "code_stream": final_code,
@@ -210,7 +236,9 @@ class Prism:
         # Retrieve the pre-compiled pattern (Zero redundant compilation)
         pattern = self.PRISM_MATRIX.get(family)
         if not pattern:
-            self.logger.debug(f"No pre-compiled lens for family '{family}'. Returning unrefracted.")
+            self.logger.debug(
+                f"No pre-compiled lens for family '{family}'. Returning unrefracted."
+            )
             return text, ""
 
         lits = []
@@ -230,14 +258,18 @@ class Prism:
         if lang_id in ("python", "micropython", "ruby"):
             code, extra_lits = self._strip_python_docstrings(code)
             if extra_lits:
-                self.logger.debug(f"Post-processor extracted {len(extra_lits)} standalone docstrings.")
+                self.logger.debug(
+                    f"Post-processor extracted {len(extra_lits)} standalone docstrings."
+                )
             lits.extend(extra_lits)
 
         # ---> ADD THIS: Hardened PHP Post-Processing (Heredoc & Multi-line Strings)
         if lang_id == "php":
             code, php_lits = self._strip_php_string_mass(code)
             if php_lits:
-                self.logger.debug(f"Post-processor extracted {len(php_lits)} PHP Heredoc/Multi-line strings.")
+                self.logger.debug(
+                    f"Post-processor extracted {len(php_lits)} PHP Heredoc/Multi-line strings."
+                )
             lits.extend(php_lits)
 
         return code, "\n".join(lits)
@@ -315,9 +347,13 @@ class Prism:
                         flags |= re.IGNORECASE
 
                     matrix[fam_key] = re.compile(full_pattern, flags)
-                    self.logger.debug(f"Optical matrix calibrated for family: {fam_key}")
+                    self.logger.debug(
+                        f"Optical matrix calibrated for family: {fam_key}"
+                    )
                 except re.error as e:
-                    self.logger.error(f"Regex compilation failed for family '{fam_key}': {e}")
+                    self.logger.error(
+                        f"Regex compilation failed for family '{fam_key}': {e}"
+                    )
 
         return matrix
 
@@ -350,7 +386,9 @@ class Prism:
 
         return text, lits
 
-    def _partition_segments(self, content: str, primary_id: str) -> List[Tuple[str, str]]:
+    def _partition_segments(
+        self, content: str, primary_id: str
+    ) -> List[Tuple[str, str]]:
         """Splits content into language segments based on handshake triggers."""
         segments = []
         last_idx = 0
@@ -397,20 +435,30 @@ class Prism:
             if t["start"] < last_idx:
                 continue
 
-            self.logger.debug(f"Handshake Trigger: Alien segment '{t['target']}' discovered at offset {t['start']}.")
+            self.logger.debug(
+                f"Handshake Trigger: Alien segment '{t['target']}' discovered at offset {t['start']}."
+            )
 
             if t["start"] > last_idx:
                 segments.append((primary_id, content[last_idx : t["start"]]))
 
             if t["pair"]:
                 open_char, close_char = t["pair"]
-                end_idx = self._find_balanced_end(content, t["start"], open_char, close_char)
+                end_idx = self._find_balanced_end(
+                    content, t["start"], open_char, close_char
+                )
             else:
-                search_limit = min(t["trigger_end"] + self.HANDSHAKE_LOOKAHEAD_LIMIT, len(content))
-                end_match = t["end_pattern"].search(content, pos=t["trigger_end"], endpos=search_limit)
+                search_limit = min(
+                    t["trigger_end"] + self.HANDSHAKE_LOOKAHEAD_LIMIT, len(content)
+                )
+                end_match = t["end_pattern"].search(
+                    content, pos=t["trigger_end"], endpos=search_limit
+                )
                 end_idx = end_match.end() if end_match else len(content)
                 if not end_match and end_idx == search_limit:
-                    self.logger.warning("Lens Scope Guard: Failed to find closure within limit. Forcing clip.")
+                    self.logger.warning(
+                        "Lens Scope Guard: Failed to find closure within limit. Forcing clip."
+                    )
 
             segments.append((t["target"], content[t["start"] : end_idx]))
             last_idx = end_idx
@@ -420,7 +468,9 @@ class Prism:
 
         return segments if segments else [(primary_id, content)]
 
-    def _find_balanced_end(self, text: str, start_pos: int, opener: str, closer: str) -> int:
+    def _find_balanced_end(
+        self, text: str, start_pos: int, opener: str, closer: str
+    ) -> int:
         """Balanced scoping implementation for paired-bracket alien segments."""
         depth = 0
         in_string: Optional[str] = None
@@ -453,12 +503,16 @@ class Prism:
                 elif char == closer:
                     depth -= 1
                     if depth <= 0:
-                        self.logger.debug(f"Balanced scoping closed at offset +{i - start_pos} chars.")
+                        self.logger.debug(
+                            f"Balanced scoping closed at offset +{i - start_pos} chars."
+                        )
                         return i + 1
 
             i += 1
 
-        self.logger.warning(f"Lens Scope Guard: Failed to find balanced '{opener}{closer}'. Forcing closure.")
+        self.logger.warning(
+            f"Lens Scope Guard: Failed to find balanced '{opener}{closer}'. Forcing closure."
+        )
         return limit
 
     def _refract_nested(self, text: str) -> Tuple[str, List[str]]:
@@ -525,11 +579,15 @@ class Prism:
             lits.append(unmask(block_content).strip())
 
             # Remove from logic stream
-            protected_code = protected_code[:start_idx] + protected_code[end_match.end() :]
+            protected_code = (
+                protected_code[:start_idx] + protected_code[end_match.end() :]
+            )
             safety += 1
 
         if safety >= self.NESTED_PEEL_LIMIT:
-            self.logger.warning(f"Nested Peel Guard triggered: Reached max iteration limit ({self.NESTED_PEEL_LIMIT}).")
+            self.logger.warning(
+                f"Nested Peel Guard triggered: Reached max iteration limit ({self.NESTED_PEEL_LIMIT})."
+            )
 
         # 4. Final Logic Unmasking
         return unmask(protected_code), lits

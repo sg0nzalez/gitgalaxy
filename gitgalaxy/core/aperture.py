@@ -118,7 +118,9 @@ class ApertureFilter:
         self._intent_cache: Set[str] = set()
         self.dynamic_black_holes: Set[str] = set()
 
-        self.logger.debug(f"Initializing Solar Shield for sector: '{self.root.name}'...")
+        self.logger.debug(
+            f"Initializing Solar Shield for sector: '{self.root.name}'..."
+        )
 
         # 3. Optimized Lookup Construction
         self.whitelisted_extensions: Set[str] = set()
@@ -135,7 +137,9 @@ class ApertureFilter:
             f"Tracking {len(self.whitelisted_extensions)} spectral bands."
         )
 
-    def evaluate_path_integrity(self, file_path: Union[str, Path], has_intent: bool = False) -> Tuple[bool, int, str]:
+    def evaluate_path_integrity(
+        self, file_path: Union[str, Path], has_intent: bool = False
+    ) -> Tuple[bool, int, str]:
         """
         [PHASE 0 ENTRY POINT]
         Performs high-speed path analysis to build the CensusArray (Radar Walk).
@@ -156,9 +160,9 @@ class ApertureFilter:
             size_bytes = 0
 
         # --- TIER 0.1: THE SECRETS RADAR ---
-        if path_obj.name in self.config.get("SECRETS_EXACT", set()) or ext.lower() in self.config.get(
-            "SECRETS_EXTENSIONS", set()
-        ):
+        if path_obj.name in self.config.get(
+            "SECRETS_EXACT", set()
+        ) or ext.lower() in self.config.get("SECRETS_EXTENSIONS", set()):
             reason = f"CRITICAL LEAK (Exposed Secret: '{path_obj.name}')"
             return False, size_bytes, reason
 
@@ -176,11 +180,16 @@ class ApertureFilter:
         }
         if ext.lower() in AI_MODEL_EXTS:
             reason = f"AI MODEL WEIGHTS (Bypassing Standard Logic: '{ext}')"
-            self.logger.info(f"🧠 NEURAL AUDITOR SHUNT: Routing {path_obj.name} away from regex engines.")
+            self.logger.info(
+                f"🧠 NEURAL AUDITOR SHUNT: Routing {path_obj.name} away from regex engines."
+            )
             return False, size_bytes, reason
 
         # --- TIER 0.5: THE ABSOLUTE EXTENSION SHIELD ---
-        if ext.lower() in self.black_hole_exts and ext.lower() not in self.whitelisted_extensions:
+        if (
+            ext.lower() in self.black_hole_exts
+            and ext.lower() not in self.whitelisted_extensions
+        ):
             reason = f"Blocked (Explicitly Blacklisted Extension: '{ext}')"
             return False, size_bytes, reason
 
@@ -191,7 +200,9 @@ class ApertureFilter:
 
         # --- TIER 1: THE SOLAR SHIELD ---
         if not self._check_solar_shield(relative_path, has_intent=active_intent):
-            reason = "Blocked (System Exclusion, Hidden Directory, or Dynamic Black Hole)"
+            reason = (
+                "Blocked (System Exclusion, Hidden Directory, or Dynamic Black Hole)"
+            )
             return False, size_bytes, reason
 
         # --- TIER 2: THE VISIBLE SPECTRUM ---
@@ -201,7 +212,10 @@ class ApertureFilter:
         if not ext:
             return True, size_bytes, "Passed (Extensionless -> Subject to Shebang scan)"
 
-        if path_obj.name in self.ecosystem_anchors or ext.lower() in self.whitelisted_extensions:
+        if (
+            path_obj.name in self.ecosystem_anchors
+            or ext.lower() in self.whitelisted_extensions
+        ):
             return True, size_bytes, "Passed (Whitelisted)"
 
         reason = f"Blocked (Unsupported Extension: '{ext}')"
@@ -220,7 +234,11 @@ class ApertureFilter:
         """
         path_obj = Path(file_path)
         normalized_path = path_obj.as_posix()
-        relative_path = str(path_obj.relative_to(self.root)) if path_obj.is_relative_to(self.root) else normalized_path
+        relative_path = (
+            str(path_obj.relative_to(self.root))
+            if path_obj.is_relative_to(self.root)
+            else normalized_path
+        )
         active_intent = has_intent or (normalized_path in self._intent_cache)
 
         result: FilterResult = {
@@ -251,7 +269,9 @@ class ApertureFilter:
                 return result
 
             # --- TIER 1 & 2: Path Gate ---
-            is_valid, size_bytes, reason = self.evaluate_path_integrity(path_obj, has_intent=active_intent)
+            is_valid, size_bytes, reason = self.evaluate_path_integrity(
+                path_obj, has_intent=active_intent
+            )
 
             if not is_valid:
                 result.update({"band": self.bands.get("RADIO"), "reason": reason})
@@ -274,11 +294,15 @@ class ApertureFilter:
                 result["reason"] = "Protocol Violation: Missing content buffer"
                 return result
 
-            integrity = self._check_artifact_integrity(content, relative_path, has_intent=active_intent)
+            integrity = self._check_artifact_integrity(
+                content, relative_path, has_intent=active_intent
+            )
             result["total_loc"] = integrity["loc"]
 
             if not integrity["valid"]:
-                result.update({"band": integrity["band"], "reason": integrity["reason"]})
+                result.update(
+                    {"band": integrity["band"], "reason": integrity["reason"]}
+                )
                 return result
 
             # --- MISSION SUCCESS ---
@@ -290,7 +314,9 @@ class ApertureFilter:
             result["reason"] = f"Internal Exception: {str(e)}"
             return result
 
-    def _check_artifact_integrity(self, content: str, rel_path: str, has_intent: bool = False) -> Dict[str, Any]:
+    def _check_artifact_integrity(
+        self, content: str, rel_path: str, has_intent: bool = False
+    ) -> Dict[str, Any]:
         """
         Deep-scans the content buffer for corruption, binary data, arrays,
         or documentation generator signatures.
@@ -338,7 +364,9 @@ class ApertureFilter:
                 parent_dir = str(Path(rel_path).parent)
                 if parent_dir != ".":
                     self.dynamic_black_holes.add(parent_dir)
-                    self.logger.debug(f"Dynamic Infection: Directory '{parent_dir}' flagged as Doc Debris.")
+                    self.logger.debug(
+                        f"Dynamic Infection: Directory '{parent_dir}' flagged as Doc Debris."
+                    )
 
                 report.update(
                     {
@@ -363,7 +391,11 @@ class ApertureFilter:
                 return report
 
         # --- TIER 3.7: THE LEXICAL MONOTONY SHIELD (Generated Code) ---
-        if report["loc"] > 2000 and not has_intent and not low_path.endswith((".cpy", ".cbl", ".cob")):
+        if (
+            report["loc"] > 2000
+            and not has_intent
+            and not low_path.endswith((".cpy", ".cbl", ".cob"))
+        ):
             sample_lines = lines_list[:500]
             meaningful_lines = [l for l in sample_lines if l.strip()]
 
@@ -385,7 +417,9 @@ class ApertureFilter:
                     return report
 
         # --- TIER 3.8: THE DECLARATIVE & VECTOR DATA SHIELD ---
-        if low_path.endswith((".yml", ".yaml", ".json", ".xml", ".svg", ".sql", ".csv", ".tsv")):
+        if low_path.endswith(
+            (".yml", ".yaml", ".json", ".xml", ".svg", ".sql", ".csv", ".tsv")
+        ):
             # If the file is massive, absolutely drop it. Even if Git tracks it.
             if report["loc"] > 2500:
                 report.update(
@@ -437,7 +471,9 @@ class ApertureFilter:
         # --- TIER 4: INFRARED GATE (Minification & Saturation) ---
         max_line = self.config.get("MAX_LINE_LENGTH", 500)
 
-        is_prose = low_path.endswith((".md", ".markdown", ".txt", ".json", ".csv", ".rst", ".sql", ".svg"))
+        is_prose = low_path.endswith(
+            (".md", ".markdown", ".txt", ".json", ".csv", ".rst", ".sql", ".svg")
+        )
 
         for i, line in enumerate(lines_list[:100]):
             if len(line) > max_line and not is_prose:
@@ -445,7 +481,7 @@ class ApertureFilter:
                     {
                         "valid": False,
                         "band": self.bands.get("INFRARED", "saturated"),
-                        "reason": f"Blocked (Saturation: Line {i+1} exceeds {max_line} chars)",
+                        "reason": f"Blocked (Saturation: Line {i + 1} exceeds {max_line} chars)",
                     }
                 )
                 return report
@@ -473,7 +509,9 @@ class ApertureFilter:
         path_obj = Path(rel_path)
         for parent in path_obj.parents:
             if str(parent) in self.dynamic_black_holes:
-                self.logger.debug(f"Dynamic Deflection: Asset '{rel_path}' blocked in infected directory.")
+                self.logger.debug(
+                    f"Dynamic Deflection: Asset '{rel_path}' blocked in infected directory."
+                )
                 return False
 
         # 2. Semantic Infrastructure & Test Target Shield
@@ -493,7 +531,9 @@ class ApertureFilter:
                 if any(fnmatch.fnmatch(p + "/", pattern) for p in parts):
                     return False
             else:
-                if fnmatch.fnmatch(rel_path, pattern) or fnmatch.fnmatch(filename, pattern):
+                if fnmatch.fnmatch(rel_path, pattern) or fnmatch.fnmatch(
+                    filename, pattern
+                ):
                     return False
 
         return True

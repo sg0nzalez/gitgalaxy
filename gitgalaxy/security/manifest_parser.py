@@ -12,14 +12,18 @@ from pathlib import Path
 class ManifestParser:
     def __init__(self, parent_logger=None):
         self.logger = (
-            parent_logger.getChild("manifest_parser") if parent_logger else logging.getLogger("manifest_parser")
+            parent_logger.getChild("manifest_parser")
+            if parent_logger
+            else logging.getLogger("manifest_parser")
         )
 
         # Matches standard Python packages, dropping version constraints (==, >=, ~)
         self.py_req_regex = re.compile(r"^([a-zA-Z0-9_\-]+)(?:[=><~].*)?$")
 
         # Matches external Python injections (git+, file://, http)
-        self.py_injection_regex = re.compile(r"^(?:git\+|file:|https?:|hg\+|svn\+|bzr\+)(.*)$")
+        self.py_injection_regex = re.compile(
+            r"^(?:git\+|file:|https?:|hg\+|svn\+|bzr\+)(.*)$"
+        )
 
     def build_translation_map(self, manifest_paths: list) -> dict:
         """
@@ -45,7 +49,9 @@ class ManifestParser:
                 elif filename in ["pip.conf", ".pypirc", "pip.ini"]:
                     self._parse_pip_conf(manifest_path, translation_map)
             except Exception as e:
-                self.logger.warning(f"Manifest Parser: Failed to parse {filename} - {e}")
+                self.logger.warning(
+                    f"Manifest Parser: Failed to parse {filename} - {e}"
+                )
 
         return translation_map
 
@@ -65,7 +71,9 @@ class ManifestParser:
             if version_string.startswith("npm:"):
                 raw_pkg = version_string[4:]
                 if raw_pkg.startswith("@"):
-                    real_pkg = raw_pkg.rsplit("@", 1)[0] if "@" in raw_pkg[1:] else raw_pkg
+                    real_pkg = (
+                        raw_pkg.rsplit("@", 1)[0] if "@" in raw_pkg[1:] else raw_pkg
+                    )
                 else:
                     real_pkg = raw_pkg.split("@")[0]
                 translation_map[alias] = real_pkg
@@ -98,7 +106,9 @@ class ManifestParser:
                 "[https://registry.npmjs.org/](https://registry.npmjs.org/)"
             ):
                 translation_map[pkg_name] = resolved_url
-                self.logger.info(f"Manifest Parser: Flagged non-standard resolution for '{pkg_name}' -> {resolved_url}")
+                self.logger.info(
+                    f"Manifest Parser: Flagged non-standard resolution for '{pkg_name}' -> {resolved_url}"
+                )
 
     def _parse_requirements_txt(self, filepath: Path, translation_map: dict):
         """
@@ -115,7 +125,9 @@ class ManifestParser:
                 if injection_match:
                     # Map the raw string directly so the firewall flags it as an unknown/external source
                     translation_map[line] = line
-                    self.logger.warning(f"Manifest Parser: Flagged Python external injection -> {line}")
+                    self.logger.warning(
+                        f"Manifest Parser: Flagged Python external injection -> {line}"
+                    )
                     continue
 
                 # Standard package capture
@@ -138,12 +150,22 @@ class ManifestParser:
                     continue
 
                 # Look for custom registry routing
-                if "index-url" in line or "extra-index-url" in line or "repository" in line:
+                if (
+                    "index-url" in line
+                    or "extra-index-url" in line
+                    or "repository" in line
+                ):
                     parts = line.split("=")
                     if len(parts) == 2:
                         url = parts[1].strip()
 
                         # Flag unencrypted HTTP or suspicious ngrok/local proxies immediately
-                        if url.startswith("http://") or "ngrok" in url or "localtunnel" in url:
-                            self.logger.warning(f"🚨 Manifest Parser: INSECURE REGISTRY DETECTED -> {url}")
+                        if (
+                            url.startswith("http://")
+                            or "ngrok" in url
+                            or "localtunnel" in url
+                        ):
+                            self.logger.warning(
+                                f"🚨 Manifest Parser: INSECURE REGISTRY DETECTED -> {url}"
+                            )
                             translation_map[f"INSECURE_REGISTRY_{filepath.name}"] = url

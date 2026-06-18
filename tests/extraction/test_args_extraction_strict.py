@@ -305,7 +305,6 @@ ARGS_EXTRACTION_CASES = {
 
 
 class TestArgsExtraction:
-
     @pytest.mark.parametrize("lang_id", ARGS_EXTRACTION_CASES.keys())
     def test_positive_args_extraction(self, lang_id):
         cases = ARGS_EXTRACTION_CASES.get(lang_id, {})
@@ -318,7 +317,9 @@ class TestArgsExtraction:
 
         for payload, expected_name in cases["valid"]:
             match = pattern.search(payload)
-            assert match is not None, f"[{lang_id}] Iron Wall Blocked Valid Args: '{payload}'"
+            assert match is not None, (
+                f"[{lang_id}] Iron Wall Blocked Valid Args: '{payload}'"
+            )
 
     @pytest.mark.parametrize("lang_id", ARGS_EXTRACTION_CASES.keys())
     def test_negative_args_extraction(self, lang_id):
@@ -332,7 +333,9 @@ class TestArgsExtraction:
 
         for payload in cases["invalid"]:
             match = pattern.search(payload)
-            assert match is None, f"[{lang_id}] 👻 GHOST ARGS HALLUCINATED! Erroneously matched args on: '{payload}'"
+            assert match is None, (
+                f"[{lang_id}] 👻 GHOST ARGS HALLUCINATED! Erroneously matched args on: '{payload}'"
+            )
 
     @pytest.mark.parametrize("lang_id", ARGS_EXTRACTION_CASES.keys())
     def test_pathological_args_extraction(self, lang_id):
@@ -346,4 +349,6 @@ class TestArgsExtraction:
 
         for payload, expected_name in cases["pathological"]:
             match = pattern.search(payload)
-            assert match is not None, f"[{lang_id}] 💥 Engine choked on pathological args formatting: '{payload}'"
+            assert match is not None, (
+                f"[{lang_id}] 💥 Engine choked on pathological args formatting: '{payload}'"
+            )

@@ -65,7 +65,9 @@ class Chronometer:
         self.repo_min_time = time.time()
         self.repo_max_time = time.time()
 
-        self.logger.debug(f"Initializing Melded Temporal Sensor for: '{self.root.name}'...")
+        self.logger.debug(
+            f"Initializing Melded Temporal Sensor for: '{self.root.name}'..."
+        )
 
         # 1. Hardware Verification & Boundary Survey
         self._calibrate_temporal_field()
@@ -79,7 +81,9 @@ class Chronometer:
             try:
                 subprocess.run(["git", "--version"], capture_output=True, check=True)
                 self.is_resilient = True
-                self.logger.debug("Git hardware verified. Commencing Deep Boundary Survey.")
+                self.logger.debug(
+                    "Git hardware verified. Commencing Deep Boundary Survey."
+                )
             except (subprocess.CalledProcessError, FileNotFoundError):
                 self.logger.warning("Git binary not found. Falling back to OS Walk.")
 
@@ -137,10 +141,14 @@ class Chronometer:
                     if res_min_time.stdout.strip():
                         self.repo_min_time = float(res_min_time.stdout.strip())
 
-                self.logger.debug(f"Boundaries Locked (Git): {self.repo_min_time} to {self.repo_max_time}")
+                self.logger.debug(
+                    f"Boundaries Locked (Git): {self.repo_min_time} to {self.repo_max_time}"
+                )
                 return
             except Exception as e:
-                self.logger.warning(f"Git boundary survey failed, falling back to FS scan: {e}")
+                self.logger.warning(
+                    f"Git boundary survey failed, falling back to FS scan: {e}"
+                )
 
         # Fallback: OS Walk for boundaries utilizing global Aperture configs
         black_holes = self.aperture_config.get("BLACK_HOLES", set())
@@ -150,7 +158,9 @@ class Chronometer:
         count = 0
         for root, dirs, files in os.walk(self.root):
             # Skip noise sectors dynamically
-            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in black_holes]
+            dirs[:] = [
+                d for d in dirs if not d.startswith(".") and d not in black_holes
+            ]
             for f in files:
                 try:
                     m = os.path.getmtime(os.path.join(root, f))
@@ -218,7 +228,10 @@ class Chronometer:
         # The Kiosk Safety Net: Ensure this pulls from your config (e.g., 15.0 or 60.0)
         timeout_limit = self.chrono_config.get("STREAM_TIMEOUT_SECONDS", 15.0)
 
-        self.logger.info(f"Chronometer: Engaging 1-Year Historical Sweep (Kiosk Mode). " f"Budget: {timeout_limit}s")
+        self.logger.info(
+            f"Chronometer: Engaging 1-Year Historical Sweep (Kiosk Mode). "
+            f"Budget: {timeout_limit}s"
+        )
 
         ignored_hashes = self._load_ignored_revs()
 
@@ -246,7 +259,9 @@ class Chronometer:
         duration = time.time() - start_time
 
         # Filter our entropy map to only count currently tracked files for the final pct
-        coverage_achieved = len([k for k in self.entropy_map.keys() if k in tracked_files])
+        coverage_achieved = len(
+            [k for k in self.entropy_map.keys() if k in tracked_files]
+        )
         pct = coverage_achieved / max(total_files, 1) * 100
 
         self.logger.info(
@@ -310,7 +325,9 @@ class Chronometer:
 
                         skip_current_commit = False
                         current_ts = float(parts[1])
-                        current_author = parts[2].strip() if len(parts) > 2 else "Unknown"
+                        current_author = (
+                            parts[2].strip() if len(parts) > 2 else "Unknown"
+                        )
                         continue
 
                 if skip_current_commit:
@@ -331,7 +348,9 @@ class Chronometer:
                 # Track Ownership Entropy
                 if path_key not in self.author_map:
                     self.author_map[path_key] = {}
-                self.author_map[path_key][current_author] = self.author_map[path_key].get(current_author, 0) + 1
+                self.author_map[path_key][current_author] = (
+                    self.author_map[path_key].get(current_author, 0) + 1
+                )
 
                 # Track Stability (MTime)
                 if current_ts > self.mtime_map.get(path_key, 0.0):

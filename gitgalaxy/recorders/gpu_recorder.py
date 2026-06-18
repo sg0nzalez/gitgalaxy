@@ -33,7 +33,11 @@ class GPURecorder:
 
     def __init__(self, version: str, parent_logger: Optional[logging.Logger] = None):
         self.version = version
-        self.logger = parent_logger.getChild("gpu_recorder") if parent_logger else logging.getLogger("gpu_recorder")
+        self.logger = (
+            parent_logger.getChild("gpu_recorder")
+            if parent_logger
+            else logging.getLogger("gpu_recorder")
+        )
 
         # --- DYNAMIC SCHEMA FETCH ---
         schemas = getattr(analysis_lens, "RECORDING_SCHEMAS", {})
@@ -47,7 +51,9 @@ class GPURecorder:
         self.ext_lookup: List[str] = []  # <--- NEW: Vectorized Extension Registry
         self.import_lookup: List[str] = []  # <--- NEW: Vectorized Import Registry
         self.texture_lookup: List[str] = schemas.get("GPU_TEXTURE_LOOKUPS", [])
-        self.dir_group_lookup: List[str] = []  # <--- NEW: Vectorized Directory Group Registry
+        self.dir_group_lookup: List[
+            str
+        ] = []  # <--- NEW: Vectorized Directory Group Registry
         self.archetype_lookup: List[str] = []  # <--- NEW: Vectorized ML Archetypes
 
         # --- POSITION-SENSITIVE SCHEMAS ---
@@ -136,14 +142,18 @@ class GPURecorder:
         # --- DESTRUCTIVE PIVOT: Parsed Files ---
         # Subphase 3.3: Use while loop with pop() to ensure the list is physically emptied
         while parsed_files:
-            current_idx = len(columns["paths"])  # Tracks the exact column index being built
+            current_idx = len(
+                columns["paths"]
+            )  # Tracks the exact column index being built
             file_data = parsed_files.pop()
             path = file_data.get("path", "")
             tel = file_data.get("telemetry", {})  # Pre-extract telemetry dict
 
             # --- NEW: Map the file to its Directory Group via Interning ---
             d_name = file_data.get("directory_group", "__monolith__")
-            columns["c_ids"].append(self._intern(d_name, self.dir_group_lookup))  # UI expects c_ids
+            columns["c_ids"].append(
+                self._intern(d_name, self.dir_group_lookup)
+            )  # UI expects c_ids
 
             # --- NEW: DYNAMIC ML FINGERPRINT EXTRACTION ---
             fingerprint = tel.get("archetype_fingerprint", {})
@@ -158,7 +168,9 @@ class GPURecorder:
 
                 # 1. Always append the Primary Archetype
                 file_a_ids.append(self._intern(prim_name, self.archetype_lookup))
-                file_a_dists.append(int(round(prim_dist * 1000)))  # Quantize float to int
+                file_a_dists.append(
+                    int(round(prim_dist * 1000))
+                )  # Quantize float to int
 
                 # 2. Append Secondary ONLY if it is drifting (<= 0.9 IQR gap)
                 if (sec_dist - prim_dist) <= 0.9:
@@ -175,17 +187,29 @@ class GPURecorder:
 
             columns["paths"].append(path)
             columns["names"].append(file_data.get("name", Path(path).name))
-            columns["lang_ids"].append(self._intern(str(file_data.get("lang_id", "unknown")), self.lang_lookup))
+            columns["lang_ids"].append(
+                self._intern(str(file_data.get("lang_id", "unknown")), self.lang_lookup)
+            )
             columns["locs"].append(int(file_data.get("total_loc", 0)))
             columns["m_locs"].append(int(file_data.get("coding_loc", 0)))
-            columns["d_locs"].append(int(file_data.get("doc_loc", 0)))  # <-- NEW: Comment LOC
+            columns["d_locs"].append(
+                int(file_data.get("doc_loc", 0))
+            )  # <-- NEW: Comment LOC
 
             # Quantization & DNA Fingerprinting (The 3 new columns)
             columns["mass"].append(int(round(file_data.get("file_impact", 0.0) * 10)))
-            columns["author_distribution"].append(int(round(tel.get("author_distribution", 0.0) * 1000)))
-            columns["ownership_entropy"].append(int(round(tel.get("ownership_entropy", 0.0) * 1000)))
-            columns["raw_churn_freq"].append(int(round(tel.get("raw_churn_freq", 0.0) * 1000)))
-            columns["cog_raw"].append(int(round(tel.get("densities", {}).get("cog_raw", 0.0) * 1000)))
+            columns["author_distribution"].append(
+                int(round(tel.get("author_distribution", 0.0) * 1000))
+            )
+            columns["ownership_entropy"].append(
+                int(round(tel.get("ownership_entropy", 0.0) * 1000))
+            )
+            columns["raw_churn_freq"].append(
+                int(round(tel.get("raw_churn_freq", 0.0) * 1000))
+            )
+            columns["cog_raw"].append(
+                int(round(tel.get("densities", {}).get("cog_raw", 0.0) * 1000))
+            )
 
             columns["pos_x"].append(int(round(file_data.get("pos_x", 0.0) * 10)))
             columns["pos_y"].append(int(round(file_data.get("pos_y", 0.0) * 10)))
@@ -193,14 +217,28 @@ class GPURecorder:
 
             # Vector Quantization (Flattened for WebGPU)
             columns["risks_flat"].extend(
-                [int(v * 10) for v in file_data.get("risk_vector", [0] * len(self.RISK_SCHEMA))]
+                [
+                    int(v * 10)
+                    for v in file_data.get("risk_vector", [0] * len(self.RISK_SCHEMA))
+                ]
             )
-            columns["hits_flat"].extend([int(v) for v in file_data.get("hit_vector", [0] * len(self.HIT_SCHEMA))])
+            columns["hits_flat"].extend(
+                [
+                    int(v)
+                    for v in file_data.get("hit_vector", [0] * len(self.HIT_SCHEMA))
+                ]
+            )
 
             # Telemetry Interning (Columnar AoS to SoA)
             domain_ctx = tel.get("domain_context", {})
-            columns["tel_aid"].append(self._intern(tel.get("ownership", "unknown"), self.author_lookup))
-            columns["tel_pid"].append(self._intern(tel.get("identity_source_proof", "Discovery"), self.proof_lookup))
+            columns["tel_aid"].append(
+                self._intern(tel.get("ownership", "unknown"), self.author_lookup)
+            )
+            columns["tel_pid"].append(
+                self._intern(
+                    tel.get("identity_source_proof", "Discovery"), self.proof_lookup
+                )
+            )
             columns["tel_purp"].append(
                 self._intern(
                     domain_ctx.get("purpose", "Standard Logic Matrix"),
@@ -209,7 +247,9 @@ class GPURecorder:
             )
             columns["tel_lt"].append(tel.get("identity_lock_tier", 4))
             columns["tel_pop"].append(tel.get("popularity", 0))
-            columns["tel_cfr"].append(int(round(tel.get("control_flow_ratio", 0.0) * 1000)))
+            columns["tel_cfr"].append(
+                int(round(tel.get("control_flow_ratio", 0.0) * 1000))
+            )
 
             # ---> NEW: EXTRACT AND QUANTIZE AI SCORE <---
             ai_score_str = domain_ctx.get("AI Threat Score", "0.0%")
@@ -234,7 +274,9 @@ class GPURecorder:
                         func.get("branch", 0),
                         int(func.get("angle", 0) * 10),
                         func.get("args", 0),
-                        self._intern(func.get("texture", "standard"), self.texture_lookup),
+                        self._intern(
+                            func.get("texture", "standard"), self.texture_lookup
+                        ),
                         int(func.get("control_flow_ratio", 0.0) * 1000),
                         int(func.get("impact", func.get("magnitude", 0)) * 10),
                         int(func.get("start_line", 0)),
@@ -256,7 +298,9 @@ class GPURecorder:
             # --- DEPENDENCY INTERNING & EDGE RESOLUTION ---
             # Cast to a sorted list for determinism, then convert strings to integer IDs
             raw_imports = sorted(list(file_data.get("raw_imports", [])))
-            columns["imports"].append([self._intern(imp, self.import_lookup) for imp in raw_imports])
+            columns["imports"].append(
+                [self._intern(imp, self.import_lookup) for imp in raw_imports]
+            )
 
             # ---> THE REVERSED LOGIC & NEW OUTBOUND LOGIC <---
             current_outbound = []
@@ -290,15 +334,23 @@ class GPURecorder:
             ext = Path(path).suffix.lower() if Path(path).suffix else "none"
 
             sing_cols["paths"].append(path)
-            sing_cols["exts"].append(self._intern(ext, self.ext_lookup))  # Vectorized Extension
-            sing_cols["reasons"].append(self._intern(unparsable.get("reason", "anomaly"), self.reason_lookup))
+            sing_cols["exts"].append(
+                self._intern(ext, self.ext_lookup)
+            )  # Vectorized Extension
+            sing_cols["reasons"].append(
+                self._intern(unparsable.get("reason", "anomaly"), self.reason_lookup)
+            )
             sing_cols["sizes"].append(int(unparsable.get("size_bytes", 0)))
-            sing_cols["confidences"].append(int(round(unparsable.get("identity_confidence", 0.0) * 1000)))
+            sing_cols["confidences"].append(
+                int(round(unparsable.get("identity_confidence", 0.0) * 1000))
+            )
             del unparsable
 
         # Final memory cleanup trigger
         gc.collect()
-        self.logger.debug("GPU_RECORDER: RAM Eviction complete. Python GC cycle triggered.")
+        self.logger.debug(
+            "GPU_RECORDER: RAM Eviction complete. Python GC cycle triggered."
+        )
 
         # --- FLATTEN UNPARSABLE SUMMARY FOR UI ---
         # Transforms the heavily nested composition dict into a flat "breakdown" object
@@ -391,7 +443,9 @@ class GPURecorder:
         try:
             # Save using the safe target_path
             with open(target_path, "w", encoding="utf-8") as f:
-                json.dump(payload, f, indent=None, separators=(",", ":"), ensure_ascii=False)
+                json.dump(
+                    payload, f, indent=None, separators=(",", ":"), ensure_ascii=False
+                )
             self.logger.info(f"GPU Manifest Sealed -> {target_path}")
         except Exception as e:
             self.logger.error(f"Failed to seal GPU manifest: {e}")

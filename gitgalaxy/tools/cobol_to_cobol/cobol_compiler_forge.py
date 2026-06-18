@@ -30,7 +30,9 @@ def flatten_copybooks(source_text: str, base_dir: Path, current_depth: int = 0) 
 
     # --- 🛡️ FAILSAFE BLOCK ---
     if current_depth > MAX_RECURSION_DEPTH:
-        print(f"  [!] WARNING: Copybook recursion depth ({MAX_RECURSION_DEPTH}) exceeded. Aborting cyclic branch.")
+        print(
+            f"  [!] WARNING: Copybook recursion depth ({MAX_RECURSION_DEPTH}) exceeded. Aborting cyclic branch."
+        )
         return source_text
 
     lines = source_text.replace("\r", "").split("\n")
@@ -61,7 +63,9 @@ def flatten_copybooks(source_text: str, base_dir: Path, current_depth: int = 0) 
                     out_lines.append(f"      * --- END COPYBOOK: {copy_name} ---")
                     continue
                 else:
-                    out_lines.append(f"      * [!] WARNING: COPYBOOK {copy_name} NOT FOUND LOCALLY")
+                    out_lines.append(
+                        f"      * [!] WARNING: COPYBOOK {copy_name} NOT FOUND LOCALLY"
+                    )
 
         out_lines.append(line)
 
@@ -83,7 +87,9 @@ def extract_intent(source_text: str) -> tuple:
     return prog_id, files
 
 
-def generate_build_jcl(source_text: str, prog_name: str, files: set, dialect: str) -> str:
+def generate_build_jcl(
+    source_text: str, prog_name: str, files: set, dialect: str
+) -> str:
     jcl = []
     job_name = f"BLD{prog_name[:4].upper()}"
     jcl.append(f"//{job_name} JOB (12345),'GITGALAXY COMPILER',")
@@ -110,12 +116,16 @@ def generate_build_jcl(source_text: str, prog_name: str, files: set, dialect: st
             clean_f = clean_f[-8:]
 
         if clean_f:
-            jcl.append(f"//{clean_f} DD DSN=HERC01.DATA.{clean_f},DISP=(MOD,CATLG,DELETE),")
+            jcl.append(
+                f"//{clean_f} DD DSN=HERC01.DATA.{clean_f},DISP=(MOD,CATLG,DELETE),"
+            )
             jcl.append("//            UNIT=SYSDA,SPACE=(TRK,(10,10),RLSE),")
             jcl.append("//            DCB=(LRECL=80,RECFM=FB,BLKSIZE=800)")
 
         if clean_f:
-            jcl.append(f"//{clean_f} DD DSN=HERC01.DATA.{clean_f},DISP=(MOD,CATLG,DELETE),")
+            jcl.append(
+                f"//{clean_f} DD DSN=HERC01.DATA.{clean_f},DISP=(MOD,CATLG,DELETE),"
+            )
             jcl.append("//            UNIT=SYSDA,SPACE=(TRK,(10,10),RLSE),")
             jcl.append("//            DCB=(LRECL=80,RECFM=FB,BLKSIZE=800)")
 
@@ -163,7 +173,11 @@ def main():
         sys.exit(1)
     out_path.mkdir(parents=True, exist_ok=True)
 
-    cobol_files = [f for f in src_path.rglob("*.cbl") if "PROGRAM-ID" in f.read_text(errors="ignore").upper()]
+    cobol_files = [
+        f
+        for f in src_path.rglob("*.cbl")
+        if "PROGRAM-ID" in f.read_text(errors="ignore").upper()
+    ]
 
     print("\n" + "=" * 70)
     print(" 🏗️  GITGALAXY MAINFRAME COMPILER FORGE (PRE-COMPILER ACTIVE)")
@@ -181,7 +195,9 @@ def main():
 
             # 3. Forge the JCL based on the era
             prog_name, expected_files = extract_intent(monolith_text)
-            jcl_payload = generate_build_jcl(monolith_text, prog_name, expected_files, dialect)
+            jcl_payload = generate_build_jcl(
+                monolith_text, prog_name, expected_files, dialect
+            )
 
             output_file = out_path / f"BUILD_{prog_name}.jcl"
             output_file.write_text(jcl_payload, encoding="utf-8")

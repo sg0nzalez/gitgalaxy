@@ -40,7 +40,9 @@ def test_security_lens_threat_signatures(lens):
     assert counts.get("private_info", 0) > 0, "Failed to detect high-entropy API key!"
     assert counts.get("safety_neg", 0) > 0, "Failed to detect safety bypass (ini_set)!"
     assert counts.get("danger", 0) > 0, "Failed to detect executioner payload (eval)!"
-    assert counts.get("shadow_imports", 0) > 0, "Failed to detect steganographic import!"
+    assert counts.get("shadow_imports", 0) > 0, (
+        "Failed to detect steganographic import!"
+    )
     assert counts.get("flux", 0) > 0, "Failed to detect prototype pollution!"
 
 
@@ -53,13 +55,17 @@ def test_security_lens_shannon_entropy(lens):
     Shannon Entropy on large, highly randomized base64/hex blocks.
     """
     # A highly random string wrapped in quotes (length > 64 to bypass the C-engine shield)
-    high_entropy_str = "x" + base64.b64encode(os.urandom(100)).decode("utf-8") + "y8f!@#$A9Z"
+    high_entropy_str = (
+        "x" + base64.b64encode(os.urandom(100)).decode("utf-8") + "y8f!@#$A9Z"
+    )
     code = f'var payload = "{high_entropy_str}";\n'
 
     result = lens.scan_content(code, 2)
     counts = result["counts"]
 
-    assert counts.get("entropy", 0) > 0, "Failed to calculate high Shannon Entropy on obfuscated string!"
+    assert counts.get("entropy", 0) > 0, (
+        "Failed to calculate high Shannon Entropy on obfuscated string!"
+    )
 
 
 # ==============================================================================
@@ -87,9 +93,15 @@ def test_security_lens_taint_slicer(lens):
     counts = result["counts"]
     snippets = result["snippets"]
 
-    assert counts.get("tainted_injection", 0) > 0, "Failed to track I/O -> Danger taint path!"
-    assert counts.get("prompt_injection", 0) > 0, "Failed to detect Same-Line Prompt Injection!"
-    assert counts.get("agentic_rce", 0) > 0, "Failed to detect Agentic RCE (LLM -> Danger)!"
+    assert counts.get("tainted_injection", 0) > 0, (
+        "Failed to track I/O -> Danger taint path!"
+    )
+    assert counts.get("prompt_injection", 0) > 0, (
+        "Failed to detect Same-Line Prompt Injection!"
+    )
+    assert counts.get("agentic_rce", 0) > 0, (
+        "Failed to detect Agentic RCE (LLM -> Danger)!"
+    )
     assert any(
         "[LLM State -> RCE]" in s for s in snippets.get("tainted_injection", [])
     ), "Failed to log the Agentic RCE snippet!"
@@ -115,8 +127,12 @@ def test_security_lens_auto_gen_shield(lens):
     counts = result["counts"]
 
     # Homoglyphs and Taint should be explicitly skipped for auto-gen
-    assert counts.get("homoglyphs", 0) == 0, "Auto-gen shield failed to block homoglyph scan!"
-    assert counts.get("tainted_injection", 0) == 0, "Auto-gen shield failed to block Taint Slicer!"
+    assert counts.get("homoglyphs", 0) == 0, (
+        "Auto-gen shield failed to block homoglyph scan!"
+    )
+    assert counts.get("tainted_injection", 0) == 0, (
+        "Auto-gen shield failed to block Taint Slicer!"
+    )
 
 
 # ==============================================================================
@@ -159,14 +175,20 @@ def test_security_lens_scan_binary(lens):
     fake_png_bytes = b"\x7fELF some other binary data here"
     result_mismatch = lens.scan_binary(fake_png_bytes, ".png")
 
-    assert "sec_extension_mismatch" in result_mismatch, "Failed to detect Magic Byte mismatch!"
-    assert "sec_danger" in result_mismatch, "Failed to detect embedded ELF execution header!"
+    assert "sec_extension_mismatch" in result_mismatch, (
+        "Failed to detect Magic Byte mismatch!"
+    )
+    assert "sec_danger" in result_mismatch, (
+        "Failed to detect embedded ELF execution header!"
+    )
 
     # 2. High Entropy Binary Payload
     random_bytes = os.urandom(50000)  # Large sample size guarantees entropy > 7.95
     result_entropy = lens.scan_binary(random_bytes, ".bin")
 
-    assert "sec_heat_triggers" in result_entropy, "Failed to calculate extreme binary entropy!"
+    assert "sec_heat_triggers" in result_entropy, (
+        "Failed to calculate extreme binary entropy!"
+    )
 
 
 # ==============================================================================

@@ -314,24 +314,38 @@ class SecurityLens:
 
                 # Scenario C: The Downward Scan (Check Execution Sink)
                 # Because execution requires a sink, the sink line MUST be in threat_lines!
-                if (has_danger or has_db or has_llm) and (tainted_vars or llm_tainted_vars):
+                if (has_danger or has_db or has_llm) and (
+                    tainted_vars or llm_tainted_vars
+                ):
                     for t_var in tainted_vars:
                         # O(1) string check before running full regex
-                        if t_var in line and re.search(rf"\b{re.escape(t_var)}\b", line):
+                        if t_var in line and re.search(
+                            rf"\b{re.escape(t_var)}\b", line
+                        ):
                             if has_danger or has_db:
                                 taint_hits += 1
                                 if len(taint_snippets) < 3:
-                                    taint_snippets.append(f"[Taint -> Exec/DB]: {line[:60]}...")
+                                    taint_snippets.append(
+                                        f"[Taint -> Exec/DB]: {line[:60]}..."
+                                    )
                             if has_llm:
                                 prompt_injection_hits += 1
                                 if len(taint_snippets) < 3:
-                                    taint_snippets.append(f"[Taint -> LLM]: {line[:60]}...")
+                                    taint_snippets.append(
+                                        f"[Taint -> LLM]: {line[:60]}..."
+                                    )
 
                     for l_var in llm_tainted_vars:
-                        if l_var in line and re.search(rf"\b{re.escape(l_var)}\b", line) and has_danger:
+                        if (
+                            l_var in line
+                            and re.search(rf"\b{re.escape(l_var)}\b", line)
+                            and has_danger
+                        ):
                             agentic_rce_hits += 1
                             if len(taint_snippets) < 3:
-                                taint_snippets.append(f"[LLM State -> RCE]: {line[:60]}...")
+                                taint_snippets.append(
+                                    f"[LLM State -> RCE]: {line[:60]}..."
+                                )
 
         counts["tainted_injection"] = taint_hits
         counts["prompt_injection"] = prompt_injection_hits
@@ -371,14 +385,18 @@ class SecurityLens:
             exposures["Hidden Malware Risk"] = malware_density
 
         # 2. Logic Bomb / Sabotage Risk
-        sabotage_hits = aggregated_hits.get("graveyard", 0) + (aggregated_hits.get("danger", 0) * 1.5)
+        sabotage_hits = aggregated_hits.get("graveyard", 0) + (
+            aggregated_hits.get("danger", 0) * 1.5
+        )
         sabotage_density = (sabotage_hits / loc_safe) * network_multiplier
         if sabotage_density >= self.policy["logic_bomb_threshold"]:
             exposures["Logic Bomb Risk"] = sabotage_density
 
         # 3. Data Injection Risk
         injection_hits = (
-            aggregated_hits.get("io", 0) + aggregated_hits.get("danger", 0) + aggregated_hits.get("flux", 0)
+            aggregated_hits.get("io", 0)
+            + aggregated_hits.get("danger", 0)
+            + aggregated_hits.get("flux", 0)
         )
         injection_density = (injection_hits / loc_safe) * network_multiplier
         if injection_density >= self.policy["injection_surface_threshold"]:
@@ -402,7 +420,9 @@ class SecurityLens:
         if agentic_rce > 0:
             exposures["Agentic RCE Risk (Critical)"] = 100.0
         elif prompt_inj > 0:
-            exposures["Prompt Injection Risk"] = min((prompt_inj / loc_safe) * network_multiplier * 100.0, 100.0)
+            exposures["Prompt Injection Risk"] = min(
+                (prompt_inj / loc_safe) * network_multiplier * 100.0, 100.0
+            )
 
         return exposures
 
@@ -439,7 +459,9 @@ class SecurityLens:
 
                 if entropy > 7.95:
                     threats["sec_heat_triggers"] = 1
-                    threats["threat_snippet"] = f"Extreme binary entropy detected: {entropy:.2f}"
+                    threats["threat_snippet"] = (
+                        f"Extreme binary entropy detected: {entropy:.2f}"
+                    )
         except Exception:
             pass
 

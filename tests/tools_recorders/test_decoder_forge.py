@@ -102,6 +102,6 @@ def test_ebcdic_comp3_decoder_golden_image():
 
     # 2. Compare against the Golden Image
     # Using strip() to neutralize OS-level newline differences (CRLF vs LF)
-    assert (
-        generated_java.strip() == GOLDEN_DECODER_UTIL.strip()
-    ), "FATAL REGRESSION: The Mainframe Decoder utility drifted from the Golden Image! Check bitwise math and hex boundaries."
+    assert generated_java.strip() == GOLDEN_DECODER_UTIL.strip(), (
+        "FATAL REGRESSION: The Mainframe Decoder utility drifted from the Golden Image! Check bitwise math and hex boundaries."
+    )

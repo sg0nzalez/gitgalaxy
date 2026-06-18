@@ -35,7 +35,9 @@ def main():
 
     enforce_licensing_guard("Vault Sentinel")
 
-    parser = argparse.ArgumentParser(description="Vault Sentinel: High-Speed Secrets Scanner")
+    parser = argparse.ArgumentParser(
+        description="Vault Sentinel: High-Speed Secrets Scanner"
+    )
     parser.add_argument("target", help="Directory or file to scan")
     args = parser.parse_args()
 
@@ -82,12 +84,18 @@ def main():
 
             # Create a normalized string for checking against lists
             rel_path_str = str(file_path.relative_to(target_path)).replace("\\", "/")
-            is_whitelisted = any(approved in rel_path_str for approved in ALLOWLIST_PATHS)
+            is_whitelisted = any(
+                approved in rel_path_str for approved in ALLOWLIST_PATHS
+            )
 
             # 1. THE DENYLIST CHECK (Wildcard Pattern Matching)
-            is_forbidden = any(fnmatch.fnmatch(file, pattern) for pattern in DENYLIST_PATTERNS)
+            is_forbidden = any(
+                fnmatch.fnmatch(file, pattern) for pattern in DENYLIST_PATTERNS
+            )
             if is_forbidden and not is_whitelisted:
-                print(f"🚨 [FORBIDDEN FILE BREACH] Illegal file pattern detected: {rel_path_str}")
+                print(
+                    f"🚨 [FORBIDDEN FILE BREACH] Illegal file pattern detected: {rel_path_str}"
+                )
                 forbidden_blocked += 1
                 leaks_found += 1
                 continue  # Skip deep scanning
@@ -97,7 +105,9 @@ def main():
 
             if reason and "CRITICAL LEAK" in reason:
                 if is_whitelisted:
-                    print(f"⚠️  [ALLOWED BYPASS] Known safe test key ignored: {rel_path_str}")
+                    print(
+                        f"⚠️  [ALLOWED BYPASS] Known safe test key ignored: {rel_path_str}"
+                    )
                     leaks_allowed += 1
                 else:
                     print(f"🚨 [PATH BREACH] Exposed Secret File: {rel_path_str}")
@@ -126,7 +136,9 @@ def main():
 
             if sec_results["counts"].get("private_info", 0) > 0:
                 if is_whitelisted:
-                    print(f"⚠️  [ALLOWED BYPASS] Known safe secret ignored in: {rel_path_str}")
+                    print(
+                        f"⚠️  [ALLOWED BYPASS] Known safe secret ignored in: {rel_path_str}"
+                    )
                     leaks_allowed += 1
                 else:
                     print(f"🚨 [CONTENT BREACH] Hardcoded Credential: {rel_path_str}")
@@ -157,14 +169,20 @@ def main():
     print("-" * 75)
 
     if leaks_found > 0:
-        print(f" ❌ FAILED: {leaks_found} unauthorized secrets exposed. Blocking commit/PR.")
-        print(" 💡 TIP: If this is a false positive, add the file path to ALLOWLIST_PATHS")
+        print(
+            f" ❌ FAILED: {leaks_found} unauthorized secrets exposed. Blocking commit/PR."
+        )
+        print(
+            " 💡 TIP: If this is a false positive, add the file path to ALLOWLIST_PATHS"
+        )
         print("         inside gitgalaxy/standards/gitgalaxy_config.py")
         sys.exit(1)
     else:
         print(" ✅ PASS: No unauthorized secrets detected. Vault is secure.")
         if leaks_allowed > 0:
-            print(f" 💡 NOTE: {leaks_allowed} known mock/safe files were bypassed via configuration.")
+            print(
+                f" 💡 NOTE: {leaks_allowed} known mock/safe files were bypassed via configuration."
+            )
     print("=" * 75 + "\n")
 
 

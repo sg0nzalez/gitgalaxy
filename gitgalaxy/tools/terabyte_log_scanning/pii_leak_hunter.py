@@ -17,7 +17,9 @@ from pathlib import Path
 # We compile these as binary (bytes) to maintain the insane speed of the original log parser
 PII_PATTERNS = {
     "VISA": re.compile(rb"\b4[0-9]{12}(?:[0-9]{3})?\b"),
-    "MASTERCARD": re.compile(rb"\b(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}\b"),
+    "MASTERCARD": re.compile(
+        rb"\b(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}\b"
+    ),
     "SSN": re.compile(rb"\b\d{3}-\d{2}-\d{4}\b"),
     "AWS_KEY": re.compile(rb"\b(?:AKIA|ASIA|AGPA|AIDA|AROA|AIPA)[A-Z0-9]{16}\b"),
 }
@@ -64,7 +66,9 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
 
     if len(time_buckets) > 15:
         print(" (Filtering to Top 15 Highest Volume Spikes)")
-        top_offenders = sorted(time_buckets.items(), key=lambda x: x[1], reverse=True)[:15]
+        top_offenders = sorted(time_buckets.items(), key=lambda x: x[1], reverse=True)[
+            :15
+        ]
         display_buckets = dict(sorted(top_offenders))
     else:
         display_buckets = dict(sorted(time_buckets.items()))
@@ -73,7 +77,11 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
         bar_len = int((hits / max_hits) * max_bar_width) if max_hits > 0 else 0
         bar = "█" * max(1, bar_len)
 
-        alert = "  <-- MASSIVE EXFILTRATION SPIKE" if hits >= anomaly_threshold and hits > 10 else ""
+        alert = (
+            "  <-- MASSIVE EXFILTRATION SPIKE"
+            if hits >= anomaly_threshold and hits > 10
+            else ""
+        )
         print(f" [{time_bucket}] {bar} ({hits:,} hits){alert}")
 
 
@@ -115,7 +123,9 @@ Masked evidence logs are safely written to disk without exposing the full PII.
     # -------------------------------------------------------------------------
     target_path = Path(args.target).resolve()
     if not target_path.exists() or not target_path.is_file():
-        print(f"\n[!] ERROR: Target file does not exist or is not a file: {target_path}")
+        print(
+            f"\n[!] ERROR: Target file does not exist or is not a file: {target_path}"
+        )
         sys.exit(1)
 
     if args.out:
@@ -139,10 +149,14 @@ Masked evidence logs are safely written to disk without exposing the full PII.
         print(f"\n[!] ERROR: Could not read target file size: {e}")
         sys.exit(1)
 
-    print(f"🚨 Tapping into data stream: {target_path.name} ({file_size_gb:.2f} GB / {file_size_mb:.2f} MB)")
+    print(
+        f"🚨 Tapping into data stream: {target_path.name} ({file_size_gb:.2f} GB / {file_size_mb:.2f} MB)"
+    )
     print(f"🛡️  Masking enabled. Streaming safe evidence to: {results_path.name}")
 
-    ts_pattern = re.compile(rb"(\d{4}-\d{2}-\d{2}[T\s]\d{2}|\b[A-Z][a-z]{2}\s+\d{1,2}\s\d{2})")
+    ts_pattern = re.compile(
+        rb"(\d{4}-\d{2}-\d{2}[T\s]\d{2}|\b[A-Z][a-z]{2}\s+\d{1,2}\s\d{2})"
+    )
     histograms = {kw: defaultdict(int) for kw in PII_PATTERNS.keys()}
 
     start_time = time.time()
@@ -168,7 +182,9 @@ Masked evidence logs are safely written to disk without exposing the full PII.
 
                         ts_match = ts_pattern.search(line)
                         bucket = (
-                            ts_match.group(1).decode("utf-8", errors="ignore") + ":00" if ts_match else "Unknown Time"
+                            ts_match.group(1).decode("utf-8", errors="ignore") + ":00"
+                            if ts_match
+                            else "Unknown Time"
                         )
                         histograms[pii_type][bucket] += 1
     except IOError as e:
@@ -211,7 +227,9 @@ Masked evidence logs are safely written to disk without exposing the full PII.
     else:
         speed_str = "Instant"
 
-    print(f" ✅ Scan complete. Sliced through {target_path.name} in {time_elapsed:.2f} seconds.")
+    print(
+        f" ✅ Scan complete. Sliced through {target_path.name} in {time_elapsed:.2f} seconds."
+    )
     print(f" ⚡ Processing Velocity: {speed_str}")
     print(f" 📁 Safe Evidence Log: {results_path.resolve()}")
     print("=" * 75 + "\n")

@@ -92,7 +92,9 @@ class SpectralAuditor:
             "inline_asm",
         ]
 
-    def audit(self, parsed_files: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    def audit(
+        self, parsed_files: List[Dict[str, Any]]
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """Executes statistical gating to identify data-dumps and structural outliers."""
         import os  # Required for extension splitting in Consensus Engine
 
@@ -106,7 +108,9 @@ class SpectralAuditor:
 
         total_files = max(len(parsed_files), 1)
         orphan_threshold = max(3, int(math.log10(total_files) * 2))
-        self.logger.debug(f"Dynamic Ecosystem Orphan Threshold set to: <= {orphan_threshold} files.")
+        self.logger.debug(
+            f"Dynamic Ecosystem Orphan Threshold set to: <= {orphan_threshold} files."
+        )
 
         verified_files, unparsable_files = [], []
 
@@ -165,8 +169,12 @@ class SpectralAuditor:
                         s["lang_id"] = winner_lang
                         if "telemetry" not in s:
                             s["telemetry"] = {}
-                        s["telemetry"]["identity_source_proof"] = f"Heuristic Loop-Back (Consensus: {winner_lang})"
-                        s["telemetry"]["identity_lock_tier"] = 2  # Elevate it to a strong Ecosystem Lock
+                        s["telemetry"]["identity_source_proof"] = (
+                            f"Heuristic Loop-Back (Consensus: {winner_lang})"
+                        )
+                        s["telemetry"]["identity_lock_tier"] = (
+                            2  # Elevate it to a strong Ecosystem Lock
+                        )
 
                         self.logger.debug(
                             f"[Consensus] Resolved ambiguous '{s.get('name')}': {current_lang} -> {winner_lang}"
@@ -191,9 +199,9 @@ class SpectralAuditor:
 
                     if "telemetry" not in s:
                         s["telemetry"] = {}
-                    s["telemetry"][
-                        "identity_source_proof"
-                    ] = f"Heuristic Loop-Back (Global C-Family Dominance: {winner_lang})"
+                    s["telemetry"]["identity_source_proof"] = (
+                        f"Heuristic Loop-Back (Global C-Family Dominance: {winner_lang})"
+                    )
                     s["telemetry"]["identity_lock_tier"] = 2
 
                     self.logger.debug(
@@ -229,8 +237,14 @@ class SpectralAuditor:
         for lid, group in by_lang.items():
             if lid in ("undeterminable", "unknown"):
                 for s in group:
-                    unparsable_files.append(self._format_for_singularity(s, "Already Dark Matter (Pre-Audit)"))
-                self.logger.debug(f"[{lid}] Bypassed {len(group)} artifacts (already Dark Matter).")
+                    unparsable_files.append(
+                        self._format_for_singularity(
+                            s, "Already Dark Matter (Pre-Audit)"
+                        )
+                    )
+                self.logger.debug(
+                    f"[{lid}] Bypassed {len(group)} artifacts (already Dark Matter)."
+                )
                 continue
 
             # =================================================================
@@ -244,7 +258,9 @@ class SpectralAuditor:
 
                 # POSITIVE COUNT: How many actual, active logic sensors exist?
                 # .get(key) safely handles "space-efficient" dictionaries by returning None
-                active_signals = sum(1 for key in self.SIGNAL_KEYS if rules.get(key) is not None)
+                active_signals = sum(
+                    1 for key in self.SIGNAL_KEYS if rules.get(key) is not None
+                )
                 total_signals = len(self.SIGNAL_KEYS)
 
                 # 1. THE INERT MATTER GATE (0 active signals)
@@ -264,7 +280,9 @@ class SpectralAuditor:
             # Immediately bypass inert matter from all statistical checks
             if is_inert:
                 verified_files.extend(group)
-                self.logger.debug(f"[{lid}] Bypassed {len(group)} artifact(s) (Dynamic Inert Matter: 0 Signals).")
+                self.logger.debug(
+                    f"[{lid}] Bypassed {len(group)} artifact(s) (Dynamic Inert Matter: 0 Signals)."
+                )
                 continue
 
             # =================================================================
@@ -275,7 +293,11 @@ class SpectralAuditor:
                 # FIX: Require an absolute Tier 0 Convergent Lock for orphans to survive.
                 # If ALL files in this tiny group are Tier 1 or worse (> 0), banish them.
                 all_weak_claims = all(
-                    s.get("telemetry", {}).get("identity_lock_tier", s.get("lock_tier", 4)) > 0 for s in group
+                    s.get("telemetry", {}).get(
+                        "identity_lock_tier", s.get("lock_tier", 4)
+                    )
+                    > 0
+                    for s in group
                 )
 
                 if all_weak_claims:
@@ -285,7 +307,9 @@ class SpectralAuditor:
                     for s in group:
                         # Strip the hallucination, keep the mass visible in the 3D map
                         s["lang_id"] = "plaintext"
-                        s["telemetry"]["identity_source_proof"] = "Orphan Guard Fallback"
+                        s["telemetry"]["identity_source_proof"] = (
+                            "Orphan Guard Fallback"
+                        )
                         s["equations"] = {}  # Inert matter has no logic equations
                         verified_files.append(s)
                     continue
@@ -302,14 +326,18 @@ class SpectralAuditor:
                     equations = s.get("equations", {})
                     signal_hits = sum(equations.get(k, 0) for k in self.SIGNAL_KEYS)
                     # Denominator MUST be total physical lines to detect 'hollowness'
-                    total_physical_loc = max(s.get("total_loc", s.get("coding_loc", 1)), 1)
+                    total_physical_loc = max(
+                        s.get("total_loc", s.get("coding_loc", 1)), 1
+                    )
                     s["_rho"] = signal_hits / total_physical_loc
 
                     # Polyglot Defense: Only add pure files to the statistical baseline
                     if not self._is_highly_blended(s):
                         rhos.append(s["_rho"])
                 except Exception as e:
-                    self.logger.warning(f"Failed to calculate signal density for '{s.get('name', 'unknown')}': {e}")
+                    self.logger.warning(
+                        f"Failed to calculate signal density for '{s.get('name', 'unknown')}': {e}"
+                    )
                     s["_rho"] = 0.0
                     rhos.append(0.0)
 
@@ -319,7 +347,11 @@ class SpectralAuditor:
 
             # 2. Confidence Anchor (At least one file with C > 0.85)
             has_anchor = any(
-                s.get("telemetry", {}).get("identity_confidence", s.get("intensity", 0.0)) > 0.85 for s in group
+                s.get("telemetry", {}).get(
+                    "identity_confidence", s.get("intensity", 0.0)
+                )
+                > 0.85
+                for s in group
             )
 
             use_stats = has_mass and has_anchor
@@ -371,8 +403,12 @@ class SpectralAuditor:
                 # Extract Bayesian telemetry from Phase 1 OR fallback to root meta keys
                 telemetry = s.get("telemetry", {})
                 lock_tier = telemetry.get("identity_lock_tier", s.get("lock_tier", 4))
-                source_proof = telemetry.get("identity_source_proof", s.get("source_proof", "Discovery"))
-                confidence = telemetry.get("identity_confidence", s.get("intensity", 0.0))
+                source_proof = telemetry.get(
+                    "identity_source_proof", s.get("source_proof", "Discovery")
+                )
+                confidence = telemetry.get(
+                    "identity_confidence", s.get("intensity", 0.0)
+                )
 
                 # THE 50/0 LAW: Hard Floor check for data dumps disguised as code
                 if loc > 50 and rho == 0 and not is_minified:
@@ -385,7 +421,9 @@ class SpectralAuditor:
                 # to be minified, obfuscated, or packed with embedded binaries.
                 elif loc > 30 and rho > 3.0 and not is_minified:
                     is_outlier = True
-                    relegation_reason = f"Supernova Guard (Impossible Density: {rho:.2f} hits/line)"
+                    relegation_reason = (
+                        f"Supernova Guard (Impossible Density: {rho:.2f} hits/line)"
+                    )
 
                 # THE ROBUST Z-SCORE (MAD)
                 # Bypassed if the file is a heavy polyglot (its density is blended)
@@ -393,11 +431,15 @@ class SpectralAuditor:
                     mi = (0.6745 * (rho - median_rho)) / mad
 
                     # 4. Bayesian Threshold Gating (T_adj = -3.5 * Ci)
-                    t_adj = -5 * max(confidence, 0.1)  # Floor confidence to prevent 0 threshold
+                    t_adj = -5 * max(
+                        confidence, 0.1
+                    )  # Floor confidence to prevent 0 threshold
 
                     if mi < t_adj:
                         is_outlier = True
-                        relegation_reason = f"Statistical Anomaly (Z-Score: {mi:.2f} < {t_adj:.2f})"
+                        relegation_reason = (
+                            f"Statistical Anomaly (Z-Score: {mi:.2f} < {t_adj:.2f})"
+                        )
 
                 # 4. Routing logic for Outliers
                 if is_outlier:
@@ -441,7 +483,9 @@ class SpectralAuditor:
                             )
 
                         # Format it as Inert Dark Matter to save memory and ensure schema consistency
-                        unparsable_files.append(self._format_for_singularity(s, relegation_reason))
+                        unparsable_files.append(
+                            self._format_for_singularity(s, relegation_reason)
+                        )
                         relegated_count += 1
                 else:
                     verified_files.append(s)
@@ -492,7 +536,9 @@ class SpectralAuditor:
 
         return False
 
-    def _format_for_singularity(self, star: Dict[str, Any], reason: str) -> Dict[str, Any]:
+    def _format_for_singularity(
+        self, star: Dict[str, Any], reason: str
+    ) -> Dict[str, Any]:
         """
         Formats an audited star to match the Orchestrator's Pre-Refraction Dark Matter schema.
         This ensures mathematical inertia and prevents the JSON archive from bloating.
@@ -505,9 +551,15 @@ class SpectralAuditor:
             "size_bytes": star.get("size_bytes", 0),
             # Preserve Bayesian Optics for Phase 8 SBOM Traceability
             "failed_claim": star.get("lang_id", "unknown"),
-            "identity_confidence": telemetry.get("identity_confidence", star.get("intensity", 0.0)),
-            "identity_lock_tier": telemetry.get("identity_lock_tier", star.get("lock_tier", 4)),
-            "identity_source_proof": telemetry.get("identity_source_proof", star.get("source_proof", "Discovery")),
+            "identity_confidence": telemetry.get(
+                "identity_confidence", star.get("intensity", 0.0)
+            ),
+            "identity_lock_tier": telemetry.get(
+                "identity_lock_tier", star.get("lock_tier", 4)
+            ),
+            "identity_source_proof": telemetry.get(
+                "identity_source_proof", star.get("source_proof", "Discovery")
+            ),
         }
 
     def _is_threat(self, star: Dict[str, Any]) -> bool:

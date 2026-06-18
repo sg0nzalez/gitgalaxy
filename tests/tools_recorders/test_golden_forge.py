@@ -102,9 +102,9 @@ def test_api_contract_golden_image():
 
     # 2. Compare against the Golden Image
     # We collapse whitespace to prevent OS line-ending differences (CRLF vs LF) from failing the test
-    assert " ".join(generated_java.split()) == " ".join(
-        GOLDEN_CONTROLLER.split()
-    ), "API Contract generation drifted from the Golden Image! Did someone alter the string formatting?"
+    assert " ".join(generated_java.split()) == " ".join(GOLDEN_CONTROLLER.split()), (
+        "API Contract generation drifted from the Golden Image! Did someone alter the string formatting?"
+    )
 
 
 def test_spring_entity_golden_image():
@@ -116,6 +116,6 @@ def test_spring_entity_golden_image():
     generated_java = generate_java_entity(MOCK_SCHEMA_STATE, "com.gitgalaxy.modernized")
 
     # 2. Compare against the Golden Image
-    assert " ".join(generated_java.split()) == " ".join(
-        GOLDEN_ENTITY.split()
-    ), "Spring Entity generation drifted from the Golden Image! Check PIC clause parsing logic."
+    assert " ".join(generated_java.split()) == " ".join(GOLDEN_ENTITY.split()), (
+        "Spring Entity generation drifted from the Golden Image! Check PIC clause parsing logic."
+    )

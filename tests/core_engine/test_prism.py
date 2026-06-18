@@ -45,7 +45,9 @@ def prism_engine():
             "PHP_MULTILINE_STRING": r"'(?:\\'|[^'])*'",
         },
     ):
-        return Prism(comment_definitions=MOCK_COMMENT_DEFS, language_definitions=MOCK_LANG_DEFS)
+        return Prism(
+            comment_definitions=MOCK_COMMENT_DEFS, language_definitions=MOCK_LANG_DEFS
+        )
 
 
 # ==============================================================================
@@ -147,7 +149,13 @@ def test_prism_positional_anchors(prism_engine):
 # ==============================================================================
 def test_prism_python_docstring_extraction(prism_engine):
     """Proves multi-line string literals acting as docstrings are extracted."""
-    content = "def compute_hash():\n" '    """\n' "    This is a module docstring.\n" '    """\n' "    return True"
+    content = (
+        "def compute_hash():\n"
+        '    """\n'
+        "    This is a module docstring.\n"
+        '    """\n'
+        "    return True"
+    )
     result = prism_engine.refract(content, primary_lang="python")
 
     assert "def compute_hash():" in result["code_stream"]
@@ -165,7 +173,13 @@ def test_prism_undeterminable_and_xml_bypass(prism_engine):
     assert res_unknown["comment_stream"] == ""
 
     # We use chr() to prevent the HTML comment from vanishing when copying
-    xml_content = "<?xml version='1.0'?>\n<data>" + chr(60) + "!-- comment --" + chr(62) + "</data>"
+    xml_content = (
+        "<?xml version='1.0'?>\n<data>"
+        + chr(60)
+        + "!-- comment --"
+        + chr(62)
+        + "</data>"
+    )
     res_xml = prism_engine.refract(xml_content, primary_lang="xml")
     assert res_xml["code_stream"] == ""
     assert chr(60) + "!-- comment --" + chr(62) in res_xml["comment_stream"]
@@ -281,7 +295,9 @@ def test_prism_safety_limits_and_errors(prism_engine):
     code, lits = prism_engine._refract_nested(content)
     assert "level 2" in " ".join(lits)
 
-    with patch.object(prism_engine, "_partition_segments", side_effect=ValueError("Simulated Fault")):
+    with patch.object(
+        prism_engine, "_partition_segments", side_effect=ValueError("Simulated Fault")
+    ):
         with pytest.raises(RefractionError) as exc:
             prism_engine.refract("print(1)", primary_lang="python")
         assert "Prism failure: Simulated Fault" in str(exc.value)

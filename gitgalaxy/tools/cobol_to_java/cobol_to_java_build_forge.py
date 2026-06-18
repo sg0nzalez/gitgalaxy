@@ -113,7 +113,7 @@ spring:
     
   datasource:
     # TODO: Update these credentials for your target environment
-    url: jdbc:postgresql://localhost:5432/{artifact_id.replace('-', '_')}
+    url: jdbc:postgresql://localhost:5432/{artifact_id.replace("-", "_")}
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver

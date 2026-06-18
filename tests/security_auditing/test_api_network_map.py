@@ -26,7 +26,9 @@ def test_framework_regex_extraction(tmp_path):
     # Create dummy files for every supported framework
     (repo_dir / "app.py").write_text('@app.get("/api/py")', encoding="utf-8")
     (repo_dir / "server.js").write_text('router.post("/api/js")', encoding="utf-8")
-    (repo_dir / "Controller.java").write_text('@DeleteMapping("/api/java")', encoding="utf-8")
+    (repo_dir / "Controller.java").write_text(
+        '@DeleteMapping("/api/java")', encoding="utf-8"
+    )
     (repo_dir / "main.go").write_text('.PUT("/api/go")', encoding="utf-8")
     (repo_dir / "Api.cs").write_text('[HttpPatch("/api/cs")]', encoding="utf-8")
     (repo_dir / "MinApi.cs").write_text('.MapGet("/api/csmin")', encoding="utf-8")
@@ -37,7 +39,9 @@ def test_framework_regex_extraction(tmp_path):
     physical_apis, frameworks = map_physical_codebase(repo_dir)
 
     # Verify all frameworks were successfully detected
-    assert len(frameworks) == 9, "Not all frameworks were detected by the extraction rules!"
+    assert len(frameworks) == 9, (
+        "Not all frameworks were detected by the extraction rules!"
+    )
     endpoints = set(physical_apis.keys())
     assert "GET /api/py" in endpoints
     assert "POST /api/js" in endpoints
@@ -59,9 +63,15 @@ def test_endpoint_variable_extraction(tmp_path):
     repo_dir.mkdir()
 
     # Different frameworks use different variable syntaxes (Flask: <id>, Express: :id, Spring: {id})
-    (repo_dir / "app.py").write_text('@app.get("/api/users/<user_id>")', encoding="utf-8")
-    (repo_dir / "server.js").write_text('router.get("/api/users/:userId")', encoding="utf-8")
-    (repo_dir / "Controller.java").write_text('@GetMapping("/api/users/{id}")', encoding="utf-8")
+    (repo_dir / "app.py").write_text(
+        '@app.get("/api/users/<user_id>")', encoding="utf-8"
+    )
+    (repo_dir / "server.js").write_text(
+        'router.get("/api/users/:userId")', encoding="utf-8"
+    )
+    (repo_dir / "Controller.java").write_text(
+        '@GetMapping("/api/users/{id}")', encoding="utf-8"
+    )
 
     physical_apis, _ = map_physical_codebase(repo_dir)
     endpoints = set(physical_apis.keys())
@@ -105,7 +115,9 @@ def test_swagger_parser_edge_cases(tmp_path):
     """Verifies the parser survives schemas without paths and grabs all path keys."""
     # 1. Missing "paths" object
     empty_file = tmp_path / "empty_spec.json"
-    empty_file.write_text('{"openapi": "3.0.0", "info": {"title": "Empty"}}', encoding="utf-8")
+    empty_file.write_text(
+        '{"openapi": "3.0.0", "info": {"title": "Empty"}}', encoding="utf-8"
+    )
     routes_empty = parse_official_swagger(empty_file)
     assert len(routes_empty) == 0, "Parser failed to handle missing 'paths' object!"
 
@@ -113,7 +125,14 @@ def test_swagger_parser_edge_cases(tmp_path):
     invalid_methods_file = tmp_path / "vendor_spec.json"
     spec_data = {
         "openapi": "3.0.0",
-        "paths": {"/api/data": {"get": {}, "parameters": [], "x-internal-routing": {}, "servers": []}},
+        "paths": {
+            "/api/data": {
+                "get": {},
+                "parameters": [],
+                "x-internal-routing": {},
+                "servers": [],
+            }
+        },
     }
     invalid_methods_file.write_text(json.dumps(spec_data), encoding="utf-8")
     routes_invalid = parse_official_swagger(invalid_methods_file)
@@ -134,7 +153,9 @@ def test_auto_discover_files(tmp_path):
     (tmp_path / "swagger.json").write_text("{}", encoding="utf-8")
 
     # 2. Deep Grep (Unconventional name, but contains OpenAPI signature)
-    (tmp_path / "hidden_spec.yml").write_text('openapi: "3.0.0"\npaths: {}', encoding="utf-8")
+    (tmp_path / "hidden_spec.yml").write_text(
+        'openapi: "3.0.0"\npaths: {}', encoding="utf-8"
+    )
 
     # 3. Decoy (Valid extension, no signature)
     (tmp_path / "package.json").write_text('{"name": "app"}', encoding="utf-8")
@@ -160,12 +181,16 @@ def test_auto_discover_directories(tmp_path):
 
     for d in [test_dir, mock_dir, docs_dir, node_dir]:
         d.mkdir()
-        (d / "swagger.json").write_text('{"openapi": "3.0.0", "paths": {}}', encoding="utf-8")
+        (d / "swagger.json").write_text(
+            '{"openapi": "3.0.0", "paths": {}}', encoding="utf-8"
+        )
 
     # Valid schema in a standard folder
     src_dir = tmp_path / "src"
     src_dir.mkdir()
-    (src_dir / "openapi.json").write_text('{"openapi": "3.0.0", "paths": {}}', encoding="utf-8")
+    (src_dir / "openapi.json").write_text(
+        '{"openapi": "3.0.0", "paths": {}}', encoding="utf-8"
+    )
 
     candidates = auto_discover_swagger(tmp_path)
     paths = [str(c.relative_to(tmp_path)).replace("\\", "/") for c in candidates]
@@ -186,7 +211,9 @@ def test_physical_mapper_exception_handling(tmp_path):
     with patch("pathlib.Path.read_text", side_effect=PermissionError("Locked file!")):
         apis, frameworks = map_physical_codebase(tmp_path)
 
-    assert len(apis) == 0, "The engine failed to safely catch and ignore the I/O exception!"
+    assert len(apis) == 0, (
+        "The engine failed to safely catch and ignore the I/O exception!"
+    )
 
 
 # ==============================================================================
@@ -249,11 +276,17 @@ def test_cli_ambiguous_merge_all(tmp_path, capsys):
     repo_dir.mkdir()
 
     # Inject the "openapi" signature so the Deep Grep engine recognizes them
-    (repo_dir / "swagger1.json").write_text('{"openapi": "3.0.0", "paths":{"/api/one":{"get":{}}}}', encoding="utf-8")
-    (repo_dir / "swagger2.json").write_text('{"openapi": "3.0.0", "paths":{"/api/two":{"post":{}}}}', encoding="utf-8")
+    (repo_dir / "swagger1.json").write_text(
+        '{"openapi": "3.0.0", "paths":{"/api/one":{"get":{}}}}', encoding="utf-8"
+    )
+    (repo_dir / "swagger2.json").write_text(
+        '{"openapi": "3.0.0", "paths":{"/api/two":{"post":{}}}}', encoding="utf-8"
+    )
 
     # Add physical files to match the documentation
-    (repo_dir / "app.py").write_text('@app.get("/api/one")\n@app.post("/api/two")', encoding="utf-8")
+    (repo_dir / "app.py").write_text(
+        '@app.get("/api/one")\n@app.post("/api/two")', encoding="utf-8"
+    )
 
     with patch("sys.argv", ["api_map", str(repo_dir), "--merge-all"]):
         main()  # Should NOT raise SystemExit
@@ -276,7 +309,10 @@ def test_cli_explicit_swagger_flag(tmp_path, capsys):
     spec_path.write_text('{"paths":{"/api/explicit":{"get":{}}}}', encoding="utf-8")
 
     # Invalid Path
-    with patch("sys.argv", ["api_map", str(repo_dir), "--swagger", str(repo_dir / "missing.json")]):
+    with patch(
+        "sys.argv",
+        ["api_map", str(repo_dir), "--swagger", str(repo_dir / "missing.json")],
+    ):
         with pytest.raises(SystemExit) as exc_info:
             main()
     assert "Error: Provided Swagger file" in capsys.readouterr().out
@@ -303,7 +339,9 @@ def test_cli_presentation_dashboard_findings(tmp_path, capsys):
     )
 
     # 2. Source Code (Has a Shadow API and the Shared endpoint)
-    (repo_dir / "app.py").write_text('@app.post("/api/shared")\n@app.delete("/api/shadow")', encoding="utf-8")
+    (repo_dir / "app.py").write_text(
+        '@app.post("/api/shared")\n@app.delete("/api/shadow")', encoding="utf-8"
+    )
 
     with patch("sys.argv", ["api_map", str(repo_dir)]):
         main()
@@ -324,7 +362,9 @@ def test_cli_presentation_dashboard_perfect(tmp_path, capsys):
     repo_dir = tmp_path / "perfect_repo"
     repo_dir.mkdir()
 
-    (repo_dir / "swagger.json").write_text('{"paths":{"/api/perfect":{"get":{}}}}', encoding="utf-8")
+    (repo_dir / "swagger.json").write_text(
+        '{"paths":{"/api/perfect":{"get":{}}}}', encoding="utf-8"
+    )
     (repo_dir / "app.py").write_text('@app.get("/api/perfect")', encoding="utf-8")
 
     with patch("sys.argv", ["api_map", str(repo_dir)]):
@@ -365,8 +405,12 @@ def test_programmatic_success(tmp_path):
     repo_dir = tmp_path / "prog_success"
     repo_dir.mkdir()
 
-    (repo_dir / "openapi.json").write_text('{"openapi": "3.0.0", "paths":{"/api/real":{"get":{}}}}', encoding="utf-8")
-    (repo_dir / "app.py").write_text('@app.get("/api/real")\n@app.post("/api/shadow")', encoding="utf-8")
+    (repo_dir / "openapi.json").write_text(
+        '{"openapi": "3.0.0", "paths":{"/api/real":{"get":{}}}}', encoding="utf-8"
+    )
+    (repo_dir / "app.py").write_text(
+        '@app.get("/api/real")\n@app.post("/api/shadow")', encoding="utf-8"
+    )
 
     # Standard programmatic execution
     result = run_api_audit(repo_dir)
