@@ -1254,12 +1254,6 @@ class Orchestrator:
     def _fallback_filesystem_walk(self):
         """
         Standard OS-level filesystem walk for non-Git projects or ZIP archives.
-        """
-        self.cleanup()
-
-    def _fallback_filesystem_walk(self):
-        """
-        Standard OS-level filesystem walk for non-Git projects or ZIP archives.
 
         Acts as the fallback mechanism if `git ls-files` fails. Evaluates every file against
         the Aperture filter's Black Holes and dynamic micro-mass quotas, discarding ignored
