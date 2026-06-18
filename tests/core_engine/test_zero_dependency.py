@@ -29,7 +29,7 @@ class TestZeroDependencyMode(unittest.TestCase):
         ]
 
         # 3. Force the sensor to use the fallback method
-        mapped_stars, macro_metrics = sensor.map_ecosystem(mock_stars)
+        mapped_stars, macro_metrics = sensor.build_dependency_graph(mock_stars)
 
         # 4. Pass the resulting payload into the Signal Processor
         processor = SignalProcessor()

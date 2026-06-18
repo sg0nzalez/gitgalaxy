@@ -30,7 +30,8 @@ from gitgalaxy.core.aperture import ApertureFilter, InaccessibleArtifactError
 from gitgalaxy.core.guidestar_lens import GuideStarLens
 from gitgalaxy.standards.language_lens import LanguageDetector
 from gitgalaxy.core.prism import Prism
-from gitgalaxy.core.detector import LogicSplicer, Cartographer
+from gitgalaxy.core.detector import OpticalDetector
+from gitgalaxy.core.spatial_mapper import SpatialMapper
 from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
 from gitgalaxy.physics.chronometer import Chronometer
 from gitgalaxy.physics.signal_processor import SignalProcessor
@@ -117,13 +118,13 @@ def _init_worker(
     aperture_cfg = config.get("APERTURE_CONFIG", {})
     priority_whitelist = config.get("PRIORITY_WHITELIST", [])
 
-    # --- PERFORMANCE ANCHOR: SPLICER CACHE WARM-UP ---
-    splicer_cache = {}
+    # --- PERFORMANCE ANCHOR: DETECTOR CACHE WARM-UP ---
+    detector_cache = {}
 
     # 1. Force-warm the fallbacks immediately.
     # This silences the [AUTO-HEAL] warnings and compiles the regex engine for these IDs.
     for fallback_id in ["plaintext", "markdown"]:
-        splicer_cache[fallback_id] = LogicSplicer(
+        detector_cache[fallback_id] = OpticalDetector(
             fallback_id, lang_defs, parent_logger=worker_logger
         )
 
@@ -136,8 +137,8 @@ def _init_worker(
                 break
 
     for lang_id in active_langs:
-        if lang_id not in splicer_cache:
-            splicer_cache[lang_id] = LogicSplicer(
+        if lang_id not in detector_cache:
+            detector_cache[lang_id] = OpticalDetector(
                 lang_id, lang_defs, parent_logger=worker_logger
             )
 
@@ -164,7 +165,7 @@ def _init_worker(
             ),
             "detector": LanguageDetector(lang_defs, comm_defs),
             "prism": Prism(comm_defs, lang_defs, parent_logger=worker_logger),
-            "splicer_cache": splicer_cache,
+            "detector_cache": detector_cache,
             "word_tokenizer": re.compile(r"\b\w+\b"),
             # --- NEW: Boot the Analysis Engines into worker memory ---
             "chronometer": Chronometer(root, parent_logger=worker_logger),
@@ -176,8 +177,7 @@ def _init_worker(
         }
     )
 
-    _worker_state["guidestar"].align_telescope()
-
+    _worker_state["guidestar"].scan_project_config()
 
 def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     """Processes a single file path using the worker's cached hardware modules."""
@@ -206,7 +206,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
     prism = _worker_state["prism"]
     census = _worker_state["census"]
     lang_defs = _worker_state["lang_defs"]
-    splicer_cache = _worker_state["splicer_cache"]
+    detector_cache = _worker_state["detector_cache"]
     tokenizer = _worker_state["word_tokenizer"]
 
     # --- NEW: Extract the Analysis Engines from worker memory ---
@@ -418,29 +418,29 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                     "comment_stream": "",
                 }
             else:
-                # Phase 4: Prism Refraction
+                # Phase 4: Lexical Scanning
                 t_prism = time.perf_counter()
-                refraction = prism.refract(content_buffer, lang_id)
+                refraction = prism.split_streams(content_buffer, lang_id)
                 if is_file_profiling:
-                    phase_times["4_Prism_Refraction"] = time.perf_counter() - t_prism
+                    phase_times["4_Lexical_Scan"] = time.perf_counter() - t_prism
 
-                if lang_id not in splicer_cache:
-                    from gitgalaxy.core.detector import LogicSplicer
+                if lang_id not in detector_cache:
+                    from gitgalaxy.core.detector import OpticalDetector
 
-                    splicer_cache[lang_id] = LogicSplicer(
+                    detector_cache[lang_id] = OpticalDetector(
                         lang_id, lang_defs, parent_logger=logger
                     )
 
-                splicer = splicer_cache[lang_id]
+                opt_detector = detector_cache[lang_id]
 
                 # --- INJECTED DEBUG TRACE ---
                 logger.debug(
-                    f"[WORKER-TRACE] >>> ENTERING SPLICER: {rel_path} (Lang: {lang_id})"
+                    f"[WORKER-TRACE] >>> ENTERING DETECTOR: {rel_path} (Lang: {lang_id})"
                 )
 
-                # Phase 5: Logic Splicer
-                t_splicer = time.perf_counter()
-                logic_data = splicer.splice(
+                # Phase 5: Optical Detector
+                t_detector_phase = time.perf_counter()
+                logic_data = opt_detector.splice(
                     code_stream=refraction["code_stream"],
                     comment_stream=refraction["comment_stream"],
                     confidence=detection_result.get("intensity", 1.0),
@@ -448,7 +448,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                     raw_content=content_buffer,
                 )
                 if is_file_profiling:
-                    phase_times["5_Logic_Splicer"] = time.perf_counter() - t_splicer
+                    phase_times["5_Optical_Detector"] = time.perf_counter() - t_detector_phase
 
                 # ---> INJECT THE KNOWLEDGE SHIELD <---
                 dir_path = str(Path(rel_path).parent).replace("\\", "/")
@@ -457,9 +457,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
 
                 if "metadata" not in logic_data:
                     logic_data["metadata"] = {}
-                logic_data["metadata"]["doc_umbrella"] = guidestar.doc_umbrellas.get(
-                    dir_path, 0.0
-                )
+                logic_data["metadata"]["doc_umbrella"] = guidestar.documentation_coverage.get(dir_path, 0.0)
 
                 logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
 
@@ -697,7 +695,7 @@ class Orchestrator:
 
         # Temporal engine extracting Git volatility, churn velocity, and ownership entropy
         self.chronometer = Chronometer(self.root, parent_logger=logger)
-        self.cartographer = Cartographer(parent_logger=logger)
+        self.spatial_mapper = SpatialMapper(parent_logger=logger)
 
         # The primary heuristic math engine converting raw DNA hits to risk exposure vectors
         self.processor = SignalProcessor(aperture_config=config, parent_logger=logger)
@@ -840,7 +838,7 @@ class Orchestrator:
             # PHASE 0: Radar & Pre-Flight
             # OS-level walk determining physical existence, OS permissions, and intent.
             t_phase = time.time()
-            self.guidestar.align_telescope()
+            self.guidestar.scan_project_config()
             self._build_file_census()
             logger.info(
                 f"⏱️ MACRO-CLOCK [Phase 0 - Radar]: {time.time() - t_phase:.2f}s"
@@ -875,7 +873,7 @@ class Orchestrator:
             # PHASE 4: Network Topology & Blast Radius
             # Computes PageRank and Betweenness Centrality on the assembled Dependency Graph.
             t_phase = time.time()
-            self.parsed_files, network_macro = self.network_sensor.map_ecosystem(
+            self.parsed_files, network_macro = self.network_sensor.build_dependency_graph(
                 self.parsed_files
             )
             logger.info(
@@ -907,7 +905,7 @@ class Orchestrator:
             # Assigns coordinates based on topological hierarchies for WebGL.
             t_phase = time.time()
             if repository_graph:
-                repository_graph = self.cartographer.map_repository(repository_graph)
+                repository_graph = self.spatial_mapper.map_repository(repository_graph)
             files_mapped_count = len(repository_graph) if repository_graph else 0
             logger.info(
                 f"⏱️ MACRO-CLOCK [Phase 7 - 3D Cartography]: {time.time() - t_phase:.2f}s"
@@ -2036,7 +2034,7 @@ class Orchestrator:
                 "lang_id": "plaintext",  # <-- Bypasses the Spectral Auditor as Inert Matter
                 "coding_loc": 1,
                 "total_loc": 1,
-                "band": "critical_secret_leak",
+                "classification": "critical_secret_leak",
                 # 18-point risk vector. Index 17 is secrets_risk. Peg it to 100%.
                 "risk_vector": [0.0] * 13 + [0.0, 0.0, 0.0, 0.0, 100.0],
                 "hit_vector": [0] * len(SignalProcessor.SIGNAL_SCHEMA),
@@ -2100,7 +2098,7 @@ class Orchestrator:
                     "lang_id": "binary_threat",  # Forces it to render uniquely in the UI
                     "coding_loc": 1,
                     "total_loc": 1,
-                    "band": "ai_model_weights",
+                    "classification": "ai_model_weights",
                     "risk_vector": [0.0] * len(SignalProcessor.RISK_SCHEMA),
                     "hit_vector": [0] * len(SignalProcessor.SIGNAL_SCHEMA),
                     "file_impact": max(gravity_mass, 500.0),  # Minimum massive gravity
@@ -2419,7 +2417,7 @@ class Orchestrator:
             self._calculate_risk_exposures()
 
             # Re-map the directed graph because nodes/edges have mutated
-            self.parsed_files, network_macro = self.network_sensor.map_ecosystem(
+            self.parsed_files, network_macro = self.network_sensor.build_dependency_graph(
                 self.parsed_files
             )
 

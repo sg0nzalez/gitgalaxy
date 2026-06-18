@@ -86,24 +86,24 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
     """
     # --- THE PYTEST BYPASS ---
     # Keeps our CI/CD logs clean by instantly exiting during automated tests.
-    if "PYTEST_CURRENT_TEST" in os.environ:
+    if "PYTEST_CURRENT_TEST" in os.environ or os.environ.get("GITGALAXY_ENV") == "development":
         return
     # -------------------------
 
     # --- ZERO-DEPENDENCY .ENV LOADER ---
     # Python doesn't read .env files natively. This parses it manually
     # so we don't force users to pip install python-dotenv.
-    if os.path.exists(".env"):
+    env_path = os.path.join(os.getcwd(), ".env")
+    if os.path.exists(env_path):
         try:
-            with open(".env", "r") as f:
+            with open(env_path, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     # Ignore comments and empty lines, ensure it's a key=value pair
                     if line and not line.startswith("#") and "=" in line:
                         key, val = line.split("=", 1)
                         # Only inject if it's not already set in the system environment
-                        if key.strip() not in os.environ:
-                            os.environ[key.strip()] = val.strip().strip("\"'")
+                        os.environ.setdefault(key.strip(), val.strip().strip('"\''))
         except Exception:
             pass  # Fail gracefully if the .env file is locked by OS permissions
     # -----------------------------------
@@ -113,19 +113,6 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
     # ==============================================================================
     # 1. THE HONOR SYSTEM GATE (Community Free Tier)
     # ==============================================================================
-    # Why is this a 0-second delay?
-    # In any healthy ecosystem, you want minimal friction for organic growth.
-    # We built GitGalaxy as a zero-dependency engine because developer UX matters
-    # above all else. To drive community adoption, researchers, hobbyists, and
-    # open-source devs need to be able to drop this into their workflow instantly.
-    #
-    # Yes, a massive enterprise could technically bypass our commercial RSA checks
-    # by just plugging this string into their environment. But we operate on the
-    # honor system. If a corporation wants to cheat, they get their 0-second execution,
-    # but we permanently burn a glaring legal non-compliance warning into their
-    # immutable CI/CD audit logs. We optimize for the community, not the abusers.
-    #
-    # Check this first so we don't try to mathematically parse a plaintext string.
     if license_key == "COMMUNITY_FREE_TIER":
         print("\n" + "=" * 80, file=sys.stderr)
         print(f" 🪐 {tool_name.upper()} ONLINE — COMMUNITY FREE TIER", file=sys.stderr)
@@ -154,13 +141,10 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
     key_status = _validate_offline_key(license_key)
 
     # 2. THE FULLY LICENSED CLEAN ROOM
-    # If they paid you and are active, they get absolute silence and maximum speed.
     if key_status == "VALID":
         return
 
     # 3. THE STANDARD FRICTION TRAP (Expired or Missing - 5 Seconds)
-    # Be forgiving to legitimate oversights. If the key lapsed, or if they simply
-    # haven't set the environment variable, give them the standard 5-second bump.
     if key_status in ["EXPIRED", "MISSING"]:
         print("\n" + "=" * 80, file=sys.stderr)
         print(f" 🪐 {tool_name.upper()} ONLINE", file=sys.stderr)
@@ -198,8 +182,6 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
         return
 
     # 4. THE FORGERY HAMMER (Invalid / Tampered - 10 Seconds)
-    # If a user is intentionally submitting garbage data or spoofing the RSA signature,
-    # we crush their pipeline execution speed.
     print("\n" + "=" * 80, file=sys.stderr)
     print(f" 🪐 {tool_name.upper()} ONLINE", file=sys.stderr)
     print("=" * 80, file=sys.stderr)

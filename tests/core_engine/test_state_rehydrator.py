@@ -110,13 +110,11 @@ def test_rehydrator_successful_load(mock_db):
         "Failed to select the most recent commit!"
     )
 
-    # 2. Assert the cryolink dictionary structure is perfectly mapped
-    cryolink = result["cryolink"]
-    assert "src/main.py" in cryolink, (
-        "Failed to map the file path as the dictionary key!"
-    )
+    # 2. Assert the ram_cache dictionary structure is perfectly mapped
+    ram_cache = result["ram_cache"]
+    assert "src/main.py" in ram_cache, "Failed to map the file path as the dictionary key!"
 
-    file_node = cryolink["src/main.py"]
+    file_node = ram_cache["src/main.py"]
     assert file_node["lang_id"] == "python"
     assert file_node["file_impact"] == 45.5
     assert file_node["control_flow_ratio"] == 0.35

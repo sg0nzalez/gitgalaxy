@@ -22,7 +22,7 @@ class NetworkRiskSensor:
     """
     The GitGalaxy Network Risk Sensor (Graph Topology & Blast Radius).
 
-    PURPOSE: Ingests the flat universe of stars, wires them into a Directed Graph
+    PURPOSE: Ingests the flat list of parsed files, wires them into a Directed Graph (DAG)
     using raw_imports, and calculates Ecosystem Roles, PageRank, and
     Vector-Weighted Systemic Threats.
     """
@@ -41,6 +41,10 @@ class NetworkRiskSensor:
         """
         Maps function calls from test files to their imported production targets.
         Returns a dictionary mapping: production_file_path -> { production_function_name: [test_function_data] }
+        
+        DEFENSIVE DESIGN: Traditional code coverage only checks if a line was executed. 
+        By mapping outbound AST calls from tests to production targets, we can calculate 
+        the exact architectural "Blast Radius" of untested functions.
         """
         coverage_map = {}
         resolution_map = {}
@@ -108,27 +112,27 @@ class NetworkRiskSensor:
 
         return coverage_map
 
-    def map_ecosystem(
-        self, stars: List[Dict[str, Any]]
+    def build_dependency_graph(
+        self, parsed_files: List[Dict[str, Any]]
     ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Builds the directed graph and calculates multi-dimensional risk vectors.
-        Modifies the 'telemetry' dictionary of each star in place.
+        Modifies the 'telemetry' dictionary of each file in place.
         """
         if not HAS_NETWORKX:
-            return self._fallback_map_ecosystem(stars)
+            return self._fallback_build_graph(parsed_files)
 
         self.logger.info(
-            f"Network Risk Sensor: Initializing Directed Graph for {len(stars)} nodes..."
+            f"Network Risk Sensor: Initializing Directed Graph for {len(parsed_files)} nodes..."
         )
 
         G = nx.DiGraph()
 
         # 1. Build the Resolution Map (Fast Path Lookup)
         resolution_map = {}
-        for s in stars:
-            path = s.get("path", "")
-            name = s.get("name", Path(path).name)
+        for f in parsed_files:
+            path = f.get("path", "")
+            name = f.get("name", Path(path).name)
             stem = Path(path).stem
             if path:
                 resolution_map[path] = path
@@ -138,25 +142,25 @@ class NetworkRiskSensor:
                 resolution_map[stem] = path
 
             # Extract Max Algorithmic Complexity for the node
-            sats = s.get("satellites", [])
-            max_big_o = max([sat.get("big_o_depth", 1) for sat in sats]) if sats else 1
-            is_recursive = any([sat.get("is_recursive", False) for sat in sats])
+            funcs = f.get("functions", [])
+            max_big_o = max([func.get("big_o_depth", 1) for func in funcs]) if funcs else 1
+            is_recursive = any([func.get("is_recursive", False) for func in funcs])
 
             # Add Node with Vector and O(N) properties
             G.add_node(
                 path,
-                risk_vector=s.get("risk_vector", [0.0] * len(self.RISK_SCHEMA)),
+                risk_vector=f.get("risk_vector", [0.0] * len(self.RISK_SCHEMA)),
                 max_big_o=max_big_o,
                 is_recursive=is_recursive,
                 db_complexity=(
-                    max([sat.get("db_complexity", 0) for sat in sats]) if sats else 0
+                    max([func.get("db_complexity", 0) for func in funcs]) if funcs else 0
                 ),
             )
 
         # 2. Wire the Edges (File-to-File Level 1 & Entity Level 2)
-        for s in stars:
-            curr_path = s.get("path", "")
-            raw_imports = s.get("raw_imports", [])
+        for f in parsed_files:
+            curr_path = f.get("path", "")
+            raw_imports = f.get("raw_imports", [])
 
             for imp in raw_imports:
                 # Check if it's a Level 2 Tuple (Entity Import) or Level 1 String
@@ -176,18 +180,21 @@ class NetworkRiskSensor:
                         else:
                             G.add_edge(curr_path, target_path, weight=weight)
 
-        # 3. Network Mathematics (Blast Radius & Centrality)
-        # PageRank determines the absolute "Load-Bearing" gravity of a file
+        # =========================================================================
+        # 3. NETWORK MATHEMATICS (Blast Radius & Centrality)
+        # DEFENSIVE DESIGN: Centrality algorithms (Betweenness/Closeness) scale non-linearly 
+        # at O(V^3). For massive monolithic repositories (>1500 nodes), we MUST implement 
+        # strict sampling or bypasses, otherwise the CI/CD pipeline will hit a timeout deadlock.
+        # PageRank is safe as it uses iterative convergence.
+        # =========================================================================
         try:
             pagerank = nx.pagerank(G, weight="weight")
 
-            # THE FIX: Drop the exact threshold from 5000 down to 500.
-            # Force a maximum sample size of 100 nodes for anything larger.
+            # Force a maximum sample size of 100 nodes for any graph > 500 nodes.
             k_val = min(len(G.nodes()), 100) if len(G.nodes()) > 500 else None
             betweenness = nx.betweenness_centrality(G, k=k_val, weight="weight")
 
-            # THE FIX: Closeness Centrality has no built-in sampling.
-            # Drop the bypass threshold from 5000 to 1500 to prevent minute-long hangs.
+            # Closeness Centrality has no built-in sampling. Hard bypass at 1500 nodes.
             if len(G.nodes()) > 1500:
                 self.logger.warning(
                     "Graph too massive for exact Closeness Centrality. Bypassing."
@@ -208,8 +215,8 @@ class NetworkRiskSensor:
         out_degrees = dict(G.out_degree())
 
         # 4. Vector Cross-Multiplication & Bottleneck Identification
-        for s in stars:
-            path = s.get("path", "")
+        for f in parsed_files:
+            path = f.get("path", "")
             if path not in G:
                 continue
 
@@ -232,14 +239,14 @@ class NetworkRiskSensor:
                     ecosystem_role = "Transceiver (Middle-Tier)"
 
             # --- Multi-Dimensional Systemic Threat Vector ---
-            # PageRank is usually a tiny decimal (e.g., 0.0005). We normalize it.
-            # Multiply by 1000 to make the scale human/LLM readable.
+            # PageRank is usually a tiny decimal (e.g., 0.0005). We normalize it
+            # by multiplying by 1000 to make the scale human/LLM readable.
             pr_normalized = pr_score * 1000
-            local_risk_vector = s.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
+            local_risk_vector = f.get("risk_vector", [0.0] * len(self.RISK_SCHEMA))
 
             systemic_threat_vector = []
             for local_risk in local_risk_vector:
-                # Systemic Threat = Blast Radius * Local Risk
+                # Systemic Threat = Blast Radius * Local Vulnerability Severity
                 systemic_threat_vector.append(
                     round(pr_normalized * (local_risk / 100.0), 3)
                 )
@@ -253,11 +260,11 @@ class NetworkRiskSensor:
             if pr_normalized > 1.0 and (is_recursive or max_big_o >= 3):
                 is_algorithmic_bottleneck = True
 
-            # 5. Write Telemetry Back to the Star
-            if "telemetry" not in s:
-                s["telemetry"] = {}
+            # 5. Write Telemetry Back to the File Node
+            if "telemetry" not in f:
+                f["telemetry"] = {}
 
-            s["telemetry"]["network_metrics"] = {
+            f["telemetry"]["network_metrics"] = {
                 "pagerank_score": round(pr_score, 6),
                 "normalized_blast_radius": round(pr_normalized, 3),
                 "betweenness_score": round(betweenness.get(path, 0.0), 6),
@@ -270,8 +277,8 @@ class NetworkRiskSensor:
                 "is_algorithmic_bottleneck": is_algorithmic_bottleneck,
             }
 
-            # Overwrite the old "popularity" integer with the strict in_degree
-            s["telemetry"]["popularity"] = in_d
+            # Overwrite the old "popularity" integer with the strict directed in_degree
+            f["telemetry"]["popularity"] = in_d
 
         # =========================================================================
         # 6. MACRO-ECOSYSTEM PHYSICS (Repo-Level Health & Resilience)
@@ -296,7 +303,7 @@ class NetworkRiskSensor:
                         )
                         macro_metrics["modularity"] = 0.0
                     else:
-                        # THE FIX: Attempt Louvain (blazing fast), fallback to Greedy (slow)
+                        # Attempt Louvain (blazing fast), fallback to Greedy (slow)
                         try:
                             communities = community.louvain_communities(U)
                         except AttributeError:
@@ -355,33 +362,33 @@ class NetworkRiskSensor:
         self.logger.info(
             "Network Risk Sensor: Vector Mathematics & Graph Topology Complete."
         )
-        return stars, macro_metrics
+        return parsed_files, macro_metrics
 
-    def _fallback_map_ecosystem(
-        self, stars: List[Dict[str, Any]]
+    def _fallback_build_graph(
+        self, parsed_files: List[Dict[str, Any]]
     ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         self.logger.warning(
             "[!] 'networkx' not found. Operating in Zero-Dependency Mode. Using linear counting for Ecosystem Roles."
         )
 
         resolution_map = {}
-        for s in stars:
-            p = s.get("path", "")
+        for f in parsed_files:
+            p = f.get("path", "")
             if p:
                 resolution_map[p] = p
-            name = s.get("name", Path(p).name)
+            name = f.get("name", Path(p).name)
             if name:
                 resolution_map[name] = p
             stem = Path(p).stem
             if stem:
                 resolution_map[stem] = p
 
-        in_degrees = {s.get("path", ""): 0 for s in stars}
-        out_degrees = {s.get("path", ""): 0 for s in stars}
+        in_degrees = {f.get("path", ""): 0 for f in parsed_files}
+        out_degrees = {f.get("path", ""): 0 for f in parsed_files}
 
-        for s in stars:
-            curr_path = s.get("path", "")
-            for imp in s.get("raw_imports", []):
+        for f in parsed_files:
+            curr_path = f.get("path", "")
+            for imp in f.get("raw_imports", []):
                 target_token = (
                     imp[0] if isinstance(imp, tuple) and len(imp) == 2 else imp
                 )
@@ -391,8 +398,8 @@ class NetworkRiskSensor:
                         out_degrees[curr_path] = out_degrees.get(curr_path, 0) + 1
                         in_degrees[target_path] = in_degrees.get(target_path, 0) + 1
 
-        for s in stars:
-            path = s.get("path", "")
+        for f in parsed_files:
+            path = f.get("path", "")
             in_d = in_degrees.get(path, 0)
             out_d = out_degrees.get(path, 0)
 
@@ -409,9 +416,9 @@ class NetworkRiskSensor:
                 else:
                     ecosystem_role = "Transceiver (Middle-Tier)"
 
-            if "telemetry" not in s:
-                s["telemetry"] = {}
-            s["telemetry"]["network_metrics"] = {
+            if "telemetry" not in f:
+                f["telemetry"] = {}
+            f["telemetry"]["network_metrics"] = {
                 "pagerank_score": 0.0,
                 "normalized_blast_radius": 0.0,
                 "betweenness_score": 0.0,
@@ -423,13 +430,13 @@ class NetworkRiskSensor:
                 "systemic_threat_vector": [],
                 "is_algorithmic_bottleneck": False,
             }
-            s["telemetry"]["popularity"] = in_d
+            f["telemetry"]["popularity"] = in_d
 
         macro_metrics = {
-            "modularity": None,
-            "assortativity": None,
-            "cyclic_density": None,
-            "avg_path_length": None,
-            "articulation_points": None,
+            "modularity": 0.0,
+            "assortativity": 0.0,
+            "cyclic_density": 0.0,
+            "avg_path_length": 0.0,
+            "articulation_points": 0,
         }
-        return stars, macro_metrics
+        return parsed_files, macro_metrics

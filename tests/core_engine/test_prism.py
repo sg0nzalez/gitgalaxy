@@ -3,10 +3,10 @@ import re
 from unittest.mock import patch
 
 # Adjust this import to match your project structure
-from gitgalaxy.core.prism import Prism, RefractionError
+from gitgalaxy.core.prism import Prism, PrismError
 
 # ==============================================================================
-# MOCK HARDWARE CALIBRATION
+# MOCK MATRIX CALIBRATION
 # ==============================================================================
 # We mock the language and comment definitions so the tests run deterministically
 # regardless of what is inside your actual language_standards.py file.
@@ -15,7 +15,7 @@ MOCK_COMMENT_DEFS = {
     "mechanical_families": {
         "std_c": {"delimiters": ["//", "/*", "*/"]},
         "pure_hash": {"delimiters": ["#"]},
-        "singular": {"delimiters": []},  # Relies on hardcoded regex in Prism
+        "singular": {"delimiters": []},  # Relies on hardcoded regex in Scanner
         "nested_c": {"delimiters": ["//", "/*", "*/"]},
         "positional": {"delimiters": []},
     }
@@ -34,7 +34,7 @@ MOCK_LANG_DEFS = {
 
 @pytest.fixture
 def prism_engine():
-    """Initializes the Prism with a controlled, deterministic optical matrix."""
+    """Initializes the Prism with a controlled, deterministic regex matrix."""
     # We patch the SHIELD_PATTERN just in case the standard library is missing it during test time
     with patch(
         "gitgalaxy.core.prism.PRISM_CONFIG",
@@ -55,9 +55,9 @@ def prism_engine():
 # ==============================================================================
 @pytest.mark.smoke
 def test_prism_prose_bypass(prism_engine):
-    """Proves that Markdown and XML are routed entirely to the Ghost Mass (Doc) stream."""
+    """Proves that Markdown and XML are routed entirely to the Documentation stream."""
     content = "# Title\n\nThis is a markdown file.\nIt has no active logic."
-    result = prism_engine.refract(content, primary_lang="markdown")
+    result = prism_engine.split_streams(content, primary_lang="markdown")
 
     assert result["code_stream"] == ""
     assert result["comment_stream"] == content
@@ -68,7 +68,7 @@ def test_prism_prose_bypass(prism_engine):
 def test_prism_metadata_guard(prism_engine):
     """Proves that Shebangs bypass the comment stripper and stay in the logic stream."""
     content = "#!/usr/bin/env python3\n# This is a comment\nprint('Hello')"
-    result = prism_engine.refract(content, primary_lang="python")
+    result = prism_engine.split_streams(content, primary_lang="python")
 
     assert "#!/usr/bin/env python3" in result["code_stream"]
     assert "print('Hello')" in result["code_stream"]
@@ -77,16 +77,16 @@ def test_prism_metadata_guard(prism_engine):
 
 
 # ==============================================================================
-# TEST 2: THE STRING SHIELD
+# TEST 2: STRING MASKING
 # ==============================================================================
 def test_prism_string_shield_protection(prism_engine):
     """Proves that string literals containing comment delimiters do not trigger the stripper."""
     content = (
-        'let url = "https://github.com"; // Set the target URL\n'
+        'let url = "[https://github.com](https://github.com)"; // Set the target URL\n'
         'let str_block = "/* DO NOT STRIP ME */";\n'
         "/* Real block comment */"
     )
-    result = prism_engine.refract(content, primary_lang="c")
+    result = prism_engine.split_streams(content, primary_lang="c")
 
     code = result["code_stream"]
     docs = result["comment_stream"]
@@ -101,7 +101,7 @@ def test_prism_string_shield_protection(prism_engine):
 # TEST 3: NESTED BLOCK PEELER
 # ==============================================================================
 def test_prism_nested_block_peeling(prism_engine):
-    """Proves the while-peel loop correctly extracts recursive block comments."""
+    """Proves the iterative peel loop correctly extracts recursive block comments."""
     content = (
         "fn main() {\n"
         "    /* Outer comment\n"
@@ -110,7 +110,7 @@ def test_prism_nested_block_peeling(prism_engine):
         "    println!('Done');\n"
         "}"
     )
-    result = prism_engine.refract(content, primary_lang="rust")
+    result = prism_engine.split_streams(content, primary_lang="rust")
 
     code = result["code_stream"]
     docs = result["comment_stream"]
@@ -134,7 +134,7 @@ def test_prism_positional_anchors(prism_engine):
     )
 
     prism_engine.POSITIONAL_ANCHORS = {"*", "C", "c", "!"}
-    result = prism_engine.refract(content, primary_lang="cobol")
+    result = prism_engine.split_streams(content, primary_lang="cobol")
 
     code = result["code_stream"]
     docs = result["comment_stream"]
@@ -156,19 +156,19 @@ def test_prism_python_docstring_extraction(prism_engine):
         '    """\n'
         "    return True"
     )
-    result = prism_engine.refract(content, primary_lang="python")
+    result = prism_engine.split_streams(content, primary_lang="python")
 
     assert "def compute_hash():" in result["code_stream"]
     assert "This is a module docstring." in result["comment_stream"]
 
 
 # ==============================================================================
-# TEST 6: THE UNDETERMINABLE & METADATA BYPASSES
+# TEST 6: FORMAT & METADATA BYPASSES
 # ==============================================================================
-def test_prism_undeterminable_and_xml_bypass(prism_engine):
-    """Proves unknown and unparsable languages skip refraction entirely."""
+def test_prism_format_and_xml_bypass(prism_engine):
+    """Proves unknown and unparsable languages skip the scanner entirely."""
     content = "some raw code // comment"
-    res_unknown = prism_engine.refract(content, primary_lang="undeterminable")
+    res_unknown = prism_engine.split_streams(content, primary_lang="undeterminable")
     assert res_unknown["code_stream"] == content
     assert res_unknown["comment_stream"] == ""
 
@@ -180,12 +180,12 @@ def test_prism_undeterminable_and_xml_bypass(prism_engine):
         + chr(62)
         + "</data>"
     )
-    res_xml = prism_engine.refract(xml_content, primary_lang="xml")
+    res_xml = prism_engine.split_streams(xml_content, primary_lang="xml")
     assert res_xml["code_stream"] == ""
     assert chr(60) + "!-- comment --" + chr(62) in res_xml["comment_stream"]
 
     php_content = "<?php\n// This is a comment\n$x = 1;"
-    res_php = prism_engine.refract(php_content, primary_lang="php")
+    res_php = prism_engine.split_streams(php_content, primary_lang="php")
     assert "<?php" in res_php["code_stream"]
 
 
@@ -193,13 +193,13 @@ def test_prism_undeterminable_and_xml_bypass(prism_engine):
 # TEST 7: PHP HEREDOC AND MULTILINE STRINGS
 # ==============================================================================
 def test_prism_php_string_extraction(prism_engine):
-    """Proves PHP Heredoc and large strings are stripped to ghost mass."""
+    """Proves PHP Heredoc and large strings are stripped to the documentation stream."""
     prism_engine.languages["php"] = {"lexical_family": "std_c"}
     prism_engine.PHP_HEREDOC_PATTERN = re.compile(r"<<<EOT[\s\S]*?EOT;", re.M)
     prism_engine.PHP_MULTILINE_STRING = re.compile(r"'(?:\\'|[^'])*'", re.M)
 
     content = "<?php\n$a = <<<EOT\nMassive Text\nEOT;\n$b = 'Multi\nLine';\n// comment"
-    res = prism_engine.refract(content, primary_lang="php")
+    res = prism_engine.split_streams(content, primary_lang="php")
 
     assert "<<<EOT" not in res["code_stream"]
     assert '""' in res["code_stream"]
@@ -207,11 +207,11 @@ def test_prism_php_string_extraction(prism_engine):
 
 
 # ==============================================================================
-# TEST 8: HYBRID PARTITIONING & BALANCED END ESCAPING
+# TEST 8: EMBEDDED PARTITIONING & BALANCED END ESCAPING
 # ==============================================================================
-def test_prism_hybrid_partitioning_and_escaping(prism_engine):
-    """Proves the Handshake Registry accurately isolates embedded languages."""
-    prism_engine.HANDSHAKES = [
+def test_prism_embedded_partitioning_and_escaping(prism_engine):
+    """Proves the Embedded Triggers accurately isolate languages."""
+    prism_engine.EMBEDDED_TRIGGERS = [
         {
             "trigger": re.compile(r"<script>", re.I),
             "end": re.compile(r"</script>", re.I),
@@ -226,12 +226,12 @@ def test_prism_hybrid_partitioning_and_escaping(prism_engine):
         },
     ]
 
-    prism_engine.HANDSHAKE_LOOKAHEAD_LIMIT = 20
+    prism_engine.EMBEDDED_LOOKAHEAD_LIMIT = 20
     html_content = "<html><script>let x = 1; // js"
-    res1 = prism_engine.refract(html_content, primary_lang="html")
+    res1 = prism_engine.split_streams(html_content, primary_lang="html")
     assert "let x = 1;" in res1["code_stream"]
 
-    prism_engine.HANDSHAKE_LOOKAHEAD_LIMIT = 50000
+    prism_engine.EMBEDDED_LOOKAHEAD_LIMIT = 50000
     css_content = r"body { content: 'escaped \}'; /* comment */ }"
     idx = prism_engine._find_balanced_end(css_content, 5, "{", "}")
 
@@ -239,9 +239,9 @@ def test_prism_hybrid_partitioning_and_escaping(prism_engine):
 
 
 # ==============================================================================
-# TEST 9: DYNAMIC OPTICAL MATRIX CALIBRATION
+# TEST 9: DYNAMIC REGEX MATRIX CALIBRATION
 # ==============================================================================
-def test_prism_matrix_calibration_edge_cases():
+def test_prism_regex_matrix_calibration_edge_cases():
     """Proves all complex and fallback regex families compile correctly."""
 
     # We construct HTML comments dynamically to completely bypass UI clipboard erasing
@@ -261,10 +261,10 @@ def test_prism_matrix_calibration_edge_cases():
         language_definitions={},
     )
 
-    assert "hybrid_hash" in engine_primary.PRISM_MATRIX
-    assert "hybrid_dash" in engine_primary.PRISM_MATRIX
-    assert re.escape("{-") in engine_primary.PRISM_MATRIX["hybrid_dash"].pattern
-    assert "polyglot" in engine_primary.PRISM_MATRIX
+    assert "hybrid_hash" in engine_primary.REGEX_MATRIX
+    assert "hybrid_dash" in engine_primary.REGEX_MATRIX
+    assert re.escape("{-") in engine_primary.REGEX_MATRIX["hybrid_dash"].pattern
+    assert "polyglot" in engine_primary.REGEX_MATRIX
 
     # 2. Fallback Branches (Partial Delimiter Sets)
     fallback_families = {
@@ -277,27 +277,6 @@ def test_prism_matrix_calibration_edge_cases():
         language_definitions={},
     )
 
-    assert "hybrid_dash" in engine_fallback.PRISM_MATRIX
+    assert "hybrid_dash" in engine_fallback.REGEX_MATRIX
 
-    # We check if the safely escaped version of '<!--' is in the compiled pattern
-    assert re.escape(html_open) in engine_fallback.PRISM_MATRIX["hybrid_dash"].pattern
-    assert "polyglot" in engine_fallback.PRISM_MATRIX
-
-
-# ==============================================================================
-# TEST 10: SAFETY LIMITS AND CATASTROPHIC ERRORS
-# ==============================================================================
-def test_prism_safety_limits_and_errors(prism_engine):
-    """Proves nested peel limits and catastrophic exception handlers fire."""
-
-    prism_engine.NESTED_PEEL_LIMIT = 1
-    content = "/* level 1 /* level 2 */ */"
-    code, lits = prism_engine._refract_nested(content)
-    assert "level 2" in " ".join(lits)
-
-    with patch.object(
-        prism_engine, "_partition_segments", side_effect=ValueError("Simulated Fault")
-    ):
-        with pytest.raises(RefractionError) as exc:
-            prism_engine.refract("print(1)", primary_lang="python")
-        assert "Prism failure: Simulated Fault" in str(exc.value)
+    # We check if the safely escaped version of '

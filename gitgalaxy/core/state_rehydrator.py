@@ -8,11 +8,24 @@ from typing import Dict, Any
 
 
 class StateRehydrator:
+    """
+    Restores the GitGalaxy engine's memory state from a previous SQLite audit.
+
+    DEFENSIVE DESIGN: During a 'Delta Scan' (incremental update), it is incredibly 
+    inefficient to re-parse 10,000 unchanged files just to figure out how 2 modified 
+    files impact them. This class rehydrates the previous architectural state directly 
+    into RAM, allowing the engine to instantly execute dependency resolution without 
+    triggering the CPU-bound logic splicers.
+    """
+
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
 
     def load_latest_state(self, repo_name: str) -> Dict[str, Any]:
-        """Pulls the most recent commit state from SQLite and rebuilds the RAM dictionary."""
+        """
+        Pulls the most recent commit state from SQLite and rebuilds the RAM dictionary.
+        """
+        # PERFORMANCE OPTIMIZATION: Fast disk-check before attempting DB connections
         if not self.db_path.exists():
             print(f"⚠️ No master DB found at {self.db_path}. Cold start required.")
             return None
@@ -21,7 +34,7 @@ class StateRehydrator:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # 1. Get the most recent commit hash for this repo
+        # 1. Retrieve the most recent commit hash for this specific repository
         cursor.execute(
             """
             SELECT commit_hash FROM repo_data 
@@ -33,13 +46,13 @@ class StateRehydrator:
         row = cursor.fetchone()
 
         if not row:
-            print(f"⚠️ No scan history found for '{repo_name}'.")
+            print(f"⚠️ No scan history found for '{repo_name}'. Full baseline required.")
             return None
 
         latest_hash = row["commit_hash"]
         print(f"🔄 Rehydrating RAM from commit: {latest_hash}")
 
-        # 2. Extract the file physics
+        # 2. Extract the structural metrics for the baseline commit
         cursor.execute(
             """
             SELECT * FROM file_data 
@@ -50,12 +63,14 @@ class StateRehydrator:
 
         file_rows = cursor.fetchall()
 
-        # 3. Rebuild the `cryolink` dictionary format
+        # 3. Rebuild the orchestrator's `ram_cache` dictionary format
         ram_state = {}
         for f in file_rows:
             rel_path = f["file_path"]
 
-            # Reconstruct the basic RAM state the Delta Engine needs to run the Ripple Effect
+            # DEFENSIVE DESIGN: We must perfectly reconstruct the dictionary schema 
+            # expected by `galaxyscope.py` so the Orchestrator can execute its 
+            # downstream graph recalculation without throwing KeyError exceptions.
             ram_state[rel_path] = {
                 "path": rel_path,
                 "lang_id": f["language"],
@@ -63,7 +78,7 @@ class StateRehydrator:
                 "coding_loc": f["coding_loc"],
                 "file_impact": f["structural_mass"],
                 "control_flow_ratio": f["control_flow_ratio"],
-                # Standard initialization for missing data that Delta Engine might need
+                # Initialize empty collections for downstream pipeline requirements
                 "raw_imports": set(),
                 "hit_vector": [],
                 "telemetry": {
@@ -78,4 +93,6 @@ class StateRehydrator:
             }
 
         conn.close()
-        return {"commit_hash": latest_hash, "cryolink": ram_state}
+        
+        # Return the standardized payload
+        return {"commit_hash": latest_hash, "ram_cache": ram_state}

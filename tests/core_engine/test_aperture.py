@@ -16,12 +16,6 @@ MOCK_REGISTRY = {
 }
 
 MOCK_CONFIG = {
-    "BANDS": {
-        "RADIO": "radio_noise",
-        "MICROWAVE": "binary_debris",
-        "INFRARED": "saturated",
-        "VISIBLE": "source_code",
-    },
     "SECRETS_EXACT": {"id_rsa", ".env"},
     "SECRETS_EXTENSIONS": {".pem", ".key"},
     "MAX_FILE_SIZE_MB": 10,
@@ -115,11 +109,11 @@ def test_aperture_auto_gen_shield(filter_engine, tmp_path):
 
     result1 = filter_engine.is_in_scope(doc_file_1, content=doc_file_1.read_text())
     assert result1["is_in_scope"] is False
-    assert result1["band"] == "radio_noise"
+    assert result1["classification"] == "generated_noise"
 
     # Prove the directory was dynamically infected!
     rel_parent = str(doc_dir.relative_to(tmp_path))
-    assert rel_parent in filter_engine.dynamic_black_holes
+    assert rel_parent in filter_engine.dynamic_ignore_dirs
 
     # 2. Evaluate a second, clean file in the same infected directory
     doc_file_2 = doc_dir / "clean.html"
@@ -128,7 +122,7 @@ def test_aperture_auto_gen_shield(filter_engine, tmp_path):
     # It should fail at the path gate before ever reading the content
     is_valid, _, reason = filter_engine.evaluate_path_integrity(doc_file_2)
     assert is_valid is False
-    assert "Dynamic Black Hole" in reason
+    assert "Dynamic Ignored Dir" in reason
 
 
 # ==============================================================================
@@ -154,7 +148,7 @@ def test_aperture_embedded_hex_shield(filter_engine, tmp_path):
 
     result = filter_engine.is_in_scope(c_file, content=hex_content, has_intent=True)
     assert result["is_in_scope"] is False
-    assert result["band"] == "binary_debris"
+    assert result["classification"] == "binary_payload"
     assert "Embedded Data Payload" in result["reason"]
 
 
@@ -173,7 +167,7 @@ def test_aperture_infrared_saturation_gate(filter_engine, tmp_path):
 
     result_js = filter_engine.is_in_scope(js_file, content=massive_line)
     assert result_js["is_in_scope"] is False
-    assert result_js["band"] == "saturated"
+    assert result_js["classification"] == "oversized_minified"
 
     # 2. Prose Exemption (Should pass)
     md_file = tmp_path / "README.md"
@@ -212,7 +206,7 @@ def test_aperture_system_guardrails(filter_engine, tmp_path):
         result = filter_engine.is_in_scope(big_file, content="x")
 
         assert result["is_in_scope"] is False
-        assert result["band"] == "saturated"
+        assert result["classification"] == "oversized_minified"
         assert "File size exceeds 10MB limit" in result["reason"]
 
 
@@ -239,7 +233,7 @@ def test_aperture_binary_and_monolith_shields(filter_engine, tmp_path):
 
     result = filter_engine.is_in_scope(mono_file, content=mono_content)
     assert result["is_in_scope"] is False
-    assert result["band"] == "saturated"
+    assert result["classification"] == "oversized_minified"
     assert "Monolithic Amalgamation" in result["reason"]
 
 
@@ -331,12 +325,12 @@ def test_aperture_gitignore_and_contraband(tmp_path):
     engine = ApertureFilter(tmp_path, MOCK_REGISTRY, MOCK_CONFIG)
 
     # Verify .gitignore blocks
-    assert engine._check_solar_shield("ignored_folder/file.py") is False
-    assert engine._check_solar_shield("src/app.log") is False
+    assert engine._check_ignore_rules("ignored_folder/file.py") is False
+    assert engine._check_ignore_rules("src/app.log") is False
 
     # Verify Contraband Patterns (from MOCK_CONFIG)
-    assert engine._check_solar_shield("src/react-min.js") is False
-    assert engine._check_solar_shield("src/vendor.bundle.js") is False
+    assert engine._check_ignore_rules("src/react-min.js") is False
+    assert engine._check_ignore_rules("src/vendor.bundle.js") is False
 
     # Verify standard files pass
-    assert engine._check_solar_shield("src/valid.py") is True
+    assert engine._check_ignore_rules("src/valid.py") is True

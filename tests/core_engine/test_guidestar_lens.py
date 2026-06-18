@@ -54,25 +54,25 @@ def test_guidestar_manifest_and_ai_detection(guidestar, tmp_path):
     pkg_path.write_text(json.dumps(pkg_data), encoding="utf-8")
 
     # Run the alignment phase
-    guidestar.align_telescope()
+    guidestar.scan_project_config()
 
     # 1. Test standard manifest extraction
-    found, prior = guidestar.get_intent_status("src/server.js")
+    found, lock = guidestar.get_intent_status("src/server.js")
     assert found is True
-    assert prior["lang_id"] == "javascript"
-    assert prior["intensity"] == 0.95
-    assert "Manifest Entry" in prior["source_proof"]
+    assert lock["lang_id"] == "javascript"
+    assert lock["intensity"] == 0.95
+    assert "Manifest Entry" in lock["source_proof"]
 
     # 2. Test script extraction
-    found, prior = guidestar.get_intent_status("dist/index.js")
+    found, lock = guidestar.get_intent_status("dist/index.js")
     assert found is True
-    assert prior["intensity"] == 0.85
+    assert lock["intensity"] == 0.85
 
     # 3. Test AI Ecosystem Detection
-    found, prior = guidestar.get_intent_status("__galaxy_brain__.ai")
+    found, lock = guidestar.get_intent_status("__galaxy_brain__.ai")
     assert found is True
-    assert prior["intensity"] == 1.0
-    assert "AI Ecosystem Lock" in prior["source_proof"]
+    assert lock["intensity"] == 1.0
+    assert "AI Ecosystem Lock" in lock["source_proof"]
 
 
 # ==============================================================================
@@ -87,15 +87,15 @@ def test_guidestar_gitattributes_authority(guidestar, tmp_path):
     # Force all .h files to be classified as C++ instead of C
     attr_path.write_text("*.h linguist-language=C++\n", encoding="utf-8")
 
-    guidestar.align_telescope()
+    guidestar.scan_project_config()
 
     # Test a file that matches the pattern
-    found, prior = guidestar.get_intent_status("include/math_ops.h")
+    found, lock = guidestar.get_intent_status("include/math_ops.h")
 
     assert found is True
-    assert prior["lang_id"] == "cpp"  # Ensure it translated C++ to cpp
-    assert prior["intensity"] == 0.99
-    assert "Authoritative Override" in prior["source_proof"]
+    assert lock["lang_id"] == "cpp"  # Ensure it translated C++ to cpp
+    assert lock["intensity"] == 0.99
+    assert "Authoritative Override" in lock["source_proof"]
 
 
 # ==============================================================================
@@ -111,13 +111,13 @@ def test_guidestar_gitignore_evasion_tactics(guidestar, tmp_path):
         "node_modules/\nbuild/\n!malicious_payload.so\n", encoding="utf-8"
     )
 
-    guidestar.align_telescope()
+    guidestar.scan_project_config()
 
-    found, prior = guidestar.get_intent_status("malicious_payload.so")
+    found, lock = guidestar.get_intent_status("malicious_payload.so")
 
     assert found is True
-    assert prior["intensity"] == 1.0
-    assert "Hostile Gitignore Force-Include" in prior["source_proof"]
+    assert lock["intensity"] == 1.0
+    assert "Hostile Gitignore Force-Include" in lock["source_proof"]
 
 
 # ==============================================================================
@@ -129,13 +129,13 @@ def test_guidestar_sector_bias(guidestar, tmp_path):
     baseline priority boost, even if they aren't explicitly in a manifest.
     """
     # /src/ is in the mocked INTENT_BIASED_SECTORS
-    found, prior = guidestar.get_intent_status("src/utils/helper.js")
+    found, lock = guidestar.get_intent_status("src/utils/helper.js")
 
     assert found is True
-    assert prior["lang_id"] == "unknown"  # It doesn't know the lang yet
-    assert prior["intensity"] == 0.75
-    assert prior["source_proof"] == "Sector Bias"
+    assert lock["lang_id"] == "unknown"  # It doesn't know the lang yet
+    assert lock["intensity"] == 0.75
+    assert lock["source_proof"] == "Sector Bias"
 
     # /temp/ is not in the biased sectors
-    found, prior = guidestar.get_intent_status("temp/cache.log")
+    found, lock = guidestar.get_intent_status("temp/cache.log")
     assert found is False
