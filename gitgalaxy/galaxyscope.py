@@ -2060,6 +2060,7 @@ class Orchestrator:
             for cand in self.unparsable_files
             if "AI MODEL WEIGHTS" in cand.get("reason", "")
         ]
+        
         self.unparsable_files = [
             cand
             for cand in self.unparsable_files
