@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Supply Chain Firewall
+# GitGalaxy Tool: Supply Chain Firewall
 # Purpose: Zero-Trust Dependency Verification and Behavioral Policy Enforcement.
 # Architecture: RAM-Exclusive Logic Gate (Consumes Phase 1 Topological Graph)
 # ==============================================================================
@@ -49,14 +49,14 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
             "threats_found": threats_found,
         }
 
-    for star in parsed_files:
-        rel_path_str = star.get("path", "unknown")
+    for file_node in parsed_files:
+        rel_path_str = file_node.get("path", "unknown")
         is_whitelisted = any(approved in rel_path_str for approved in ALLOWLIST_PATHS)
 
         # =====================================================================
         # 1. ZERO-TRUST IMPORT VERIFICATION
         # =====================================================================
-        for raw_pkg in star.get("raw_imports", []):
+        for raw_pkg in file_node.get("raw_imports", []):
             # The Relative Path Shield: Ignore native internal routing
             if raw_pkg.startswith("."):
                 continue
@@ -74,14 +74,14 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
             if true_pkg in BLACKLISTED_IMPORTS:
                 imports_blacklisted += 1
                 threats_found += 1
-                # The Whitelist Loophole Fix: A blacklisted import is ALWAYS a threat. Never suppress it.
+                # The Allowlist Loophole Fix: A blacklisted import is ALWAYS a threat. Never suppress it.
                 if true_pkg != pkg:
                     print(
-                        f"🚨 [BLACKLISTED IMPORT] Spoofed alias blocked: '{pkg}' -> '{true_pkg}' in: {rel_path_str}"
+                        f"[BLACKLISTED IMPORT] Spoofed alias blocked: '{pkg}' -> '{true_pkg}' in: {rel_path_str}"
                     )
                 else:
                     print(
-                        f"🚨 [BLACKLISTED IMPORT] Malicious package '{pkg}' blocked in: {rel_path_str}"
+                        f"[BLACKLISTED IMPORT] Unauthorized package '{pkg}' blocked in: {rel_path_str}"
                     )
             elif true_pkg in APPROVED_IMPORTS:
                 imports_whitelisted += 1
@@ -92,26 +92,26 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                     if not is_whitelisted:
                         if true_pkg != pkg:
                             print(
-                                f"🚨 [ZERO-TRUST BREACH] Spoofed alias '{pkg}' -> '{true_pkg}' blocked by Strict Mode in: {rel_path_str}"
+                                f"[POLICY VIOLATION] Spoofed alias '{pkg}' -> '{true_pkg}' blocked by Strict Mode in: {rel_path_str}"
                             )
                         else:
                             print(
-                                f"🚨 [ZERO-TRUST BREACH] Unknown package '{pkg}' blocked by Strict Mode in: {rel_path_str}"
+                                f"[POLICY VIOLATION] Unknown package '{pkg}' blocked by Strict Mode in: {rel_path_str}"
                             )
 
         # =====================================================================
         # 2. BEHAVIORAL POLICY ENFORCEMENT (Leveraging Phase 1 Measurements)
         # =====================================================================
         # Extract the raw threat equations calculated natively by Prism/Detector in Phase 1
-        equations = star.get("equations", {})
-        loc = star.get("coding_loc", 1)
+        equations = file_node.get("equations", {})
+        loc = file_node.get("coding_loc", 1)
 
         # Clone the dictionary to safely apply the sandbox multiplier without corrupting global RAM
         local_counts = dict(equations)
 
         # THE BUILD-TIME EXECUTION MULTIPLIER (STATIC SANDBOX)
-        # Apply a massive artificial density multiplier to manifest triggers so any
-        # I/O or Danger hits instantly detonate the firewall.
+        # Apply an artificial density multiplier to manifest triggers so any
+        # I/O or Danger hits instantly trigger a blocking action from the firewall.
         build_time_multiplier = 1.0
         filename = Path(rel_path_str).name
         if filename in [
@@ -131,7 +131,7 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                     local_counts[k] = int(local_counts[k] * build_time_multiplier)
 
         # Evaluate risk using Phase 1 network topography context (e.g., Blast Radius)
-        network_metrics = star.get("dependency_network", {})
+        network_metrics = file_node.get("dependency_network", {})
         exposures = security.evaluate_risk(local_counts, safe_loc, network_metrics)
 
         if (
@@ -144,7 +144,7 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                 threats_allowed += 1
             else:
                 print(
-                    f"\n🚨 [SUPPLY CHAIN COMPROMISE] Density Threshold Breached in: {rel_path_str}"
+                    f"\n[THREAT DETECTED] Density Threshold Breached in: {rel_path_str}"
                 )
                 for risk, density in exposures.items():
                     print(f"   -> {risk}: {density * 100:.1f}%")
@@ -183,13 +183,14 @@ def main():
         sys.exit(1)
 
     print(
-        f"🧱 Supply Chain Firewall ingesting orchestrator RAM graph from {target_path.name}..."
+        f"🧱 Initializing Supply Chain Firewall with RAM graph from {target_path.name}..."
     )
 
     try:
         with open(target_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            parsed_files = data.get("stars", [])
+            # Support both legacy "stars" key and the modernized "artifacts" or "galaxy" output
+            parsed_files = data.get("artifacts", data.get("stars", []))
     except Exception as e:
         print(f"❌ Failed to parse RAM graph JSON: {e}")
         sys.exit(1)
@@ -205,7 +206,7 @@ def main():
     )
 
     print("\n" + "=" * 75)
-    print(" 🧱 SUPPLY CHAIN FIREWALL: MISSION REPORT (RAM-EXCLUSIVE)")
+    print(" 🧱 SUPPLY CHAIN FIREWALL: SCAN SUMMARY")
     print("=" * 75)
     print(f" Mode                 : {mode_str}")
     print(f" Files Evaluated      : {len(parsed_files):,}")
@@ -220,11 +221,11 @@ def main():
 
     if results["threats_found"] > 0:
         print(
-            f" ❌ BUILD FAILED: {results['threats_found']} infected dependencies or policy violations blocked."
+            f" [BLOCKING ACTION] {results['threats_found']} high-risk dependencies or policy violations blocked."
         )
         sys.exit(1)
     else:
-        print(" ✅ BUILD PASSED: Dependency supply chain is clean.")
+        print(" [SUCCESS] Dependency supply chain is clean.")
     print("=" * 75 + "\n")
 
 
