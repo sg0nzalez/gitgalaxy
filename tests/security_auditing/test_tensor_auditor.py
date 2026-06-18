@@ -3,21 +3,21 @@ import json
 import struct
 
 # Adjust this import to match your project structure
-from gitgalaxy.metrics.neural_auditor import NeuralAuditor
+from gitgalaxy.metrics.tensor_scanner import TensorScanner
 
 
 @pytest.fixture
-def auditor():
-    """Initializes the Neural Auditor."""
-    return NeuralAuditor()
+def scanner():
+    """Initializes the Tensor Scanner."""
+    return TensorScanner()
 
 
 # ==============================================================================
 # TEST 1: SAFETENSORS BINARY PARSING (Exact Parameter Calculation)
 # ==============================================================================
-def test_neural_auditor_safetensors_success(auditor, tmp_path):
+def test_tensor_scanner_safetensors_success(scanner, tmp_path):
     """
-    Proves the auditor correctly unpacks the uint64 header, reads the JSON,
+    Proves the scanner correctly unpacks the uint64 header, reads the JSON,
     and multiplies the tensor shapes to calculate the exact parameter count.
     """
     # 1. Create a mock Safetensors JSON header
@@ -45,7 +45,7 @@ def test_neural_auditor_safetensors_success(auditor, tmp_path):
     st_file.write_bytes(binary_payload)
 
     # 3. Audit the model
-    result = auditor.audit_model(str(st_file))
+    result = scanner.audit_model(str(st_file))
 
     # 16,777,216 + 4,096 = 16,781,312 total parameters
     assert result["architecture"] == "LlamaForCausalLM"
@@ -58,9 +58,9 @@ def test_neural_auditor_safetensors_success(auditor, tmp_path):
 # ==============================================================================
 # TEST 2: GGUF BINARY PARSING & HEURISTICS
 # ==============================================================================
-def test_neural_auditor_gguf_success(auditor, tmp_path):
+def test_tensor_scanner_gguf_success(scanner, tmp_path):
     """
-    Proves the auditor validates the GGUF magic bytes and successfully extracts
+    Proves the scanner validates the GGUF magic bytes and successfully extracts
     quantization and architecture clues from the raw binary stream.
     """
     # 1. Create a mock GGUF file (Magic 'GGUF' followed by random binary noise and our ASCII clues)
@@ -73,29 +73,29 @@ def test_neural_auditor_gguf_success(auditor, tmp_path):
     gguf_file = tmp_path / "mock_mistral.gguf"
     gguf_file.write_bytes(binary_payload)
 
-    result = auditor.audit_model(str(gguf_file))
+    result = scanner.audit_model(str(gguf_file))
 
     assert result["architecture"] == "Mistral Architecture"
     assert result["quantization"] == "4-Bit (Q4_K)"
 
 
-def test_neural_auditor_gguf_bad_magic(auditor, tmp_path):
-    """Proves the auditor safely rejects corrupted files missing the magic bytes."""
+def test_tensor_scanner_gguf_bad_magic(scanner, tmp_path):
+    """Proves the scanner safely rejects corrupted files missing the magic bytes."""
     binary_payload = b"BADF\x02\x00\x00\x00"  # 'BADF' instead of 'GGUF'
 
     bad_file = tmp_path / "corrupt.gguf"
     bad_file.write_bytes(binary_payload)
 
-    result = auditor.audit_model(str(bad_file))
+    result = scanner.audit_model(str(bad_file))
 
     assert result["architecture"] == "Corrupted/Unknown"
     assert result["parameters"] == "Error"
 
 
 # ==============================================================================
-# TEST 3: ANTI-HALLUCINATION SHIELD (Safetensors OOM Protection)
+# TEST 3: DOS / MEMORY BOMB GUARD (Safetensors OOM Protection)
 # ==============================================================================
-def test_neural_auditor_safetensors_massive_header(auditor, tmp_path):
+def test_tensor_scanner_safetensors_massive_header(scanner, tmp_path):
     """
     Proves that a maliciously crafted safetensors file claiming to have an
     absurdly large JSON header (e.g., 101MB) is safely rejected before reading.
@@ -109,10 +109,10 @@ def test_neural_auditor_safetensors_massive_header(auditor, tmp_path):
     st_file = tmp_path / "malicious.safetensors"
     st_file.write_bytes(binary_payload)
 
-    result = auditor.audit_model(str(st_file))
+    result = scanner.audit_model(str(st_file))
 
     assert result["architecture"] == "Corrupted/Unknown", (
-        "Failed to block the massive header hallucination!"
+        "Failed to block the massive Memory Bomb trap!"
     )
     assert result["parameters"] == "Error"
 
@@ -120,9 +120,9 @@ def test_neural_auditor_safetensors_massive_header(auditor, tmp_path):
 # ==============================================================================
 # TEST 4: PARAMETER FORMATTING
 # ==============================================================================
-def test_neural_auditor_param_formatting(auditor):
+def test_tensor_scanner_param_formatting(scanner):
     """Proves the engine accurately translates raw parameters into human scales."""
-    assert auditor._format_params(0) == "Unknown"
-    assert auditor._format_params(500) == "500"
-    assert auditor._format_params(7_100_000) == "7.1M"
-    assert auditor._format_params(70_200_000_000) == "70.2B"
+    assert scanner._format_params(0) == "Unknown"
+    assert scanner._format_params(500) == "500"
+    assert scanner._format_params(7_100_000) == "7.1M"
+    assert scanner._format_params(70_200_000_000) == "70.2B"

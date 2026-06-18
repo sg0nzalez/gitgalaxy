@@ -1903,7 +1903,7 @@ class Orchestrator:
                             func["usage_status"] = 0
             # =================================================================
 
-            meta["temporal_telemetry"] = self.chronometer.get_temporal_signals(rel_path)
+            meta["temporal_telemetry"] = self.chronometer.get_file_history_metrics(rel_path)
             meta["authors"] = meta["temporal_telemetry"].get("authors", {})
             stem = Path(rel_path).stem.lower()
 
@@ -2067,9 +2067,9 @@ class Orchestrator:
         ]
 
         if models:
-            from gitgalaxy.metrics.neural_auditor import NeuralAuditor
+            from gitgalaxy.metrics.tensor_scanner import TensorScanner
 
-            neural_auditor = NeuralAuditor(parent_logger=logger)
+            tensor_scanner = TensorScanner(parent_logger=logger)
 
             for model in models:
                 rel_path = model["path"]
@@ -2077,11 +2077,11 @@ class Orchestrator:
                 full_path_str = str(self.root / rel_path)
 
                 logger.info(
-                    f"🧠 NEURAL SUPERNOVA: Auditing local model weights for {rel_path}..."
+                    f"🧠 TENSOR SCAN: Auditing local model weights for {rel_path}..."
                 )
 
                 # Perform the zero-RAM binary header audit
-                audit_results = neural_auditor.audit_model(full_path_str)
+                audit_results = tensor_scanner.audit_model(full_path_str)
 
                 # Model weights are incredibly dense. We give them a massive file_impact (Gravity).
                 # 1 GB = ~100.0 Gravity points, capped at 10,000 to prevent breaking the 3D renderer.
@@ -2098,7 +2098,7 @@ class Orchestrator:
                     "hit_vector": [0] * len(SignalProcessor.SIGNAL_SCHEMA),
                     "file_impact": max(gravity_mass, 500.0),  # Minimum massive gravity
                     "telemetry": {
-                        "ownership": "Neural Auditor",
+                        "ownership": "Tensor Scanner",
                         "domain_context": {
                             "alert": "LOCAL MODEL WEIGHTS DETECTED",
                             "architecture": audit_results["architecture"],
@@ -2106,7 +2106,7 @@ class Orchestrator:
                             "quantization": audit_results["quantization"],
                             "size_gb": f"{size_bytes / (1024**3):.2f} GB",
                         },
-                        "identity_source_proof": "Neural Auditor Header Extraction",
+                        "identity_source_proof": "Tensor Scanner Header Extraction",
                         "identity_lock_tier": 0,
                     },
                 }
