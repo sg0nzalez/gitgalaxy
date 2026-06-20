@@ -4,6 +4,8 @@
 .env.*
 *.pem
 *.key
+muninn.json
+muninn.sarif
 
 # PYTHON, FLASK & VIRTUAL ENVIRONMENTS
 __pycache__/
