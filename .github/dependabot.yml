@@ -1,19 +1,21 @@
 version: 2
 updates:
-  # 1. Keep GitHub Actions up to date
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     labels:
       - "security"
       - "github-actions"
 
-  # 2. Keep Python dependencies up to date
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     labels:
       - "security"
       - "python"

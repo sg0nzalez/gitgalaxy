@@ -968,7 +968,7 @@ def test_detector_active_hemorrhage_leak():
 
     code = (
         "void log_credentials() {\n"
-        "    char* password = 'super_secret'; // Trigger: sec_private_info\n"
+        "    char* password = 'super_secret'; // Trigger: sec_private_info\n"  # gitleaks:allow
         "    printf(password);                // Trigger: telemetry (sink)\n"
         "}\n"
     )
