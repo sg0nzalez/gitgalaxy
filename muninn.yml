@@ -24,6 +24,11 @@ scanners:
     enabled: true
 
 suppressions:
+  - id: tests/
+    reason: >
+      Unit tests and fixtures include intentional malicious samples for
+      security-scanner validation.
+    expires: ""
   - id: tests/fixtures/
     reason: >
       Intentional frankenstein test corpus with synthetic vulnerabilities
@@ -40,6 +45,13 @@ suppressions:
   - id: mkdocs.yml
     rule-id: generic-api-key
     reason: False positive on navigation label "API Exposure".
+    expires: ""
+  - id: .github/workflows/publish.yml
+    tool: zizmor
+    rule-id: cache-poisoning
+    reason: >
+      setup-python caching is disabled by default; zizmor still flags tag-triggered
+      PyPI publish workflows (also ignored in zizmor.yml).
     expires: ""
   - id: .github/workflows/muninn.yml
     rule-id: github_action_from_unverified_creator_used
