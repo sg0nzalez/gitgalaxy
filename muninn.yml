@@ -48,10 +48,16 @@ suppressions:
     expires: ""
   - id: .github/workflows/publish.yml
     tool: zizmor
-    rule-id: cache-poisoning
+    rule-id: zizmor/cache-poisoning
     reason: >
       setup-python caching is disabled by default; zizmor still flags tag-triggered
       PyPI publish workflows (also ignored in zizmor.yml).
+    expires: ""
+  - id: muninn.json
+    reason: Muninn scan output artifact; not part of the repository.
+    expires: ""
+  - id: muninn.sarif
+    reason: Muninn scan output artifact; not part of the repository.
     expires: ""
   - id: .github/workflows/muninn.yml
     rule-id: github_action_from_unverified_creator_used
@@ -61,7 +67,7 @@ suppressions:
     expires: ""
   - id: .github/workflows/gitgalaxy.yml
     tool: zizmor
-    rule-id: artipacked
+    rule-id: zizmor/artipacked
     reason: >
       architectural-report job must persist checkout credentials to push
       generated docs back to main.
