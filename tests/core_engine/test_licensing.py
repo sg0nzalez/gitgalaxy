@@ -36,7 +36,7 @@ def test_licensing_env_loader(mock_exists, monkeypatch):
     mock_env_content = (
         "# This is a comment\n"
         "\n"
-        "GITGALAXY_LICENSE_KEY=COMMUNITY_FREE_TIER\n"
+        "GITGALAXY_LICENSE_KEY=COMMUNITY_FREE_TIER\n"  # gitleaks:allow
         "EXISTING_VAR=overwrite_me\n"
         'QUOTED_VAR="clean_value"\n'
     )
