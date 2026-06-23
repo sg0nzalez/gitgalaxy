@@ -103,7 +103,7 @@ def test_validate_key_cryptographic_authenticity(mock_pow):
 
     # 1. VALID KEY (Future Date)
     mock_pow.return_value = expected_hash_int
-    valid_key = "GG-ENTERPRISE-ACME-20991231-1A2B"
+    valid_key = "GG-ENTERPRISE-ACME-20991231-1A2B"  # gitleaks:allow
     assert _validate_offline_key(valid_key) == "VALID"
 
     # 2. EXPIRED KEY (Authentic math, but date is in the past)
@@ -113,7 +113,7 @@ def test_validate_key_cryptographic_authenticity(mock_pow):
     )
     mock_pow.return_value = expected_hash_int_exp
 
-    expired_key = "GG-ENTERPRISE-ACME-20000101-1A2B"
+    expired_key = "GG-ENTERPRISE-ACME-20000101-1A2B"  # gitleaks:allow
     assert _validate_offline_key(expired_key) == "EXPIRED"
 
     # 3. FORGED KEY (Math mismatch)
@@ -127,7 +127,7 @@ def test_validate_key_cryptographic_authenticity(mock_pow):
     )
     mock_pow.return_value = expected_hash_bad
 
-    corrupted_date_key = "GG-ENTERPRISE-ACME-BAD_DATE-1A2B"
+    corrupted_date_key = "GG-ENTERPRISE-ACME-BAD_DATE-1A2B"  # gitleaks:allow
     assert _validate_offline_key(corrupted_date_key) == "INVALID"
 
 
