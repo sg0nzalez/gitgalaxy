@@ -255,7 +255,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Uses '#' for line-level literature; multi-line literature
         # (docstrings) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # =====================================================================
             # [ CRITICAL ROADMAP: JSONC/JSON5 LEXICAL DELIMITERS & THE RE.COMPILE TRAP ]
@@ -276,9 +276,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Includes match/case (3.10+) and logical short-circuits. EXCLUDES exceptions.
-            "branch": re.compile(
-                r"\b(if|elif|else|for|while|with|try|finally|match|case|and|or)\b"
-            ),
+            "branch": re.compile(r"\b(if|elif|else|for|while|with|try|finally|match|case|and|or)\b"),
             # 2. args (Parameters / Coupling)
             # Signatures for def/lambda. Bounded generics [^\]]* and params [^)]*.
             "args": re.compile(
@@ -333,17 +331,13 @@ LANGUAGE_DEFINITIONS = {
                 r"\bglobal\b|\bnonlocal\b|\b(?:self|cls)\.\w+[ \t]*=|:=|(?:\.\w+)?\.(?:append|extend|update|pop|remove|insert|clear)\s*\("
             ),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"#[ \t]*(?:def|class|import|if|for|while|try|return)\b"
-            ),
+            "graveyard": re.compile(r"#[ \t]*(?:def|class|import|if|for|while|try|return)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r'"""|\'\'\'|:param|:return|:raises|:type|\b(?:Args|Returns|Yields|Raises|Attributes):\b'
             ),
             # 14. test (Testing & Assertions)
-            "test": re.compile(
-                r"\b(unittest|pytest|TestCase|fixture|patch)\b|def[ \t]+test_|\bassert\b|\bMock\b"
-            ),
+            "test": re.compile(r"\b(unittest|pytest|TestCase|fixture|patch)\b|def[ \t]+test_|\bassert\b|\bMock\b"),
             # --- PHASE 3: SPECIALIZED SENSORS (Architecture & Hidden Complexity) ---
             # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
@@ -356,9 +350,7 @@ LANGUAGE_DEFINITIONS = {
             # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"\blambda\b"),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"\b(os\.environ|sys\.argv|sys\.path|globals\(\)|locals\(\))\b"
-            ),
+            "globals": re.compile(r"\b(os\.environ|sys\.argv|sys\.path|globals\(\)|locals\(\))\b"),
             # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"^[ \t]*@[\w.]+", re.M),
             # 20. generics (Generics / Type Parameters)
@@ -366,9 +358,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(List|Dict|Set|Tuple|Optional|Union|TypeVar|Generic|Any|Callable|Mapping)\b\[[^\]]*\]|\b(list|dict|set|tuple|type)\[[^\]]*\]|->"
             ),
             # 21. comprehensions (Iterators / Comprehensions)
-            "comprehensions": re.compile(
-                r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
-            ),
+            "comprehensions": re.compile(r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("),
             # Expanded to include LLM orchestration tools for the Agentic Shield
             "scientific": re.compile(
                 r"\b(?:import|require|from)\b.*?(?:tensorflow|torch|keras|numpy|pandas|scipy|sklearn|matplotlib|opencv|cv2|langchain|openai|anthropic|llama_index|chromadb|pinecone)\b"
@@ -395,22 +385,16 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:__import__|importlib\.import_module)\s*\(\s*['\"]([a-zA-Z0-9_.]+)['\"]",  # Group 3: __import__('X')
                 re.M,
             ),
-            "_named_token_capture": re.compile(
-                r"^[ \t]*from\s+[\w.]+\s+import\s+([^({\n]+)", re.M
-            ),
+            "_named_token_capture": re.compile(r"^[ \t]*from\s+[\w.]+\s+import\s+([^({\n]+)", re.M),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I
-            ),
+            "ownership": re.compile(r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -441,9 +425,7 @@ LANGUAGE_DEFINITIONS = {
             # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(print|input)\s*\("),
             # 40. cast_hits (Explicit Type Casting)
-            "cast_hits": re.compile(
-                r"\b(int|str|float|list|dict|set|tuple|bool|bytes|cast)\b\s*\("
-            ),
+            "cast_hits": re.compile(r"\b(int|str|float|list|dict|set|tuple|bool|bytes|cast)\b\s*\("),
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(raise|quit|exit|sys\.exit|abort)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
@@ -451,9 +433,7 @@ LANGUAGE_DEFINITIONS = {
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|~"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(Lock|RLock|Semaphore|BoundedSemaphore|Event|Condition|Barrier)\b"
-            ),
+            "sync_locks": re.compile(r"\b(Lock|RLock|Semaphore|BoundedSemaphore|Event|Condition|Barrier)\b"),
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(Final|frozenset|mappingproxy|immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -462,17 +442,11 @@ LANGUAGE_DEFINITIONS = {
             # Captures protected/private members via underscore convention.
             "encapsulation": re.compile(r"\b_[a-zA-Z_]\w*\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\b(on_event|add_listener|subscribe|callback|handler)\b"
-            ),
+            "listeners": re.compile(r"\b(on_event|add_listener|subscribe|callback|handler)\b"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"
-            ),
+            "test_skip": re.compile(r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"),
             # --- NEW: ADVANCED ALGORITHMIC SENSORS ---
-            "lazy_evaluation": re.compile(
-                r"\b(yield|yield\s+from|Generator|AsyncGenerator|Iterator|AsyncIterator)\b"
-            ),
+            "lazy_evaluation": re.compile(r"\b(yield|yield\s+from|Generator|AsyncGenerator|Iterator|AsyncIterator)\b"),
             "vectorized_math": re.compile(
                 r"\b(einsum|matmul|tensordot|vdot|bmm)\b|\.dot\s*\(|(?<=[a-zA-Z0-9_\]\)])\s*@\s*(?=[a-zA-Z0-9_\[\(])"
             ),
@@ -480,19 +454,11 @@ LANGUAGE_DEFINITIONS = {
             "serialization_parsing": re.compile(
                 r"\b(pickle\.loads?|pickle\.Unpickler|marshal\.loads?|ast\.literal_eval)\b"
             ),
-            "regex_execution": re.compile(
-                r"\b(re\.compile|re\.search|re\.match|re\.sub|re\.findall|re\.split)\b"
-            ),
-            "time_date_logic": re.compile(
-                r"\b(datetime\.datetime|timedelta|time\.sleep|time\.time|calendar)\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(multiprocessing|subprocess|xmlrpc|socketserver)\b"
-            ),
+            "regex_execution": re.compile(r"\b(re\.compile|re\.search|re\.match|re\.sub|re\.findall|re\.split)\b"),
+            "time_date_logic": re.compile(r"\b(datetime\.datetime|timedelta|time\.sleep|time\.time|calendar)\b"),
+            "ipc_rpc_bridges": re.compile(r"\b(multiprocessing|subprocess|xmlrpc|socketserver)\b"),
             # --- PHASE 4: APPSEC & AI SENSORS (Zero-Trust Pipelines) ---
-            "memory_scraping": re.compile(
-                r"['\"]/proc/['\"]\s*\+\s*(?:str\([^)]*\)|f?['\"]\{[^}]*\})|/proc/\w+/mem"
-            ),
+            "memory_scraping": re.compile(r"['\"]/proc/['\"]\s*\+\s*(?:str\([^)]*\)|f?['\"]\{[^}]*\})|/proc/\w+/mem"),
             "exfiltration_camouflage": re.compile(
                 r"\b(requests\.post|urllib\.request|httpx\.post)\s*\([^)]*(?:checkmarx|telemetry|metrics|audit|log)\b",
                 re.I,
@@ -542,7 +508,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes JSDoc // style)
@@ -582,9 +548,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 3. linear (Sequential Boundaries)
             # Structural declaration boundaries. EXCLUDES: Access modifiers (encapsulation) and const (freeze_hits).
-            "linear": re.compile(
-                r"\b(let|var|import|export|return|class|extends|super|await|delete)\b|=>"
-            ),
+            "linear": re.compile(r"\b(let|var|import|export|return|class|extends|super|await|delete)\b|=>"),
             # 4. func_start (Executable Logic Anchors)
             # Uses positive lookaheads (?=) to stop the match exactly at the identifier name.
             # Captures standard functions, namespace assignments (foo.bar = function),
@@ -619,9 +583,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Loose equality and bypasses.
-            "safety_neg": re.compile(
-                r"==(?!=)|!=(?!=)|\b(with|void)\b|eslint-disable|@ts-nocheck"
-            ),
+            "safety_neg": re.compile(r"==(?!=)|!=(?!=)|\b(with|void)\b|eslint-disable|@ts-nocheck"),
             # 8. danger (High-Risk Execution / System Calls)
             # Catastrophic vulnerabilities. EXCLUDES console.log (print_hits) and TODO (debt).
             "danger": re.compile(
@@ -633,22 +595,16 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 10. api (Public Surface Area)
             # Exposure surface. Explicit exports + implicit architectural defaults.
-            "api": re.compile(
-                r"\b(export|module\.exports|exports\.)\b|@(Controller|Resolver|Get|Post|Put|Delete)\b"
-            ),
+            "api": re.compile(r"\b(export|module\.exports|exports\.)\b|@(Controller|Resolver|Get|Post|Put|Delete)\b"),
             # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const (freeze_hits).
             "flux": re.compile(
                 r"\b(let|var|this\.|setState|mut|push|pop|shift|unshift|splice|sort|reverse|\.current[ \t]*=|\.set\(|\.delete\(|\.add\()\b"
             ),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"//[ \t]*(?:if|for|while|function|class|return|var|const|let|import)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:if|for|while|function|class|return|var|const|let|import)\b"),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"/\*\*|@param|@return|@throws|@deprecated|@typedef|@type|@template"
-            ),
+            "doc": re.compile(r"/\*\*|@param|@return|@throws|@deprecated|@typedef|@type|@template"),
             # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(describe|expect|assert|beforeEach|afterEach|jest|mocha|vitest|cy\.)\b|\b(?:it|test)\s*\("
@@ -663,22 +619,16 @@ LANGUAGE_DEFINITIONS = {
                 r'<[A-Z]\w+|className=|use(?:State|Effect|Context|Reducer|Ref|Memo|Callback|Transition)|props\.|this\.state|document\.(?:getElementById|querySelector|addEventListener)|["\']use\s+(?:client|server)["\']'
             ),
             # 17. closures (Closures / Anonymous Functions)
-            "closures": re.compile(
-                r"=>[ \t]*\{|\(\)[ \t]*=>|function\s*\([^)]*\)[ \t]*\{"
-            ),
+            "closures": re.compile(r"=>[ \t]*\{|\(\)[ \t]*=>|function\s*\([^)]*\)[ \t]*\{"),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"\b(window\.|global\.|process\.env|document\.|navigator\.|self\.|globalThis\.)\b"
-            ),
+            "globals": re.compile(r"\b(window\.|global\.|process\.env|document\.|navigator\.|self\.|globalThis\.)\b"),
             # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"@\w+"),
             # 20. generics (Generics / Type Parameters)
             # Simulated/JSDoc generics in JS.
             "generics": re.compile(r"@template\s+\w+|/\*\*\s*@type\s*(?:\{|<\w+)"),
             # 21. comprehensions (Iterators / Comprehensions)
-            "comprehensions": re.compile(
-                r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
-            ),
+            "comprehensions": re.compile(r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("),
             # Expanded to include LLM orchestration tools for the Agentic Shield
             "scientific": re.compile(
                 r"\b(?:import|require|from)\b.*?(?:tensorflow|torch|keras|numpy|pandas|scipy|sklearn|matplotlib|opencv|cv2|langchain|openai|anthropic|llama_index|chromadb|pinecone)\b"
@@ -721,9 +671,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:import|export)\b[^;]*?\bfrom\s*['\"]([^'\"]+)['\"]|\b(?:require|import)\s*\(\s*['\"]([^'\"]+)['\"]",
                 re.M,
             ),
-            "_named_token_capture": re.compile(
-                r"(?:import|export)\s+\{([^}]+)\}", re.M
-            ),
+            "_named_token_capture": re.compile(r"(?:import|export)\s+\{([^}]+)\}", re.M),
             # 25. ownership (Authorship Metadata)
             "ownership": re.compile(r"(?:@author|Created by)\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
@@ -732,9 +680,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -742,18 +688,14 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(getServerSideProps|getStaticProps|getInitialProps|renderToString|hydrateRoot)\b"
             ),
             # 32. events (Event Emitters / Pub-Sub)
-            "events": re.compile(
-                r"\b(emit|on|once|off|dispatchEvent|EventEmitter|EventTarget)\b"
-            ),
+            "events": re.compile(r"\b(emit|on|once|off|dispatchEvent|EventEmitter|EventTarget)\b"),
             # 33. dependency_injection (Dependency Injection / IoC)
-            "dependency_injection": re.compile(
-                r"\b(Inject|Injectable|Container|resolve|register|inversify)\b"
-            ),
+            "dependency_injection": re.compile(r"\b(Inject|Injectable|Container|resolve|register|inversify)\b"),
             # 34. macros
             "macros": None,
             # 35. pointers
             "pointers": None,
-            # 36. memory_alloc 
+            # 36. memory_alloc
             "memory_alloc": re.compile(r"\bnew\s+[A-Z]\w*"),
             # 37. inline_asm
             "inline_asm": None,
@@ -763,19 +705,13 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(logger|winston|pino|morgan|datadog|prometheus|newrelic|sentry)\.(?:info|error|warn|debug|trace|log)\b"
             ),
             # 39. print_hits (Standard Output / Debug Prints)
-            "print_hits": re.compile(
-                r"\bconsole\.(?:log|warn|error|dir|trace|info|table|time)\b"
-            ),
+            "print_hits": re.compile(r"\bconsole\.(?:log|warn|error|dir|trace|info|table|time)\b"),
             # 40. cast_hits (Explicit Type Casting)
-            "cast_hits": re.compile(
-                r"\b(Number|String|Boolean|BigInt|Symbol|Array\.from)\b\s*\("
-            ),
+            "cast_hits": re.compile(r"\b(Number|String|Boolean|BigInt|Symbol|Array\.from)\b\s*\("),
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|abort|process\.exit)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
-            "halt_hits": re.compile(
-                r"\b(sleep|delay|setTimeout|setInterval|Atomics\.wait)\b"
-            ),
+            "halt_hits": re.compile(r"\b(sleep|delay|setTimeout|setInterval|Atomics\.wait)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>>?|\^|~"),
             # 44. sync_locks (Thread Synchronization / Locks)
@@ -784,32 +720,22 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 45. freeze_hits (Immutability Constraints)
-            "freeze_hits": re.compile(
-                r"\b(const|readonly|final|Object\.freeze|Object\.seal)\b"
-            ),
+            "freeze_hits": re.compile(r"\b(const|readonly|final|Object\.freeze|Object\.seal)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(dispose|close|destroy|clearTimeout|clearInterval|removeEventListener|delete)\b"
-            ),
+            "cleanup": re.compile(r"\b(dispose|close|destroy|clearTimeout|clearInterval|removeEventListener|delete)\b"),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             # JS private fields and keywords.
             "encapsulation": re.compile(r"\b(private|protected|internal|#)\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\b(on|addEventListener|subscribe|watch|effect)\b"
-            ),
+            "listeners": re.compile(r"\b(on|addEventListener|subscribe|watch|effect)\b"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"
-            ),
+            "test_skip": re.compile(r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"),
             # --- NEW: ADVANCED ALGORITHMIC SENSORS ---
             "lazy_evaluation": re.compile(r"\b(yield|yield\s*\*|function\s*\*)\b"),
             "vectorized_math": re.compile(r"\b(matmul|dot|cross|multiply)\s*\("),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (JS/TS Specifics) ---
             "serialization_parsing": re.compile(r"\b(JSON\.parse|JSON\.stringify)\b"),
-            "regex_execution": re.compile(
-                r"\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\("
-            ),
+            "regex_execution": re.compile(r"\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\("),
             "time_date_logic": re.compile(
                 r"\b(Date\.now|new\s+Date|setTimeout|setInterval|clearTimeout|clearInterval|performance\.now)\b"
             ),
@@ -860,7 +786,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes TSDoc /// references)
@@ -952,13 +878,9 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(let|var|this\.|setState|push|pop|shift|unshift|splice|sort|reverse|\.current[ \t]*=|\.set\(|\.delete\(|\.add\()\b"
             ),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"//[ \t]*(?:if|for|while|function|class|return|export|import)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:if|for|while|function|class|return|export|import)\b"),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"/\*\*|@param|@return|@throws|@deprecated|@typedef|@type|@template|@callback"
-            ),
+            "doc": re.compile(r"/\*\*|@param|@return|@throws|@deprecated|@typedef|@type|@template|@callback"),
             # 14. test (Testing & Assertions)
             # CRITICAL FIX: Negative lookbehind (?<!\.) prevents matching 'regex.test()' as an assertion.
             "test": re.compile(
@@ -974,13 +896,9 @@ LANGUAGE_DEFINITIONS = {
                 r'<[A-Z]\w+|className=|use(?:State|Effect|Context|Reducer|Ref|Memo|Callback|Transition|Id)|props\.|this\.state|@Component|@Injectable|document\.(?:getElementById|querySelector)|["\']use\s+(?:client|server)["\']'
             ),
             # 17. closures (Closures / Anonymous Functions)
-            "closures": re.compile(
-                r"=>[ \t]*\{|\(\)[ \t]*=>|function\s*\([^)]*\)[ \t]*\{"
-            ),
+            "closures": re.compile(r"=>[ \t]*\{|\(\)[ \t]*=>|function\s*\([^)]*\)[ \t]*\{"),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"\b(window\.|global\.|process\.env|document\.|navigator\.|self\.|globalThis\.)\b"
-            ),
+            "globals": re.compile(r"\b(window\.|global\.|process\.env|document\.|navigator\.|self\.|globalThis\.)\b"),
             # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"@\w+(?:\([^)]*\))?"),
             # 20. generics (Generics / Type Parameters)
@@ -988,13 +906,9 @@ LANGUAGE_DEFINITIONS = {
                 r"<\s*[A-Z][^>]*>|\b(?:keyof|infer|extends|Omit|Pick|Partial|Record|Required|Awaited|ReturnType|Parameters|NonNullable)\b"
             ),
             # 21. comprehensions (Iterators / Comprehensions)
-            "comprehensions": re.compile(
-                r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("
-            ),
+            "comprehensions": re.compile(r"\.(?:map|filter|reduce|flatMap|some|every|find|forEach|groupBy)\s*\("),
             # 22. scientific (Numerical / Compute Libraries)
-            "scientific": re.compile(
-                r"\b(Math\.|tf\.|THREE\.|d3\.|gl-matrix|random)\b"
-            ),
+            "scientific": re.compile(r"\b(Math\.|tf\.|THREE\.|d3\.|gl-matrix|random)\b"),
             # 23. heat_triggers (Metaprogramming & Reflection)
             "heat_triggers": re.compile(
                 r"\b(arguments\.|prototype|__proto__|Object\.assign|Reflect|Proxy|Object\.defineProperty|\.bind\(|\.call\(|\.apply\()\b"
@@ -1040,9 +954,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -1050,9 +962,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(getServerSideProps|getStaticProps|generateStaticParams|LoaderFunction|ActionFunction)\b"
             ),
             # 32. events (Event Emitters / Pub-Sub)
-            "events": re.compile(
-                r"\b(emit|on|once|off|dispatchEvent|EventEmitter|EventTarget)\b"
-            ),
+            "events": re.compile(r"\b(emit|on|once|off|dispatchEvent|EventEmitter|EventTarget)\b"),
             # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(Inject|Injectable|Container|resolve|register|tsyringe|inversify)\b"
@@ -1061,7 +971,7 @@ LANGUAGE_DEFINITIONS = {
             "macros": None,  # TypeScript uses transformer plugins/pre-processors, not standard inline macros.
             # 35. pointers
             "pointers": None,  # Managed memory environment.
-            # 36. memory_alloc 
+            # 36. memory_alloc
             "memory_alloc": re.compile(r"\bnew\s+[A-Z]\w*"),
             # 37. inline_asm
             "inline_asm": None,
@@ -1071,17 +981,13 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(logger|winston|pino|morgan|datadog|prometheus|newrelic|sentry)\.(?:info|error|warn|debug|trace|log)\b"
             ),
             # 39. print_hits (The Amateur)
-            "print_hits": re.compile(
-                r"\bconsole\.(?:log|warn|error|dir|trace|info|table|time)\b"
-            ),
+            "print_hits": re.compile(r"\bconsole\.(?:log|warn|error|dir|trace|info|table|time)\b"),
             # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(r"\bas\s+[A-Z]\w*|<\s*[A-Z]\w*\s*>\s*[a-zA-Z_]"),
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|fatalError|abort|process\.exit)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
-            "halt_hits": re.compile(
-                r"\b(sleep|delay|setTimeout|setInterval|Atomics\.wait)\b"
-            ),
+            "halt_hits": re.compile(r"\b(sleep|delay|setTimeout|setInterval|Atomics\.wait)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|~"),
             # 44. sync_locks (Thread Synchronization / Locks)
@@ -1090,23 +996,15 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 45. freeze_hits (Immutability Constraints)
-            "freeze_hits": re.compile(
-                r"\b(const|readonly|final|Object\.freeze|Object\.seal)\b"
-            ),
+            "freeze_hits": re.compile(r"\b(const|readonly|final|Object\.freeze|Object\.seal)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(dispose|close|destroy|clearTimeout|clearInterval|removeEventListener|delete)\b"
-            ),
+            "cleanup": re.compile(r"\b(dispose|close|destroy|clearTimeout|clearInterval|removeEventListener|delete)\b"),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal|#)\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\b(on|addEventListener|subscribe|watch|effect)\b"
-            ),
+            "listeners": re.compile(r"\b(on|addEventListener|subscribe|watch|effect)\b"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"
-            ),
+            "test_skip": re.compile(r"\b(test\.skip|it\.skip|describe\.skip|xit|xdescribe|mock|stub)\b"),
             # --- NEW: ADVANCED ALGORITHMIC SENSORS ---
             "lazy_evaluation": re.compile(
                 r"\b(yield|yield\s*\*|function\s*\*|Generator|AsyncGenerator|Iterable|AsyncIterable)\b"
@@ -1114,9 +1012,7 @@ LANGUAGE_DEFINITIONS = {
             "vectorized_math": re.compile(r"\b(matmul|dot|cross|multiply)\s*\("),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (JS/TS Specifics) ---
             "serialization_parsing": re.compile(r"\b(JSON\.parse|JSON\.stringify)\b"),
-            "regex_execution": re.compile(
-                r"\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\("
-            ),
+            "regex_execution": re.compile(r"\bnew\s+RegExp\b|\.(match|replace|search|split)\s*\("),
             "time_date_logic": re.compile(
                 r"\b(Date\.now|new\s+Date|setTimeout|setInterval|clearTimeout|clearInterval|performance\.now)\b"
             ),
@@ -1162,7 +1058,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes Javadoc /**)
@@ -1258,9 +1154,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(volatile|Atomic\w+)\b|^[ \t]*(?:this\.)?\w+[ \t]*=|@(?:Setter|Data)\b|(?:\w+\.)?(?:set[A-Z]\w+|add|put|remove|clear|addAll|replace|computeIfAbsent)\s*\("
             ),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"//[ \t]*(?:public|private|protected|class|void|if|for|while|return|import)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:public|private|protected|class|void|if|for|while|return|import)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"/\*\*|@param|@return|@throws|@deprecated|@see|@since|@apiNote|@implSpec|@Operation|@Schema"
@@ -1303,9 +1197,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (Dependency Inclusions)
             "import": re.compile(r"^[ \t]*import\s+(?:static[ \t]+)?[\w.]+;", re.M),
-            "_dependency_capture": re.compile(
-                r"^[ \t]*import[ \t\n]+(?:static[ \t\n]+)?([\w.*]+)[ \t\n]*;", re.M
-            ),
+            "_dependency_capture": re.compile(r"^[ \t]*import[ \t\n]+(?:static[ \t\n]+)?([\w.*]+)[ \t\n]*;", re.M),
             # 25. ownership (Authorship Metadata)
             "ownership": re.compile(r"@author\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
@@ -1314,9 +1206,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -1335,10 +1225,8 @@ LANGUAGE_DEFINITIONS = {
             "macros": None,  # Java lacks preprocessor macros.
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Project Panama (Java 22+) bridging to native memory.
-            "pointers": re.compile(
-                r"\b(MemorySegment|MemoryLayout|ValueLayout|AddressLayout|SymbolLookup)\b"
-            ),
-            # 36. memory_alloc 
+            "pointers": re.compile(r"\b(MemorySegment|MemoryLayout|ValueLayout|AddressLayout|SymbolLookup)\b"),
+            # 36. memory_alloc
             "memory_alloc": re.compile(
                 r"\b(Arena\.ofConfined|Arena\.ofShared|Arena\.ofAuto|Arena\.global|SegmentAllocator|allocateFrom|ByteBuffer\.allocateDirect)\b"
             ),
@@ -1360,9 +1248,7 @@ LANGUAGE_DEFINITIONS = {
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|abort|System\.exit|halt)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
-            "halt_hits": re.compile(
-                r"\b(Thread\.sleep|TimeUnit\.[A-Z_]+\.sleep|delay|CountDownLatch\.await)\b"
-            ),
+            "halt_hits": re.compile(r"\b(Thread\.sleep|TimeUnit\.[A-Z_]+\.sleep|delay|CountDownLatch\.await)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>>?|\^|~"),
             # 44. sync_locks (Thread Synchronization / Locks)
@@ -1371,36 +1257,24 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 45. freeze_hits (Immutability Constraints)
-            "freeze_hits": re.compile(
-                r"\b(final|immutable|unmodifiable[A-Z]\w*|Object\.freeze)\b"
-            ),
+            "freeze_hits": re.compile(r"\b(final|immutable|unmodifiable[A-Z]\w*|Object\.freeze)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(close|dispose|shutdown|free|release|cleaner\.register)\b\s*\("
-            ),
+            "cleanup": re.compile(r"\b(close|dispose|shutdown|free|release|cleaner\.register)\b\s*\("),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal)\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\b(on[A-Z]\w*|addEventListener|subscribe|@KafkaListener|@RabbitListener)\b"
-            ),
+            "listeners": re.compile(r"\b(on[A-Z]\w*|addEventListener|subscribe|@KafkaListener|@RabbitListener)\b"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"@(?:Ignore|Disabled)|test\.skip\(|mock\(|spy\(|verifyZeroInteractions"
-            ),
+            "test_skip": re.compile(r"@(?:Ignore|Disabled)|test\.skip\(|mock\(|spy\(|verifyZeroInteractions"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Java Specifics) ---
             "serialization_parsing": re.compile(
                 r"\b(ObjectMapper|readValue|readTree|fromJson|ObjectInputStream|DocumentBuilder|SAXParser)\b"
             ),
-            "regex_execution": re.compile(
-                r"\b(Pattern\.compile|Matcher\.find|\.matches\()\b"
-            ),
+            "regex_execution": re.compile(r"\b(Pattern\.compile|Matcher\.find|\.matches\()\b"),
             "time_date_logic": re.compile(
                 r"\b(LocalDate(?:Time)?|ZonedDateTime|Instant|Duration|System\.currentTimeMillis|Calendar\.getInstance)\b"
             ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(ProcessBuilder|KafkaTemplate|RabbitTemplate|JmsTemplate|java\.rmi)\b"
-            ),
+            "ipc_rpc_bridges": re.compile(r"\b(ProcessBuilder|KafkaTemplate|RabbitTemplate|JmsTemplate|java\.rmi)\b"),
         },
     },
     "csharp": {
@@ -1442,7 +1316,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes XML Doc ///)
@@ -1572,14 +1446,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Null-forgiving operator, dynamic, and unsafe bypasses.
-            "safety_neg": re.compile(
-                r"!\.|\bnull!|#pragma\s+warning\s+disable|\.Result\b|\.Wait\(\)|\b(dynamic)\b"
-            ),
+            "safety_neg": re.compile(r"!\.|\bnull!|#pragma\s+warning\s+disable|\.Result\b|\.Wait\(\)|\b(dynamic)\b"),
             # 8. danger (High-Risk Execution / System Calls)
             # Extreme tech debt/vulnerabilities. EXCLUDES TODO (debt) and Console (print).
-            "danger": re.compile(
-                r"\b(Thread\.Abort|Process\.Start|Environment\.FailFast|Environment\.Exit|goto)\b"
-            ),
+            "danger": re.compile(r"\b(Thread\.Abort|Process\.Start|Environment\.FailFast|Environment\.Exit|goto)\b"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|Directory|Stream|HttpClient|Path|SqlConnection|SqlCommand|DbContext|DbSet|HttpRequest|HttpResponse)\b\.|\[Table\("
@@ -1599,9 +1469,7 @@ LANGUAGE_DEFINITIONS = {
                 r"//[ \t]*(?:public|private|protected|internal|class|void|if|for|foreach|while|return|using)\b"
             ),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"///|///\s*<summary>|///\s*<param|///\s*<returns>|///\s*<remarks>"
-            ),
+            "doc": re.compile(r"///|///\s*<summary>|///\s*<param|///\s*<returns>|///\s*<remarks>"),
             # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\[(?:Test|Fact|Theory|TestMethod|TestClass|SetUp|TearDown)\]|\b(?:Assert\.|Should\(\)|Mock\.|Substitute\.For)\b"
@@ -1640,9 +1508,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(System\.Reflection|DllImport|LibraryImport|MethodInfo|Activator|Marshal\.|Emit|ILGenerator)\b"
             ),
             # 24. import (Dependency Inclusions)
-            "import": re.compile(
-                r"^[ \t]*(?:global[ \t]+)?using\s+(?:static[ \t]+)?[\w.]+;", re.M
-            ),
+            "import": re.compile(r"^[ \t]*(?:global[ \t]+)?using\s+(?:static[ \t]+)?[\w.]+;", re.M),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:global[ \t\n]+)?using[ \t\n]+(?:static[ \t\n]+)?([\w.]+)[ \t\n]*;",
                 re.M,
@@ -1655,9 +1521,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (The Blazor/Razor Horizon)
@@ -1679,9 +1543,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Native pointers and modern memory structures (Span/Memory).
-            "pointers": re.compile(
-                r"\b(?:fixed|stackalloc|Unsafe\.AsPointer|IntPtr|UIntPtr|nint|nuint)\b|->"
-            ),
+            "pointers": re.compile(r"\b(?:fixed|stackalloc|Unsafe\.AsPointer|IntPtr|UIntPtr|nint|nuint)\b|->"),
             # 36. memory_alloc (Manual Memory Management)
             "memory_alloc": re.compile(
                 r"\b(Marshal\.AllocHGlobal|GC\.AllocateArray|MemoryPool|ArrayPool<[^>]*>\.Shared\.Rent|ref\s+struct|scoped\s+ref)\b"
@@ -1694,9 +1556,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:ILogger|_logger|Log|TelemetryClient|ActivitySource)\.(?:LogInformation|LogError|LogWarning|LogDebug|StartActivity|TrackEvent)\b|\[LoggerMessage"
             ),
             # 39. print_hits (The Amateur)
-            "print_hits": re.compile(
-                r"\b(Console\.(?:Write|WriteLine|Error)|Debug\.(?:Write|WriteLine|Print))\b"
-            ),
+            "print_hits": re.compile(r"\b(Console\.(?:Write|WriteLine|Error)|Debug\.(?:Write|WriteLine|Print))\b"),
             # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\bas\s+[A-Z]\w*|\(\s*(?:int|long|short|byte|char|float|double|decimal|bool|string|[A-Z][A-Za-z0-9_]*)\s*\)\s*[a-zA-Z_$]"
@@ -1704,9 +1564,7 @@ LANGUAGE_DEFINITIONS = {
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|abort|FailFast|Environment\.Exit)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
-            "halt_hits": re.compile(
-                r"\b(sleep|delay|Wait\(\)|Task\.Delay|Thread\.Sleep)\b"
-            ),
+            "halt_hits": re.compile(r"\b(sleep|delay|Wait\(\)|Task\.Delay|Thread\.Sleep)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation. Safely maps to C# bitwise operators without overlapping language-specific pipelines.
             "bitwise_hits": re.compile(r"<<|>>|\^|~"),
@@ -1718,32 +1576,22 @@ LANGUAGE_DEFINITIONS = {
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(const|readonly|init|Immutable[A-Z]\w*)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(dispose|close|free|delete|GC\.Collect|GC\.SuppressFinalize)\b\s*\("
-            ),
+            "cleanup": re.compile(r"\b(dispose|close|free|delete|GC\.Collect|GC\.SuppressFinalize)\b\s*\("),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal|file)\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\b(on|addEventListener|subscribe|EventHandler)\b|\+="
-            ),
+            "listeners": re.compile(r"\b(on|addEventListener|subscribe|EventHandler)\b|\+="),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\[(?:Ignore|Skipped)\]|test\.skip\(|mock\(|stub\(|Substitute\.For"
-            ),
+            "test_skip": re.compile(r"\[(?:Ignore|Skipped)\]|test\.skip\(|mock\(|stub\(|Substitute\.For"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (C# Specifics) ---
             "serialization_parsing": re.compile(
                 r"\b(JsonSerializer\.Deserialize|JsonConvert\.DeserializeObject|XmlSerializer|BinaryFormatter)\b"
             ),
-            "regex_execution": re.compile(
-                r"\b(Regex\.Match(?:es)?|Regex\.Replace|Regex\.IsMatch|new\s+Regex)\b"
-            ),
+            "regex_execution": re.compile(r"\b(Regex\.Match(?:es)?|Regex\.Replace|Regex\.IsMatch|new\s+Regex)\b"),
             "time_date_logic": re.compile(
                 r"\b(DateTime\.Now|DateTime\.UtcNow|DateTimeOffset|TimeSpan|Stopwatch\.StartNew)\b"
             ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(Process\.Start|NamedPipeServerStream|ChannelFactory|GrpcChannel)\b"
-            ),
+            "ipc_rpc_bridges": re.compile(r"\b(Process\.Start|NamedPipeServerStream|ChannelFactory|GrpcChannel)\b"),
         },
     },
     "go": {
@@ -1766,7 +1614,7 @@ LANGUAGE_DEFINITIONS = {
             "vendor/modules.txt",
         ],
         "shebangs": ["go", "gorun", "yaegi"],
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token.
@@ -1785,14 +1633,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 2. args (Parameters / Coupling)
             # Parameter blocks for functions and methods. Bounded generics [^\]]* and params [^)]*.
-            "args": re.compile(
-                r"func\s+(?:\([^)]*\)[ \t]+)?\w*(?:\[[^\]]*\])?\s*\([^)]*\)", re.M
-            ),
+            "args": re.compile(r"func\s+(?:\([^)]*\)[ \t]+)?\w*(?:\[[^\]]*\])?\s*\([^)]*\)", re.M),
             # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: const/var (freeze_hits) and Capitalization (encapsulation).
-            "linear": re.compile(
-                r"\b(package|import|return|type|go|defer|chan|map|interface|struct)\b"
-            ),
+            "linear": re.compile(r"\b(package|import|return|type|go|defer|chan|map|interface|struct)\b"),
             # 4. func_start (Executable Logic Anchors)
             # ONLY executable logic blocks.
             # Bypasses the 'func' keyword, skips optional method receivers (e.g. (s *Server)),
@@ -1828,14 +1672,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Explicitly ignoring errors via blank identifier.
-            "safety_neg": re.compile(
-                r'_\s*,\s*err[ \t]*=|_[ \t]*=\s*\w+|\bimport\s+(?:\.[ \t]+)?"'
-            ),
+            "safety_neg": re.compile(r'_\s*,\s*err[ \t]*=|_[ \t]*=\s*\w+|\bimport\s+(?:\.[ \t]+)?"'),
             # 8. danger (High-Risk Execution / System Calls)
             # Process-killing commands and direct syscalls. EXCLUDES TODO (debt) and fmt.Print (print_hits).
-            "danger": re.compile(
-                r"\b(os\.Exit|syscall\.Kill|syscall\.RawSyscall|log\.Fatal(?:f|ln)?)\b"
-            ),
+            "danger": re.compile(r"\b(os\.Exit|syscall\.Kill|syscall\.RawSyscall|log\.Fatal(?:f|ln)?)\b"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(os\.(?:Open|Create|ReadFile)|io\.(?:Reader|Writer|Copy)|net/http|database/sql|bufio\.|grpc\.|sqlx\.|pgx\.)\b"
@@ -1848,22 +1688,14 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 11. flux (State Mutation)
             # Mutation of state. Reassignment and channel sends.
-            "flux": re.compile(
-                r":=|(?<![=!<>])=(?![=])|<-|\bappend\(|\batomic\.(?:Add|Store|Swap)"
-            ),
+            "flux": re.compile(r":=|(?<![=!<>])=(?![=])|<-|\bappend\(|\batomic\.(?:Add|Store|Swap)"),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"//[ \t]*(?:func|type|var|const|import|if|for|switch|select|return)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:func|type|var|const|import|if|for|switch|select|return)\b"),
             # 13. doc (Structured Documentation)
             # GoDoc standard: comments immediately preceding a declaration.
-            "doc": re.compile(
-                r"^[ \t]*//\s+[A-Z][a-zA-Z0-9_]+\s+.*|^[ \t]*//\s*Package\s+", re.M
-            ),
+            "doc": re.compile(r"^[ \t]*//\s+[A-Z][a-zA-Z0-9_]+\s+.*|^[ \t]*//\s*Package\s+", re.M),
             # 14. test (Testing & Assertions)
-            "test": re.compile(
-                r"\b(?:Test|Benchmark|Fuzz)[A-Z]\w*\b|t\.Run\b|\b(?:assert|require|mock)\.\w+\("
-            ),
+            "test": re.compile(r"\b(?:Test|Benchmark|Fuzz)[A-Z]\w*\b|t\.Run\b|\b(?:assert|require|mock)\.\w+\("),
             # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
@@ -1875,9 +1707,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(html/template|text/template|http\.HandleFunc|ServeHTTP|gin\.|echo\.|fiber\.)\b"
             ),
             # 17. closures (Closures / Anonymous Functions)
-            "closures": re.compile(
-                r"func\s*\([^)]*\)\s*(?:\[[^\]]*\])?\s*(?:\([^)]*\))?[ \t]*\{"
-            ),
+            "closures": re.compile(r"func\s*\([^)]*\)\s*(?:\[[^\]]*\])?\s*(?:\([^)]*\))?[ \t]*\{"),
             # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"^[ \t]*var\s+[a-zA-Z_]\w*\s*(?:[a-zA-Z_]\w*\s*)?=|os\.Getenv|os\.Environ",
@@ -1885,27 +1715,17 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 19. decorators (Decorators / Annotations)
             # Go lacks @decorators; uses Struct Tags and Build Tags.
-            "decorators": re.compile(
-                r'`[^`]*?(?:json|xml|yaml|gorm|db|bson):"[^"]*"[^`]*?`|//go:build|//\s*\+build'
-            ),
+            "decorators": re.compile(r'`[^`]*?(?:json|xml|yaml|gorm|db|bson):"[^"]*"[^`]*?`|//go:build|//\s*\+build'),
             # 20. generics (Generics / Type Parameters)
-            "generics": re.compile(
-                r"\[[^\]]*\b(?:any|comparable|~[a-zA-Z_]\w*)\b[^\]]*\]|\bany\b"
-            ),
+            "generics": re.compile(r"\[[^\]]*\b(?:any|comparable|~[a-zA-Z_]\w*)\b[^\]]*\]|\bany\b"),
             # 21. comprehensions (Iterators / Comprehensions)
             # Functional iteration helpers from the slices/maps packages.
-            "comprehensions": re.compile(
-                r"\b(slices\.(?:Delete|Filter|Sort|Compact)|maps\.(?:Keys|Values))\b"
-            ),
+            "comprehensions": re.compile(r"\b(slices\.(?:Delete|Filter|Sort|Compact)|maps\.(?:Keys|Values))\b"),
             # 22. scientific (Numerical / Compute Libraries)
-            "scientific": re.compile(
-                r"\b(math\.|math/cmplx\.|math/rand\.|crypto/rand\.|gonum\.)\b"
-            ),
+            "scientific": re.compile(r"\b(math\.|math/cmplx\.|math/rand\.|crypto/rand\.|gonum\.)\b"),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Reflection, CGO, and Unsafe triggers.
-            "heat_triggers": re.compile(
-                r'import\s+"C"|\b(reflect\.|unsafe\.|cgo|go:linkname)\b'
-            ),
+            "heat_triggers": re.compile(r'import\s+"C"|\b(reflect\.|unsafe\.|cgo|go:linkname)\b'),
             # 24. import (Dependency Inclusions)
             "import": re.compile(r'^[ \t]*import\s*(?:\(|"[^"]+")', re.M),
             # ---> THE FIX: Strictly bounded to valid Go import path characters <---
@@ -1925,9 +1745,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             # Gofmt mandates tabs; finding spaces at start signals structural friction.
             "civil_war": None,
@@ -1936,18 +1754,14 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(html/template|ExecuteTemplate|http\.ResponseWriter|Render|gin\.Context)\b"
             ),
             # 32. events (Event Emitters / Pub-Sub)
-            "events": re.compile(
-                r"\b(EventBus|Publish|Subscribe|kafka\.|rabbitmq\.|Emit|OnEvent)\b"
-            ),
+            "events": re.compile(r"\b(EventBus|Publish|Subscribe|kafka\.|rabbitmq\.|Emit|OnEvent)\b"),
             # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(wire\.Build|wire\.NewSet|fx\.New|fx\.Provide|fx\.Invoke|dig\.Provide|do\.Provide)\b"
             ),
             # 34. macros (Preprocessor Directives / Macros)
             # Go lacks a preprocessor; //go: directives act as compile-time hooks.
-            "macros": re.compile(
-                r"^//go:(?:generate|build|noinline|nosplit|noescape|linkname)\b", re.M
-            ),
+            "macros": re.compile(r"^//go:(?:generate|build|noinline|nosplit|noescape|linkname)\b", re.M),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Explicit pointer addressing and dereferencing.
             "pointers": re.compile(
@@ -1963,9 +1777,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(slog|logrus|zap|zerolog|log)\.(?:Info|Warn|Error|Debug|Trace)(?:f|ln)?\b|\btrace\.Span\b"
             ),
             # 39. print_hits (Standard Output / Debug Prints)
-            "print_hits": re.compile(
-                r"\b(fmt\.Print|fmt\.Println|fmt\.Printf|println|print)\b"
-            ),
+            "print_hits": re.compile(r"\b(fmt\.Print|fmt\.Println|fmt\.Printf|println|print)\b"),
             # 40. cast_hits (Explicit Type Casting)
             # Type assertions and conversions.
             "cast_hits": re.compile(
@@ -1978,15 +1790,11 @@ LANGUAGE_DEFINITIONS = {
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|&\^"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(Mutex|RWMutex|Lock|Unlock|RLock|RUnlock|atomic\.|sync\.Map|sync\.Pool)\b"
-            ),
+            "sync_locks": re.compile(r"\b(Mutex|RWMutex|Lock|Unlock|RLock|RUnlock|atomic\.|sync\.Map|sync\.Pool)\b"),
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\bconst\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(defer|Close|Unlock|RUnlock|Stop|Cleanup)\b\s*\("
-            ),
+            "cleanup": re.compile(r"\b(defer|Close|Unlock|RUnlock|Stop|Cleanup)\b\s*\("),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             # Unexported identifiers (lowercase) in Go are private/internal.
             "encapsulation": re.compile(
@@ -2001,15 +1809,9 @@ LANGUAGE_DEFINITIONS = {
             "serialization_parsing": re.compile(
                 r"\b(json\.Unmarshal|json\.Marshal|xml\.Unmarshal|xml\.Marshal|gob\.NewEncoder)\b"
             ),
-            "regex_execution": re.compile(
-                r"\b(regexp\.Compile|regexp\.MustCompile|\.MatchString)\b"
-            ),
-            "time_date_logic": re.compile(
-                r"\b(time\.Now\(\)|time\.Parse|time\.Duration|time\.Sleep|time\.Since)\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(net/rpc|grpc\.Dial|grpc\.NewServer|exec\.Command|syscall)\b"
-            ),
+            "regex_execution": re.compile(r"\b(regexp\.Compile|regexp\.MustCompile|\.MatchString)\b"),
+            "time_date_logic": re.compile(r"\b(time\.Now\(\)|time\.Parse|time\.Duration|time\.Sleep|time\.Since)\b"),
+            "ipc_rpc_bridges": re.compile(r"\b(net/rpc|grpc\.Dial|grpc\.NewServer|exec\.Command|syscall)\b"),
         },
     },
     "rust": {
@@ -2038,7 +1840,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: Rust explicitly allows nested block comments (/* /* */ */),
         # unlike standard C/C++. Standard C parsing would prematurely terminate here.
-        "lexical_family": "recursive_c_style",
+        "lexical_family": "recursive_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Includes /// and //!)
@@ -2052,9 +1854,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES panic!/throw (bailout_hits).
-            "branch": re.compile(
-                r"\b(if|else|match|for|while|loop|break|continue)\b|\?|&&|\|\|"
-            ),
+            "branch": re.compile(r"\b(if|else|match|for|while|loop|break|continue)\b|\?|&&|\|\|"),
             # 2. args (Parameters / Coupling)
             # Parameter blocks of functions and closures. Bounded to prevent ReDoS on complex types.
             "args": re.compile(
@@ -2103,14 +1903,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Actively bypasses type safety (unwraps and forced expectations).
-            "safety_neg": re.compile(
-                r"\b(unwrap|expect|unwrap_err|unwrap_unchecked)\b"
-            ),
+            "safety_neg": re.compile(r"\b(unwrap|expect|unwrap_err|unwrap_unchecked)\b"),
             # 8. danger (High-Risk Execution / System Calls)
             # Process-killing commands. EXCLUDES TODO (debt) and println! (print_hits).
-            "danger": re.compile(
-                r"\b(panic!|todo!|unimplemented!|process::exit|abort)\b"
-            ),
+            "danger": re.compile(r"\b(panic!|todo!|unimplemented!|process::exit|abort)\b"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(std::fs|File::|std::net|tokio::net|tokio::fs|reqwest|std::io|hyper::|sqlx::|diesel::|sea_orm::)\b"
@@ -2120,13 +1916,9 @@ LANGUAGE_DEFINITIONS = {
             "api": re.compile(r"\bpub(?:\([^)]*\))?\b"),
             # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const (freeze_hits).
-            "flux": re.compile(
-                r"\bmut\b|\.borrow_mut\(\)|\.write\(\)|Cell::|RefCell::|Atomic[A-Za-z0-9]+"
-            ),
+            "flux": re.compile(r"\bmut\b|\.borrow_mut\(\)|\.write\(\)|Cell::|RefCell::|Atomic[A-Za-z0-9]+"),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"//[ \t]*(?:fn|let|struct|impl|mod|use|match|for|while|loop|if|return)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:fn|let|struct|impl|mod|use|match|for|while|loop|if|return)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r"///|//!|#!?\[doc\b[^\]]*\]"),
             # 14. test (Testing & Assertions)
@@ -2140,34 +1932,24 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(async|await|std::thread|spawn|tokio::spawn|mpsc::|async_trait|Future|Stream|Send|Sync)\b"
             ),
             # 16. ui_framework (UI / View Components)
-            "ui_framework": re.compile(
-                r"\b(yew::|dioxus::|iced::|html!|rsx!|view!|slint|leptos::|tauri::)\b"
-            ),
+            "ui_framework": re.compile(r"\b(yew::|dioxus::|iced::|html!|rsx!|view!|slint|leptos::|tauri::)\b"),
             # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"\|[^|]*\|[ \t]*\{"),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"\b(static\s+mut|lazy_static!|OnceCell|OnceLock|LazyLock|std::env::var)\b"
-            ),
+            "globals": re.compile(r"\b(static\s+mut|lazy_static!|OnceCell|OnceLock|LazyLock|std::env::var)\b"),
             # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"^[ \t]*#!?\[[^\]]*\]", re.M),
             # 20. generics (Generics / Type Parameters)
-            "generics": re.compile(
-                r"<\s*[A-Z\'][^>]*>|\bwhere\b|\'[a-z]+\b|\bimpl\s+[A-Z]\w+"
-            ),
+            "generics": re.compile(r"<\s*[A-Z\'][^>]*>|\bwhere\b|\'[a-z]+\b|\bimpl\s+[A-Z]\w+"),
             # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|filter|fold|collect|flat_map|any|all|reduce|for_each|find|zip)\s*\("
             ),
             # 22. scientific (Numerical / Compute Libraries)
-            "scientific": re.compile(
-                r"\b(ndarray::|nalgebra::|num::|f32|f64|std::simd)\b"
-            ),
+            "scientific": re.compile(r"\b(ndarray::|nalgebra::|num::|f32|f64|std::simd)\b"),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Metaprogramming and memory transmutation.
-            "heat_triggers": re.compile(
-                r"\b(macro_rules!|std::mem::transmute|Pin::|PhantomData|UnsafeCell)\b"
-            ),
+            "heat_triggers": re.compile(r"\b(macro_rules!|std::mem::transmute|Pin::|PhantomData|UnsafeCell)\b"),
             # 24. import (Dependency Inclusions)
             "import": re.compile(r"\b(?:pub[ \t]+)?use\s+[^;]+;", re.M),
             "_dependency_capture": re.compile(
@@ -2196,18 +1978,14 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"//\s*(?:Author|Maintainer|Copyright):\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"//\s*(?:Author|Maintainer|Copyright):\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -2215,17 +1993,13 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(actix_web|axum|rocket|HttpResponse|Responder|IntoResponse|Html|askama::|tera::)\b"
             ),
             # 32. events (Event Emitters / Pub-Sub)
-            "events": re.compile(
-                r"\b(tokio::sync::broadcast|std::sync::mpsc|crossbeam_channel|Sender|Receiver)\b"
-            ),
+            "events": re.compile(r"\b(tokio::sync::broadcast|std::sync::mpsc|crossbeam_channel|Sender|Receiver)\b"),
             # 33. dependency_injection (Dependency Injection / IoC)
             "dependency_injection": re.compile(
                 r"\b(axum::extract::State|actix_web::web::Data|Extension|Provider|shaku::)\b"
             ),
             # 34. macros (Preprocessor Directives / Macros)
-            "macros": re.compile(
-                r"\b(macro_rules!|proc_macro|proc_macro_derive|proc_macro_attribute)\b"
-            ),
+            "macros": re.compile(r"\b(macro_rules!|proc_macro|proc_macro_derive|proc_macro_attribute)\b"),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Raw memory addressing. Shielded from standard multiplication by explicitly mapping to native Rust unsafe pointer primitives and dereferencing.
             "pointers": re.compile(r"\*const\b|\*mut\b|\bNonNull\b|\bstd::ptr\b|->"),
@@ -2234,14 +2008,10 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(Box::new|Rc::new|Arc::new|Vec::with_capacity|String::with_capacity|alloc::|GlobalAlloc)\b"
             ),
             # 37. inline_asm (The Bare Metal)
-            "inline_asm": re.compile(
-                r"\b(?:core::arch::asm!|std::arch::asm!|asm!|global_asm!)\b"
-            ),
+            "inline_asm": re.compile(r"\b(?:core::arch::asm!|std::arch::asm!|asm!|global_asm!)\b"),
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
-            "telemetry": re.compile(
-                r"\b(?:log::|tracing::)?(?:info!|warn!|error!|debug!|trace!|span!|instrument)\b"
-            ),
+            "telemetry": re.compile(r"\b(?:log::|tracing::)?(?:info!|warn!|error!|debug!|trace!|span!|instrument)\b"),
             # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(println!|print!|eprintln!|eprint!|dbg!)\b"),
             # 40. cast_hits (Explicit Type Casting)
@@ -2252,16 +2022,12 @@ LANGUAGE_DEFINITIONS = {
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(panic!|abort|process::exit|fatalError)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
-            "halt_hits": re.compile(
-                r"\b(std::thread::sleep|tokio::time::sleep|Duration::from)\b"
-            ),
+            "halt_hits": re.compile(r"\b(std::thread::sleep|tokio::time::sleep|Duration::from)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation. CRITICAL: Removed the pipe '|' (used for closures `|x| x+1` and patterns), ampersand '&' (used for references), and exclamation '!' (used for macros and logical NOT).
             "bitwise_hits": re.compile(r"<<|>>|\^"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(Mutex|RwLock|lock|barrier|atomic|Semaphore)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(Mutex|RwLock|lock|barrier|atomic|Semaphore)\b", re.I),
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(const|static|immutable|readonly)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -2330,7 +2096,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # C++ uses '//' for standard line-level Literature (Commented / Non-Executable Text).
@@ -2425,14 +2191,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Swallowing errors or bypassing types. EXCLUDES standard casting (Phase 5).
-            "safety_neg": re.compile(
-                r"\b(std::any|void\s*\*)\b|catch\s*\(\s*\.\.\.\s*\)"
-            ),
+            "safety_neg": re.compile(r"\b(std::any|void\s*\*)\b|catch\s*\(\s*\.\.\.\s*\)"),
             # 8. danger (High-Risk Execution / System Calls)
             # Process killers and low-level blits. EXCLUDES prints (Phase 5).
-            "danger": re.compile(
-                r"\b(system|memcpy|memset|abort|exit|std::terminate|longjmp|setjmp)\b"
-            ),
+            "danger": re.compile(r"\b(system|memcpy|memset|abort|exit|std::terminate|longjmp|setjmp)\b"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(std::fstream|std::ifstream|std::ofstream|std::filesystem|fopen|fclose|fread|fwrite|socket|recv|send|asio::|curl_easy_perform|std::cin)\b"
@@ -2468,9 +2230,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(std::thread|std::jthread|std::mutex|std::future|std::promise|std::async|std::latch|std::barrier|std::condition_variable|std::semaphore|co_await|std::coroutine_handle)\b"
             ),
             # 16. ui_framework (UI / View Components)
-            "ui_framework": re.compile(
-                r"\b(Q_OBJECT|slots:|signals:|QWidget|wxFrame|ImGui::|Fl_Window)\b"
-            ),
+            "ui_framework": re.compile(r"\b(Q_OBJECT|slots:|signals:|QWidget|wxFrame|ImGui::|Fl_Window)\b"),
             # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(
                 r"\[[^\]]*\]\s*(?:<[^>]*>\s*)?(?:\([^)]*\))?\s*(?:(?:mutable|constexpr|consteval|noexcept)\s+)*(?:mutable|constexpr|consteval|noexcept)?\s*(?:->\s*[\w:<>_]+)?[ \t]*\{"
@@ -2508,32 +2268,22 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"(?:@author|\\author|Author:|Created by:|Copyright)\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"(?:@author|\\author|Author:|Created by:|Copyright)\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
-            "ssr_boundaries": re.compile(
-                r"\b(FCGI_Accept|render_template|Inja::|ctemplate::)\b"
-            ),
+            "ssr_boundaries": re.compile(r"\b(FCGI_Accept|render_template|Inja::|ctemplate::)\b"),
             # 32. events (Event Emitters / Pub-Sub)
-            "events": re.compile(
-                r"\b(emit|signal|slot|notify|publish|subscribe|boost::signals2)\b"
-            ),
+            "events": re.compile(r"\b(emit|signal|slot|notify|publish|subscribe|boost::signals2)\b"),
             # 33. dependency_injection (Dependency Injection / IoC)
-            "dependency_injection": re.compile(
-                r"\b(boost\.di|fruit::|[I]nject|IServiceCollection)\b"
-            ),
+            "dependency_injection": re.compile(r"\b(boost\.di|fruit::|[I]nject|IServiceCollection)\b"),
             # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"^[ \t]*#(?:define|undef|if|elif|else|endif|pragma|warning|error)\b",
@@ -2545,18 +2295,14 @@ LANGUAGE_DEFINITIONS = {
                 r"->|\b(?:uintptr_t|intptr_t|ptrdiff_t|size_t)\b|(?<=[=\s,(])&\w+|(?<=[=\s,(])\*(?:\s*const\s*)?\w+"
             ),
             # 36. memory_alloc (Manual Memory Management)
-            "memory_alloc": re.compile(
-                r"\b(new|malloc|calloc|realloc|aligned_alloc|mmap|alloca)\b"
-            ),
+            "memory_alloc": re.compile(r"\b(new|malloc|calloc|realloc|aligned_alloc|mmap|alloca)\b"),
             # 37. inline_asm (The Bare Metal)
             "inline_asm": re.compile(
                 r"\b(?:__asm__|asm|__asm)\b(?:\s+(?:volatile|__volatile__))?\s*\(|\b(?:__asm__|asm|__asm)\b[ \t]*\{"
             ),
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
-            "telemetry": re.compile(
-                r"\b(log|logger|LOGGER|spdlog|glog|syslog)\.(?:info|error|warn|debug|trace)\b"
-            ),
+            "telemetry": re.compile(r"\b(log|logger|LOGGER|spdlog|glog|syslog)\.(?:info|error|warn|debug|trace)\b"),
             # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(
                 r"\b(std::cout|std::cerr|std::clog|printf|fprintf|vprintf|puts|putchar|std::print|std::println)\b"
@@ -2567,14 +2313,10 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:static_cast|dynamic_cast|reinterpret_cast|const_cast|bit_cast)\b|<\s*[A-Za-z_]\w*\s*>|\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed)\s*\)\s*[a-zA-Z_]"
             ),
             # 41. bailout_hits (Execution Halts / Panics)
-            "bailout_hits": re.compile(
-                r"\b(throw|abort|exit|_Exit|quick_exit|std::terminate|longjmp)\b"
-            ),
+            "bailout_hits": re.compile(r"\b(throw|abort|exit|_Exit|quick_exit|std::terminate|longjmp)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
             # Admission of race conditions or lazy polling.
-            "halt_hits": re.compile(
-                r"\b(sleep|delay|usleep|nanosleep|std::this_thread::sleep_for)\b"
-            ),
+            "halt_hits": re.compile(r"\b(sleep|delay|usleep|nanosleep|std::this_thread::sleep_for)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation. CRITICAL: Removed bare `<<` and `>>` to prevent catastrophic false positives on `std::cout` and `std::cin` streams. Explicit bitwise assignments (`<<=`, `&=`) are retained as they are unambiguous.
             "bitwise_hits": re.compile(r"\^|(?<![=!])~|<<=|>>=|&=|\|=|\^="),
@@ -2584,36 +2326,24 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 45. freeze_hits (Immutability Constraints)
-            "freeze_hits": re.compile(
-                r"\b(const|constexpr|consteval|constinit|final|readonly|Immutable)\b"
-            ),
+            "freeze_hits": re.compile(r"\b(const|constexpr|consteval|constinit|final|readonly|Immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(delete|free|close|fclose|dispose|shutdown|std::destroy|reset)\b\s*\("
-            ),
+            "cleanup": re.compile(r"\b(delete|free|close|fclose|dispose|shutdown|std::destroy|reset)\b\s*\("),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private:|protected:|internal:)\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\b(on|addEventListener|subscribe|connect|handler|callback)\b"
-            ),
+            "listeners": re.compile(r"\b(on|addEventListener|subscribe|connect|handler|callback)\b"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\b(GTEST_SKIP|test\.skip|it\.skip|mock\(|fake\()\b"
-            ),
+            "test_skip": re.compile(r"\b(GTEST_SKIP|test\.skip|it\.skip|mock\(|fake\()\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (C++ Specifics) ---
             "serialization_parsing": re.compile(
                 r"\b(nlohmann::json|rapidjson|boost::archive|ParseFromString|SerializeToString)\b"
             ),
-            "regex_execution": re.compile(
-                r"\b(std::regex|std::regex_match|std::regex_search|std::regex_replace)\b"
-            ),
+            "regex_execution": re.compile(r"\b(std::regex|std::regex_match|std::regex_search|std::regex_replace)\b"),
             "time_date_logic": re.compile(
                 r"\b(std::chrono::(?:system_clock|steady_clock|duration)|std::time_t|std::localtime)\b"
             ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(boost::interprocess|mmap|shm_open|pipe|fork|grpc::ServerBuilder)\b"
-            ),
+            "ipc_rpc_bridges": re.compile(r"\b(boost::interprocess|mmap|shm_open|pipe|fork|grpc::ServerBuilder)\b"),
         },
     },
     "c": {
@@ -2653,7 +2383,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C)
         # Rationale: Uses '//' for line-level literature; multi-line literature
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Modern C (C99+) uses '//' for standard line-level Commented / Non-Executable Text.
@@ -2667,9 +2397,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and jumps. EXCLUDES exit/abort (bailout_hits).
-            "branch": re.compile(
-                r"\b(if|else|switch|case|default|for|while|do|break|continue|goto)\b|&&|\|\||\?"
-            ),
+            "branch": re.compile(r"\b(if|else|switch|case|default|for|while|do|break|continue|goto)\b|&&|\|\||\?"),
             # 2. args (Parameters / Coupling)
             # Parameter blocks. Bounded negation [^)]* to prevent ReDoS on massive param lists.
             "args": re.compile(
@@ -2733,9 +2461,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 5. class_start (Object / Entity Declarations)
             # C uses structs/unions/enums as the primary entity entities.
-            "class_start": re.compile(
-                r"^[ \t]*(?:typedef[ \t]+)?(?:struct|union|enum)\s+[a-zA-Z_]\w*", re.M
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:typedef[ \t]+)?(?:struct|union|enum)\s+[a-zA-Z_]\w*", re.M),
             # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             # 6. safety (Defensive Programming / Validation)
             "safety": re.compile(
@@ -2743,9 +2469,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Dangerous legacy functions and raw void manipulation.
-            "safety_neg": re.compile(
-                r"\b(strcpy|strcat|sprintf|gets|alloca)\b|\([a-zA-Z_]\w*\s*\*\)\s*[a-zA-Z_]\w*"
-            ),
+            "safety_neg": re.compile(r"\b(strcpy|strcat|sprintf|gets|alloca)\b|\([a-zA-Z_]\w*\s*\*\)\s*[a-zA-Z_]\w*"),
             # 8. danger (High-Risk Execution / System Calls)
             # Process killers and context switches. EXCLUDES prints (Phase 5).
             "danger": re.compile(r"\b(system|popen|execl|execv|fork|longjmp|setjmp)\b"),
@@ -2771,17 +2495,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const/constexpr (freeze_hits).
-            "flux": re.compile(
-                r"(?<![=!<>])=(?![=])|\*(?!\s*const)\w+[ \t]*=|(?:\+\+|--)"
-            ),
+            "flux": re.compile(r"(?<![=!<>])=(?![=])|\*(?!\s*const)\w+[ \t]*=|(?:\+\+|--)"),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"(?://|/\*)[ \t]*(?:if|for|while|struct|union|enum|void|int|return)\b"
-            ),
+            "graveyard": re.compile(r"(?://|/\*)[ \t]*(?:if|for|while|struct|union|enum|void|int|return)\b"),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"///|/\*\*|@param|@return|@brief|@details|\\param|\\return|\\brief|\\details"
-            ),
+            "doc": re.compile(r"///|/\*\*|@param|@return|@brief|@details|\\param|\\return|\\brief|\\details"),
             # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(?:TEST|TEST_F|TEST_CASE|CU_ASSERT|RUN_TEST|EXPECT_[A-Z_]+|ASSERT_[A-Z_]+)\b|\bassert\s*\("
@@ -2819,43 +2537,27 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Macros with args and unstructured jumps.
-            "heat_triggers": re.compile(
-                r"^#\s*define\s+[a-zA-Z_]\w*\([^)]*\)|\bgoto\b", re.M
-            ),
+            "heat_triggers": re.compile(r"^#\s*define\s+[a-zA-Z_]\w*\([^)]*\)|\bgoto\b", re.M),
             # 24. import (Dependency Inclusions)
-            "import": re.compile(
-                r'^[ \t]*#[ \t]*(?:include|embed)\s*[<"][^>"]+[>"]', re.M
-            ),
-            "_dependency_capture": re.compile(
-                r'^[ \t]*#[ \t\n]*(?:include|embed)[ \t\n]*[<"]([^>"]+)[>"]', re.M
-            ),
+            "import": re.compile(r'^[ \t]*#[ \t]*(?:include|embed)\s*[<"][^>"]+[>"]', re.M),
+            "_dependency_capture": re.compile(r'^[ \t]*#[ \t\n]*(?:include|embed)[ \t\n]*[<"]([^>"]+)[>"]', re.M),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"(?:@author|\\author|Author:|Created by:|Copyright)\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"(?:@author|\\author|Author:|Created by:|Copyright)\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
-            "ssr_boundaries": re.compile(
-                r"\b(FCGI_Accept|khttp_parse|MHD_start_daemon|facil\.io)\b"
-            ),
+            "ssr_boundaries": re.compile(r"\b(FCGI_Accept|khttp_parse|MHD_start_daemon|facil\.io)\b"),
             # 32. events (Event Emitters / Pub-Sub)
-            "events": re.compile(
-                r"\b(epoll_wait|epoll_ctl|kqueue|kevent|select|poll|libev|libuv)\b"
-            ),
+            "events": re.compile(r"\b(epoll_wait|epoll_ctl|kqueue|kevent|select|poll|libev|libuv)\b"),
             # 33. dependency_injection (Dependency Injection / IoC)
-            "dependency_injection": re.compile(
-                r"\b(plugin_register|vtable|struct\s+[a-zA-Z_]\w*_ops)\b"
-            ),
+            "dependency_injection": re.compile(r"\b(plugin_register|vtable|struct\s+[a-zA-Z_]\w*_ops)\b"),
             # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(
                 r"^[ \t]*#[ \t]*(?:define|undef|if|elif|else|endif|pragma|warning|error)\b",
@@ -2866,22 +2568,16 @@ LANGUAGE_DEFINITIONS = {
                 r"->|\b(?:uintptr_t|intptr_t|ptrdiff_t|size_t)\b|(?<=[=\s,(])&\w+|(?<=[=\s,(])\*(?:\s*const\s*)?\w+"
             ),
             # 36. memory_alloc (Manual Memory Management)
-            "memory_alloc": re.compile(
-                r"\b(malloc|calloc|realloc|free|aligned_alloc|mmap|alloca)\b"
-            ),
+            "memory_alloc": re.compile(r"\b(malloc|calloc|realloc|free|aligned_alloc|mmap|alloca)\b"),
             # 37. inline_asm (The Bare Metal)
             "inline_asm": re.compile(
                 r"\b(?:__asm__|asm|__asm)\b(?:\s+(?:volatile|__volatile__))?\s*\(|\b(?:__asm__|asm|__asm)\b[ \t]*\{"
             ),
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
-            "telemetry": re.compile(
-                r"\b(?:syslog|openlog|log_info|log_error|log_warn|log_debug|vsyslog)\b"
-            ),
+            "telemetry": re.compile(r"\b(?:syslog|openlog|log_info|log_error|log_warn|log_debug|vsyslog)\b"),
             # 39. print_hits (Standard Output / Debug Prints)
-            "print_hits": re.compile(
-                r"\b(printf|fprintf|vprintf|puts|putchar|perror)\b"
-            ),
+            "print_hits": re.compile(r"\b(printf|fprintf|vprintf|puts|putchar|perror)\b"),
             # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 # =====================================================================
@@ -2895,9 +2591,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed|void)\s*[*]*\s*\)\s*[a-zA-Z_]"
             ),
             # 41. bailout_hits (Execution Halts / Panics)
-            "bailout_hits": re.compile(
-                r"\b(abort|exit|_Exit|quick_exit|return\s+-1)\b"
-            ),
+            "bailout_hits": re.compile(r"\b(abort|exit|_Exit|quick_exit|return\s+-1)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(sleep|usleep|nanosleep|thrd_sleep)\b"),
             # 43. bitwise_hits (Bitwise Operations)
@@ -2909,29 +2603,19 @@ LANGUAGE_DEFINITIONS = {
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(const|constexpr|alignas|restrict)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(free|fclose|close|munmap|destroy|shutdown)\b\s*\("
-            ),
+            "cleanup": re.compile(r"\b(free|fclose|close|munmap|destroy|shutdown)\b\s*\("),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             # Physical Reality: Static functions/variables are internal/private to the translation unit.
             "encapsulation": re.compile(r"^[ \t]*static\b", re.M),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\b(on_event|handler|callback|signal\(|sigaction\()"
-            ),
+            "listeners": re.compile(r"\b(on_event|handler|callback|signal\(|sigaction\()"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(IGNORE_TEST|test\.skip|mock\(|fake\()\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (C Specifics) ---
-            "serialization_parsing": re.compile(
-                r"\b(cJSON_Parse|json_loads|xmlReadMemory|xmlParseFile|jansson)\b"
-            ),
+            "serialization_parsing": re.compile(r"\b(cJSON_Parse|json_loads|xmlReadMemory|xmlParseFile|jansson)\b"),
             "regex_execution": re.compile(r"\b(regcomp|regexec|regfree)\b"),
-            "time_date_logic": re.compile(
-                r"\b(time_t|clock_gettime|gettimeofday|localtime_r?|strftime)\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(fork|pipe|shmget|shmat|mmap|socket|bind|listen|accept)\b"
-            ),
+            "time_date_logic": re.compile(r"\b(time_t|clock_gettime|gettimeofday|localtime_r?|strftime)\b"),
+            "ipc_rpc_bridges": re.compile(r"\b(fork|pipe|shmget|shmat|mmap|socket|bind|listen|accept)\b"),
         },
     },
     "php": {
@@ -2979,7 +2663,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: PHP fundamentally operates within an HTML context, requiring the parser
         # to explicitly hunt for <?php execution boundaries. It also supports multiple
         # comment styles (//, #, and /* */).
-        "lexical_family": "embedded_syntax",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # PHP supports both '//' and '#' for line-level Commented / Non-Executable Text.
@@ -3028,18 +2712,14 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 8. danger (High-Risk Execution / System Calls)
             # Shell execution and process killers. EXCLUDES prints (Phase 5).
-            "danger": re.compile(
-                r"\b(exec|shell_exec|system|passthru|proc_open|popen)\b|`[^`]+`"
-            ),
+            "danger": re.compile(r"\b(exec|shell_exec|system|passthru|proc_open|popen)\b|`[^`]+`"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(fopen|fread|fwrite|file_get_contents|file_put_contents|PDO|mysqli|curl_exec|socket|header|setcookie)\b|\$_(?:GET|POST|FILES|REQUEST|COOKIE)"
             ),
             # 10. api (Public Surface Area)
             # Exposed surface. Explicit public markers + attribute routes.
-            "api": re.compile(
-                r"\b(public)\b|#\[(?:ApiResource|Route|Get|Post|Put|Delete|Patch)[^\]]*\]"
-            ),
+            "api": re.compile(r"\b(public)\b|#\[(?:ApiResource|Route|Get|Post|Put|Delete|Patch)[^\]]*\]"),
             # 11. flux (State Mutation)
             # Mutation of state. Variable reassignments and array mutators.
             "flux": re.compile(
@@ -3050,9 +2730,7 @@ LANGUAGE_DEFINITIONS = {
                 r"//\s*[;{}]|/\*\s*(?:function|class|namespace|use|if|foreach)\s|#\s*\$|//\s*(?:echo|print|\$|return|var_dump)"
             ),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"/\*\*|@param|@return|@throws|@var|@deprecated|@property|@method"
-            ),
+            "doc": re.compile(r"/\*\*|@param|@return|@throws|@var|@deprecated|@property|@method"),
             # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(PHPUnit|TestCase|assertSame|assertEquals|assertTrue|assertFalse|mock|spy|expects|toBe|test|it)\b|#\[Test\]"
@@ -3067,13 +2745,9 @@ LANGUAGE_DEFINITIONS = {
                 r'\b(view\s*\(|render\s*\(|renderView|extends\s+Controller|Blade::|Twig\\Environment)\b|@(?:if|foreach|yield|section|extends)\b|<\?=|echo\s+[\'"]<|\{\{[^}]*\}\}|\{%\s*[^%]*\s*%\}'
             ),
             # 17. closures (Closures / Anonymous Functions)
-            "closures": re.compile(
-                r"\b(?:function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?\{|fn\s*\([^)]*\)[ \t]*=>)"
-            ),
+            "closures": re.compile(r"\b(?:function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?\{|fn\s*\([^)]*\)[ \t]*=>)"),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"\b(\$_SERVER|\$_SESSION|\$_ENV|\$GLOBALS)\b|\bglobal\s+\$"
-            ),
+            "globals": re.compile(r"\b(\$_SERVER|\$_SESSION|\$_ENV|\$GLOBALS)\b|\bglobal\s+\$"),
             # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"#\[\s*[a-zA-Z0-9_:\\]+[^\]]*\]", re.M),
             # 20. generics (Generics / Type Parameters)
@@ -3086,9 +2760,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(array_map|array_filter|array_reduce|array_walk|array_column|array_find|array_any|array_all)\b"
             ),
             # 22. scientific (Numerical / Compute Libraries)
-            "scientific": re.compile(
-                r"\b(bcadd|bcsub|bcmul|bcdiv|gmp_add|gmp_mul|abs|cos|sin|tan|sqrt|log|exp|pow)\b"
-            ),
+            "scientific": re.compile(r"\b(bcadd|bcsub|bcmul|bcdiv|gmp_add|gmp_mul|abs|cos|sin|tan|sqrt|log|exp|pow)\b"),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Magic methods, reflection, and variable variables.
             "heat_triggers": re.compile(
@@ -3127,18 +2799,14 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"@(?:author|copyright)\s+(.*)|(?:Created by|Maintainer):?\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"@(?:author|copyright)\s+(.*)|(?:Created by|Maintainer):?\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -3157,10 +2825,8 @@ LANGUAGE_DEFINITIONS = {
             "macros": re.compile(r"\b(?:Macroable|macro\s*\(|mixin\s*\()\b"),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": re.compile(r"\b(FFI::cast|FFI::addr|FFI::scope|FFI::new)\b"),
-            # 36. memory_alloc 
-            "memory_alloc": re.compile(
-                r"\bnew\s+[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*"
-            ),
+            # 36. memory_alloc
+            "memory_alloc": re.compile(r"\bnew\s+[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*"),
             # 37. inline_asm
             "inline_asm": None,
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
@@ -3170,9 +2836,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 39. print_hits (Standard Output / Debug Prints)
-            "print_hits": re.compile(
-                r"\b(echo|print|var_dump|print_r|printf|vprintf|var_export|die|exit|dd|dump)\b"
-            ),
+            "print_hits": re.compile(r"\b(echo|print|var_dump|print_r|printf|vprintf|var_export|die|exit|dd|dump)\b"),
             # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(
                 r"\((?:int|integer|bool|boolean|float|double|string|array|object|unset)\)\s*|\bsettype\s*\("
@@ -3180,31 +2844,21 @@ LANGUAGE_DEFINITIONS = {
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(throw|die|exit|abort)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
-            "halt_hits": re.compile(
-                r"\b(sleep|usleep|time_nanosleep|time_sleep_until)\b"
-            ),
+            "halt_hits": re.compile(r"\b(sleep|usleep|time_nanosleep|time_sleep_until)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(mutex|lock|synchronized|Semaphore|flock|sem_acquire)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(mutex|lock|synchronized|Semaphore|flock|sem_acquire)\b", re.I),
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(const|readonly|final)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(unset|fclose|mysql_close|mysqli_close|PDO::null|dispose|cleanup)\b\s*\("
-            ),
+            "cleanup": re.compile(r"\b(unset|fclose|mysql_close|mysqli_close|PDO::null|dispose|cleanup)\b\s*\("),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal)\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\.on\(|addEventListener|subscribe|@KafkaListener|@RabbitListener"
-            ),
+            "listeners": re.compile(r"\.on\(|addEventListener|subscribe|@KafkaListener|@RabbitListener"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\b(markTestSkipped|test\.skip|it\.skip|mock\(|fake\()\b"
-            ),
+            "test_skip": re.compile(r"\b(markTestSkipped|test\.skip|it\.skip|mock\(|fake\()\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (PHP Specifics) ---
             "serialization_parsing": re.compile(
                 r"\b(unserialize|serialize|json_decode|json_encode|simplexml_load_(?:string|file)|DOMDocument)\b"
@@ -3212,12 +2866,8 @@ LANGUAGE_DEFINITIONS = {
             "regex_execution": re.compile(
                 r"\b(preg_match(?:_all)?|preg_replace(?:_callback)?|preg_split|preg_filter)\b"
             ),
-            "time_date_logic": re.compile(
-                r"\b(strtotime|DateTime(?:Immutable)?|date_create|time\s*\(|date\s*\()\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(shell_exec|exec|system|passthru|proc_open|curl_exec|fsockopen)\b"
-            ),
+            "time_date_logic": re.compile(r"\b(strtotime|DateTime(?:Immutable)?|date_create|time\s*\(|date\s*\()\b"),
+            "ipc_rpc_bridges": re.compile(r"\b(shell_exec|exec|system|passthru|proc_open|curl_exec|fsockopen)\b"),
         },
     },
     "powershell": {
@@ -3243,7 +2893,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 4 (Hybrid Hash)
         # Rationale: PowerShell uses '#' for single-line comments but relies on
         # a unique '<# #>' syntax for multi-line block comments, requiring hybrid parsing logic.
-        "lexical_family": "embedded_syntax",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # PowerShell uses '#' for standard line-level literature.
@@ -3261,9 +2911,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # args: Parameters / Coupling. Captures the param block mass of functions and script files.
-            "args": re.compile(
-                r"\bparam\s*\([^)]*\)|\bfunction\s+[a-zA-Z0-9_-]+\s*\([^)]*\)", re.I
-            ),
+            "args": re.compile(r"\bparam\s*\([^)]*\)|\bfunction\s+[a-zA-Z0-9_-]+\s*\([^)]*\)", re.I),
             # linear: Sequential I/O & Network Boundaries. Structural boundaries defining scope (process, begin, end).
             # EXCLUDES access modifiers (hidden, static) to prevent Geometry Inflation.
             "linear": re.compile(
@@ -3277,9 +2925,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # class_start: Object / Entity Declarations. Defines OO boundaries (Classes and Enums).
-            "class_start": re.compile(
-                r"^[ \t]*(?:class|enum)\s+[a-zA-Z_]\w*", re.I | re.M
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:class|enum)\s+[a-zA-Z_]\w*", re.I | re.M),
             # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             # safety: Defensive Programming. Strict mode, validation attributes, and null-conditional access (?.).
             "safety": re.compile(
@@ -3292,9 +2938,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # danger: High-Risk Execution. Dynamic code execution and process terminators.
-            "danger": re.compile(
-                r"\b(Invoke-Expression|iex|Stop-Process|kill|Exit)\b", re.I
-            ),
+            "danger": re.compile(r"\b(Invoke-Expression|iex|Stop-Process|kill|Exit)\b", re.I),
             # io: I/O & Network Boundaries. Disk, Network, and URL fetching (Includes CERN/TBL legacy emulation triggers).
             "io": re.compile(
                 r"\b(Get-Content|Set-Content|Out-File|Invoke-WebRequest|iwr|Invoke-RestMethod|irm|TcpClient|HttpListener|HTLoad|HTGet|ENQUIRE)\b",
@@ -3327,9 +2971,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 12. graveyard (Dead / Commented-out Code)
             # Commented-out execution logic indicating dead features. Supports both `//` and `#` style comments.
-            "graveyard": re.compile(
-                r"(?:#|<#)[ \t]*(?:function|class|if|foreach|while|return)\b", re.I
-            ),
+            "graveyard": re.compile(r"(?:#|<#)[ \t]*(?:function|class|if|foreach|while|return)\b", re.I),
             # doc: Structured Documentation. Get-Help comment-based documentation.
             "doc": re.compile(
                 r"\.(?:SYNOPSIS|DESCRIPTION|PARAMETER|EXAMPLE|NOTES|LINK|INPUTS|OUTPUTS|ROLE)\b",
@@ -3418,9 +3060,7 @@ LANGUAGE_DEFINITIONS = {
             "macros": None,  # PowerShell lacks a preprocessor
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # PHP natively lacks pointers, but FFI (Foreign Function Interface) memory bounds are safely captured.
-            "pointers": re.compile(
-                r"\[(?:IntPtr|UIntPtr)\]|\[ref\]\s*\$[a-zA-Z_]\w*", re.I
-            ),
+            "pointers": re.compile(r"\[(?:IntPtr|UIntPtr)\]|\[ref\]\s*\$[a-zA-Z_]\w*", re.I),
             "memory_alloc": re.compile(
                 r"\[System\.Runtime\.InteropServices\.Marshal\]::(?:AllocHGlobal|AllocCoTaskMem)",
                 re.I,
@@ -3448,13 +3088,9 @@ LANGUAGE_DEFINITIONS = {
             # Low-level byte manipulation. CRITICAL: Removed the pipe '|' (PHP 8 Union Types), ampersand '&' (Pass-by-reference `&$var`), and used lookarounds for `<<` to prevent triggering on Heredocs (`<<<EOF`).
             "bitwise_hits": re.compile(r"-(?:band|bor|bxor|bnot|shl|shr)\b", re.I),
             # sync_locks: Barricades. Coordinated threading logic.
-            "sync_locks": re.compile(
-                r"\b(lock|Monitor|Mutex|Semaphore|atomic|WaitOne)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(lock|Monitor|Mutex|Semaphore|atomic|WaitOne)\b", re.I),
             # freeze_hits: Data Cryogenics. Immutability via Constant variables.
-            "freeze_hits": re.compile(
-                r"New-Variable\s+[^;]*?-Option\s+Constant|readonly", re.I
-            ),
+            "freeze_hits": re.compile(r"New-Variable\s+[^;]*?-Option\s+Constant|readonly", re.I),
             # cleanup: The Janitor. Resource release.
             "cleanup": re.compile(
                 r"\b(dispose|Remove-Variable|Remove-Item|Remove-Module|Stop-Transcript)\b",
@@ -3473,9 +3109,7 @@ LANGUAGE_DEFINITIONS = {
             "regex_execution": re.compile(
                 r"(?i)\b(-match|-replace|-split|Select-String|\[regex\]::(?:Match|Replace|Matches))\b"
             ),
-            "time_date_logic": re.compile(
-                r"(?i)\b(Get-Date|New-TimeSpan|Start-Sleep|Measure-Command)\b"
-            ),
+            "time_date_logic": re.compile(r"(?i)\b(Get-Date|New-TimeSpan|Start-Sleep|Measure-Command)\b"),
             "ipc_rpc_bridges": re.compile(
                 r"(?i)\b(Invoke-Command|Invoke-RestMethod|Invoke-WebRequest|Start-Process|Start-Job|Enter-PSSession)\b"
             ),
@@ -3514,9 +3148,8 @@ LANGUAGE_DEFINITIONS = {
         # Thorough Shebang mapping: Essential for identifying extensionless scripts.
         "shebangs": ["bash", "sh", "zsh", "ksh", "dash", "ash", "rbash"],
         # UPGRADED: Maps to Family 3 (Pure Hash)
-        # Rationale: Relies strictly on '#' for line-level Ghost Mass; no native block delimiters.
-        "lexical_family": "single_line_only",
-
+        # Rationale: Relies strictly on '#' for line-level Commented / Non-Executable Text; no native block delimiters.
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Shell uses '#' for standard line-level literature.
@@ -3577,9 +3210,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 9. io (I/O & Network Boundaries)
             # Redirections, pipes, and network clients.
-            "io": re.compile(
-                r">|>>|<|\|(?:&)?|\b(curl|wget|nc|ssh|scp|ftp|rsync|cat|tail|grep|find|xargs|jq)\b"
-            ),
+            "io": re.compile(r">|>>|<|\|(?:&)?|\b(curl|wget|nc|ssh|scp|ftp|rsync|cat|tail|grep|find|xargs|jq)\b"),
             # 10. api (Public Surface Area)
             # Exported variables and identifiers modifying the global environment.
             "api": re.compile(r"^[ \t]*export\s+[a-zA-Z_]\w*", re.M),
@@ -3591,9 +3222,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 12. graveyard (Dead / Commented-out Code)
             # Commented-out execution logic indicating dead features.
-            "graveyard": re.compile(
-                r"#[ \t]*(?:if|for|while|function|export|echo|printf|cd|rm|sudo|ls)\b"
-            ),
+            "graveyard": re.compile(r"#[ \t]*(?:if|for|while|function|export|echo|printf|cd|rm|sudo|ls)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(
                 r"^[ \t]*#\s*(?:@param|@return|Usage:|Description:|Examples:|Options:)|#\s*shellcheck\s+disable",
@@ -3628,9 +3257,7 @@ LANGUAGE_DEFINITIONS = {
             "generics": None,
             # 21. comprehensions (Iterators / Comprehensions)
             # Brace expansions acting as inline loops.
-            "comprehensions": re.compile(
-                r"\{[0-9]+(?:\.\.|,)[0-9]+(?:\.\.[0-9]+)?\}|\{[a-zA-Z]\.\.[a-zA-Z]\}"
-            ),
+            "comprehensions": re.compile(r"\{[0-9]+(?:\.\.|,)[0-9]+(?:\.\.[0-9]+)?\}|\{[a-zA-Z]\.\.[a-zA-Z]\}"),
             # 22. scientific (Numerical / Compute Libraries)
             "scientific": re.compile(r"\b(bc|awk|dc|expr|jq|RANDOM|SRANDOM)\b|\$\(\("),
             # 23. heat_triggers (Metaprogramming & Reflection)
@@ -3639,9 +3266,7 @@ LANGUAGE_DEFINITIONS = {
                 r'\$\([^)]+\)|`[^`]+`|\b(?:awk|sed|perl|python[23]?|ruby)\s+[\'"][^\'"]{0,500}|\beval\s+\$|\$\{!?[a-zA-Z0-9_]+\}'
             ),
             # 24. import (Dependency Inclusions)
-            "import": re.compile(
-                r"(?:^|[ \t;|&])(?:source\b|\.(?=[ \t]))[ \t]+[^\s;]+", re.M
-            ),
+            "import": re.compile(r"(?:^|[ \t;|&])(?:source\b|\.(?=[ \t]))[ \t]+[^\s;]+", re.M),
             "_dependency_capture": re.compile(
                 # =====================================================================
                 # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (SHELL) ]
@@ -3680,9 +3305,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"#\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"#\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -3696,9 +3319,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(mkfifo|mknod|inotifywait|inotifywatch|fswatch|tail\s+-f|kill\s+-(?:SIG)?(?:USR1|USR2|HUP|TERM))\b"
             ),
             # 33. dependency_injection (Dependency Injection / IoC)
-            "dependency_injection": re.compile(
-                r"\$\{1:-\w+\}|\$\{2:-\w+\}|\b(?:command\s+-v|type\s+-p)\b"
-            ),
+            "dependency_injection": re.compile(r"\$\{1:-\w+\}|\$\{2:-\w+\}|\b(?:command\s+-v|type\s+-p)\b"),
             # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(r"^[ \t]*(?:alias|shopt)\b", re.M),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
@@ -3718,9 +3339,7 @@ LANGUAGE_DEFINITIONS = {
             # 40. cast_hits
             "cast_hits": None,
             # 41. bailout_hits (Execution Halts / Panics)
-            "bailout_hits": re.compile(
-                r"\b(exit|kill|abort|halt|return\s+[1-9][0-9]*)\b"
-            ),
+            "bailout_hits": re.compile(r"\b(exit|kill|abort|halt|return\s+[1-9][0-9]*)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(sleep|read\s+-t)\b"),
             # 43. bitwise_hits (Bitwise Operations)
@@ -3742,9 +3361,7 @@ LANGUAGE_DEFINITIONS = {
             "serialization_parsing": re.compile(r"\b(jq|yq|awk|sed|xmlstarlet)\b"),
             "regex_execution": re.compile(r"\b(grep|egrep|sed|awk)\b|=~"),
             "time_date_logic": re.compile(r"\b(date\s+|sleep\s+|uptime|times)\b"),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(curl|wget|nc|netcat|ssh|scp|xargs|socat)\b"
-            ),
+            "ipc_rpc_bridges": re.compile(r"\b(curl|wget|nc|netcat|ssh|scp|xargs|socat)\b"),
         },
     },
     "ruby": {
@@ -3795,7 +3412,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 4 (Hybrid Hash)
         # Rationale: Uses '#' for single-line comments, but multi-line literature
         # utilizes the `=begin ... =end` block syntax, requiring hybrid parsing rules.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Ruby uses '#' for standard line-level literature (Commented / Non-Executable Text).
@@ -3853,9 +3470,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 8. danger (High-Risk Execution / System Calls)
             # Process killers and shell execution. EXCLUDES puts (Phase 5).
-            "danger": re.compile(
-                r"\b(abort|exit|exit!|system|exec|spawn|fork)\b|`[^`]+`|IO\.popen"
-            ),
+            "danger": re.compile(r"\b(abort|exit|exit!|system|exec|spawn|fork)\b|`[^`]+`|IO\.popen"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|Dir|IO|Net::HTTP|URI\.open|Socket|TCPSocket|FileUtils|ActiveRecord::Base|find|where|create|update|destroy)\b"
@@ -3872,9 +3487,7 @@ LANGUAGE_DEFINITIONS = {
                 r"@[a-zA-Z_]\w*\s*(?:\+|-|\*|/)?=|@@[a-zA-Z_]\w*\s*(?:\+|-|\*|/)?=|\b(?:push|pop|shift|unshift|delete|clear|merge!|update!|gsub!|map!|select!|reject!)\b|<<"
             ),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"#[ \t]*(?:def|class|module|if|unless|while|puts|p)\b"
-            ),
+            "graveyard": re.compile(r"#[ \t]*(?:def|class|module|if|unless|while|puts|p)\b"),
             # 13. doc (Structured Documentation)
             # Captures YARD tags, Sorbet signatures, RDoc blocks/modifiers, and standard documentation headers.
             "doc": re.compile(
@@ -3895,13 +3508,9 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(ActionView|render|render_to_string|ViewComponent::Base|Phlex::HTML|form_with|form_for|link_to|stylesheet_link_tag|Turbo|Stimulus|Hotwire)\b|<%|%>"
             ),
             # 17. closures (Closures / Anonymous Functions)
-            "closures": re.compile(
-                r"\b(?:do\s*\|[^|]*\||do\b|\{\s*\|[^|]*\||->\s*(?:\([^)]*\))?[ \t]*\{)"
-            ),
+            "closures": re.compile(r"\b(?:do\s*\|[^|]*\||do\b|\{\s*\|[^|]*\||->\s*(?:\([^)]*\))?[ \t]*\{)"),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"\$[a-zA-Z_]\w*|\b(ENV|ARGV|ARGF|STDIN|STDOUT|STDERR|RUBY_VERSION)\b"
-            ),
+            "globals": re.compile(r"\$[a-zA-Z_]\w*|\b(ENV|ARGV|ARGF|STDIN|STDOUT|STDERR|RUBY_VERSION)\b"),
             # 19. decorators (Decorators / Annotations)
             # Rails class macros acting as metadata descriptors.
             "decorators": re.compile(
@@ -3910,26 +3519,20 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 20. generics (Generics / Type Parameters)
             # Sorbet parameterized types.
-            "generics": re.compile(
-                r"\b(?:T::|::T::)?(?:Array|Hash|Set|Enumerable|Class)\[[^\]]*\]"
-            ),
+            "generics": re.compile(r"\b(?:T::|::T::)?(?:Array|Hash|Set|Enumerable|Class)\[[^\]]*\]"),
             # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|collect|select|reject|reduce|inject|filter_map|flat_map|each_with_object|partition|group_by)\b(?:[ \t]*\{|\s*do)"
             ),
             # 22. scientific (Numerical / Compute Libraries)
-            "scientific": re.compile(
-                r"\b(Math|Complex|Rational|Matrix|Vector|Numo::NArray|BigDecimal)\b"
-            ),
+            "scientific": re.compile(r"\b(Math|Complex|Rational|Matrix|Vector|Numo::NArray|BigDecimal)\b"),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Metaprogramming and runtime object extensions.
             "heat_triggers": re.compile(
                 r"\b(method_missing|define_method|const_missing|respond_to_missing\?|included|extended|prepended|class\s*<<\s*self)\b"
             ),
             # 24. import (Dependency Inclusions)
-            "import": re.compile(
-                r"\b(?:require|require_relative|load|autoload)\b[^'\"]*['\"]", re.M
-            ),
+            "import": re.compile(r"\b(?:require|require_relative|load|autoload)\b[^'\"]*['\"]", re.M),
             "_dependency_capture": re.compile(
                 # =====================================================================
                 # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (RUBY) ]
@@ -3956,18 +3559,14 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"#\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"#\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -3975,13 +3574,9 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(ActionController::Base|ActionController::API|Sinatra::Base|Hanami::Action|respond_to|format\.html|format\.json)\b"
             ),
             # 32. events (Event Emitters / Pub-Sub)
-            "events": re.compile(
-                r"\b(Wisper|broadcast|subscribe|ActiveSupport::Notifications\.instrument|publish)\b"
-            ),
+            "events": re.compile(r"\b(Wisper|broadcast|subscribe|ActiveSupport::Notifications\.instrument|publish)\b"),
             # 33. dependency_injection (Dependency Injection / IoC)
-            "dependency_injection": re.compile(
-                r"\b(Dry::Container|Dry::AutoInject|include\s+Import|inject)\b"
-            ),
+            "dependency_injection": re.compile(r"\b(Dry::Container|Dry::AutoInject|include\s+Import|inject)\b"),
             # 34. macros (Preprocessor Directives / Macros)
             # Ruby DSL macros.
             "macros": re.compile(
@@ -3989,13 +3584,9 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
-            "pointers": re.compile(
-                r"\b(FFI::Pointer|Fiddle::Pointer|Fiddle::Function)\b"
-            ),
+            "pointers": re.compile(r"\b(FFI::Pointer|Fiddle::Pointer|Fiddle::Function)\b"),
             # 36. memory_alloc (Manual Memory Management)
-            "memory_alloc": re.compile(
-                r"\b(ObjectSpace|GC\.start|GC\.disable|GC\.enable|FFI::MemoryPointer)\b"
-            ),
+            "memory_alloc": re.compile(r"\b(ObjectSpace|GC\.start|GC\.disable|GC\.enable|FFI::MemoryPointer)\b"),
             # 37. inline_asm
             "inline_asm": None,
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
@@ -4006,9 +3597,7 @@ LANGUAGE_DEFINITIONS = {
             # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(puts|print|p|pp|warn)\b"),
             # 40. cast_hits (Explicit Type Casting)
-            "cast_hits": re.compile(
-                r"\b(Integer|Float|String|Array|Hash|Complex|Rational)\b\s*\("
-            ),
+            "cast_hits": re.compile(r"\b(Integer|Float|String|Array|Hash|Complex|Rational)\b\s*\("),
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(raise|fail|abort|exit!)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
@@ -4016,15 +3605,11 @@ LANGUAGE_DEFINITIONS = {
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"\^|(?<![=!])~"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(mutex|lock|synchronized|Semaphore|Monitor|Atomic[A-Z]\w*)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(mutex|lock|synchronized|Semaphore|Monitor|Atomic[A-Z]\w*)\b", re.I),
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(freeze|frozen_string_literal|immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(close|GC\.start|dispose|shutdown|cleanup)\b\s*\("
-            ),
+            "cleanup": re.compile(r"\b(close|GC\.start|dispose|shutdown|cleanup)\b\s*\("),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             # Visibility modifiers in Ruby.
             "encapsulation": re.compile(r"\b(private|protected)\b"),
@@ -4033,18 +3618,10 @@ LANGUAGE_DEFINITIONS = {
             # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(skip|xit|xdescribe|mock|stub|double)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Ruby Specifics) ---
-            "serialization_parsing": re.compile(
-                r"\b(JSON\.parse|YAML\.load|Marshal\.load|Nokogiri::(?:XML|HTML))\b"
-            ),
-            "regex_execution": re.compile(
-                r"\b(Regexp\.new)\b|\.(match|scan|gsub|sub)\b|=~"
-            ),
-            "time_date_logic": re.compile(
-                r"\b(Time\.now|Date\.today|DateTime\.now|sleep)\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(Open3|system\s*\(|IO\.popen|Net::HTTP|TCPSocket|%x\{)\b"
-            ),
+            "serialization_parsing": re.compile(r"\b(JSON\.parse|YAML\.load|Marshal\.load|Nokogiri::(?:XML|HTML))\b"),
+            "regex_execution": re.compile(r"\b(Regexp\.new)\b|\.(match|scan|gsub|sub)\b|=~"),
+            "time_date_logic": re.compile(r"\b(Time\.now|Date\.today|DateTime\.now|sleep)\b"),
+            "ipc_rpc_bridges": re.compile(r"\b(Open3|system\s*\(|IO\.popen|Net::HTTP|TCPSocket|%x\{)\b"),
         },
     },
     "swift": {
@@ -4065,7 +3642,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: Supports nested block comments (/* /* */ */), necessitating depth-aware stripping
         # rather than standard C-style early termination.
-        "lexical_family": "recursive_c_style",
+        "lexical_family": "recursive_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token
@@ -4134,9 +3711,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 8. danger (High-Risk Execution / System Calls)
             # Fatal traps and process killers. EXCLUDES TODO (debt) and print (print_hits).
-            "danger": re.compile(
-                r"\b(fatalError|preconditionFailure|assertionFailure|abort|exit)\b"
-            ),
+            "danger": re.compile(r"\b(fatalError|preconditionFailure|assertionFailure|abort|exit)\b"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(URLSession|FileManager|FileHandle|Data\(contentsOf:|write\(to:|UserDefaults|CoreData|SwiftData|NWConnection)\b"
@@ -4152,13 +3727,9 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(var|inout|mutating|didSet|willSet|_modify)\b|@(?:State|Binding|FocusState|Bindable|Observable)|^[ \t]*(?:self\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*){0,5}\s*[-+*/]?=|\.(?:append|insert|remove|toggle|updateValue)\("
             ),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"//[ \t]*(?:let|var|func|class|struct|actor|extension|if|guard|return)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:let|var|func|class|struct|actor|extension|if|guard|return)\b"),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"///|/\*\*|-\s*parameter|-\s*returns:|-\s*throws:|-\s*warning:"
-            ),
+            "doc": re.compile(r"///|/\*\*|-\s*parameter|-\s*returns:|-\s*throws:|-\s*warning:"),
             # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(?:XCTest|XCTestCase|XCTAssert[A-Za-z]*|setUp|tearDown)\b|@(?:Test|Suite)\b|#(?:expect|require)\b"
@@ -4183,9 +3754,7 @@ LANGUAGE_DEFINITIONS = {
             # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"@[a-zA-Z_]\w*(?:\([^)]*\))?"),
             # 20. generics (Generics / Type Parameters)
-            "generics": re.compile(
-                r"<\s*[A-Z][^>]*>|\bwhere\s+[a-zA-Z_]\w*\s*:|\b(?:some|any|each)\s+[A-Z]\w*"
-            ),
+            "generics": re.compile(r"<\s*[A-Z][^>]*>|\bwhere\s+[a-zA-Z_]\w*\s*:|\b(?:some|any|each)\s+[A-Z]\w*"),
             # 21. comprehensions (Iterators / Comprehensions)
             "comprehensions": re.compile(
                 r"\.(?:map|compactMap|flatMap|filter|reduce|forEach|allSatisfy|contains)\s*(?:\(|\{)"
@@ -4200,26 +3769,20 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(@objc|dynamic|Mirror\(|unsafeBitCast|withUnsafe\w+|KeyPath|WritableKeyPath)\b|\\\.[\w.]+"
             ),
             # 24. import (Dependency Inclusions)
-            "import": re.compile(
-                r"^[ \t]*(?:@_exported[ \t]+)?import\s+[a-zA-Z_]\w*", re.M
-            ),
+            "import": re.compile(r"^[ \t]*(?:@_exported[ \t]+)?import\s+[a-zA-Z_]\w*", re.M),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:@_exported[ \t]+)?import\s+(?:(?:typealias|struct|class|enum|protocol|let|var|func)\s+)?([a-zA-Z_][\w.]+)",
                 re.M,
             ),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"//\s*(?:Created by|Author:|Copyright):\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"//\s*(?:Created by|Author:|Copyright):\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -4261,9 +3824,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\bas[!?]?\s+[A-Z]\w*|\bis\s+[A-Z]\w*|\b(?:Int|Double|Float|Float16|CGFloat|String|Bool)\s*\("
             ),
             # 41. bailout_hits (Execution Halts / Panics)
-            "bailout_hits": re.compile(
-                r"\b(throw|fatalError|abort|exit|preconditionFailure)\b"
-            ),
+            "bailout_hits": re.compile(r"\b(throw|fatalError|abort|exit|preconditionFailure)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(sleep|delay|Task\.sleep)\b"),
             # 43. bitwise_hits (Bitwise Operations)
@@ -4274,19 +3835,13 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 45. freeze_hits (Immutability Constraints)
-            "freeze_hits": re.compile(
-                r"\b(let|final|static|readonly|Immutable|Sendable)\b"
-            ),
+            "freeze_hits": re.compile(r"\b(let|final|static|readonly|Immutable|Sendable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(deinit|close|free|dispose|shutdown|removeAll)\b\s*\("
-            ),
+            "cleanup": re.compile(r"\b(deinit|close|free|dispose|shutdown|removeAll)\b\s*\("),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|fileprivate|internal)\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\.onAppear\(|\.onChange\(|\.sink\(|addObserver|subscribe"
-            ),
+            "listeners": re.compile(r"\.onAppear\(|\.onChange\(|\.sink\(|addObserver|subscribe"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(XCTSkip|mock\(|stub\(|fake\(|double\()\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Swift Specifics) ---
@@ -4327,7 +3882,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: (CORRECTION) While Kotlin uses // and /* */, it officially allows nested
         # block comments (/* /* */ */). Using standard C parsing would cause early termination here.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token
@@ -4392,9 +3947,7 @@ LANGUAGE_DEFINITIONS = {
             "safety_neg": re.compile(r"!!|as(?!\?)\b|\blateinit\s+var\b|@Suppress\b"),
             # 8. danger (High-Risk Execution / System Calls)
             # Process killers and raw system triggers. EXCLUDES println (Phase 5).
-            "danger": re.compile(
-                r"\b(System\.exit|exitProcess|Runtime\.getRuntime|Thread\.stop)\b"
-            ),
+            "danger": re.compile(r"\b(System\.exit|exitProcess|Runtime\.getRuntime|Thread\.stop)\b"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|InputStream|OutputStream|Retrofit|OkHttpClient|Ktor|HttpClient|RoomDatabase|Dao|SharedPreferences|DataStore|java\.nio)\b"
@@ -4411,13 +3964,9 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"//[ \t]*(?:val|var|fun|class|interface|object|if|when|for|return|import)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:val|var|fun|class|interface|object|if|when|for|return|import)\b"),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"/\*\*|@param|@return|@property|@receiver|@constructor|@throws|@see|@since"
-            ),
+            "doc": re.compile(r"/\*\*|@param|@return|@property|@receiver|@constructor|@throws|@see|@since"),
             # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"@(?:Test|ParameterizedTest|BeforeTest|AfterTest)|\b(?:assert[A-Za-z0-9_]*|mockk|spyk|test)\s*\(|\b(?:shouldBe|shouldNotBe)\b|\b(?:every|verify)\s*\{"
@@ -4433,9 +3982,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 17. closures (Closures / Anonymous Functions)
             # OPTIMIZED: Removed overlapping whitespace quantifiers to fix ReDoS.
-            "closures": re.compile(
-                r"\{[ \t\n]*[a-zA-Z_][a-zA-Z0-9_ \t\n:<>,.?]{0,150}?->"
-            ),
+            "closures": re.compile(r"\{[ \t\n]*[a-zA-Z_][a-zA-Z0-9_ \t\n:<>,.?]{0,150}?->"),
             # 18. globals (Global / Shared State)
             "globals": re.compile(
                 r"\b(object|companion\s+object)\b|^[ \t]*(?:const[ \t]+)?val\s+[A-Z_0-9]+[ \t]*=",
@@ -4443,14 +3990,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 19. decorators (Decorators / Annotations)
             # OPTIMIZED: Bounded arguments.
-            "decorators": re.compile(
-                r"@[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\([^)\{]{0,300}\))?"
-            ),
+            "decorators": re.compile(r"@[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\([^)\{]{0,300}\))?"),
             # 20. generics (Generics / Type Parameters)
             # Prevented catastrophic backtracking across newlines.
-            "generics": re.compile(
-                r"<\s*(?:in|out)?\s*[A-Z][^>\n]{0,100}>|\breified\b|\bwhere\b"
-            ),
+            "generics": re.compile(r"<\s*(?:in|out)?\s*[A-Z][^>\n]{0,100}>|\breified\b|\bwhere\b"),
             # 21. comprehensions (Iterators / Comprehensions)
             # Functional collection transformations.
             "comprehensions": re.compile(
@@ -4467,9 +4010,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (Dependency Inclusions)
             "import": re.compile(r"^[ \t]*import\s+(?:static[ \t]+)?[\w.]+;?", re.M),
-            "_dependency_capture": re.compile(
-                r"^[ \t]*import[ \t\n]+(?:static[ \t\n]+)?([\w.*]+)", re.M
-            ),
+            "_dependency_capture": re.compile(r"^[ \t]*import[ \t\n]+(?:static[ \t\n]+)?([\w.*]+)", re.M),
             # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"@(?:author|since)\s+(.*)|//\s*(?:Created by|Maintainer|Copyright):\s+(.*)",
@@ -4481,9 +4022,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -4499,18 +4038,12 @@ LANGUAGE_DEFINITIONS = {
                 r"@(?:Inject|Module|Provides|Binds|HiltViewModel|AndroidEntryPoint|Component|Autowired)|(?:koin|get|inject)\(\)"
             ),
             # 34. macros (Preprocessor Directives / Macros)
-            "macros": re.compile(
-                r"@(?:OptIn|RequiresOptIn|Suppress|SuppressWarnings)\b"
-            ),
+            "macros": re.compile(r"@(?:OptIn|RequiresOptIn|Suppress|SuppressWarnings)\b"),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Kotlin/Native FFI boundaries.
-            "pointers": re.compile(
-                r"\b(?:CPointer|COpaquePointer|CFunction|CValue|CPointed)\b"
-            ),
+            "pointers": re.compile(r"\b(?:CPointer|COpaquePointer|CFunction|CValue|CPointed)\b"),
             # 36. memory_alloc (Manual Memory Management)
-            "memory_alloc": re.compile(
-                r"\b(?:memScoped|alloc|allocArray|nativeHeap\.alloc|nativeHeap\.free)\b"
-            ),
+            "memory_alloc": re.compile(r"\b(?:memScoped|alloc|allocArray|nativeHeap\.alloc|nativeHeap\.free)\b"),
             # 37. inline_asm
             "inline_asm": None,  # Usually bridged via C-headers in Native.
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
@@ -4529,13 +4062,9 @@ LANGUAGE_DEFINITIONS = {
             # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(delay|Thread\.sleep|yield)\b"),
             # 43. bitwise_hits (Bitwise Operations)
-            "bitwise_hits": re.compile(
-                r"\.(?:shl|shr|ushr|and|or|xor|inv)\(|\b(?:shl|shr|ushr|xor)\b"
-            ),
+            "bitwise_hits": re.compile(r"\.(?:shl|shr|ushr|and|or|xor|inv)\(|\b(?:shl|shr|ushr|xor)\b"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(mutex|lock|synchronized|Semaphore|Atomic[A-Z]\w*)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(mutex|lock|synchronized|Semaphore|Atomic[A-Z]\w*)\b", re.I),
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(val|const|immutable|readonly)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -4543,26 +4072,18 @@ LANGUAGE_DEFINITIONS = {
             # 47. encapsulation (Access Modifiers / Encapsulation)
             "encapsulation": re.compile(r"\b(private|protected|internal)\b"),
             # 48. listeners (Event Listeners / Observers)
-            "listeners": re.compile(
-                r"\.(?:collect|observe|subscribe|on[A-Z]\w*|set[A-Z]\w*Listener)\("
-            ),
+            "listeners": re.compile(r"\.(?:collect|observe|subscribe|on[A-Z]\w*|set[A-Z]\w*Listener)\("),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"@(?:Ignore|Disabled)|test\.skip\(|mockk|spyK|fake\("
-            ),
+            "test_skip": re.compile(r"@(?:Ignore|Disabled)|test\.skip\(|mockk|spyK|fake\("),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Kotlin Specifics) ---
             "serialization_parsing": re.compile(
                 r"\b(Json\.decodeFromString|Json\.encodeToString|Gson\(\)|Moshi|ObjectMapper)\b"
             ),
-            "regex_execution": re.compile(
-                r"\b(Regex\(\)|\.toRegex\(\)|\.matches\(|\.find\()\b"
-            ),
+            "regex_execution": re.compile(r"\b(Regex\(\)|\.toRegex\(\)|\.matches\(|\.find\()\b"),
             "time_date_logic": re.compile(
                 r"\b(Clock\.System\.now|Instant\.now|System\.currentTimeMillis|Duration\.minutes|LocalDate)\b"
             ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(Intent\(|BroadcastReceiver|HttpClient\(|ProcessBuilder|bindService)\b"
-            ),
+            "ipc_rpc_bridges": re.compile(r"\b(Intent\(|BroadcastReceiver|HttpClient\(|ProcessBuilder|bindService)\b"),
         },
     },
     "sqlite": {
@@ -4590,7 +4111,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["sqlite3", "sqlite"],
         # UPGRADED: Maps to Family 5 (Hybrid Dash)
         # Rationale: Uses '--' for line-level and '/*' '*/' for block-level Commented / Non-Executable Text.
-        "lexical_family": "multi_style_dash",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # SQLite uses '--' for standard line-level literature.
@@ -4657,9 +4178,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 8. danger (High-Risk Execution / System Calls)
             # Destructive schema actions and system bypasses.
-            "danger": re.compile(
-                r"\b(PRAGMA\s+legacy_alter_table|DROP\s+DATABASE|\.shell|\.system|\.exit|\.quit)\b"
-            ),
+            "danger": re.compile(r"\b(PRAGMA\s+legacy_alter_table|DROP\s+DATABASE|\.shell|\.system|\.exit|\.quit)\b"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(SELECT|INSERT|UPDATE|DELETE|REPLACE|ATTACH\s+DATABASE|DETACH\s+DATABASE|\.import|\.output|\.dump|\.read|readfile|writefile)\b",
@@ -4683,9 +4202,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"--\s*@(?:param|return|brief|table|column)|/\*\*|--\s*Description:"
-            ),
+            "doc": re.compile(r"--\s*@(?:param|return|brief|table|column)|/\*\*|--\s*Description:"),
             # 14. test (Testing & Assertions)
             "test": re.compile(
                 r"\b(?:EXPLAIN[ \t]+QUERY[ \t]+PLAN|PRAGMA[ \t]+integrity_check|PRAGMA[ \t]+foreign_key_check|\.testcase|\.lint)\b",
@@ -4742,18 +4259,14 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"--\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"--\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"--\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"--\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
@@ -4794,38 +4307,26 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # 40. cast_hits (Explicit Type Casting)
-            "cast_hits": re.compile(
-                r"\bCAST[ \t]*\([^)]+[ \t]+AS[ \t]+[a-zA-Z_]+\s*\)", re.I
-            ),
+            "cast_hits": re.compile(r"\bCAST[ \t]*\([^)]+[ \t]+AS[ \t]+[a-zA-Z_]+\s*\)", re.I),
             # 41. bailout_hits (Execution Halts / Panics)
-            "bailout_hits": re.compile(
-                r"\b(ABORT|RAISE|EXIT|QUIT)\b|\.exit|\.quit", re.I
-            ),
+            "bailout_hits": re.compile(r"\b(ABORT|RAISE|EXIT|QUIT)\b|\.exit|\.quit", re.I),
             # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\bPRAGMA\s+busy_timeout\b|\.pause", re.I),
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|\^|~|(?<!\|)\|(?!\|)"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(BEGIN\s+EXCLUSIVE|BEGIN\s+IMMEDIATE|PRAGMA\s+synchronous)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(BEGIN\s+EXCLUSIVE|BEGIN\s+IMMEDIATE|PRAGMA\s+synchronous)\b", re.I),
             # 45. freeze_hits (Immutability Constraints)
-            "freeze_hits": re.compile(
-                r"\b(STRICT|WITHOUT\s+ROWID|CONSTANT|READONLY)\b", re.I
-            ),
+            "freeze_hits": re.compile(r"\b(STRICT|WITHOUT\s+ROWID|CONSTANT|READONLY)\b", re.I),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"\b(DROP\s+TABLE|VACUUM|DETACH|CLOSE|CLEAR|DELETE\s+FROM)\b", re.I
-            ),
+            "cleanup": re.compile(r"\b(DROP\s+TABLE|VACUUM|DETACH|CLOSE|CLEAR|DELETE\s+FROM)\b", re.I),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             # Temporary/Local scopes and hidden columns.
             "encapsulation": re.compile(r"\b(TEMP|TEMPORARY|HIDDEN)\b", re.I),
             # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(BEFORE\s+|AFTER\s+|INSTEAD\s+OF)\b", re.I),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\.testcase\s+skip|\bPRAGMA\s+ignore_check_constraints\b", re.I
-            ),
+            "test_skip": re.compile(r"\.testcase\s+skip|\bPRAGMA\s+ignore_check_constraints\b", re.I),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (SQLite / SQL Specifics) ---
             "serialization_parsing": re.compile(
                 r"(?i)\b(json_extract|json_tree|json_each|json_object|json_array|json_type)\b"
@@ -4834,9 +4335,7 @@ LANGUAGE_DEFINITIONS = {
             "time_date_logic": re.compile(
                 r"(?i)\b(strftime|datetime|julianday|unixepoch|current_timestamp|current_date|current_time)\b"
             ),
-            "ipc_rpc_bridges": re.compile(
-                r"(?i)\b(ATTACH\s+DATABASE|DETACH\s+DATABASE|PRAGMA)\b"
-            ),
+            "ipc_rpc_bridges": re.compile(r"(?i)\b(ATTACH\s+DATABASE|DETACH\s+DATABASE|PRAGMA)\b"),
         },
     },
     "html": {
@@ -4874,7 +4373,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: Uses SGML-style block delimiters () exclusively; no single-line anchor.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # EXPLICIT: HTML has no native single-line comment anchor.
@@ -5007,9 +4506,7 @@ LANGUAGE_DEFINITIONS = {
                 r'<script\s+type="(?:importmap|module)"|<link\s+(?:rel="stylesheet"|rev="[^"]*")',
                 re.I,
             ),
-            "_dependency_capture": re.compile(
-                r'<(?:script[^>]+src|link[^>]+href)\s*=\s*["\']([^"\']+)["\']', re.I
-            ),
+            "_dependency_capture": re.compile(r'<(?:script[^>]+src|link[^>]+href)\s*=\s*["\']([^"\']+)["\']', re.I),
             # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r'<meta\s+name="(?:author|creator|publisher)"\s+content="([^"]+)"|<link\s+rev="made"\s+href="mailto:[^"]+"',
@@ -5021,9 +4518,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -5042,9 +4537,7 @@ LANGUAGE_DEFINITIONS = {
             "dependency_injection": re.compile(r'<script\s+type="importmap"\b', re.I),
             # 34. macros (Preprocessor Directives / Macros)
             # Server Side Includes (SSI).
-            "macros": re.compile(
-                r"<!--#\s*(?:include|exec|echo|config|if|else|endif)\b", re.I
-            ),
+            "macros": re.compile(r"<!--#\s*(?:include|exec|echo|config|if|else|endif)\b", re.I),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Fragment identifiers and original name pointers.
             "pointers": None,
@@ -5068,9 +4561,7 @@ LANGUAGE_DEFINITIONS = {
             # 40. cast_hits
             "cast_hits": None,
             # 41. bailout_hits (Execution Halts / Panics)
-            "bailout_hits": re.compile(
-                r"\b(?:process\.exit|history\.back|window\.close)\s*\(", re.I
-            ),
+            "bailout_hits": re.compile(r"\b(?:process\.exit|history\.back|window\.close)\s*\(", re.I),
             # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(?:setTimeout|setInterval)\s*\(", re.I),
             # 43. bitwise_hits
@@ -5078,9 +4569,7 @@ LANGUAGE_DEFINITIONS = {
             # 44. sync_locks (Thread Synchronization / Locks)
             "sync_locks": None,
             # 45. freeze_hits (Immutability Constraints)
-            "freeze_hits": re.compile(
-                r'\b(?:readonly|disabled|inert|aria-disabled="true")\b', re.I
-            ),
+            "freeze_hits": re.compile(r'\b(?:readonly|disabled|inert|aria-disabled="true")\b', re.I),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r'\b(?:removeEventListener|clearInterval|clearTimeout|remove|innerHTML\s*=\s*[\'"][\'"])\s*\(',
@@ -5091,13 +4580,9 @@ LANGUAGE_DEFINITIONS = {
             "encapsulation": re.compile(r"<(?:template|shadowrootmode|slot)\b", re.I),
             # 48. listeners (Event Listeners / Observers)
             # Event sinks waiting for state broadcast.
-            "listeners": re.compile(
-                r"\bhx-trigger|v-on:|@[a-z]+=|addEventListener|on[a-z]+=", re.I
-            ),
+            "listeners": re.compile(r"\bhx-trigger|v-on:|@[a-z]+=|addEventListener|on[a-z]+=", re.I),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\b(?:data-skip|data-ignore|mock-data|test-skip)\b", re.I
-            ),
+            "test_skip": re.compile(r"\b(?:data-skip|data-ignore|mock-data|test-skip)\b", re.I),
         },
     },
     "css": {
@@ -5123,7 +4608,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Uses '/*' and '*/' for blocks; preprocessors add '//' for lines.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Standard C-family line comment token (Supported in SCSS/SASS/LESS).
@@ -5174,9 +4659,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Universal selectors and high-specificity ID overrides.
-            "safety_neg": re.compile(
-                r"^[ \t]*\*|^[ \t]*#[\w-]+\s*(?:[:.[>+~][^{;]*)?\{", re.M | re.I
-            ),
+            "safety_neg": re.compile(r"^[ \t]*\*|^[ \t]*#[\w-]+\s*(?:[:.[>+~][^{;]*)?\{", re.M | re.I),
             # 8. danger (High-Risk Execution / System Calls)
             # Extreme tech debt and legacy engine thrashing.
             "danger": re.compile(r"\b(?:expression|behavior|-ms-filter)\b"),
@@ -5192,9 +4675,7 @@ LANGUAGE_DEFINITIONS = {
             "io": None,
             # 10. api (Public Surface Area)
             # Design Tokens and global properties exposed for script/component consumption.
-            "api": re.compile(
-                r":root\b|@property\b|--[a-zA-Z0-9_-]+\s*:|::part\s*\([^)]*\)", re.I
-            ),
+            "api": re.compile(r":root\b|@property\b|--[a-zA-Z0-9_-]+\s*:|::part\s*\([^)]*\)", re.I),
             # 11. flux (State Mutation)
             # =====================================================================
             # THE FIX: Prevent 'Declarative Hallucination' of State Flux.
@@ -5217,9 +4698,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 14. test (Testing & Assertions)
-            "test": re.compile(
-                r"\[[ \t]*data-(?:testid|cy|test|test-id|qa)[ \t]*[=\]]", re.I
-            ),
+            "test": re.compile(r"\[[ \t]*data-(?:testid|cy|test|test-id|qa)[ \t]*[=\]]", re.I),
             # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency (Asynchronous Execution)
             # Logic executing concurrently on the GPU.
@@ -5232,13 +4711,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 17. closures (Closures / Anonymous Functions)
             # Native CSS Nesting (&).
-            "closures": re.compile(
-                r"(?:^[ \t]*|\s+|,)&\s*(?:[:.\[>+~][^{;]*)?\{", re.M
-            ),
+            "closures": re.compile(r"(?:^[ \t]*|\s+|,)&\s*(?:[:.\[>+~][^{;]*)?\{", re.M),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"^[ \t]*(?::root|html|body|\*)\s*(?:{[^}]*}|[,{])", re.M | re.I
-            ),
+            "globals": re.compile(r"^[ \t]*(?::root|html|body|\*)\s*(?:{[^}]*}|[,{])", re.M | re.I),
             # 19. decorators
             "decorators": None,
             # 20. generics
@@ -5274,9 +4749,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]|\bfigma\.com/file/", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]|\bfigma\.com/file/", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
@@ -5313,9 +4786,7 @@ LANGUAGE_DEFINITIONS = {
             "cast_hits": None,
             # 41. bailout_hits (Execution Halts / Panics)
             # Execution resets.
-            "bailout_hits": re.compile(
-                r"\b(unset|initial|revert|revert-layer)\b", re.I
-            ),
+            "bailout_hits": re.compile(r"\b(unset|initial|revert|revert-layer)\b", re.I),
             # 42. halt_hits (Thread Blocking / Sleeps)
             "halt_hits": re.compile(r"\b(?:transition-delay|animation-delay)\b", re.I),
             # 43. bitwise_hits
@@ -5382,7 +4853,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["fortran", "f90", "f77", "gfortran"],
         # UPGRADED: Maps to Family 7 (The Positional Ancients)
         # Rationale: Fixed-format requires Column 1 monitoring ('C' or '*'); Free-format uses '!'.
-        "lexical_family": "column_sensitive",
+        "lexical_family": "positional_anchored",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Line Anchor Logic:
@@ -5522,9 +4993,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 12. graveyard (Dead / Commented-out Code)
             # Commented-out logic, commented-out structural code. Supports both Fortran 90+ (`!`) and legacy F77 (`C`/`*` in column 1).
-            "graveyard": re.compile(
-                r"(?i)(?:!|^[cC*])[ \t]*(?:if|do|where|call|function|subroutine|allocate)\b"
-            ),
+            "graveyard": re.compile(r"(?i)(?:!|^[cC*])[ \t]*(?:if|do|where|call|function|subroutine|allocate)\b"),
             # 13. doc (Structured Documentation)
             # Documentation meant to be parsed by generators (Doxygen style `!>`, `!<`, or `! @`).
             "doc": re.compile(
@@ -5555,9 +5024,7 @@ LANGUAGE_DEFINITIONS = {
             "globals": re.compile(r"\b(COMMON|SAVE|EXTERNAL)\b", re.I),
             # 19. decorators (Decorators / Annotations)
             # Fortran does not have Python-style decorators, but compiler directives heavily modify block execution behaviors.
-            "decorators": re.compile(
-                r"^[ \t]*(?:!DIR\$|cDEC\$|!\$OMP|!\$ACC)\b", re.I | re.M
-            ),
+            "decorators": re.compile(r"^[ \t]*(?:!DIR\$|cDEC\$|!\$OMP|!\$ACC)\b", re.I | re.M),
             # 20. generics (Generics / Type Parameters)
             # Fortran Generic Interfaces overriding operators/assignments, and Parameterized Derived Types (PDTs).
             # CRITICAL GUARDRAIL: Safely bounds `<[^>]*>` and parentheses `\([^)]*\)` to avoid ReDoS.
@@ -5567,9 +5034,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 21. comprehensions (Iterators / Comprehensions)
             # Modern Fortran implicit loops, array constructors (`[...]`, `(/.../)`), and parallel execution syntax (`DO CONCURRENT`, `FORALL`).
-            "comprehensions": re.compile(
-                r"\b(?:FORALL|DO\s+CONCURRENT)\b|\[[^\]]+\]|\(\/[^/]+\/\)", re.I
-            ),
+            "comprehensions": re.compile(r"\b(?:FORALL|DO\s+CONCURRENT)\b|\[[^\]]+\]|\(\/[^/]+\/\)", re.I),
             # 22. scientific (Numerical / Compute Libraries)
             # Native Fortran superpower: Vectorized matrix operations, tensor reductions, and strict scientific primitive typing.
             "scientific": re.compile(
@@ -5603,9 +5068,7 @@ LANGUAGE_DEFINITIONS = {
             # 29. spec_exposure (Spec / Audit Traceability)
             # Audit tags establishing traceability of intent back to physics papers or architectural specifications.
             # CRITICAL: Removed (?i) to enforce strict uppercase [SPEC-XYZ] tags and prevent prose collisions.
-            "spec_exposure": re.compile(
-                r"\[\s*(?:SPEC\s*-\s*\d+|AUDIT-[A-Z0-9_-]+)\s*\]"
-            ),
+            "spec_exposure": re.compile(r"\[\s*(?:SPEC\s*-\s*\d+|AUDIT-[A-Z0-9_-]+)\s*\]"),
             # 30. civil_war (Formatting Inconsistencies)
             # Identifies Tab indentation. In Legacy Fortran 77, columns strictly dictate syntax (1-5 label, 6 continuation, 7+ code).
             # Using tabs violates strict standard constraints, establishing heavy tech debt/formatter civil wars.
@@ -5631,9 +5094,7 @@ LANGUAGE_DEFINITIONS = {
             "pointers": re.compile(r"(?i)\bpointer\b|[ \t]*=>[ \t]*"),
             # 36. memory_alloc (Manual Memory Management)
             # Dynamic memory allocation managed explicitly by the developer on the heap.
-            "memory_alloc": re.compile(
-                r"\b(ALLOCATE|DEALLOCATE|MOVE_ALLOC|MALLOC|FREE)\b", re.I
-            ),
+            "memory_alloc": re.compile(r"\b(ALLOCATE|DEALLOCATE|MOVE_ALLOC|MALLOC|FREE)\b", re.I),
             # 37. inline_asm (The Bare Metal)
             # Fortran delegates assembly to standard C linkage. Inline ASM is explicitly not supported natively in Fortran code.
             "inline_asm": None,
@@ -5646,14 +5107,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 39. print_hits (Standard Output / Debug Prints)
             # Raw terminal output natively dumping to stdout.
-            "print_hits": re.compile(
-                r"\b(?:PRINT\b|WRITE\s*\(\s*(?:\*|6)\s*[,)])", re.I
-            ),
+            "print_hits": re.compile(r"\b(?:PRINT\b|WRITE\s*\(\s*(?:\*|6)\s*[,)])", re.I),
             # 40. cast_hits (Explicit Type Casting)
             # Forceful type coercion bypassing the safety engine. Strictly defining known Fortran intrinsic type conversion functions.
-            "cast_hits": re.compile(
-                r"(?i)\b(?:int|real|cmplx|dble|achar|char|iachar|ichar)[ \t]*\([^)]*\)"
-            ),
+            "cast_hits": re.compile(r"(?i)\b(?:int|real|cmplx|dble|achar|char|iachar|ichar)[ \t]*\([^)]*\)"),
             # 41. bailout_hits (Execution Halts / Panics)
             # Hard execution destruction and unrecoverable exceptions.
             "bailout_hits": re.compile(r"(?i)\b(?:stop|error[ \t]+stop|return)\b"),
@@ -5662,9 +5119,7 @@ LANGUAGE_DEFINITIONS = {
             "halt_hits": re.compile(r"(?i)\bcall[ \t]+(?:sleep|usleep)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation utilizing Fortran's explicit intrinsic bitwise functions.
-            "bitwise_hits": re.compile(
-                r"(?i)\b(?:iand|ior|ieor|not|ishft|ishftc|btest|ibset|ibclr|ibits)\b"
-            ),
+            "bitwise_hits": re.compile(r"(?i)\b(?:iand|ior|ieor|not|ishft|ishftc|btest|ibset|ibclr|ibits)\b"),
             # 44. sync_locks (Thread Synchronization / Locks)
             # Explicit coordination to prevent race conditions .
             "sync_locks": re.compile(
@@ -5672,9 +5127,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 45. freeze_hits (Immutability Constraints)
             # Explicit locking of data to prevent mutation .
-            "freeze_hits": re.compile(
-                r"(?i)\b(?:parameter|intent[ \t]*\([ \t]*in[ \t]*\))\b"
-            ),
+            "freeze_hits": re.compile(r"(?i)\b(?:parameter|intent[ \t]*\([ \t]*in[ \t]*\))\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             # Explicit destruction of state or closing of streams .
             "cleanup": re.compile(r"(?i)\b(?:close|deallocate|nullify)\b"),
@@ -5688,18 +5141,12 @@ LANGUAGE_DEFINITIONS = {
             # Framework code that explicitly bypasses verification.
             "test_skip": None,
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Fortran Specifics) ---
-            "serialization_parsing": re.compile(
-                r"(?i)\b(NAMELIST|READ\s*\(|WRITE\s*\(|FORMAT|OPEN\s*\()\b"
-            ),
+            "serialization_parsing": re.compile(r"(?i)\b(NAMELIST|READ\s*\(|WRITE\s*\(|FORMAT|OPEN\s*\()\b"),
             "regex_execution": re.compile(
                 r"(?i)\b(SCAN|INDEX|VERIFY|ADJUSTL|ADJUSTR)\b"
             ),  # Relies on intrinsic string processing
-            "time_date_logic": re.compile(
-                r"(?i)\b(DATE_AND_TIME|SYSTEM_CLOCK|CPU_TIME)\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"(?i)\b(MPI_Init|MPI_Send|MPI_Recv|MPI_Bcast|EXECUTE_COMMAND_LINE|OMP_)\b"
-            ),
+            "time_date_logic": re.compile(r"(?i)\b(DATE_AND_TIME|SYSTEM_CLOCK|CPU_TIME)\b"),
+            "ipc_rpc_bridges": re.compile(r"(?i)\b(MPI_Init|MPI_Send|MPI_Recv|MPI_Bcast|EXECUTE_COMMAND_LINE|OMP_)\b"),
         },
     },
     "assembly": {
@@ -5738,7 +5185,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: Uses unique line delimiters ';' (NASM/Intel) and '#' (GAS/ARM).
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Assembly uses ';' or '#' for standard line-level literature.
@@ -5776,9 +5223,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 5. class_start (Object / Entity Declarations)
             # Maps to assembler structure definition macros.
-            "class_start": re.compile(
-                r"^[ \t]*(?:struc|STRUCT|\.struct)\s+[a-zA-Z_]\w*", re.M | re.I
-            ),
+            "class_start": re.compile(r"^[ \t]*(?:struc|STRUCT|\.struct)\s+[a-zA-Z_]\w*", re.M | re.I),
             # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             # 6. safety (Defensive Programming / Validation)
             # Stack preservation and defensive frame setups.
@@ -5811,17 +5256,11 @@ LANGUAGE_DEFINITIONS = {
             # Explicit memory/register swaps and atomic increments.
             "flux": re.compile(r"\b(xchg|cmpxchg|inc|dec)\b", re.I),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"(?i)(?:;|#|//)[ \t]*(?:jmp|call|mov|push|pop|cmp|add|sub)\b"
-            ),
+            "graveyard": re.compile(r"(?i)(?:;|#|//)[ \t]*(?:jmp|call|mov|push|pop|cmp|add|sub)\b"),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r"^[;#@/|]+\s*@(?:param|return|brief|author|note)", re.M | re.I
-            ),
+            "doc": re.compile(r"^[;#@/|]+\s*@(?:param|return|brief|author|note)", re.M | re.I),
             # 14. test (Testing & Assertions)
-            "test": re.compile(
-                r"(?i)\b(?:describe|expect|assert|TestCase)\b|\bit[ \t]*\("
-            ),
+            "test": re.compile(r"(?i)\b(?:describe|expect|assert|TestCase)\b|\bit[ \t]*\("),
             # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
@@ -5855,13 +5294,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Complex SIB addressing and block replication.
-            "heat_triggers": re.compile(
-                r"\[\s*[a-zA-Z0-9_]+\s*\+\s*[a-zA-Z0-9_]+\s*\*\s*\d+", re.I
-            ),
+            "heat_triggers": re.compile(r"\[\s*[a-zA-Z0-9_]+\s*\+\s*[a-zA-Z0-9_]+\s*\*\s*\d+", re.I),
             # 24. import (Dependency Inclusions)
-            "import": re.compile(
-                r"^[ \t]*(?:%include|\.include|\.incbin)\b", re.M | re.I
-            ),
+            "import": re.compile(r"^[ \t]*(?:%include|\.include|\.incbin)\b", re.M | re.I),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:%include|\.include|\.incbin)\s+(?:['\"]([^'\"]+)['\"]|([^'\"\s]+))",
                 re.M | re.I,
@@ -5877,9 +5312,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|rfc)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|rfc)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
@@ -5899,9 +5332,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             # Raw memory addressing and dereferencing.
-            "pointers": re.compile(
-                r"(?i)(?:byte|word|dword|qword)[ \t]+ptr[ \t]*\[[^\]]*\]|\[[^\]]+\]"
-            ),
+            "pointers": re.compile(r"(?i)(?:byte|word|dword|qword)[ \t]+ptr[ \t]*\[[^\]]*\]|\[[^\]]+\]"),
             # 36. memory_alloc (Manual Memory Management)
             "memory_alloc": re.compile(
                 r"\b(?:call|bl)\s+(?:_?malloc|_?calloc)\b|\b(?:sys_mmap|sys_brk)\b",
@@ -5916,9 +5347,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 39. print_hits (Standard Output / Debug Prints)
-            "print_hits": re.compile(
-                r"\b(?:call|bl)\s+(?:printf|puts|sys_write)\b", re.I
-            ),
+            "print_hits": re.compile(r"\b(?:call|bl)\s+(?:printf|puts|sys_write)\b", re.I),
             # 40. cast_hits (Explicit Type Casting)
             "cast_hits": re.compile(r"(?i)\b(?:byte|word|dword|qword)[ \t]+ptr\b"),
             # 41. bailout_hits (Execution Halts / Panics)
@@ -5929,14 +5358,10 @@ LANGUAGE_DEFINITIONS = {
             "halt_hits": re.compile(r"(?i)\b(?:pause|hlt|wfi|wfe)\b"),
             # 43. bitwise_hits (Bitwise Operations)
             # Low-level byte manipulation natively supported by the instruction set. [cite: 782]
-            "bitwise_hits": re.compile(
-                r"(?i)\b(?:and|or|xor|not|shl|shr|sal|sar|rol|ror|lsl|lsr|asr)\b"
-            ),
+            "bitwise_hits": re.compile(r"(?i)\b(?:and|or|xor|not|shl|shr|sal|sar|rol|ror|lsl|lsr|asr)\b"),
             # 44. sync_locks (Thread Synchronization / Locks)
             # Explicit hardware coordination to prevent race conditions (e.g., atomic instructions, memory barriers). [cite: 783]
-            "sync_locks": re.compile(
-                r"(?i)\b(?:lock|xchg|cmpxchg|stxr|ldxr|dmb|dsb|isb)\b"
-            ),
+            "sync_locks": re.compile(r"(?i)\b(?:lock|xchg|cmpxchg|stxr|ldxr|dmb|dsb|isb)\b"),
             # 45. freeze_hits (Immutability Constraints)
             # Explicit locking of data to prevent mutation (e.g., read-only data sections or constants). [cite: 784]
             "freeze_hits": re.compile(r"(?i)\b(?:equ|\.rodata|\.rdata)\b"),
@@ -5953,15 +5378,9 @@ LANGUAGE_DEFINITIONS = {
             # Framework code that explicitly bypasses verification. [cite: 788]
             "test_skip": None,
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Lua Specifics) ---
-            "serialization_parsing": re.compile(
-                r"\b(string\.dump|loadstring|load|cjson\.decode|cjson\.encode)\b"
-            ),
-            "regex_execution": re.compile(
-                r"\b(string\.match|string\.gmatch|string\.find|string\.gsub)\b"
-            ),
-            "time_date_logic": re.compile(
-                r"\b(os\.time|os\.clock|os\.date|os\.difftime)\b"
-            ),
+            "serialization_parsing": re.compile(r"\b(string\.dump|loadstring|load|cjson\.decode|cjson\.encode)\b"),
+            "regex_execution": re.compile(r"\b(string\.match|string\.gmatch|string\.find|string\.gsub)\b"),
+            "time_date_logic": re.compile(r"\b(os\.time|os\.clock|os\.date|os\.difftime)\b"),
             "ipc_rpc_bridges": re.compile(
                 r"\b(os\.execute|io\.popen|coroutine\.create|coroutine\.resume|coroutine\.yield)\b"
             ),
@@ -5983,8 +5402,9 @@ LANGUAGE_DEFINITIONS = {
         # EXECUTION SIGNATURES: AGC code is hardware-level or emulator-resident; no shebangs exist.
         "shebangs": [],
         # UPGRADED: Maps to Family 3 (Pure Hash)
-        # Rationale: Digitized source uses '#' for line-level Ghost Mass.
-        "lexical_family": "single_line_only",
+        # UPGRADED: Maps to Family 3 (Pure Hash)
+        # Rationale: Digitized source uses '#' for line-level Commented / Non-Executable Text.
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # AGC digitized source uses '#' for standard line-level literature.
@@ -6035,19 +5455,13 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Bypassing predictable flow or task management risks.
-            "safety_neg": re.compile(
-                r"\b(TC\s+JOBSLEEP|TC\s+JOBWAKE|TCF\s+2|TASKOVER|TCF\s+ADRERR)\b", re.I
-            ),
+            "safety_neg": re.compile(r"\b(TC\s+JOBSLEEP|TC\s+JOBWAKE|TCF\s+2|TASKOVER|TCF\s+ADRERR)\b", re.I),
             # 8. danger (High-Risk Execution / System Calls)
             # High-risk failure states and alarms. EXCLUDES MOD history (Phase 2 debt).
-            "danger": re.compile(
-                r"\b(CURTAINS|SOFTWARE\s+RESTART|SYSTEM_FAILURE|WHIMPER|HALT)\b", re.I
-            ),
+            "danger": re.compile(r"\b(CURTAINS|SOFTWARE\s+RESTART|SYSTEM_FAILURE|WHIMPER|HALT)\b", re.I),
             # 9. io (I/O & Network Boundaries)
             # Hardware I/O bridging to the Command/Lunar Module.
-            "io": re.compile(
-                r"\b(DSKY|CHANNEL|READ|WRITE|V\d+N\d+|OUT\d+|IN\d+)\b", re.I
-            ),
+            "io": re.compile(r"\b(DSKY|CHANNEL|READ|WRITE|V\d+N\d+|OUT\d+|IN\d+)\b", re.I),
             # 10. api (Public Surface Area)
             # Global labels and externally visible entry points.
             "api": re.compile(
@@ -6082,9 +5496,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 16. ui_framework (UI / View Components)
             # DSKY (Display/Keyboard) UI verbs and nouns.
-            "ui_framework": re.compile(
-                r"\b(V\s+\d+|N\s+\d+|NOUN|VERB|ENTER|PROCEED)\b", re.I
-            ),
+            "ui_framework": re.compile(r"\b(V\s+\d+|N\s+\d+|NOUN|VERB|ENTER|PROCEED)\b", re.I),
             # 17. closures
             "closures": None,
             # 18. globals (Global / Shared State)
@@ -6107,9 +5519,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Self-modifying logic and VM entry.
-            "heat_triggers": re.compile(
-                r"\b(INDEX|TC\s+INTPRET|DXCH\s+0000|RVQ)\b", re.I
-            ),
+            "heat_triggers": re.compile(r"\b(INDEX|TC\s+INTPRET|DXCH\s+0000|RVQ)\b", re.I),
             # 24. import (Dependency Inclusions)
             "import": re.compile(r"\b(BANK|SETLOC|EBANK=)\b", re.I),
             "_dependency_capture": re.compile(
@@ -6147,9 +5557,7 @@ LANGUAGE_DEFINITIONS = {
             # 34. macros (Preprocessor Directives / Macros)
             "macros": re.compile(r"^[ \t]*(?:MACRO|ENDMAC|DEFINE)\b", re.M | re.I),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
-            "pointers": re.compile(
-                r"\b(?:INDEX|INDIRECT|POINTER|CADR|FCADR|ECADR)\b|\*[A-Z0-9_-]+", re.I
-            ),
+            "pointers": re.compile(r"\b(?:INDEX|INDIRECT|POINTER|CADR|FCADR|ECADR)\b|\*[A-Z0-9_-]+", re.I),
             # 36. memory_alloc (Manual Memory Management)
             "memory_alloc": re.compile(r"\b(?:ERASABLE|FIXED|EQUALS|SHARE)\b", re.I),
             # 37. inline_asm
@@ -6157,9 +5565,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
             # Spacecraft downlink routines.
-            "telemetry": re.compile(
-                r"\b(DNTM|DOWNLINK|TELEM|TM|DUMPTEL|TM\s+WORD)\b", re.I
-            ),
+            "telemetry": re.compile(r"\b(DNTM|DOWNLINK|TELEM|TM|DUMPTEL|TM\s+WORD)\b", re.I),
             # 39. print_hits
             "print_hits": re.compile(r"\b(?:FLASH|PINBALL|OUT\d+)\b", re.I),
             # 40. cast_hits
@@ -6202,7 +5608,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["lua", "luajit", "luau", "texlua"],
         # UPGRADED: Maps to Family 5 (Hybrid Dash)
         # Rationale: Uses '--' for lines and '--[[ ... ]]' for blocks.
-        "lexical_family": "multi_style_dash",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Lua uses '--' for standard line-level literature.
@@ -6216,15 +5622,11 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": re.compile(r"\]=*\]"),
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes standard loops and Lua 5.2+ goto.
-            "branch": re.compile(
-                r"\b(if|then|elseif|else|for|in|while|do|repeat|until|break|goto|and|or|not)\b"
-            ),
+            "branch": re.compile(r"\b(if|then|elseif|else|for|in|while|do|repeat|until|break|goto|and|or|not)\b"),
             # 2. args: Parameters / Coupling. Captures parameters in named and anonymous function signatures.
             "args": re.compile(r"\bfunction\s*(?:[a-zA-Z_][\w.:]*\s*)?\([^)]*\)"),
             # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries defining scope and data definitions.
-            "linear": re.compile(
-                r"\b(local|end|require|module|return)\b|<\s*(?:const|close|toclose)\s*>"
-            ),
+            "linear": re.compile(r"\b(local|end|require|module|return)\b|<\s*(?:const|close|toclose)\s*>"),
             # 4. func_start: Executable Logic Anchors. Anchors executable logic blocks (named functions).
             "func_start": re.compile(
                 # =====================================================================
@@ -6253,13 +5655,9 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(rawget|rawset|rawlen|debug\.[a-zA-Z0-9_]+|collectgarbage|_G|_ENV|getfenv|setfenv)\b"
             ),
             # 8. danger: High-Risk Execution. Dynamic evaluation and OS-level execution hooks.
-            "danger": re.compile(
-                r"\b(os\.execute|os\.exit|os\.remove|os\.rename|load|loadstring|loadfile)\b"
-            ),
+            "danger": re.compile(r"\b(os\.execute|os\.exit|os\.remove|os\.rename|load|loadstring|loadfile)\b"),
             # 9. io: I/O & Network Boundaries. Standard IO library and environment inquiries.
-            "io": re.compile(
-                r"\b(io\.open|io\.read|io\.lines|io\.close|io\.input|io\.output|io\.popen|os\.getenv)\b"
-            ),
+            "io": re.compile(r"\b(io\.open|io\.read|io\.lines|io\.close|io\.input|io\.output|io\.popen|os\.getenv)\b"),
             # 10. api: Public Surface Area. Functions NOT marked local or explicit module returns.
             "api": re.compile(
                 r"^[ \t]*function\s+[^_][\w.:]*|^[ \t]*return\s+[a-zA-Z_]\w*[ \t]*$|---@public|\bexport\b",
@@ -6295,9 +5693,7 @@ LANGUAGE_DEFINITIONS = {
             # 17. closures: Closures / Anonymous Functions. Anonymous function depth.
             "closures": re.compile(r"(?:^|[(=,\s])function\s*\([^)]*\)", re.M),
             # 18. globals: Global / Shared State. Access to global registries.
-            "globals": re.compile(
-                r"\b(_G|_ENV|_VERSION|arg)\b|^[ \t]*[A-Z][A-Z0-9_]*[ \t]*=(?![=])", re.M
-            ),
+            "globals": re.compile(r"\b(_G|_ENV|_VERSION|arg)\b|^[ \t]*[A-Z][A-Z0-9_]*[ \t]*=(?![=])", re.M),
             # 19. decorators: Decorators / Annotations. EmmyLua annotations.
             "decorators": re.compile(r"^[ \t]*---@[a-zA-Z_]\w*", re.M),
             # 20. generics: Generics / Type Parameters. EmmyLua generic type annotations.
@@ -6307,17 +5703,13 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:pairs|ipairs|next|string\.gmatch)\b|\b(?:lume|moses|_\.)(?:map|filter|reduce|each|find|any|all)\b"
             ),
             # 22. scientific: Numerical / Compute Libraries. Standard math library.
-            "scientific": re.compile(
-                r"\b(math\.[a-zA-Z0-9_]+|bit32\.[a-zA-Z0-9_]+)\b|<<|>>|//"
-            ),
+            "scientific": re.compile(r"\b(math\.[a-zA-Z0-9_]+|bit32\.[a-zA-Z0-9_]+)\b|<<|>>|//"),
             # 23. heat_triggers: Metaprogramming & Reflection. Metatable overrides and Dunder methods.
             "heat_triggers": re.compile(
                 r"\b(__index|__newindex|__call|__add|__sub|__mul|__div|__mod|__pow|__unm|__idiv|__band|__bor|__bxor|__bnot|__shl|__shr|__concat|__len|__eq|__lt|__le|__gc|__close|__mode)\b"
             ),
             # 24. import (Dependency Inclusions)
-            "import": re.compile(
-                r"\b(?:require|dofile)\b[ \t\n]*\(?[ \t\n]*['\"]", re.M
-            ),
+            "import": re.compile(r"\b(?:require|dofile)\b[ \t\n]*\(?[ \t\n]*['\"]", re.M),
             "_dependency_capture": re.compile(
                 # =====================================================================
                 # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (LUA) ]
@@ -6364,9 +5756,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(addEventListener|removeEventListener|dispatchEvent|on|emit|EventEmitter|Connect|FireServer|FireClient)\b"
             ),
             # 33. dependency_injection: Inversion of Control. Service locator patterns.
-            "dependency_injection": re.compile(
-                r"\b(inject|container:get|container:resolve|Locator)\b"
-            ),
+            "dependency_injection": re.compile(r"\b(inject|container:get|container:resolve|Locator)\b"),
             # 34. macros: Preprocessor Hooks. (Lua lacks a native preprocessor).
             "macros": None,
             # 35. pointers: Memory Map. FFI raw memory interactions.
@@ -6381,9 +5771,7 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": None,
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
-            "telemetry": re.compile(
-                r"\b(?:log\.(?:info|warn|error|debug|trace)|ngx\.log|ngx\.ERR|ngx\.INFO)\b"
-            ),
+            "telemetry": re.compile(r"\b(?:log\.(?:info|warn|error|debug|trace)|ngx\.log|ngx\.ERR|ngx\.INFO)\b"),
             # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(print|warn|io\.write)\b"),
             # 40. cast_hits: "Trust Me" Tax.
@@ -6395,9 +5783,7 @@ LANGUAGE_DEFINITIONS = {
             # 43. bitwise_hits: Sub-Atomic Math.
             "bitwise_hits": re.compile(r"<<|>>|&|\||\^|~(?!=)"),
             # 44. sync_locks: Barricades.
-            "sync_locks": re.compile(
-                r"\b(mutex|lock|semaphore|critical_section|uv\.mutex)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(mutex|lock|semaphore|critical_section|uv\.mutex)\b", re.I),
             # 45. freeze_hits: Data Cryogenics.
             "freeze_hits": re.compile(r"<\s*const\s*>"),
             # 46. cleanup: The Janitor.
@@ -6407,21 +5793,13 @@ LANGUAGE_DEFINITIONS = {
             # 47. encapsulation: The Vault.
             "encapsulation": re.compile(r"\b(local|_ENV)\b|---@private", re.M),
             # 48. listeners: The Sinks.
-            "listeners": re.compile(
-                r"\b(on\s*\(|subscribe|Connect|addEventListener)\b"
-            ),
+            "listeners": re.compile(r"\b(on\s*\(|subscribe|Connect|addEventListener)\b"),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(xdescribe|xit|skip)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Lua Specifics) ---
-            "serialization_parsing": re.compile(
-                r"\b(string\.dump|loadstring|load|cjson\.decode|cjson\.encode)\b"
-            ),
-            "regex_execution": re.compile(
-                r"\b(string\.match|string\.gmatch|string\.find|string\.gsub)\b"
-            ),
-            "time_date_logic": re.compile(
-                r"\b(os\.time|os\.clock|os\.date|os\.difftime)\b"
-            ),
+            "serialization_parsing": re.compile(r"\b(string\.dump|loadstring|load|cjson\.decode|cjson\.encode)\b"),
+            "regex_execution": re.compile(r"\b(string\.match|string\.gmatch|string\.find|string\.gsub)\b"),
+            "time_date_logic": re.compile(r"\b(os\.time|os\.clock|os\.date|os\.difftime)\b"),
             "ipc_rpc_bridges": re.compile(
                 r"\b(os\.execute|io\.popen|coroutine\.create|coroutine\.resume|coroutine\.yield)\b"
             ),
@@ -6452,7 +5830,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["perl", "perl5", "perl6"],
         # UPGRADED: Maps to Family 6 (Polyglot)
         # Rationale: Perl’s interaction with POD documentation blocks (=head, =cut) and embedded regex makes it a true polyglot lexical engine.
-        "lexical_family": "embedded_syntax",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Perl uses '#' for standard line-level literature.
@@ -6512,9 +5890,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(use\s+strict|use\s+warnings|use\s+v5\.\d+|croak|confess|try|catch|finally|eval[ \t]*\{|defer|isa|DOES)\b|->isa\b|->DOES\b"
             ),
             # 7. safety_neg: Safety Bypasses. Actively bypassing safety (no strict, string eval).
-            "safety_neg": re.compile(
-                r'\b(no\s+strict|no\s+warnings|eval\s*["\']|eval\s+(?!\w|{)|goto\s+\&)\b'
-            ),
+            "safety_neg": re.compile(r'\b(no\s+strict|no\s+warnings|eval\s*["\']|eval\s+(?!\w|{)|goto\s+\&)\b'),
             # 8. danger: High-Risk Execution. Process killers and raw shell execution.
             "danger": re.compile(r"\b(system|exec|exit|qx|CORE::dump)\b|`[^`]+`"),
             # 9. io: I/O & Network Boundaries. Disk, Network, DBI, and standard handles.
@@ -6536,9 +5912,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 13. doc: Structured Documentation. Structured POD documentation.
-            "doc": re.compile(
-                r"^=(?:pod|head[1-6]|item|over|back|cut|begin|end|encoding|for)\b", re.M
-            ),
+            "doc": re.compile(r"^=(?:pod|head[1-6]|item|over|back|cut|begin|end|encoding|for)\b", re.M),
             # 14. test: Testing & Assertions. Assertions and Test frameworks.
             "test": re.compile(
                 r"\b(?:Test2::V0|Test::More|cmp_ok|is_deeply|subtest|done_testing|BAIL_OUT)\b|\b(?:ok|is|isnt|like|unlike|plan|diag|note)\s*\("
@@ -6562,13 +5936,9 @@ LANGUAGE_DEFINITIONS = {
             # 19. decorators: Decorators / Annotations. Subroutine and variable attributes.
             "decorators": re.compile(r":\s*[a-zA-Z_]\w*(?:\([^)]*\))?"),
             # 20. generics: Generics / Type Parameters. Parameterized types (via Type::Tiny/Moose).
-            "generics": re.compile(
-                r"\b(?:ArrayRef|HashRef|Map|Tuple|Dict|Maybe|InstanceOf|ConsumerOf|Enum)\[[^\]]*\]"
-            ),
+            "generics": re.compile(r"\b(?:ArrayRef|HashRef|Map|Tuple|Dict|Maybe|InstanceOf|ConsumerOf|Enum)\[[^\]]*\]"),
             # 21. comprehensions: Iterators / Comprehensions. Map and Grep.
-            "comprehensions": re.compile(
-                r"\b(?:map|grep|reduce|any|all|none|notall|first|List::Util)\b"
-            ),
+            "comprehensions": re.compile(r"\b(?:map|grep|reduce|any|all|none|notall|first|List::Util)\b"),
             # 22. scientific: Numerical / Compute Libraries. PDL and Math::BigInt.
             "scientific": re.compile(
                 r"\b(Math::Trig|Math::BigInt|Math::BigFloat|Math::Complex|PDL|sin|cos|exp|log|sqrt|atan2|abs|int|rand|srand)\b"
@@ -6578,9 +5948,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(AUTOLOAD|DESTROY|BEGIN|UNITCHECK|CHECK|INIT|END|tie|untie|bless|overload)\b|\*[a-zA-Z_]\w*[ \t]*=\s*(?:\\|&)|goto\s+&"
             ),
             # 24. import (Dependency Inclusions)
-            "import": re.compile(
-                r"\b(?:use|require|no)\s+[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*", re.M
-            ),
+            "import": re.compile(r"\b(?:use|require|no)\s+[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*", re.M),
             "_dependency_capture": re.compile(
                 # =====================================================================
                 # [ FUTURE LLM CONTEXT: THE DYNAMIC EXECUTION SHIFT (PERL) ]
@@ -6609,9 +5977,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt: The Fracture. Admitted fragility or hacks.
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure: Map vs. Territory. Audit tags.
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war: Indentation Tracker. Tabs vs 4-Spaces density markers.
             "civil_war": None,
             # 31. ssr_boundaries: View Horizon. Server-Side Rendering computation boundaries.
@@ -6623,9 +5989,7 @@ LANGUAGE_DEFINITIONS = {
                 r'\b(?:emit|once|unsubscribe|catch|Mojo::EventEmitter|AnyEvent->condvar)\b|\b(?:on|subscribe)\s+[\'"]'
             ),
             # 33. dependency_injection: Inversion of Control. Inversion of Control (IoC) injection markers.
-            "dependency_injection": re.compile(
-                r"\b(Bread::Board|Beam::Wire|IOC|container|resolve|inject|service)\b"
-            ),
+            "dependency_injection": re.compile(r"\b(Bread::Board|Beam::Wire|IOC|container|resolve|inject|service)\b"),
             # 34. macros: Preprocessor Hooks. Compiler pragmas or source filters.
             "macros": re.compile(
                 r"\b(Filter::Simple|Filter::Util::Call|Devel::Declare|Keyword::Declare)\b|^[ \t]*BEGIN[ \t]*\{",
@@ -6657,19 +6021,13 @@ LANGUAGE_DEFINITIONS = {
             "halt_hits": re.compile(r"\bsleep\b"),
             # 43. bitwise_hits: Sub-Atomic Math. Manipulating raw bytes and memory registers.
             # UPDATED: Added negative lookbehinds '(?<![=!])~' to ignore Perl regex operators.
-            "bitwise_hits": re.compile(
-                r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|(?<![=!])~"
-            ),
+            "bitwise_hits": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|(?<![=!])~"),
             # 44. sync_locks: The Barricades. Coordinating threaded logic to prevent race conditions.
             "sync_locks": re.compile(r"\b(lock|threads::shared|Thread::Semaphore)\b"),
             # 45. freeze_hits: Data Cryogenics. Explicitly locking data so it cannot be mutated.
-            "freeze_hits": re.compile(
-                r"\b(Readonly|Const::Fast|Internals::SvREADONLY)\b"
-            ),
+            "freeze_hits": re.compile(r"\b(Readonly|Const::Fast|Internals::SvREADONLY)\b"),
             # 46. cleanup: The Janitor. Explicitly destroying state or releasing resources.
-            "cleanup": re.compile(
-                r"\b(DESTROY|undef|close|closedir|finish)\b|^[ \t]*END[ \t]*\{", re.M
-            ),
+            "cleanup": re.compile(r"\b(DESTROY|undef|close|closedir|finish)\b|^[ \t]*END[ \t]*\{", re.M),
             # 47. encapsulation: The Vault. Explicitly hiding logic from the rest of the application.
             "encapsulation": re.compile(r"\b(my|state|local)\b|:private\b"),
             # 48. listeners: The Sinks. Waiting to receive state from an external broadcast.
@@ -6683,9 +6041,7 @@ LANGUAGE_DEFINITIONS = {
             "regex_execution": re.compile(
                 r"(=~|!~|\b(?:qr|m|s|tr|y)\b\s*[/\W])"
             ),  # Catches Perl's native binding operators and regex quotes
-            "time_date_logic": re.compile(
-                r"\b(localtime|gmtime|Time::HiRes|sleep|time)\b"
-            ),
+            "time_date_logic": re.compile(r"\b(localtime|gmtime|Time::HiRes|sleep|time)\b"),
             "ipc_rpc_bridges": re.compile(
                 r"\b(system\s*\(|exec\s*\(|fork|IPC::Open[23]|qx\b|`.*`)\b"
             ),  # Backticks and qx// are shell executions
@@ -6708,7 +6064,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["runhaskell", "runghc", "stack", "ghci"],
         # UPGRADED: Maps to Family 5 (Hybrid Dash)
         # Rationale: Uses '--' for lines and '{- -}' for blocks, which strictly supports recursive nesting.
-        "lexical_family": "multi_style_dash",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Haskell uses '--' for line-level Commented / Non-Executable Text.
@@ -6722,13 +6078,9 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": re.compile(r"-\}"),
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # branch: decisions that split flow. Includes guards (|) and modern \cases.
-            "branch": re.compile(
-                r"\b(if|then|else|case|of|MultiWayIf)\b|\\cases?|^[ \t]*\|", re.M
-            ),
+            "branch": re.compile(r"\b(if|then|else|case|of|MultiWayIf)\b|\\cases?|^[ \t]*\|", re.M),
             # args: Parameters / Coupling. Captures type signatures, lambda bindings, and explicit @type apps.
-            "args": re.compile(
-                r"::\s*[^=\n]+(?:->|=>|⊸)|\\[a-zA-Z0-9_\'\s,()\[\]]+->|@[A-Z][a-zA-Z0-9_\']*"
-            ),
+            "args": re.compile(r"::\s*[^=\n]+(?:->|=>|⊸)|\\[a-zA-Z0-9_\'\s,()\[\]]+->|@[A-Z][a-zA-Z0-9_\']*"),
             # linear: Sequential I/O & Network Boundaries. Structural boundaries defining scope and data definitions.
             "linear": re.compile(
                 r"\b(module|data|type|newtype|class|instance|let|in|where|do|mdo|deriving|family|pattern)\b|%1\s*->|⊸"
@@ -6762,9 +6114,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(unsafePerformIO|unsafeCoerce|error|undefined|fromJust|head|tail|init|last|throw|unsafeFixIO)\b"
             ),
             # danger: High-Risk Execution. Forceful aborts and Debug-trace leaks in production.
-            "danger": re.compile(
-                r"\b(die|exitWith|exitFailure|Debug\.Trace|trace|traceShow|traceIO|traceM)\b"
-            ),
+            "danger": re.compile(r"\b(die|exitWith|exitFailure|Debug\.Trace|trace|traceShow|traceIO|traceM)\b"),
             # io: I/O & Network Boundaries. IO Monad and hardware interactions.
             "io": re.compile(
                 r"\b(IO|readFile|writeFile|appendFile|hGetContents|hPutStr|openFile|withFile|getLine|getChar|Socket|Connection|runDB)\b"
@@ -6791,13 +6141,9 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # concurrency: Temporal Static. STM, async, and thread forking.
-            "concurrency": re.compile(
-                r"\b(forkIO|forkOS|async|wait|cancel|MVar|TVar|STM|atomically|threadDelay)\b"
-            ),
+            "concurrency": re.compile(r"\b(forkIO|forkOS|async|wait|cancel|MVar|TVar|STM|atomically|threadDelay)\b"),
             # ui_framework: UI / View Components. Functional reactive GUI and web components.
-            "ui_framework": re.compile(
-                r"\b(Threepenny|Brick|Reflex|Miso|Gtk|widget|vBox|hBox|Lucid|Blaze|Monomer)\b"
-            ),
+            "ui_framework": re.compile(r"\b(Threepenny|Brick|Reflex|Miso|Gtk|widget|vBox|hBox|Lucid|Blaze|Monomer)\b"),
             # closures: Closures / Anonymous Functions. Anonymous lambda depth.
             "closures": re.compile(r"\\[a-zA-Z0-9_\'\s(),\[\]]+\s*->|\\cases?"),
             # globals: Global / Shared State. Top-level state hacks (typically MVars using unsafePerformIO).
@@ -6806,9 +6152,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # decorators: Decorators / Annotations. GHC pragmas (INLINE, LANGUAGE).
-            "decorators": re.compile(
-                r"\{-#\s*(?:INLINE|NOINLINE|LANGUAGE|OPTIONS_GHC|RULES|MINIMAL)\s+[^#]*#-\}"
-            ),
+            "decorators": re.compile(r"\{-#\s*(?:INLINE|NOINLINE|LANGUAGE|OPTIONS_GHC|RULES|MINIMAL)\s+[^#]*#-\}"),
             # generics: Generics / Type Parameters. forall quantification and constraints.
             "generics": re.compile(
                 r"\bforall\s+[^.]+\.|\b(?:[A-Z][a-zA-Z0-9_\']*\s+[a-z][a-zA-Z0-9_\']*[ \t]*=>)|\([^)]+\)[ \t]*=>"
@@ -6824,16 +6168,10 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(TemplateHaskell|QuasiQuotes|TypeFamilies|GHC\.Generics|Generic)\b|\[[a-z_]+\||\$\([a-zA-Z0-9_\']+\)"
             ),
             # import: Dependency Inclusions. Module resolution.
-            "import": re.compile(
-                r"^[ \t]*import\s+(?:qualified[ \t]+)?[A-Z][a-zA-Z0-9_.]*", re.M
-            ),
-            "_dependency_capture": re.compile(
-                r"^[ \t]*import\s+(?:qualified\s+)?([A-Z][a-zA-Z0-9_.]*)", re.M
-            ),
+            "import": re.compile(r"^[ \t]*import\s+(?:qualified[ \t]+)?[A-Z][a-zA-Z0-9_.]*", re.M),
+            "_dependency_capture": re.compile(r"^[ \t]*import\s+(?:qualified\s+)?([A-Z][a-zA-Z0-9_.]*)", re.M),
             # ownership: Authorship indicators in comments.
-            "ownership": re.compile(
-                r"--\s*\|?\s*(?:Author|Maintainer|Copyright|License):\s+([^\n]+)", re.I
-            ),
+            "ownership": re.compile(r"--\s*\|?\s*(?:Author|Maintainer|Copyright|License):\s+([^\n]+)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             "planned_debt": GLOBAL_PLANNED_DEBT,
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
@@ -6845,33 +6183,21 @@ LANGUAGE_DEFINITIONS = {
             "events": re.compile(
                 r"\b(Event|Behavior|Dynamic|reactive-banana|reflex|frp|stepper|accumE|conduit|Pipes|Stream)\b"
             ),
-            "dependency_injection": re.compile(
-                r"\b(ReaderT|MonadReader|Has[A-Z][a-zA-Z0-9_\']+|ask|asks|local)\b"
-            ),
+            "dependency_injection": re.compile(r"\b(ReaderT|MonadReader|Has[A-Z][a-zA-Z0-9_\']+|ask|asks|local)\b"),
             "macros": re.compile(
                 r"\{-#\s*LANGUAGE\s+[^#]*#-\}|\$[(a-z_A-Z0-9\']|^[ \t]*#(?:define|undef|if|ifdef|ifndef|elif|else|endif|include)\b",
                 re.M,
             ),
-            "pointers": re.compile(
-                r"\b(Ptr|ForeignPtr|FunPtr|StablePtr|peek|poke|castPtr|plusPtr|nullPtr|Storable)\b"
-            ),
-            "memory_alloc": re.compile(
-                r"\b(malloc|mallocBytes|alloca|allocaBytes|free|Foreign\.Marshal)\b"
-            ),
-            "inline_asm": re.compile(
-                r"\bforeign\s+import\s+(?:ccall|cplusplus|prim|capi)\b"
-            ),
+            "pointers": re.compile(r"\b(Ptr|ForeignPtr|FunPtr|StablePtr|peek|poke|castPtr|plusPtr|nullPtr|Storable)\b"),
+            "memory_alloc": re.compile(r"\b(malloc|mallocBytes|alloca|allocaBytes|free|Foreign\.Marshal)\b"),
+            "inline_asm": re.compile(r"\bforeign\s+import\s+(?:ccall|cplusplus|prim|capi)\b"),
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # telemetry: Professional structured logging.
-            "telemetry": re.compile(
-                r"\b(?:logDebug|logInfo|logWarn|logError|logOther|katip|MonadLogger|LoggerT)\b"
-            ),
+            "telemetry": re.compile(r"\b(?:logDebug|logInfo|logWarn|logError|logOther|katip|MonadLogger|LoggerT)\b"),
             # print_hits: Standard output.
             "print_hits": re.compile(r"\b(putStr|putStrLn|print|putChar)\b"),
             # cast_hits: "Trust Me" Tax.
-            "cast_hits": re.compile(
-                r"\b(unsafeCoerce|coerce|fromIntegral|realToFrac|floor|ceiling|truncate|round)\b"
-            ),
+            "cast_hits": re.compile(r"\b(unsafeCoerce|coerce|fromIntegral|realToFrac|floor|ceiling|truncate|round)\b"),
             # bailout_hits: The Detonators.
             "bailout_hits": re.compile(r"\b(throw|throwIO|panic|error)\b"),
             # halt_hits: Temporal Duct Tape.
@@ -6881,15 +6207,11 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:shift[LR]?|rotate[LR]?|xor|complement|testBit|setBit|clearBit|complementBit)\b|\.&&\.|\|\.\|\|\."
             ),
             # sync_locks: Barricades preventing races.
-            "sync_locks": re.compile(
-                r"\b(takeMVar|putMVar|readMVar|swapMVar|atomically|STM|Mutex|lock|unlock)\b"
-            ),
+            "sync_locks": re.compile(r"\b(takeMVar|putMVar|readMVar|swapMVar|atomically|STM|Mutex|lock|unlock)\b"),
             # freeze_hits: Data Cryogenics. Implicit in pure Haskell, but explicit in mutable contexts.
             "freeze_hits": re.compile(r"\b(pure|return|frozen|immutable|const)\b"),
             # cleanup: The Janitor.
-            "cleanup": re.compile(
-                r"\b(hClose|close|free|bracket|finally|onException)\b"
-            ),
+            "cleanup": re.compile(r"\b(hClose|close|free|bracket|finally|onException)\b"),
             # encapsulation: The Vault.
             "encapsulation": re.compile(
                 r"^[ \t]*module\s+[A-Z][a-zA-Z0-9_.]*\s*\([^)]*\)\s*where", re.M
@@ -6903,9 +6225,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(Data\.Aeson|decode|decodeStrict|fromJSON|Data\.Binary|Data\.Serialize)\b"
             ),
             "regex_execution": re.compile(r"\b(Text\.Regex|makeRegex|matchRegex|=~)\b"),
-            "time_date_logic": re.compile(
-                r"\b(getCurrentTime|diffUTCTime|addUTCTime|System\.Time|threadDelay)\b"
-            ),
+            "time_date_logic": re.compile(r"\b(getCurrentTime|diffUTCTime|addUTCTime|System\.Time|threadDelay)\b"),
             "ipc_rpc_bridges": re.compile(
                 r"\b(System\.Process|createProcess|callProcess|callCommand|forkIO|Control\.Concurrent)\b"
             ),
@@ -6934,7 +6254,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Uses '#' for line-level literature; multi-line literature
         # (docstrings) is handled by the Section 2.3.C.3 Heuristic Pass.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # MicroPython uses '#' for line-level Commented / Non-Executable Text.
@@ -6948,9 +6268,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES raise (bailout_hits).
-            "branch": re.compile(
-                r"\b(if|elif|else|for|while|with|try|finally|match|case|and|or)\b"
-            ),
+            "branch": re.compile(r"\b(if|elif|else|for|while|with|try|finally|match|case|and|or)\b"),
             # 2. args (Parameters / Coupling)
             # Parameter blocks of functions/lambdas. Bounded negation to prevent ReDoS.
             "args": re.compile(
@@ -7007,17 +6325,11 @@ LANGUAGE_DEFINITIONS = {
                 r"\bglobal\b|\bnonlocal\b|\b(?:self|cls)\.\w+[ \t]*=|:=|(?:\.\w+)?\.(?:append|extend|update|pop|remove|insert|clear)\s*\(|\.(?:value|on|off|high|low|toggle)\s*\("
             ),
             # 12. graveyard (Dead / Commented-out Code)
-            "graveyard": re.compile(
-                r"#[ \t]*(?:def|class|import|if|for|while|try|print|machine\.Pin)\b"
-            ),
+            "graveyard": re.compile(r"#[ \t]*(?:def|class|import|if|for|while|try|print|machine\.Pin)\b"),
             # 13. doc (Structured Documentation)
-            "doc": re.compile(
-                r'"""|\'\'\'|:param|:return|:raises|:type|#\s*Pin[ \t]*=|#\s*GPIO'
-            ),
+            "doc": re.compile(r'"""|\'\'\'|:param|:return|:raises|:type|#\s*Pin[ \t]*=|#\s*GPIO'),
             # 14. test (Testing & Assertions)
-            "test": re.compile(
-                r"\b(unittest|pytest|assert|test_|setUp|tearDown|Mock)\b"
-            ),
+            "test": re.compile(r"\b(unittest|pytest|assert|test_|setUp|tearDown|Mock)\b"),
             # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency (Asynchronous Execution)
             "concurrency": re.compile(
@@ -7031,9 +6343,7 @@ LANGUAGE_DEFINITIONS = {
             # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"\blambda\b"),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"\bglobal\b|\bglobals\(\)|\blocals\(\)|\b(sys\.path|sys\.modules|os\.environ)\b"
-            ),
+            "globals": re.compile(r"\bglobal\b|\bglobals\(\)|\blocals\(\)|\b(sys\.path|sys\.modules|os\.environ)\b"),
             # 19. decorators (Decorators / Annotations)
             # Generic decorators. (Specific ASM/Viper optimizations moved to heat_triggers/inline_asm).
             "decorators": re.compile(
@@ -7045,9 +6355,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:List|Dict|Set|Tuple|Optional|Union|Any|Callable|Sequence|Iterable)\[[^\]]*\]|->"
             ),
             # 21. comprehensions (Iterators / Comprehensions)
-            "comprehensions": re.compile(
-                r"\[[^\]]*\bfor\b[^\]]*\]|\{[^}]*\bfor\b[^}]*\}|\([^)]*\bfor\b[^)]*\)"
-            ),
+            "comprehensions": re.compile(r"\[[^\]]*\bfor\b[^\]]*\]|\{[^}]*\bfor\b[^}]*\}|\([^)]*\bfor\b[^)]*\)"),
             # 22. scientific (Numerical / Compute Libraries)
             # Math, complex arrays, and ulab (MicroPython's NumPy).
             "scientific": re.compile(
@@ -7060,22 +6368,16 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (Dependency Inclusions)
             "import": re.compile(r"^[ \t]*(?:import|from)\b\s+[\w.]+", re.M),
-            "_dependency_capture": re.compile(
-                r"^[ \t]*(?:import|from)\b\s+([\w.]+)", re.M
-            ),
+            "_dependency_capture": re.compile(r"^[ \t]*(?:import|from)\b\s+([\w.]+)", re.M),
             # 25. ownership (Authorship Metadata)
-            "ownership": re.compile(
-                r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I
-            ),
+            "ownership": re.compile(r"(?:__author__[ \t]*=|Author:|Created by:)\s*(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -7098,14 +6400,10 @@ LANGUAGE_DEFINITIONS = {
             "pointers": re.compile(
                 r"\b(uctypes\.addressof|uctypes\.bytearray_at|ptr8|ptr16|ptr32|machine\.mem8|machine\.mem16|machine\.mem32)\b"
             ),
-            # 36. memory_alloc 
-            "memory_alloc": re.compile(
-                r"\b(bytearray|memoryview|alloc_emergency_exception_buf)\b"
-            ),
+            # 36. memory_alloc
+            "memory_alloc": re.compile(r"\b(bytearray|memoryview|alloc_emergency_exception_buf)\b"),
             # 37. inline_asm (The Bare Metal)
-            "inline_asm": re.compile(
-                r"@(?:micropython\.asm_thumb|micropython\.asm_xtensa|rp2\.asm_pio)\b"
-            ),
+            "inline_asm": re.compile(r"@(?:micropython\.asm_thumb|micropython\.asm_xtensa|rp2\.asm_pio)\b"),
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(
@@ -7114,9 +6412,7 @@ LANGUAGE_DEFINITIONS = {
             # 39. print_hits (Standard Output / Debug Prints)
             "print_hits": re.compile(r"\b(print|input)\s*\("),
             # 40. cast_hits (Explicit Type Casting)
-            "cast_hits": re.compile(
-                r"\b(int|str|float|list|dict|set|tuple|bool|bytes|cast)\b\s*\("
-            ),
+            "cast_hits": re.compile(r"\b(int|str|float|list|dict|set|tuple|bool|bytes|cast)\b\s*\("),
             # 41. bailout_hits (Execution Halts / Panics)
             "bailout_hits": re.compile(r"\b(raise|quit|exit|sys\.exit|abort)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
@@ -7124,9 +6420,7 @@ LANGUAGE_DEFINITIONS = {
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"<<|>>|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(Lock|RLock|Semaphore|Event|Condition|allocate_lock)\b"
-            ),
+            "sync_locks": re.compile(r"\b(Lock|RLock|Semaphore|Event|Condition|allocate_lock)\b"),
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(Final|frozenset|mappingproxy|immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -7137,19 +6431,11 @@ LANGUAGE_DEFINITIONS = {
             # Waiting for state broadcast via hardware IRQs or event listeners.
             "listeners": re.compile(r"\.irq\(|handler=|callback="),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"
-            ),
+            "test_skip": re.compile(r"\b(pytest\.mark\.skip|unittest\.skip|mock\.|MagicMock)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Embedded Python Specifics) ---
-            "serialization_parsing": re.compile(
-                r"\b(ujson\.loads?|ujson\.dumps?|ustruct\.pack|ustruct\.unpack)\b"
-            ),
-            "regex_execution": re.compile(
-                r"\b(ure\.compile|ure\.search|ure\.match|ure\.sub)\b"
-            ),
-            "time_date_logic": re.compile(
-                r"\b(utime\.sleep_ms|utime\.ticks_ms|utime\.ticks_diff|machine\.RTC)\b"
-            ),
+            "serialization_parsing": re.compile(r"\b(ujson\.loads?|ujson\.dumps?|ustruct\.pack|ustruct\.unpack)\b"),
+            "regex_execution": re.compile(r"\b(ure\.compile|ure\.search|ure\.match|ure\.sub)\b"),
+            "time_date_logic": re.compile(r"\b(utime\.sleep_ms|utime\.ticks_ms|utime\.ticks_diff|machine\.RTC)\b"),
             "ipc_rpc_bridges": re.compile(
                 r"\b(machine\.Pin|machine\.I2C|machine\.UART|network\.WLAN|usocket\.socket|busio\.I2C)\b"
             ),
@@ -7172,8 +6458,8 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["cobc"],
         # UPGRADED: Maps to Family 7 (The Positional Ancients)
         # Rationale: Strictly fixed-format. The engine must monitor Column 7 for an asterisk '*'
-        # or slash '/' to identify line-level Ghost Mass.
-        "lexical_family": "column_sensitive",
+        # or slash '/' to identify line-level Commented / Non-Executable Text.
+        "lexical_family": "positional_anchored",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Fixed Format Logic: Column 7 is the 'Indicator Area'.
@@ -7286,9 +6572,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 10. api: Public Surface Area. Exposed linkage points and external entries.
-            "api": re.compile(
-                r"\b(ENTRY|LINKAGE\s+SECTION|CALL|INVOKE|EXPORT)\b", re.I
-            ),
+            "api": re.compile(r"\b(ENTRY|LINKAGE\s+SECTION|CALL|INVOKE|EXPORT)\b", re.I),
             # 11. flux: State Mutation. State mutation (The core of COBOL data manipulation).
             "flux": re.compile(
                 r"\b(MOVE|COMPUTE|ADD|SUBTRACT|MULTIPLY|DIVIDE|SET|INITIALIZE|REPLACE|STRING|UNSTRING)\b",
@@ -7305,14 +6589,10 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # 14. test: Testing & Assertions. Unit testing framework markers (ZUnit).
-            "test": re.compile(
-                r"\b(ZUNIT|CBLUNIT|ASSERT|TEST-CASE|READY\s+TRACE)\b", re.I
-            ),
+            "test": re.compile(r"\b(ZUNIT|CBLUNIT|ASSERT|TEST-CASE|READY\s+TRACE)\b", re.I),
             # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency: Temporal Static. CICS Task and resource coordination.
-            "concurrency": re.compile(
-                r"\bEXEC\s+CICS\s+(?:ENQ|DEQ|WAIT|START|DELAY)\b", re.I
-            ),
+            "concurrency": re.compile(r"\bEXEC\s+CICS\s+(?:ENQ|DEQ|WAIT|START|DELAY)\b", re.I),
             # 16. ui_framework: UI / View Components. Screen sections and CICS maps.
             "ui_framework": re.compile(
                 r"\b(SCREEN\s+SECTION|EXEC\s+CICS\s+SEND\s+MAP|DFHMDF|DFHMDI|DFHMSD)\b",
@@ -7321,18 +6601,14 @@ LANGUAGE_DEFINITIONS = {
             # 17. closures: Closures / Anonymous Functions. (COBOL lacks native lambdas).
             "closures": None,
             # 18. globals: Global / Shared State. Global storage and external linkages.
-            "globals": re.compile(
-                r"\b(WORKING-STORAGE\s+SECTION|COMMON|GLOBAL|EXTERNAL)\b", re.I
-            ),
+            "globals": re.compile(r"\b(WORKING-STORAGE\s+SECTION|COMMON|GLOBAL|EXTERNAL)\b", re.I),
             # 19. decorators: Decorators / Annotations. (COBOL uses compiler directives).
             "decorators": re.compile(
                 r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*>>\s*(?:IF|ELSE|END-IF|DEFINE|CALL-CONVENTION)",
                 re.I | re.M,
             ),
             # 20. generics: Generics / Type Parameters. Parameterized classes (Modern COBOL).
-            "generics": re.compile(
-                r"\bCLASS-ID\.\s+[A-Za-z0-9_-]+\s+USING\s+[A-Za-z0-9_-]+", re.I
-            ),
+            "generics": re.compile(r"\bCLASS-ID\.\s+[A-Za-z0-9_-]+\s+USING\s+[A-Za-z0-9_-]+", re.I),
             # 21. comprehensions: Iterators / Comprehensions. (Not native to COBOL).
             "comprehensions": None,
             # 22. scientific: Numerical / Compute Libraries. Intrinsic math functions.
@@ -7350,9 +6626,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # 25. ownership: Authorship indicators.
-            "ownership": re.compile(
-                r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*AUTHOR\.\s+([^\n]+)", re.I | re.M
-            ),
+            "ownership": re.compile(r"^(?:[0-9a-zA-Z \t]{6}[ \-]?)?[ \t]*AUTHOR\.\s+([^\n]+)", re.I | re.M),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
@@ -7363,9 +6637,7 @@ LANGUAGE_DEFINITIONS = {
             # 30. civil_war: Indentation Tracker. Tabs vs spaces conflict.
             "civil_war": None,  # COBOL fixed format strictly forbids Tabs.
             # 31. ssr_boundaries: View Horizon. CICS web endpoints.
-            "ssr_boundaries": re.compile(
-                r"\bEXEC\s+CICS\s+(?:WEB\s+SEND|DOCUMENT|WEB\s+READ)\b", re.I
-            ),
+            "ssr_boundaries": re.compile(r"\bEXEC\s+CICS\s+(?:WEB\s+SEND|DOCUMENT|WEB\s+READ)\b", re.I),
             # 32. events: Pub/Sub Network. Signal handlers and MQ bindings.
             "events": re.compile(
                 r"\b(?:EXEC\s+CICS\s+(?:SIGNAL|HANDLE\s+CONDITION)|CALL\s+\'(?:MQPUT|MQGET)\')\b",
@@ -7384,16 +6656,12 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 36. memory_alloc: Manual Memory Management. Heap and CICS allocation.
-            "memory_alloc": re.compile(
-                r"\b(?:ALLOCATE|FREE|EXEC\s+CICS\s+(?:GETMAIN|FREEMAIN))\b", re.I
-            ),
+            "memory_alloc": re.compile(r"\b(?:ALLOCATE|FREE|EXEC\s+CICS\s+(?:GETMAIN|FREEMAIN))\b", re.I),
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
-            "telemetry": re.compile(
-                r"\b(?:EXEC\s+CICS\s+WRITEQ\s+TD|CEE3DMP|CEEMOUT|CEEDUMP)\b", re.I
-            ),
+            "telemetry": re.compile(r"\b(?:EXEC\s+CICS\s+WRITEQ\s+TD|CEE3DMP|CEEMOUT|CEEDUMP)\b", re.I),
             # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(DISPLAY)\b", re.I),
             # 40. cast_hits: Trust Me Tax. REDEFINES is the implicit COBOL cast.
@@ -7403,9 +6671,7 @@ LANGUAGE_DEFINITIONS = {
             # 42. halt_hits: Temporal Duct Tape. (Forced waits).
             "halt_hits": re.compile(r"\bEXEC\s+CICS\s+DELAY\b", re.I),
             # 43. bitwise_hits: Sub-Atomic Math. (Modern intrinsic bitwise).
-            "bitwise_hits": re.compile(
-                r"\bFUNCTION\s+(?:BIT-AND|BIT-OR|BIT-XOR|BIT-NOT)\b", re.I
-            ),
+            "bitwise_hits": re.compile(r"\bFUNCTION\s+(?:BIT-AND|BIT-OR|BIT-XOR|BIT-NOT)\b", re.I),
             # 44. sync_locks: Barricades.
             "sync_locks": re.compile(r"\bEXEC\s+CICS\s+ENQ\b", re.I),
             # 45. freeze_hits: Data Cryogenics. Immutability.
@@ -7428,9 +6694,7 @@ LANGUAGE_DEFINITIONS = {
             "time_date_logic": re.compile(
                 r"(?i)\b(ACCEPT\s+.*\s+FROM\s+(?:DATE|TIME|DAY)|CURRENT-DATE|WHEN-COMPILED)\b"
             ),
-            "ipc_rpc_bridges": re.compile(
-                r"(?i)\b(CALL\s+|EXEC\s+CICS\s+(?:LINK|XCTL|START|RETURN)|EXEC\s+SQL)\b"
-            ),
+            "ipc_rpc_bridges": re.compile(r"(?i)\b(CALL\s+|EXEC\s+CICS\s+(?:LINK|XCTL|START|RETURN)|EXEC\s+SQL)\b"),
         },
     },
     "zig": {
@@ -7450,7 +6714,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["zig"],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: Zig intentionally omits multi-line block comments to keep parsing simple, exclusively using '//'.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -7459,9 +6723,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": None,
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes unique 'orelse' and 'catch' patterns.
-            "branch": re.compile(
-                r"\b(if|else|switch|while|for|try|catch|orelse|break|continue|return)\b|&&|\|\|"
-            ),
+            "branch": re.compile(r"\b(if|else|switch|while|for|try|catch|orelse|break|continue|return)\b|&&|\|\|"),
             # 2. args: Parameters / Coupling. Captures parameters in function signatures.
             "args": re.compile(r"\bfn\s*(?:[a-zA-Z_]\w*\s*)?\([^)]*\)"),
             # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries. EXCLUDES access modifiers and const (freeze_hits).
@@ -7480,9 +6742,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             # 6. safety: Defensive Programming. Error handling, payload capturing (|val|), and debug assertions.
-            "safety": re.compile(
-                r"\b(try|catch|orelse|errdefer|std\.debug\.assert)\b|\|[ \t]*[a-zA-Z_]\w*[ \t]*\|"
-            ),
+            "safety": re.compile(r"\b(try|catch|orelse|errdefer|std\.debug\.assert)\b|\|[ \t]*[a-zA-Z_]\w*[ \t]*\|"),
             # 7. safety_neg: Safety Bypasses. Bypassing safety (undefined, unreachable, raw ptr casting).
             "safety_neg": re.compile(
                 r"\b(undefined|unreachable|@ptrCast|@intCast|@alignCast|@bitCast|@truncate|@enumFromInt)\b"
@@ -7490,17 +6750,13 @@ LANGUAGE_DEFINITIONS = {
             # 8. danger: High-Risk Execution. Forceful panics and process terminations.
             "danger": re.compile(r"\b(@panic|panic|std\.process\.exit)\b"),
             # 9. io: I/O & Network Boundaries. Standard library IO, Network, and Filesystem interactions.
-            "io": re.compile(
-                r"\b(std\.fs|std\.net|std\.io(?!\.getStdOut)|std\.ChildProcess|std\.posix|std\.os)\b"
-            ),
+            "io": re.compile(r"\b(std\.fs|std\.net|std\.io(?!\.getStdOut)|std\.ChildProcess|std\.posix|std\.os)\b"),
             # 10. api: Public Surface Area. Exposed boundaries via 'pub' and 'export' (C ABI).
             "api": re.compile(r"\b(pub|export)\b"),
             # 11. flux: State Mutation. State mutation (var) and pointer dereference assignments (.* =).
             "flux": re.compile(r"\bvar\b|\.\*[ \t]*=[^=]"),
             # 12. graveyard: Dead / Commented-out Code. Commented out structural code.
-            "graveyard": re.compile(
-                r"//[ \t]*(?:fn|const|var|pub|if|for|while|try|catch)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:fn|const|var|pub|if|for|while|try|catch)\b"),
             # 13. doc: Structured Documentation. Structured documentation (/// and //!).
             "doc": re.compile(r"///|//!"),
             # 14. test: Testing & Assertions. Native test framework blocks.
@@ -7513,9 +6769,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(std\.Thread|std\.Thread\.Mutex|std\.Thread\.RwLock|std\.atomic|@atomicLoad|@atomicStore|@atomicRmw|suspend|resume|await)\b"
             ),
             # 16. ui_framework: UI / View Components. (Zig lacks native UI; targets common bindings like Mach/zgui).
-            "ui_framework": re.compile(
-                r"\b(mach\.|zgui\.|zopengl\.|capy\.|vaxis\.|raylib\.)\b"
-            ),
+            "ui_framework": re.compile(r"\b(mach\.|zgui\.|zopengl\.|capy\.|vaxis\.|raylib\.)\b"),
             # 17. closures: Closures / Anonymous Functions. (Zig lacks traditional anonymous closures).
             "closures": None,
             # 18. globals: Global / Shared State. Top-level file-scoped state.
@@ -7526,15 +6780,11 @@ LANGUAGE_DEFINITIONS = {
             # 19. decorators: Decorators / Annotations. (Zig uses @builtins instead).
             "decorators": None,
             # 20. generics: Generics / Type Parameters. Comptime parameters and 'anytype' duck typing.
-            "generics": re.compile(
-                r"\b(anytype|type)\b|\bcomptime\s+[a-zA-Z_]\w*\s*:\s*type\b"
-            ),
+            "generics": re.compile(r"\b(anytype|type)\b|\bcomptime\s+[a-zA-Z_]\w*\s*:\s*type\b"),
             # 21. comprehensions: Iterators / Comprehensions. (Not native to Zig).
             "comprehensions": None,
             # 22. scientific: Numerical / Compute Libraries. Math intrinsics and SIMD @Vector support.
-            "scientific": re.compile(
-                r"\b(std\.math|@Vector|f16|f32|f64|f80|f128|@sqrt|@sin|@cos|@splat|@reduce)\b"
-            ),
+            "scientific": re.compile(r"\b(std\.math|@Vector|f16|f32|f64|f80|f128|@sqrt|@sin|@cos|@splat|@reduce)\b"),
             # 23. heat_triggers: Metaprogramming & Reflection. Comptime metaprogramming and reflection.
             "heat_triggers": re.compile(
                 r"\b(comptime[ \t]*\{|inline\s+for|inline\s+while|@Type|@typeInfo|@compileLog|@hasDecl|@hasField)\b"
@@ -7546,9 +6796,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 25. ownership: Authorship indicators in comments.
-            "ownership": re.compile(
-                r"//\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)", re.I
-            ),
+            "ownership": re.compile(r"//\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
@@ -7559,13 +6807,9 @@ LANGUAGE_DEFINITIONS = {
             # 30. civil_war: Indentation Tracker. Tabs vs 4-space standardization.
             "civil_war": None,
             # 31. ssr_boundaries: View Horizon. Zap/httpz response handlers.
-            "ssr_boundaries": re.compile(
-                r"\b(zap\.Endpoint|zap\.Request|httpz\.Request|std\.http\.Server\.Request)\b"
-            ),
+            "ssr_boundaries": re.compile(r"\b(zap\.Endpoint|zap\.Request|httpz\.Request|std\.http\.Server\.Request)\b"),
             # 32. events: Pub/Sub Network. OS-level event loops.
-            "events": re.compile(
-                r"\b(std\.posix\.epoll_wait|std\.posix\.kevent|xev\.Loop)\b"
-            ),
+            "events": re.compile(r"\b(std\.posix\.epoll_wait|std\.posix\.kevent|xev\.Loop)\b"),
             # 33. dependency_injection: Inversion of Control.
             "dependency_injection": None,
             # 34. macros: Preprocessor Hooks. (Zig lacks macros).
@@ -7582,9 +6826,7 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": re.compile(r"\basm\b(?:\s+volatile)?\s*\([^)]+\)"),
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
-            "telemetry": re.compile(
-                r"\b(?:std\.log\.(?:info|err|warn|debug)|std\.log\.scoped)\b"
-            ),
+            "telemetry": re.compile(r"\b(?:std\.log\.(?:info|err|warn|debug)|std\.log\.scoped)\b"),
             # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(std\.debug\.print)\b"),
             # 40. cast_hits: "Trust Me" Tax. Explicit casting.
@@ -7602,9 +6844,7 @@ LANGUAGE_DEFINITIONS = {
             # 46. cleanup: The Janitor. Resource release.
             "cleanup": re.compile(r"\b(deinit|free|destroy|allocator\.free)\b"),
             # 47. encapsulation: The Vault. Scope hiding (Lack of pub).
-            "encapsulation": re.compile(
-                r"^[ \t]*(?!(?:pub|export|extern)\b)(?:const|var|fn)\s+", re.M
-            ),
+            "encapsulation": re.compile(r"^[ \t]*(?!(?:pub|export|extern)\b)(?:const|var|fn)\s+", re.M),
             # 48. listeners: The Sinks.
             "listeners": None,
             # 49. test_skip: Safety Theater.
@@ -7616,9 +6856,7 @@ LANGUAGE_DEFINITIONS = {
             "regex_execution": re.compile(
                 r"\b(std\.mem\.(?:indexOf|tokenize(?:Any)?|split(?:Sequence|Any)?|replace))\b"
             ),  # Zig has no native regex!
-            "time_date_logic": re.compile(
-                r"\b(std\.time\.(?:nanoTimestamp|milliTimestamp|Timer|sleep))\b"
-            ),
+            "time_date_logic": re.compile(r"\b(std\.time\.(?:nanoTimestamp|milliTimestamp|Timer|sleep))\b"),
             "ipc_rpc_bridges": re.compile(
                 r"\b(std\.process\.Child|std\.net\.tcpConnectToHost|std\.Thread\.spawn|std\.posix|std\.os\.execve)\b"
             ),
@@ -7644,9 +6882,8 @@ LANGUAGE_DEFINITIONS = {
         ],
         # EXECUTION SIGNATURES: Executed exclusively on the Salesforce platform; no shebangs exist.
         "shebangs": [],
-        # UPGRADED: Maps to Family 1 (Standard C-Style)
-        # Rationale: Uses standard '//' for lines and '/*' '*/' for block-level Ghost Mass.
-        "lexical_family": "c_style_comment",
+        # Rationale: Uses standard '//' for lines and '/*' '*/' for block-level Commented / Non-Executable Text.
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -7723,9 +6960,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I | re.M,
             ),
             # 13. doc: Structured Documentation. ApexDoc annotations and metadata blocks.
-            "doc": re.compile(
-                r"/\*\*|@description|@param|@return|@author|@date|@example", re.I
-            ),
+            "doc": re.compile(r"/\*\*|@description|@param|@return|@author|@date|@example", re.I),
             # 14. test: Testing & Assertions. Salesforce test execution and assertion markers.
             "test": re.compile(
                 r"@isTest|@TestSetup|@TestVisible|\b(?:Test\.startTest|Test\.stopTest|System\.assert|Assert\.(?:isTrue|isNotNull|areEqual)|Test\.setMock)\b",
@@ -7752,13 +6987,9 @@ LANGUAGE_DEFINITIONS = {
             # 19. decorators: Decorators / Annotations. Execution context annotations.
             "decorators": re.compile(r"@[a-z_]\w*(?:\([^)]*\))?", re.I),
             # 20. generics: Generics / Type Parameters. Parameterized collections (List, Map, Set).
-            "generics": re.compile(
-                r"\b(?:List|Set|Map|Iterable|Iterator)\s*<\s*[a-z_][^>]*>", re.I
-            ),
+            "generics": re.compile(r"\b(?:List|Set|Map|Iterable|Iterator)\s*<\s*[a-z_][^>]*>", re.I),
             # 21. comprehensions: Iterators / Comprehensions. Inline SOQL for-loops act as mappers.
-            "comprehensions": re.compile(
-                r"\bfor\s*\([^)]+:\s*\[\s*SELECT[^\]]+\]\s*\)", re.I
-            ),
+            "comprehensions": re.compile(r"\bfor\s*\([^)]+:\s*\[\s*SELECT[^\]]+\]\s*\)", re.I),
             # 22. scientific: Numerical / Compute Libraries. Standard numerical and currency math.
             "scientific": re.compile(
                 r"\b(Math\.(?:abs|sin|cos|tan|exp|log|pow|sqrt)|Decimal|setScale|setRoundingMode)\b",
@@ -7836,9 +7067,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\(\s*(?:[A-Z]\w*|int|Id|String|Decimal|Boolean|Double|Long|Blob|Date|Datetime|Time)\s*\)\s*[a-zA-Z_$]"
             ),
             # 41. bailout_hits: Detonators. Aborting execution or rollback.
-            "bailout_hits": re.compile(
-                r"\b(throw|Database\.rollback|purgeOldAsyncJobs)\b", re.I
-            ),
+            "bailout_hits": re.compile(r"\b(throw|Database\.rollback|purgeOldAsyncJobs)\b", re.I),
             # 42. halt_hits: Temporal Duct Tape. (Apex has no native sleep/delay).
             "halt_hits": None,
             # 43. bitwise_hits: Sub-Atomic Math.
@@ -7848,17 +7077,13 @@ LANGUAGE_DEFINITIONS = {
             # 45. freeze_hits: Data Cryogenics. Immutability (constants).
             "freeze_hits": re.compile(r"\b(static\s+final|final|const)\b", re.I),
             # 46. cleanup: The Janitor. Recycle bin management.
-            "cleanup": re.compile(
-                r"\b(emptyRecycleBin|Database\.rollback|clear)\s*\(", re.I
-            ),
+            "cleanup": re.compile(r"\b(emptyRecycleBin|Database\.rollback|clear)\s*\(", re.I),
             # 47. encapsulation: The Vault. Scope hiding.
             "encapsulation": re.compile(r"\b(private|protected)\b", re.I),
             # 48. listeners: The Sinks. Triggers listening for events.
             "listeners": re.compile(r"^[ \t]*trigger\s+[a-z_]\w*\s+on\b", re.I | re.M),
             # 49. test_skip: Safety Theater.
-            "test_skip": re.compile(
-                r"\b(StubProvider|Test\.setMock|@SuppressWarnings)\b", re.I
-            ),
+            "test_skip": re.compile(r"\b(StubProvider|Test\.setMock|@SuppressWarnings)\b", re.I),
         },
     },
     "dart": {
@@ -7885,7 +7110,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: (CORRECTION) Like Swift and Rust, Dart officially supports nested multi-line
         # comments (/* /* */ */). Standard C parsing would prematurely terminate here causing geometry failure.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
@@ -7949,9 +7174,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 7. safety_neg: Safety Bypasses. Actively bypassing sound null safety or static analysis.
-            "safety_neg": re.compile(
-                r"!\s*[;,\n)\.\]]|\bdynamic\b|//\s*ignore(?:_for_file)?:\s*\w+"
-            ),
+            "safety_neg": re.compile(r"!\s*[;,\n)\.\]]|\bdynamic\b|//\s*ignore(?:_for_file)?:\s*\w+"),
             # 8. danger: High-Risk Execution. Process killers and catastrophic exit commands.
             "danger": re.compile(r"\b(exit|exitCode|Process\.killPid)\b", re.I),
             # 9. io: I/O & Network Boundaries. Disk, Network, WebSockets, and Uri parsing (Includes legacy CERN triggers).
@@ -8016,17 +7239,13 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 24. import: Dependency Inclusions. Dependency resolution and library partitions.
-            "import": re.compile(
-                r'^[ \t]*(?:import|export|part|part\s+of)\b\s*[\'"][^\'"]+[\'"]', re.M
-            ),
+            "import": re.compile(r'^[ \t]*(?:import|export|part|part\s+of)\b\s*[\'"][^\'"]+[\'"]', re.M),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:import|export|part(?:[ \t\n]+of)?)\b[ \t\n]*['\"]([^'\"]+)['\"]",
                 re.M,
             ),
             # 25. ownership: Authorship indicators.
-            "ownership": re.compile(
-                r"//\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)", re.I
-            ),
+            "ownership": re.compile(r"//\s*(?:Author|Created by|Maintainer|Copyright):\s+([^\n]+)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt: The Promise. Future work markers.
             "planned_debt": GLOBAL_PLANNED_DEBT,
@@ -8082,45 +7301,29 @@ LANGUAGE_DEFINITIONS = {
             # 40. cast_hits: "Trust Me" Tax. Explicit casting.
             "cast_hits": re.compile(r"\bas\s+[A-Z]\w*|\(\s*[A-Z]\w*\s*\)\s*[a-zA-Z_$]"),
             # 41. bailout_hits: Detonators. Aborting context.
-            "bailout_hits": re.compile(
-                r"\b(throw|rethrow|exit|exitCode|Process\.killPid)\b", re.I
-            ),
+            "bailout_hits": re.compile(r"\b(throw|rethrow|exit|exitCode|Process\.killPid)\b", re.I),
             # 42. halt_hits: Temporal Duct Tape. (Forced waits/delays).
-            "halt_hits": re.compile(
-                r"\b(sleep|delay|setTimeout|setInterval)\s*\(", re.I
-            ),
+            "halt_hits": re.compile(r"\b(sleep|delay|setTimeout|setInterval)\s*\(", re.I),
             # 43. bitwise_hits: Sub-Atomic Math.
-            "bitwise_hits": re.compile(
-                r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|~(?!=|/)"
-            ),
+            "bitwise_hits": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|~(?!=|/)"),
             # 44. sync_locks: Barricades. Coordinated threading.
-            "sync_locks": re.compile(
-                r"\b(Mutex|Lock|synchronized|Semaphore|Completer)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(Mutex|Lock|synchronized|Semaphore|Completer)\b", re.I),
             # 45. freeze_hits: Data Cryogenics. Immutability.
             "freeze_hits": re.compile(r"\b(const|final|readonly|@immutable)\b", re.I),
             # 46. cleanup: The Janitor. Resource release.
-            "cleanup": re.compile(
-                r"\b(dispose|close|cleanup|cancel|drop|free)\s*\(", re.I
-            ),
+            "cleanup": re.compile(r"\b(dispose|close|cleanup|cancel|drop|free)\s*\(", re.I),
             # 47. encapsulation: The Vault. Scope hiding (Underscore prefix).
             "encapsulation": re.compile(r"\b(_[a-zA-Z0-9_$]+)\b|@protected|@private"),
             # 48. listeners: The Sinks. Waiting for state broadcasts.
-            "listeners": re.compile(
-                r"\b(on\(|addEventListener|subscribe|watch|useEffect|listen)\b", re.I
-            ),
+            "listeners": re.compile(r"\b(on\(|addEventListener|subscribe|watch|useEffect|listen)\b", re.I),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(@Ignore|test\.skip|t\.Skip|xit|mock)\b", re.I),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Dart Specifics) ---
             "serialization_parsing": re.compile(
                 r"\b(jsonDecode|jsonEncode|json\.decode|json\.encode|Utf8Decoder|Utf8Encoder)\b"
             ),
-            "regex_execution": re.compile(
-                r"\b(RegExp\s*\()|\.(hasMatch|allMatches|stringMatch)\b"
-            ),
-            "time_date_logic": re.compile(
-                r"\b(DateTime\.now|Duration\s*\(|Timer\.run|Timer\.periodic|Stopwatch)\b"
-            ),
+            "regex_execution": re.compile(r"\b(RegExp\s*\()|\.(hasMatch|allMatches|stringMatch)\b"),
+            "time_date_logic": re.compile(r"\b(DateTime\.now|Duration\s*\(|Timer\.run|Timer\.periodic|Stopwatch)\b"),
             "ipc_rpc_bridges": re.compile(
                 r"\b(Isolate\.spawn|ReceivePort|SendPort|Process\.run|Process\.start|HttpClient)\b"
             ),
@@ -8151,7 +7354,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 2 (Nested C)
         # Rationale: Scala explicitly supports nested multi-line comments (/* /* */ */),
         # requiring depth-aware stripping to prevent premature termination.
-        "lexical_family": "recursive_c_style",
+        "lexical_family": "recursive_block",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -8199,13 +7402,9 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(Option|Some|None|Try|Success|Failure|Either|Left|Right|sealed|require|assert|assume)\b|\|\s*Null\b"
             ),
             # 7. safety_neg: Safety Bypasses. Actively bypassing type safety (asInstanceOf, .get).
-            "safety_neg": re.compile(
-                r"\b(null|asInstanceOf|isInstanceOf|\.get\b(?!Class)|@unchecked|Any|AnyRef)\b"
-            ),
+            "safety_neg": re.compile(r"\b(null|asInstanceOf|isInstanceOf|\.get\b(?!Class)|@unchecked|Any|AnyRef)\b"),
             # 8. danger: High-Risk Execution. Process killers and catastrophic exit commands.
-            "danger": re.compile(
-                r"\b(System\.exit|sys\.exit|Thread\.stop|Runtime\.getRuntime\.exec)\b"
-            ),
+            "danger": re.compile(r"\b(System\.exit|sys\.exit|Thread\.stop|Runtime\.getRuntime\.exec)\b"),
             # 9. io: I/O & Network Boundaries. Filesystem, Network, and Http Clients (Includes CERN triggers).
             "io": re.compile(
                 r"\b(Source|java\.io|java\.nio|Files\.|Socket|ServerSocket|sttp|Http|WSClient|HTLoad|HTGet|ENQUIRE)\b"
@@ -8248,9 +7447,7 @@ LANGUAGE_DEFINITIONS = {
             # 19. decorators: Decorators / Annotations. Method and class annotations.
             "decorators": re.compile(r"@[A-Za-z_]\w*(?:\([^)]*\))?"),
             # 20. generics: Generics / Type Parameters. Type parameterization and HKT constraints.
-            "generics": re.compile(
-                r"\[\s*[+-]?[A-Z][^\]]*\]|\bF\[_\]|<:|>:|\[[ \t]*_\s*\]"
-            ),
+            "generics": re.compile(r"\[\s*[+-]?[A-Z][^\]]*\]|\bF\[_\]|<:|>:|\[[ \t]*_\s*\]"),
             # 21. comprehensions: Iterators / Comprehensions. For-comprehensions and monadic chains.
             "comprehensions": re.compile(
                 r"\bfor\s*(?:\{[^}]*\}|\([^)]*\))\s*yield\b|\.(?:map|flatMap|filter|withFilter|foldLeft|reduce|collect)\s*[\(\{]"
@@ -8308,9 +7505,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(Action|Controller|HttpRoutes|ServerEndpoint|twirl|html\.[a-zA-Z_]\w*|Ok\(|BadRequest\()\b"
             ),
             # 32. events: Pub/Sub Network. Stream processing and event bus signatures.
-            "events": re.compile(
-                r"\b(Source|Flow|Sink|fs2\.Stream|ZStream|EventBus|system\.eventStream|Observable)\b"
-            ),
+            "events": re.compile(r"\b(Source|Flow|Sink|fs2\.Stream|ZStream|EventBus|system\.eventStream|Observable)\b"),
             # 33. dependency_injection: Inversion of Control. ZLayer and ReaderT patterns.
             "dependency_injection": re.compile(
                 r"\b(@Inject|wire\[|ZLayer|ZLayer\.from|provide|provideSome|ReaderT|Kleisli|requires)\b"
@@ -8320,9 +7515,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(inline\s+def|transparent\s+inline|macro|scala\.quoted|Expr|Type|Quotes)\b|\$\{.*?\}|\'\{"
             ),
             # 35. pointers: Memory Map. Scala Native C-Interop pointers.
-            "pointers": re.compile(
-                r"\b(Ptr\[[^\]]+\]|scala\.scalanative\.unsafe|!ptr|ptr\.|CFuncPtr|CStruct\d+)\b"
-            ),
+            "pointers": re.compile(r"\b(Ptr\[[^\]]+\]|scala\.scalanative\.unsafe|!ptr|ptr\.|CFuncPtr|CStruct\d+)\b"),
             # 36. memory_alloc: Manual Memory Management. Heap and Native allocations.
             "memory_alloc": re.compile(
                 r"\b(Zone|zone[ \t]*\{|alloc\[[^\]]+\]|malloc|calloc|free|scala\.scalanative\.libc\.stdlib)\b"
@@ -8337,50 +7530,34 @@ LANGUAGE_DEFINITIONS = {
             # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(println|print|Console\.println)\b"),
             # 40. cast_hits: "Trust Me" Tax. Explicit type coercion.
-            "cast_hits": re.compile(
-                r"\basInstanceOf\[[^\]]*\]|\.(?:toInt|toLong|toFloat|toDouble|toByte|toShort)\b"
-            ),
+            "cast_hits": re.compile(r"\basInstanceOf\[[^\]]*\]|\.(?:toInt|toLong|toFloat|toDouble|toByte|toShort)\b"),
             # 41. bailout_hits: Detonators. Aborting context.
             "bailout_hits": re.compile(r"\b(throw|panic|abort|sys\.error|exit)\b"),
             # 42. halt_hits: Temporal Duct Tape. (Forced waits/sleep).
-            "halt_hits": re.compile(
-                r"\b(Thread\.sleep|delay|setTimeout|setInterval)\s*\("
-            ),
+            "halt_hits": re.compile(r"\b(Thread\.sleep|delay|setTimeout|setInterval)\s*\("),
             # 43. bitwise_hits: Sub-Atomic Math.
             "bitwise_hits": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|~"),
             # 44. sync_locks: Barricades. Coordinated threading.
-            "sync_locks": re.compile(
-                r"\b(synchronized|volatile|Semaphore|Mutex|lock|unlock)\b"
-            ),
+            "sync_locks": re.compile(r"\b(synchronized|volatile|Semaphore|Mutex|lock|unlock)\b"),
             # 45. freeze_hits: Data Cryogenics. Immutability.
-            "freeze_hits": re.compile(
-                r"\b(val|final|sealed|readonly|Object\.freeze|immutable)\b"
-            ),
+            "freeze_hits": re.compile(r"\b(val|final|sealed|readonly|Object\.freeze|immutable)\b"),
             # 46. cleanup: The Janitor. Resource release.
-            "cleanup": re.compile(
-                r"\b(dispose|close|cleanup|cancel|free|bracket|finally|onException)\b"
-            ),
+            "cleanup": re.compile(r"\b(dispose|close|cleanup|cancel|free|bracket|finally|onException)\b"),
             # 47. encapsulation: The Vault. Scope hiding.
             "encapsulation": re.compile(r"\b(private|protected)\b|private\[[^\]]+\]"),
             # 48. listeners: The Sinks. Waiting for state broadcasts.
-            "listeners": re.compile(
-                r"\b(on\(|addEventListener|subscribe|watch|useEffect|listen)\b"
-            ),
+            "listeners": re.compile(r"\b(on\(|addEventListener|subscribe|watch|useEffect|listen)\b"),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(ignore|pending|skip|xit|xdescribe)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Scala Specifics) ---
             "serialization_parsing": re.compile(
                 r"\b(io\.circe|decode\[|asJson|Json\.parse|Json\.toJson|upickle\.default)\b"
             ),
-            "regex_execution": re.compile(
-                r'"[^"]+"\.r\b|\bRegex\s*\(|\.(findAllIn|findFirstIn|replaceAllIn)\b'
-            ),
+            "regex_execution": re.compile(r'"[^"]+"\.r\b|\bRegex\s*\(|\.(findAllIn|findFirstIn|replaceAllIn)\b'),
             "time_date_logic": re.compile(
                 r"\b(Duration\s*\(|FiniteDuration|System\.currentTimeMillis|LocalDate\.now)\b"
             ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(ActorSystem|ActorRef|sys\.process\._|Process\s*\(|Future\.apply)\b"
-            ),
+            "ipc_rpc_bridges": re.compile(r"\b(ActorSystem|ActorRef|sys\.process\._|Process\s*\(|Future\.apply)\b"),
         },
     },
     "dockerfile": {
@@ -8413,7 +7590,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Docker natively uses '#' exclusively for line-level comments and parser directives.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             "_line_anchor": re.compile(r"#"),
             "_inline_comment": re.compile(r"#"),
@@ -8432,15 +7609,11 @@ LANGUAGE_DEFINITIONS = {
             # 3. linear (Sequential Boundaries)
             # Structural boundaries defining straight-line execution and environment contexts.
             # CRITICAL GUARDRAIL: EXCLUDES `FROM` and `RUN`/`CMD` to maintain geometric stability.
-            "linear": re.compile(
-                r"^[ \t]*(?:WORKDIR|USER|VOLUME|STOPSIGNAL|SHELL|LABEL)\b", re.M | re.I
-            ),
+            "linear": re.compile(r"^[ \t]*(?:WORKDIR|USER|VOLUME|STOPSIGNAL|SHELL|LABEL)\b", re.M | re.I),
             # 4. func_start (Executable Logic Anchors)
             # CRITICAL GUARDRAIL: Anchors logic blocks. ONLY executable logic blocks.
             # In Docker, `RUN`, `CMD`, and `ENTRYPOINT` execute logic, generating discrete intermediate image layers.
-            "func_start": re.compile(
-                r"^[ \t]*(RUN|CMD|ENTRYPOINT|HEALTHCHECK)(?=[ \t])", re.M | re.I
-            ),
+            "func_start": re.compile(r"^[ \t]*(RUN|CMD|ENTRYPOINT|HEALTHCHECK)(?=[ \t])", re.M | re.I),
             # 5. class_start (Object / Entity Declarations)
             # Defines object-oriented and structural boundaries. Drives API Surface Area math.
             # `FROM` instantiates a discrete build stage/image boundary, acting as a class wrapper.
@@ -8464,9 +7637,7 @@ LANGUAGE_DEFINITIONS = {
             # 8. danger (High-Risk Execution)
             # Extreme space debris. Destructive recursive removes targeting root, and dangerous dynamic eval.
             # CRITICAL GUARDRAIL: Raw terminal prints (`echo`) strictly routed to print_hits.
-            "danger": re.compile(
-                r"\b(?:rm[ \t]+-rf[ \t]+/(?![A-Za-z])|eval|exec)\b", re.M | re.I
-            ),
+            "danger": re.compile(r"\b(?:rm[ \t]+-rf[ \t]+/(?![A-Za-z])|eval|exec)\b", re.M | re.I),
             # 9. io (I/O & Network Boundaries)
             # Interaction with external networks, copying files from host, or executing package managers.
             "io": re.compile(
@@ -8503,14 +7674,10 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
             # 15. concurrency (Asynchronous Execution)
             # Parallelism executed inside the build shell (e.g. compiling with all cores).
-            "concurrency": re.compile(
-                r"&[ \t]*$|\b(?:nohup|parallel|make[ \t]+-j|xargs[ \t]+-P)\b", re.M
-            ),
+            "concurrency": re.compile(r"&[ \t]*$|\b(?:nohup|parallel|make[ \t]+-j|xargs[ \t]+-P)\b", re.M),
             # 16. ui_framework (UI / View Components)
             # Containerizing GUI applications (X11, Wayland, GTK).
-            "ui_framework": re.compile(
-                r"\b(?:xvfb|x11|wayland|gtk|qt5?|libgl1-mesa)\b", re.I
-            ),
+            "ui_framework": re.compile(r"\b(?:xvfb|x11|wayland|gtk|qt5?|libgl1-mesa)\b", re.I),
             # 17. closures (Closures / Anonymous Functions)
             # Dockerfiles are purely declarative structurally; closures do not exist.
             "closures": None,
@@ -8538,9 +7705,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (Dependency Inclusions)
             # Base images or dependencies pulled from other build stages (`COPY --from=`).
-            "import": re.compile(
-                r"^[ \t]*FROM[ \t]+[a-zA-Z0-9_./:-]+|--from=[a-zA-Z0-9_-]+", re.M | re.I
-            ),
+            "import": re.compile(r"^[ \t]*FROM[ \t]+[a-zA-Z0-9_./:-]+|--from=[a-zA-Z0-9_-]+", re.M | re.I),
             "_dependency_capture": re.compile(
                 r"^[ \t]*FROM\s+(?:--[\w-]+=[^\s]+\s+)?([a-zA-Z0-9_./:-]+)|--from=([a-zA-Z0-9_-]+)",
                 re.M | re.I,
@@ -8574,9 +7739,7 @@ LANGUAGE_DEFINITIONS = {
             "dependency_injection": re.compile(r"--mount=type=(?:secret|ssh)", re.I),
             # 34. macros (Preprocessor Directives / Macros)
             # Docker BuildKit `# syntax=` directives which change the parser dynamically at compile-time (just like C-macros).
-            "macros": re.compile(
-                r"^[ \t]*#[ \t]*(?:syntax|escape)[ \t]*=", re.M | re.I
-            ),
+            "macros": re.compile(r"^[ \t]*#[ \t]*(?:syntax|escape)[ \t]*=", re.M | re.I),
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": None,
             # 36. memory_alloc (Manual Memory Management)
@@ -8601,9 +7764,7 @@ LANGUAGE_DEFINITIONS = {
             "cast_hits": None,
             # 41. bailout_hits (Execution Halts / Panics)
             # Hard execution aborts forcing the build to fail dynamically.
-            "bailout_hits": re.compile(
-                r"\b(?:exit[ \t]+[1-9]|kill[ \t]+-[0-9]+)\b", re.I
-            ),
+            "bailout_hits": re.compile(r"\b(?:exit[ \t]+[1-9]|kill[ \t]+-[0-9]+)\b", re.I),
             # 42. halt_hits (Thread Blocking / Sleeps)
             # Forcing the build thread to sleep (often a hack to wait for a daemon/network).
             "halt_hits": re.compile(r"\bsleep[ \t]+[0-9]+\b", re.I),
@@ -8623,9 +7784,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             # Explicitly encapsulating logic in multi-stage builds (`AS builder`). Hides intermediate build layers.
-            "encapsulation": re.compile(
-                r"^[ \t]*FROM[ \t]+[^\n]+[ \t]+AS[ \t]+[a-zA-Z0-9_-]+", re.M | re.I
-            ),
+            "encapsulation": re.compile(r"^[ \t]*FROM[ \t]+[^\n]+[ \t]+AS[ \t]+[a-zA-Z0-9_-]+", re.M | re.I),
             # 48. listeners (Event Listeners / Observers)
             # Exposing ports for network consumption. .
             "listeners": re.compile(r"^[ \t]*EXPOSE[ \t]+[0-9]+", re.M | re.I),
@@ -8639,15 +7798,9 @@ LANGUAGE_DEFINITIONS = {
             "serialization_parsing": re.compile(
                 r"(?i)^(?:ADD|COPY)\s+.*\.(?:tar\.gz|zip|tgz|tar)\b"
             ),  # ADD auto-extracts archives
-            "regex_execution": re.compile(
-                r"(?i)^RUN\s+.*(?:grep|sed|awk)\b"
-            ),  # Catches shell-delegated regex
-            "time_date_logic": re.compile(
-                r"(?i)^(?:HEALTHCHECK.*(?:--interval|--timeout)|RUN\s+.*sleep)\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"(?i)^(?:EXPOSE|VOLUME|ENTRYPOINT|CMD|STOPSIGNAL)\b"
-            ),
+            "regex_execution": re.compile(r"(?i)^RUN\s+.*(?:grep|sed|awk)\b"),  # Catches shell-delegated regex
+            "time_date_logic": re.compile(r"(?i)^(?:HEALTHCHECK.*(?:--interval|--timeout)|RUN\s+.*sleep)\b"),
+            "ipc_rpc_bridges": re.compile(r"(?i)^(?:EXPOSE|VOLUME|ENTRYPOINT|CMD|STOPSIGNAL)\b"),
         },
     },
     "matlab": {
@@ -8673,7 +7826,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: (CORRECTION) Uses '%' for lines and '%{ %}' for blocks. Mapping this to
         # hybrid_dash would cause the engine to look for '--', missing the math entirely.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             "_line_anchor": re.compile(r"%"),
             "_inline_comment": re.compile(r"%"),
@@ -8681,9 +7834,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": re.compile(r"^[ \t]*%\}", re.M),
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # branch: MATLAB control flow. EXCLUDES 'error' and 'rethrow' (bailout_hits).
-            "branch": re.compile(
-                r"\b(?:if|elseif|else|switch|case|otherwise|for|while|try|catch)\b|&&|\|\||~="
-            ),
+            "branch": re.compile(r"\b(?:if|elseif|else|switch|case|otherwise|for|while|try|catch)\b|&&|\|\||~="),
             # args: Captures standard function inputs and return signatures `function [out1, out2] = myFun(in1, in2)`.
             # CRITICAL GUARDRAIL: Safely bounds `\([^)]*\)` and `\[[^\]]*\]`.
             "args": re.compile(
@@ -8721,9 +7872,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:try|catch|narginchk|nargoutchk|validateattributes|validatestring|mustBe[A-Za-z_]\w*|assert|isa|isempty|isnumeric|ischar|isstruct|isfield|iscell|islogical|arguments)\b"
             ),
             # safety_neg: Actively bypasses safety via dynamic strings or manipulating the caller workspace.
-            "safety_neg": re.compile(
-                r'\b(?:eval|evalin|assignin|evalc)\b|\bwarning[ \t]*\([ \t]*[\'"]off[\'"]'
-            ),
+            "safety_neg": re.compile(r'\b(?:eval|evalin|assignin|evalc)\b|\bwarning[ \t]*\([ \t]*[\'"]off[\'"]'),
             # danger: Destructive workspace actions and OS bypasses.
             # CRITICAL GUARDRAIL: Raw terminal prints (`disp`) strictly routed to print_hits.
             "danger": re.compile(
@@ -8746,9 +7895,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # graveyard: Commented-out logic, commented-out structural MATLAB code.
-            "graveyard": re.compile(
-                r"^[ \t]*%[ \t]*(?:if|for|while|function|classdef)\b", re.M
-            ),
+            "graveyard": re.compile(r"^[ \t]*%[ \t]*(?:if|for|while|function|classdef)\b", re.M),
             # doc: Standard MATLAB Help text (`%%` sections) or typed annotations.
             "doc": re.compile(
                 r"^[ \t]*%[ \t]*@(?:param|return|author)|^[ \t]*%%[ \t]*[A-Z][A-Z0-9_]*",
@@ -8773,15 +7920,11 @@ LANGUAGE_DEFINITIONS = {
             "globals": re.compile(r"\b(?:global|persistent|setenv|getenv)\b"),
             # decorators: MATLAB Property/Method attribute blocks (e.g., `methods (Access = private)`).
             # Safely bounded with `\([^)]*\)` to avoid ReDoS.
-            "decorators": re.compile(
-                r"^[ \t]*(?:properties|methods|events)[ \t]*\([^)]*\)", re.M
-            ),
+            "decorators": re.compile(r"^[ \t]*(?:properties|methods|events)[ \t]*\([^)]*\)", re.M),
             # generics: MATLAB is dynamically typed. Generics do not exist natively.
             "generics": None,
             # comprehensions: MATLAB array mapping functions (the closest equivalent to list comprehensions).
-            "comprehensions": re.compile(
-                r"\b(?:arrayfun|cellfun|structfun|rowfun|varfun)\b"
-            ),
+            "comprehensions": re.compile(r"\b(?:arrayfun|cellfun|structfun|rowfun|varfun)\b"),
             # scientific: The core of MATLAB. High-density built-in numerical solvers and DSP operations.
             "scientific": re.compile(
                 r"\b(?:fft|ifft|svd|eig|inv|det|polyfit|ode45|ode15s|integral|cross|dot)\b|\.\*|\./|\.\^"
@@ -8792,29 +7935,21 @@ LANGUAGE_DEFINITIONS = {
             ),
             # import: Namespace/Class loading.
             "import": re.compile(r"^[ \t]*import[ \t]+[a-zA-Z0-9_.*]+", re.M),
-            "_dependency_capture": re.compile(
-                r"^[ \t]*import[ \t\n]+([a-zA-Z0-9_.*]+)", re.M
-            ),
+            "_dependency_capture": re.compile(r"^[ \t]*import[ \t\n]+([a-zA-Z0-9_.*]+)", re.M),
             # ownership: Standard MATLAB comment authorship signatures.
-            "ownership": re.compile(
-                r"^[ \t]*%[ \t]*(?:Author|Created by|Copyright)[ \t]*:(.*)", re.M | re.I
-            ),
+            "ownership": re.compile(r"^[ \t]*%[ \t]*(?:Author|Created by|Copyright)[ \t]*:(.*)", re.M | re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            "spec_exposure": re.compile(
-                r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I),
             # civil_war: MATLAB default is 4 spaces. Raw tabs indicate formatter disruption.
             "civil_war": None,
             # ssr_boundaries: Web App compiler hooks.
             "ssr_boundaries": re.compile(r"\b(?:webwindow|htmlTree)\b"),
             # events: MATLAB Object-Oriented Event triggering.
-            "events": re.compile(
-                r"\b(?:notify|event\.EventData|event\.PropertyEvent)\b"
-            ),
+            "events": re.compile(r"\b(?:notify|event\.EventData|event\.PropertyEvent)\b"),
             "dependency_injection": None,
             "macros": None,
             # pointers: C/C++ FFI pointer manipulation via MATLAB's `libpointer` or `handle` class.
@@ -8832,51 +7967,33 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # print_hits: Ad-hoc console dumps. Excludes fprintf addressing file IDs `fprintf(fid, ...)`.
-            "print_hits": re.compile(
-                r"\b(?:disp|warning|fprintf(?![ \t]*\([ \t]*[a-zA-Z_]))\b"
-            ),
+            "print_hits": re.compile(r"\b(?:disp|warning|fprintf(?![ \t]*\([ \t]*[a-zA-Z_]))\b"),
             # cast_hits: Changing data types (vital for memory size control in big matrices).
             "cast_hits": re.compile(
                 r"\b(?:cast|typecast|int8|uint8|int16|uint16|int32|uint32|int64|uint64|single|double|logical)\s*\("
             ),
             # bailout_hits: Hard execution aborts.
-            "bailout_hits": re.compile(
-                r"\b(?:error|throw|rethrow|MException|throwAsCaller)\b"
-            ),
+            "bailout_hits": re.compile(r"\b(?:error|throw|rethrow|MException|throwAsCaller)\b"),
             # halt_hits: Forcing the thread to pause.
             "halt_hits": re.compile(r"\bpause[ \t]*\("),
             # bitwise_hits: Sub-atomic manipulations.
-            "bitwise_hits": re.compile(
-                r"\b(?:bitand|bitor|bitxor|bitcmp|bitshift|bitset|bitget)\b"
-            ),
+            "bitwise_hits": re.compile(r"\b(?:bitand|bitor|bitxor|bitcmp|bitshift|bitset|bitget)\b"),
             # sync_locks: Managing parallel data queues and thread pooling barriers.
-            "sync_locks": re.compile(
-                r"\b(?:labBarrier|labSend|labReceive|labBroadcast)\b"
-            ),
+            "sync_locks": re.compile(r"\b(?:labBarrier|labSend|labReceive|labBroadcast)\b"),
             # freeze_hits: Constant property assignments locking data.
             "freeze_hits": re.compile(r"\bConstant\b"),
             # cleanup: Garbage collection and explicit file/handle destruction.
-            "cleanup": re.compile(
-                r"\b(?:clear|clearvars|delete|close|fclose|onCleanup)\b"
-            ),
+            "cleanup": re.compile(r"\b(?:clear|clearvars|delete|close|fclose|onCleanup)\b"),
             # encapsulation: Explicit scoping modifiers hiding logic.
             "encapsulation": re.compile(r"Access[ \t]*=[ \t]*(?:private|protected)"),
             # listeners: Event sinks waiting for state.
-            "listeners": re.compile(
-                r"\b(?:addlistener|event\.listener|event\.proplistener)\b"
-            ),
+            "listeners": re.compile(r"\b(?:addlistener|event\.listener|event\.proplistener)\b"),
             # test_skip: Safety Theater bypasses.
-            "test_skip": re.compile(
-                r"\b(?:assume|assumeFail|assumeTrue|assumeFalse)\b"
-            ),
+            "test_skip": re.compile(r"\b(?:assume|assumeFail|assumeTrue|assumeFalse)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (MATLAB Specifics) ---
-            "serialization_parsing": re.compile(
-                r"\b(jsondecode|jsonencode|xmlread|xmlwrite|load|save|readtable)\b"
-            ),
+            "serialization_parsing": re.compile(r"\b(jsondecode|jsonencode|xmlread|xmlwrite|load|save|readtable)\b"),
             "regex_execution": re.compile(r"\b(regexp|regexpi|regexprep)\b"),
-            "time_date_logic": re.compile(
-                r"\b(tic|toc|datetime|clock|now|pause|cputime)\b"
-            ),
+            "time_date_logic": re.compile(r"\b(tic|toc|datetime|clock|now|pause|cputime)\b"),
             "ipc_rpc_bridges": re.compile(
                 r"\b(system|dos|unix|tcpclient|tcpserver|parpool|parfor)\b|^\s*!"
             ),  # '!' is MATLAB's native shell escape
@@ -8899,7 +8016,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["livecode-server"],
         # UPGRADED: Maps to Family 6 (Polyglot)
         # Rationale: Accepts '--', '//', '#', and '/* */' to support both its legacy HyperTalk roots and modern C-style syntax.
-        "lexical_family": "embedded_syntax",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Handles all three line-comment styles found in the xTalk family.
@@ -9001,9 +8118,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 19. decorators: Decorators / Annotations. LCB attributes.
-            "decorators": re.compile(
-                r"^[ \t]*@(?:metadata|property|type|name|title)\b", re.M
-            ),
+            "decorators": re.compile(r"^[ \t]*@(?:metadata|property|type|name|title)\b", re.M),
             # 20. generics: Generics / Type Parameters. (LCS is dynamically typed).
             "generics": None,
             # 21. comprehensions: Iterators / Comprehensions. Implicit list processing.
@@ -9022,9 +8137,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 24. import: Dependency Inclusions. Library and stack loading.
-            "import": re.compile(
-                r"\b(start\s+using\s+(?:stack|behavior)|require|include|module)\b", re.I
-            ),
+            "import": re.compile(r"\b(start\s+using\s+(?:stack|behavior)|require|include|module)\b", re.I),
             "_dependency_capture": re.compile(
                 r"^[ \t]*(?:start[ \t\n]+using[ \t\n]+(?:stack[ \t\n]+|behavior[ \t\n]+)?|require[ \t\n]+|include[ \t\n]+|module[ \t\n]+)(?:['\"]([^'\"]+)['\"]|([^'\"\s]+))",
                 re.I | re.M,
@@ -9073,25 +8186,17 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 39. print_hits: Raw terminal output (puts to message box without target).
-            "print_hits": re.compile(
-                r'^[ \t]*put\s+(?:"[^"]*"|[a-zA-Z0-9_]+)[ \t]*$', re.I | re.M
-            ),
+            "print_hits": re.compile(r'^[ \t]*put\s+(?:"[^"]*"|[a-zA-Z0-9_]+)[ \t]*$', re.I | re.M),
             # 40. cast_hits: English-style type checking.
             "cast_hits": re.compile(r"\bis\s+(?:not\s+)?a\b|\bis\s+strictly\b", re.I),
             # 41. bailout_hits: Hard detonations.
             "bailout_hits": re.compile(r"\b(exit\s+to\s+top|quit|throw|abort)\b", re.I),
             # 42. halt_hits: Temporal Duct Tape (Blocking wait).
-            "halt_hits": re.compile(
-                r"\bwait\s+(?:for[ \t]+)?\d+\s+[^ \t\n]+?(?!\s+with\s+messages)\b", re.I
-            ),
+            "halt_hits": re.compile(r"\bwait\s+(?:for[ \t]+)?\d+\s+[^ \t\n]+?(?!\s+with\s+messages)\b", re.I),
             # 43. bitwise_hits: Sub-Atomic Math.
-            "bitwise_hits": re.compile(
-                r"\b(bitAnd|bitOr|bitXor|bitNot|bitShiftLeft|bitShiftRight)\b", re.I
-            ),
+            "bitwise_hits": re.compile(r"\b(bitAnd|bitOr|bitXor|bitNot|bitShiftLeft|bitShiftRight)\b", re.I),
             # 44. sync_locks: Barricades.
-            "sync_locks": re.compile(
-                r"\b(lock\s+screen|lock\s+messages|lock\s+errordialogs)\b", re.I
-            ),
+            "sync_locks": re.compile(r"\b(lock\s+screen|lock\s+messages|lock\s+errordialogs)\b", re.I),
             # 45. freeze_hits: Data Cryogenics.
             "freeze_hits": re.compile(r"\b(constant\s+)\b", re.I),
             # 46. cleanup: The Janitor.
@@ -9109,9 +8214,7 @@ LANGUAGE_DEFINITIONS = {
             "serialization_parsing": re.compile(
                 r"(?i)\b(jsonImport|jsonExport|arrayEncode|arrayDecode|revXMLCreateTree)\b"
             ),
-            "regex_execution": re.compile(
-                r"(?i)\b(matchText|matchChunk|replaceText|filter\s+.*\s+with\s+regex)\b"
-            ),
+            "regex_execution": re.compile(r"(?i)\b(matchText|matchChunk|replaceText|filter\s+.*\s+with\s+regex)\b"),
             "time_date_logic": re.compile(
                 r"(?i)\b(the\s+(?:seconds|ticks|time|date|internet date)|wait\s+(?:for|until))\b"
             ),
@@ -9143,7 +8246,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Solidity strictly adheres to C-style line (//) and block (/* */) comments.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -9152,9 +8255,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": re.compile(r"\*/"),
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch: Decisions that split flow. Includes Solidity 0.6+ try/catch.
-            "branch": re.compile(
-                r"\b(if|else|for|while|do|break|continue|return|try|catch)\b|\?|:"
-            ),
+            "branch": re.compile(r"\b(if|else|for|while|do|break|continue|return|try|catch)\b|\?|:"),
             # 2. args: Parameters / Coupling. Captures parameters for functions, errors, events, and modifiers.
             # Bounded `{0,50}` to prevent ReDoS on massive tuple returns or complex signatures.
             "args": re.compile(
@@ -9177,9 +8278,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             # 6. safety: Defensive Programming. State reversion, assertions, and defensive modifier usage.
-            "safety": re.compile(
-                r"\b(require|assert|revert|modifier|nonReentrant|onlyOwner)\b"
-            ),
+            "safety": re.compile(r"\b(require|assert|revert|modifier|nonReentrant|onlyOwner)\b"),
             # 7. safety_neg: Safety Bypasses. Bypassing overflow checks (0.8+) or dangerous delegation.
             "safety_neg": re.compile(r"\b(unchecked|assembly|delegatecall)\b"),
             # 8. danger: High-Risk Execution. Contract destruction and absolute value termination.
@@ -9189,17 +8288,11 @@ LANGUAGE_DEFINITIONS = {
             # 10. api: Public Surface Area. Exposed boundaries to external wallets or contracts.
             "api": re.compile(r"\b(external|public)\b"),
             # 11. flux: State Mutation. State mutation. Captures array mutators, payable states, and explicit assignment.
-            "flux": re.compile(
-                r"\b(payable|push|pop)\b|(?<![=<>!])=(?![=])|\+\+|--|\+=|-=|\*=|/="
-            ),
+            "flux": re.compile(r"\b(payable|push|pop)\b|(?<![=<>!])=(?![=])|\+\+|--|\+=|-=|\*=|/="),
             # 12. graveyard: Dead / Commented-out Code. Commented out execution flow or structural definitions.
-            "graveyard": re.compile(
-                r"//[ \t]*(?:function|contract|if|require|uint|address)\b"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:function|contract|if|require|uint|address)\b"),
             # 13. doc: Structured Documentation. NatSpec (Ethereum Natural Specification Format).
-            "doc": re.compile(
-                r"///|/\*\*|@(?:param|return|dev|notice|custom|title|author)"
-            ),
+            "doc": re.compile(r"///|/\*\*|@(?:param|return|dev|notice|custom|title|author)"),
             # 14. test: Testing & Assertions. Foundry/Forge testing hooks and assertions.
             "test": re.compile(
                 r"\b(?:setUp|test[A-Za-z0-9_]*|assertEq|assertTrue|assertFalse|assertGt|assertLt|vm\.expectRevert)\b"
@@ -9225,38 +8318,24 @@ LANGUAGE_DEFINITIONS = {
             # 21. comprehensions: Iterators / Comprehensions. Solidity lacks native comprehensions.
             "comprehensions": None,
             # 22. scientific: Numerical / Compute Libraries. Cryptographic hashing and elliptic curve recovery.
-            "scientific": re.compile(
-                r"\b(keccak256|sha256|ripemd160|ecrecover|addmod|mulmod)\b"
-            ),
+            "scientific": re.compile(r"\b(keccak256|sha256|ripemd160|ecrecover|addmod|mulmod)\b"),
             # 23. heat_triggers: Metaprogramming & Reflection. Low-level assembly injections and fallback routers.
-            "heat_triggers": re.compile(
-                r"\b(fallback|receive|assembly|delegatecall|call|staticcall)\b"
-            ),
+            "heat_triggers": re.compile(r"\b(fallback|receive|assembly|delegatecall|call|staticcall)\b"),
             # 24. import: Dependency Inclusions. Resolving dependencies across files.
-            "import": re.compile(
-                r"^[ \t]*import\s+(?:\{[^}]+\}\s+from\s+)?[\"'][^\"']+[\"'];", re.M
-            ),
+            "import": re.compile(r"^[ \t]*import\s+(?:\{[^}]+\}\s+from\s+)?[\"'][^\"']+[\"'];", re.M),
             # 24b. _dependency_capture: Graph resolution extracting exactly ONE path string.
-            "_dependency_capture": re.compile(
-                r"^[ \t]*import\s+(?:\{[^}]+\}\s+from\s+)?[\"']([^\"']+)[\"'];", re.M
-            ),
+            "_dependency_capture": re.compile(r"^[ \t]*import\s+(?:\{[^}]+\}\s+from\s+)?[\"']([^\"']+)[\"'];", re.M),
             # 25. ownership: Authorship indicators. Strictly targets SPDX license tags and authorship notes.
-            "ownership": re.compile(
-                r"//[ \t]*SPDX-License-Identifier:|(?:@author|Created by):\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"//[ \t]*SPDX-License-Identifier:|(?:@author|Created by):\s+(.*)", re.I),
             # --- 🌌 PHASE 4: EXTENDED DIMENSIONS (Specialized Sub-Equations) ---
             # 26. planned_debt (Annotated Debt / TODOs)
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 28. private_info: Hardcoded credentials or private keys. Requires assignment.
-            "private_info": re.compile(
-                r"\b(private_key|secret|mnemonic|api_key)\b[ \t]*[:=]", re.I
-            ),
+            "private_info": re.compile(r"\b(private_key|secret|mnemonic|api_key)\b[ \t]*[:=]", re.I),
             # 29. spec_exposure: Map vs. Territory. ERC/EIP standards and audit tags.
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|audit)[^\]]*\]|\b(ERC-\d+|EIP-\d+)\b", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|audit)[^\]]*\]|\b(ERC-\d+|EIP-\d+)\b", re.I),
             # 30. civil_war: Indentation Tracker. Handled natively.
             "civil_war": None,
             # 31. ssr_boundaries: View Horizon.
@@ -9279,9 +8358,7 @@ LANGUAGE_DEFINITIONS = {
             # 39. print_hits: Standard output. (Solidity lacks native printing outside Hardhat).
             "print_hits": None,
             # 40. cast_hits: "Trust Me" Tax. Explicit type coercion (e.g., uint256(addr)).
-            "cast_hits": re.compile(
-                r"\b(address|uint\d*|int\d*|bytes\d*|uint|int|bytes)\s*\("
-            ),
+            "cast_hits": re.compile(r"\b(address|uint\d*|int\d*|bytes\d*|uint|int|bytes)\s*\("),
             # 41. bailout_hits: Detonators. Aborting transaction state.
             "bailout_hits": re.compile(r"\b(revert)\b"),
             # 42. halt_hits: Temporal Duct Tape. (EVM cannot sleep).
@@ -9301,18 +8378,12 @@ LANGUAGE_DEFINITIONS = {
             # 49. test_skip: Safety Theater.
             "test_skip": None,
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Solidity Specifics) ---
-            "serialization_parsing": re.compile(
-                r"\b(abi\.encode|abi\.encodePacked|abi\.decode)\b"
-            ),
+            "serialization_parsing": re.compile(r"\b(abi\.encode|abi\.encodePacked|abi\.decode)\b"),
             "regex_execution": re.compile(
                 r"\b(keccak256\s*\(\s*abi\.encodePacked)\b"
             ),  # Hashes are used instead of regex for complex string matching
-            "time_date_logic": re.compile(
-                r"\b(block\.timestamp|now|\d+\s+(?:days|weeks|years|hours|minutes))\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"\b(delegatecall|staticcall|\.call\{value:|emit\s+[A-Z]|selfdestruct)\b"
-            ),
+            "time_date_logic": re.compile(r"\b(block\.timestamp|now|\d+\s+(?:days|weeks|years|hours|minutes))\b"),
+            "ipc_rpc_bridges": re.compile(r"\b(delegatecall|staticcall|\.call\{value:|emit\s+[A-Z]|selfdestruct)\b"),
         },
     },
     "objective-c": {
@@ -9346,7 +8417,7 @@ LANGUAGE_DEFINITIONS = {
         ),
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Uses standard '//' for line-level literature and '/*' '*/' for blocks.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -9410,13 +8481,9 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(NSFileHandle|NSFileManager|NSURLSession|NSURLConnection|NSData|NXNetPath|NXSocket|NXStream|NXFile|HTLoad|HyperText|HTGet|socket|connect|send|recv)\b"
             ),
             # 10. api: Public Surface Area. Exposed interface/C-level exports and Interface Builder hooks.
-            "api": re.compile(
-                r"\b(FOUNDATION_EXPORT|UIKIT_EXTERN|OBJC_EXPORT|extern)\b|@property|IBOutlet|IBAction"
-            ),
+            "api": re.compile(r"\b(FOUNDATION_EXPORT|UIKIT_EXTERN|OBJC_EXPORT|extern)\b|@property|IBOutlet|IBAction"),
             # 11. flux: State Mutation. State mutation (Property setters and raw assignments).
-            "flux": re.compile(
-                r"\b(?:self\.)?[a-zA-Z_]\w*[ \t]*=|\[self\s+set[A-Z]\w*:|(?:\+\+|--)"
-            ),
+            "flux": re.compile(r"\b(?:self\.)?[a-zA-Z_]\w*[ \t]*=|\[self\s+set[A-Z]\w*:|(?:\+\+|--)"),
             # 12. graveyard: Dead / Commented-out Code. Commented out structural code.
             "graveyard": re.compile(
                 r"//[ \t]*(?:@interface|@implementation|\[|if|NSLog|- \()|/\*[ \t]*(?:@interface|@implementation|\[|if|NSLog|- \()"
@@ -9443,9 +8510,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(extern|NSUserDefaults|NXDefaults|\[UIApplication\s+sharedApplication\]|\[NSWorkspace\s+sharedWorkspace\]|NXApp)\b"
             ),
             # 19. decorators: Decorators / Annotations. Attributes and Property decorators.
-            "decorators": re.compile(
-                r"\b__attribute__\s*\(\([^)]*\)\)|@property\s*\([^)]+\)"
-            ),
+            "decorators": re.compile(r"\b__attribute__\s*\(\([^)]*\)\)|@property\s*\([^)]+\)"),
             # 20. generics: Generics / Type Parameters. Lightweight generics (introduced in Xcode 7).
             "generics": re.compile(r"<\s*[A-Z][^>]*\s*\*?\s*>"),
             # 21. comprehensions: Iterators / Comprehensions. Block-based array/set enumeration.
@@ -9467,9 +8532,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # 25. ownership: Authorship metadata.
-            "ownership": re.compile(
-                r"\b(?:Created by|@author|Author:|Copyright|Tim Berners-Lee)\b", re.I
-            ),
+            "ownership": re.compile(r"\b(?:Created by|@author|Author:|Copyright|Tim Berners-Lee)\b", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             "planned_debt": GLOBAL_PLANNED_DEBT,
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
@@ -9481,9 +8544,7 @@ LANGUAGE_DEFINITIONS = {
             "ssr_boundaries": re.compile(
                 r"\b(WOComponent|WOResponse|WOContext|WOApplication|WODirectAction|WebObjects)\b"
             ),
-            "events": re.compile(
-                r"\b(NSNotificationCenter|addObserver|postNotification|NXApp\s+run|sendEvent)\b"
-            ),
+            "events": re.compile(r"\b(NSNotificationCenter|addObserver|postNotification|NXApp\s+run|sendEvent)\b"),
             "dependency_injection": re.compile(
                 r"\b(TyphoonComponentFactory|TyphoonDefinition|JSObjection|inject:|initWithDependency:)\b"
             ),
@@ -9491,26 +8552,18 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*#(?:define|undef|ifdef|ifndef|if|elif|else|endif|pragma)\b",
                 re.M,
             ),
-            "pointers": re.compile(
-                r"->|&\w+|\b(?:id|Class|SEL|IMP)\b|(?<=[=(,])[ \t]*\*[a-zA-Z_]\w*"
-            ),
+            "pointers": re.compile(r"->|&\w+|\b(?:id|Class|SEL|IMP)\b|(?<=[=(,])[ \t]*\*[a-zA-Z_]\w*"),
             "memory_alloc": re.compile(
                 r"\b(alloc|init|new|copy|mutableCopy|retain|malloc|calloc|NX_MALLOC|NX_ZONEMALLOC|NSZoneMalloc)\b"
             ),
-            "inline_asm": re.compile(
-                r"\b(?:__asm__|asm|__asm)\b(?:\s+volatile)?\s*\([^)]*\)"
-            ),
+            "inline_asm": re.compile(r"\b(?:__asm__|asm|__asm)\b(?:\s+volatile)?\s*\([^)]*\)"),
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
-            "telemetry": re.compile(
-                r"\b(os_log|OSLog|DDLogInfo|DDLogError|DDLogWarn|DDLogDebug|syslog)\b"
-            ),
+            "telemetry": re.compile(r"\b(os_log|OSLog|DDLogInfo|DDLogError|DDLogWarn|DDLogDebug|syslog)\b"),
             # 39. print_hits: Standard output.
             "print_hits": re.compile(r"\b(printf|fprintf|NXPrintf|NSLog)\b"),
             # 40. cast_hits: "Trust Me" Tax. Explicit type coercion.
-            "cast_hits": re.compile(
-                r"\(\s*[A-Za-z_]\w*\s*\*?\s*\)\s*[a-zA-Z_$]|typeof\b"
-            ),
+            "cast_hits": re.compile(r"\(\s*[A-Za-z_]\w*\s*\*?\s*\)\s*[a-zA-Z_$]|typeof\b"),
             # 41. bailout_hits: Detonators. Aborting execution context.
             "bailout_hits": re.compile(r"\b(@throw|abort|exit)\b"),
             # 42. halt_hits: Temporal Duct Tape. Forcing threads to sleep.
@@ -9528,18 +8581,14 @@ LANGUAGE_DEFINITIONS = {
             # 47. encapsulation: The Vault. Hiding logic from the application.
             "encapsulation": re.compile(r"\b(@private|@protected|@package)\b"),
             # 48. listeners: The Sinks. Waiting for state broadcasts.
-            "listeners": re.compile(
-                r"\b(addObserver:|observeValueForKeyPath:|subscribeNext:)\b"
-            ),
+            "listeners": re.compile(r"\b(addObserver:|observeValueForKeyPath:|subscribeNext:)\b"),
             # 49. test_skip: Safety Theater.
             "test_skip": re.compile(r"\b(XCTSkip|xit|xdescribe)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Objective-C Specifics) ---
             "serialization_parsing": re.compile(
                 r"\b(NSJSONSerialization|NSKeyedUnarchiver|NSKeyedArchiver|NSXMLParser|NSPropertyListSerialization)\b"
             ),
-            "regex_execution": re.compile(
-                r"\b(NSRegularExpression|NSRegularExpressionSearch)\b"
-            ),
+            "regex_execution": re.compile(r"\b(NSRegularExpression|NSRegularExpressionSearch)\b"),
             "time_date_logic": re.compile(
                 r"\b(NSDate|NSDateFormatter|NSTimer|CFAbsoluteTimeGetCurrent|NSDateComponents)\b"
             ),
@@ -9572,7 +8621,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["make", "gmake"],
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Make natively uses '#' exclusively for line-level comments.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # Makefiles natively use '#' for both line and inline comments.
             "_line_anchor": re.compile(r"#"),
@@ -9615,13 +8664,9 @@ LANGUAGE_DEFINITIONS = {
                 re.M,
             ),
             # Bypassing safety: Prefixing recipes with `-` to swallow errors, or forcefully exiting true via shell logic.
-            "safety_neg": re.compile(
-                r"^\t[ \t]*-[a-zA-Z0-9_./$]|\|\|[ \t]*(?:true|exit[ \t]+0)\b", re.M
-            ),
+            "safety_neg": re.compile(r"^\t[ \t]*-[a-zA-Z0-9_./$]|\|\|[ \t]*(?:true|exit[ \t]+0)\b", re.M),
             # Heavily destructive sequence patterns or overriding permissions. (Eval is categorized under heat_triggers).
-            "danger": re.compile(
-                r"\bsudo[ \t]+|\brm[ \t]+-[rR]?[fF][ \t]+(?:/|\$[{(])|\bkill[ \t]+-9\b"
-            ),
+            "danger": re.compile(r"\bsudo[ \t]+|\brm[ \t]+-[rR]?[fF][ \t]+(?:/|\$[{(])|\bkill[ \t]+-9\b"),
             # Interacting directly with outputs, networks, or the disk filesystem.
             "io": re.compile(
                 r"\$\((?:file|wildcard)[ \t]+|\b(?:curl|wget|scp|rsync|tar|unzip|mkdir|cp|mv)\b|>>?[ \t]*[^ \t\n/]+"
@@ -9656,9 +8701,7 @@ LANGUAGE_DEFINITIONS = {
             "ui_framework": None,
             "closures": None,
             # Core global state built-in environments spanning the build system.
-            "globals": re.compile(
-                r"\$\((?:MAKE|MAKEFLAGS|MAKECMDGOALS|CURDIR|SHELL|PATH|USER|HOME|PWD|\.VARIABLES)\)"
-            ),
+            "globals": re.compile(r"\$\((?:MAKE|MAKEFLAGS|MAKECMDGOALS|CURDIR|SHELL|PATH|USER|HOME|PWD|\.VARIABLES)\)"),
             "decorators": None,
             "generics": None,
             # High-density text manipulating algorithms native to GNU Make iterating through variable spaces.
@@ -9668,14 +8711,10 @@ LANGUAGE_DEFINITIONS = {
             # Launching explicit calculation boundaries outside the Make environment natively.
             "scientific": re.compile(r"\b(?:bc|expr|awk)\b|\$\(shell[ \t]+expr[ \t]+"),
             # Extremely dense meta-programming manipulations drastically raising cognitive load during debugging.
-            "heat_triggers": re.compile(
-                r"\$\((?:eval|call|value|origin|flavor|shell)[ \t]+|\.SECONDEXPANSION:"
-            ),
+            "heat_triggers": re.compile(r"\$\((?:eval|call|value|origin|flavor|shell)[ \t]+|\.SECONDEXPANSION:"),
             # Linking isolated segments of the graph execution via modular file resolution.
             "import": re.compile(r"^[ \t]*-?(?:include|sinclude)[ \t]+[^ \t\n]+", re.M),
-            "_dependency_capture": re.compile(
-                r"^[ \t]*-?(?:include|sinclude)[ \t\n]+([^\s#]+)", re.M
-            ),
+            "_dependency_capture": re.compile(r"^[ \t]*-?(?:include|sinclude)[ \t\n]+([^\s#]+)", re.M),
             # Metadata anchoring authorship and structural domain owners.
             "ownership": re.compile(
                 r"^[ \t]*#[ \t]*(?:@author\b|author:|maintainer:|created by:)",
@@ -9705,27 +8744,19 @@ LANGUAGE_DEFINITIONS = {
             # Emitting pure, safe structural observability that does not risk halting or crashing the graph execution.
             "telemetry": re.compile(r"\$\(info[ \t]+[^)\n]*\)"),
             # Standard output commands echoing transient debris to the shell execution log.
-            "print_hits": re.compile(
-                r"^[ \t]*@?(?:echo|printf)[ \t]+|\$\(warning[ \t]+[^)\n]*\)", re.M
-            ),
+            "print_hits": re.compile(r"^[ \t]*@?(?:echo|printf)[ \t]+|\$\(warning[ \t]+[^)\n]*\)", re.M),
             "cast_hits": None,
             # System detonators specifically intended to abort the build flow if preconditions are failed natively or via shell.
-            "bailout_hits": re.compile(
-                r"\$\(error[ \t]+[^)\n]*\)|\bexit[ \t]+[1-9][0-9]*\b|\bfalse\b"
-            ),
+            "bailout_hits": re.compile(r"\$\(error[ \t]+[^)\n]*\)|\bexit[ \t]+[1-9][0-9]*\b|\bfalse\b"),
             # Temporal duct tape strictly applying forced pausing.
             "halt_hits": re.compile(r"\bsleep[ \t]+[0-9]+"),
             "bitwise_hits": None,  # Kept null as Bash pipe IPC limits logic math precision.
             # Explicit locks halting temporal thread races. .
-            "sync_locks": re.compile(
-                r"^[ \t]*\.(?:NOTPARALLEL|WAIT)[ \t]*::?|\bflock[ \t]+", re.M
-            ),
+            "sync_locks": re.compile(r"^[ \t]*\.(?:NOTPARALLEL|WAIT)[ \t]*::?|\bflock[ \t]+", re.M),
             # Enforcing strict immutability bounds on state configuration. .
             "freeze_hits": re.compile(r"^[ \t]*override[ \t]+[a-zA-Z0-9_.-]+", re.M),
             # Janitor routines ripping apart build artifacts and cleanly tearing down output paths. .
-            "cleanup": re.compile(
-                r"^[ \t]*(?:dist)?clean[ \t]*::?|\brm[ \t]+-[a-zA-Z]*f[a-zA-Z]*\b", re.M
-            ),
+            "cleanup": re.compile(r"^[ \t]*(?:dist)?clean[ \t]*::?|\brm[ \t]+-[a-zA-Z]*f[a-zA-Z]*\b", re.M),
             # The Vault explicitly hiding scope logic away from external API leakage boundaries. .
             "encapsulation": re.compile(
                 r"^[ \t]*(?:unexport[ \t]+[a-zA-Z0-9_.-]+|[a-zA-Z0-9_.-]+[ \t]*:[ \t]*private[ \t]+|\.SILENT[ \t]*:)",
@@ -9739,18 +8770,10 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Makefile Specifics) ---
-            "serialization_parsing": re.compile(
-                r"(?m)^\s*(?:@|-)?(?:tar|unzip|gunzip|jq|sed|awk)\b"
-            ),
-            "regex_execution": re.compile(
-                r"(?m)\$\((?:filter|filter-out|patsubst)\b|^\s*(?:@|-)?(?:grep|egrep|sed)\b"
-            ),
-            "time_date_logic": re.compile(
-                r"(?m)\$\(shell\s+date\b|^\s*(?:@|-)?(?:sleep|date)\b"
-            ),
-            "ipc_rpc_bridges": re.compile(
-                r"(?m)\$\(shell\b|^\s*(?:@|-)?(?:curl|wget|ssh|scp|docker|kubectl)\b"
-            ),
+            "serialization_parsing": re.compile(r"(?m)^\s*(?:@|-)?(?:tar|unzip|gunzip|jq|sed|awk)\b"),
+            "regex_execution": re.compile(r"(?m)\$\((?:filter|filter-out|patsubst)\b|^\s*(?:@|-)?(?:grep|egrep|sed)\b"),
+            "time_date_logic": re.compile(r"(?m)\$\(shell\s+date\b|^\s*(?:@|-)?(?:sleep|date)\b"),
+            "ipc_rpc_bridges": re.compile(r"(?m)\$\(shell\b|^\s*(?:@|-)?(?:curl|wget|ssh|scp|docker|kubectl)\b"),
         },
     },
     "abap": {
@@ -9770,9 +8793,8 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 7 (The Positional Ancients)
         # Rationale: Strictly fixed-format legacy constraints. The engine must monitor Column 1
-        # for an asterisk '*' to identify line-level Ghost Mass, while allowing '"' for inline.
-        "lexical_family": "column_sensitive",
-
+        # for an asterisk '*' to identify line-level Commented / Non-Executable Text, while allowing '"' for inline.
+        "lexical_family": "positional_anchored",
         "rules": {
             "_line_anchor": re.compile(r"^\*"),
             "_inline_comment": re.compile(r"\""),
@@ -9864,9 +8886,7 @@ LANGUAGE_DEFINITIONS = {
             # 17. closures: Closures / Anonymous Functions. (ABAP lacks anonymous closures).
             "closures": None,
             # 18. globals: Global / Shared State. Global program data and the system registry.
-            "globals": re.compile(
-                r"\b(TABLES|STATICS|CLASS-DATA|SY-[A-Z0-9_]+)\b", re.I
-            ),
+            "globals": re.compile(r"\b(TABLES|STATICS|CLASS-DATA|SY-[A-Z0-9_]+)\b", re.I),
             # 19. decorators: Decorators / Annotations. CDS and class annotations.
             "decorators": re.compile(r"@[A-Za-z0-9_.]+(?:\([^)]*\))?", re.I),
             # 20. generics: Generics / Type Parameters. Generic data references and field symbols.
@@ -9891,9 +8911,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import: Dependency Inclusions. Includes and type pools.
             "import": re.compile(r"\b(INCLUDE|TYPE-POOLS)\b", re.I),
-            "_dependency_capture": re.compile(
-                r"^[ \t]*(?:INCLUDE|TYPE-POOLS)[ \t\n]+([A-Za-z0-9_/]+)", re.I | re.M
-            ),
+            "_dependency_capture": re.compile(r"^[ \t]*(?:INCLUDE|TYPE-POOLS)[ \t\n]+([A-Za-z0-9_/]+)", re.I | re.M),
             # 25. ownership: Authorship indicators.
             "ownership": re.compile(
                 r"(?:AUTHOR|CREATED\s+BY|MAINTAINER|Tim Berners-Lee):\s+([^\n]+)",
@@ -9917,33 +8935,23 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 32. events: Pub/Sub Network. Native OO event architecture.
-            "events": re.compile(
-                r"\b(RAISE\s+EVENT|SET\s+HANDLER)\b|FOR\s+EVENT\s+[^\n;]+\s+OF", re.I
-            ),
+            "events": re.compile(r"\b(RAISE\s+EVENT|SET\s+HANDLER)\b|FOR\s+EVENT\s+[^\n;]+\s+OF", re.I),
             # 33. dependency_injection: Inversion of Control. BAdIs and Test Doubles.
-            "dependency_injection": re.compile(
-                r"\b(GET\s+BADI|CALL\s+BADI|CL_BADI_BASE|CL_ABAP_TESTDOUBLE)\b", re.I
-            ),
+            "dependency_injection": re.compile(r"\b(GET\s+BADI|CALL\s+BADI|CL_BADI_BASE|CL_ABAP_TESTDOUBLE)\b", re.I),
             # 34. macros: Preprocessor Hooks. ABAP macro definitions.
             "macros": re.compile(
                 r"^[ \t]*DEFINE\s+[a-zA-Z0-9_-]+\.|^[ \t]*END-OF-DEFINITION\s*\.",
                 re.I | re.M,
             ),
             # 35. pointers: Memory Map. Field-Symbols and data references.
-            "pointers": re.compile(
-                r"<[A-Za-z0-9_-]+>|->\*|\b(?:GET\s+REFERENCE\s+OF|REF\s+TO)\b", re.I
-            ),
+            "pointers": re.compile(r"<[A-Za-z0-9_-]+>|->\*|\b(?:GET\s+REFERENCE\s+OF|REF\s+TO)\b", re.I),
             # 36. memory_alloc: Manual Memory Management. Heap allocations.
-            "memory_alloc": re.compile(
-                r"\b(CREATE\s+OBJECT|CREATE\s+DATA|FREE|CLEAR)\b", re.I
-            ),
+            "memory_alloc": re.compile(r"\b(CREATE\s+OBJECT|CREATE\s+DATA|FREE|CLEAR)\b", re.I),
             # 37. inline_asm: Bare Metal.
             "inline_asm": None,
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
-            "telemetry": re.compile(
-                r"\b(BAL_LOG_CREATE|BAL_DB_SAVE|CL_BALI_LOG|CL_BALI_MSG_SETTER)\b", re.I
-            ),
+            "telemetry": re.compile(r"\b(BAL_LOG_CREATE|BAL_DB_SAVE|CL_BALI_LOG|CL_BALI_MSG_SETTER)\b", re.I),
             # 39. print_hits: Standard output.
             "print_hits": re.compile(r"^[ \t]*(WRITE)\b", re.I | re.M),
             # 40. cast_hits: "Trust Me" Tax. Explicit casting and conversions.
@@ -9965,13 +8973,9 @@ LANGUAGE_DEFINITIONS = {
             # 45. freeze_hits: Data Cryogenics. Immutability (constants).
             "freeze_hits": re.compile(r"\b(CONSTANTS|FINAL|READ-ONLY)\b", re.I),
             # 46. cleanup: The Janitor.
-            "cleanup": re.compile(
-                r"^[ \t]*(FREE|CLEAR|CLOSE\s+DATASET)\b", re.I | re.M
-            ),
+            "cleanup": re.compile(r"^[ \t]*(FREE|CLEAR|CLOSE\s+DATASET)\b", re.I | re.M),
             # 47. encapsulation: The Vault. Scope hiding.
-            "encapsulation": re.compile(
-                r"\b(PRIVATE\s+SECTION|PROTECTED\s+SECTION)\b", re.I
-            ),
+            "encapsulation": re.compile(r"\b(PRIVATE\s+SECTION|PROTECTED\s+SECTION)\b", re.I),
             # 48. listeners: The Sinks.
             "listeners": re.compile(r"\bFOR\s+EVENT\s+[^\n;]+\s+OF\b", re.I),
             # 49. test_skip: Safety Theater.
@@ -10005,9 +9009,8 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: (CORRECTION) Consolidated 'xml_angle' into 'singular'. Like HTML, XML
-        # exclusively uses SGML-style block delimiters () for its Ghost Mass.
-        "lexical_family": "single_line_only",
-
+        # exclusively uses SGML-style block delimiters () for its Commented / Non-Executable Text.
+        "lexical_family": "block_exclusive",
         "rules": {},
     },
     "markdown": {
@@ -10040,7 +9043,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: (CORRECTION) Markdown relies entirely on HTML's SGML-style block comments ().
         # Mapping this to 'hybrid_dash' would cause the engine to miss hidden documentation mass.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             "lit_code_blocks": re.compile(r"^```[a-zA-Z0-9]*$", re.M),
             "lit_diagrams": re.compile(r"^```(?:mermaid|plantuml)$", re.M),
@@ -10061,7 +9064,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: While strictly data, when CSVs *do* contain comments (supported by
         # parsers like Pandas or DuckDB), they almost exclusively use the '#' symbol at the start of a line.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {},
     },
     "yaml": {
@@ -10084,22 +9087,16 @@ LANGUAGE_DEFINITIONS = {
             ".github/workflows",
         ],
         "shebangs": [],
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             "_line_anchor": re.compile(r"#"),
             "_inline_comment": re.compile(r"#"),
             "_block_start": None,
             "_block_end": None,
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
-            "branch": re.compile(
-                r"\b(?:if|else|elif|fi|case|esac|for|while|do|done)\b|&&|\|\|", re.I
-            ),
-            "args": re.compile(
-                r"^[ \t]*with:[ \t]*\n(?:[ \t]+[a-zA-Z0-9_-]+:[ \t]*.*)+", re.M | re.I
-            ),
-            "linear": re.compile(
-                r"^[ \t]*(?:env|needs|runs-on|steps|strategy|matrix):", re.M | re.I
-            ),
+            "branch": re.compile(r"\b(?:if|else|elif|fi|case|esac|for|while|do|done)\b|&&|\|\|", re.I),
+            "args": re.compile(r"^[ \t]*with:[ \t]*\n(?:[ \t]+[a-zA-Z0-9_-]+:[ \t]*.*)+", re.M | re.I),
+            "linear": re.compile(r"^[ \t]*(?:env|needs|runs-on|steps|strategy|matrix):", re.M | re.I),
             # Executable Logic Anchors: Explicit execution blocks
             "func_start": re.compile(
                 r"^[ \t]*(?:-?[ \t]*run:|script:|before_script:|after_script:)[ \t]*[|>]*",
@@ -10119,9 +9116,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*continue-on-error:[ \t]*true|chmod[ \t]+777|\b(?:curl|wget)[ \t]+[^|\n]{1,200}\|[ \t]*(?:bash|sh|zsh)\b",
                 re.M | re.I,
             ),
-            "danger": re.compile(
-                r"\b(?:rm[ \t]+-rf[ \t]+/(?![A-Za-z])|eval|exec)\b", re.M | re.I
-            ),
+            "danger": re.compile(r"\b(?:rm[ \t]+-rf[ \t]+/(?![A-Za-z])|eval|exec)\b", re.M | re.I),
             "io": re.compile(
                 r"\b(?:wget|curl|apt-get|apk|yum|git[ \t]+clone|npm[ \t]+install|pip[ \t]+install)\b",
                 re.M | re.I,
@@ -10139,9 +9134,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*#[ \t]*(?:-?[ \t]*run:|uses:|jobs:|steps:|script:)",
                 re.M | re.I,
             ),
-            "doc": re.compile(
-                r"^[ \t]*name:[ \t]+.*|^[ \t]*description:[ \t]+.*", re.M | re.I
-            ),
+            "doc": re.compile(r"^[ \t]*name:[ \t]+.*|^[ \t]*description:[ \t]+.*", re.M | re.I),
             "test": re.compile(
                 r"\b(?:npm[ \t]+test|pytest|make[ \t]+test|cargo[ \t]+test|go[ \t]+test)\b",
                 re.M | re.I,
@@ -10162,9 +9155,7 @@ LANGUAGE_DEFINITIONS = {
             "comprehensions": None,
             "scientific": None,
             # Catching complex GitHub Expression injection logic
-            "heat_triggers": re.compile(
-                r"\$\{\{[ \t]*fromJson\(|to[A-Z][a-zA-Z]+\(", re.M
-            ),
+            "heat_triggers": re.compile(r"\$\{\{[ \t]*fromJson\(|to[A-Z][a-zA-Z]+\(", re.M),
             # The Gravity Links: External dependencies
             "import": re.compile(
                 r"^[ \t]*(?:-?[ \t]*uses:|image:)[ \t]+([a-zA-Z0-9_./@:-]+)",
@@ -10192,9 +9183,7 @@ LANGUAGE_DEFINITIONS = {
                 re.M | re.I,
             ),
             # Secrets injection
-            "dependency_injection": re.compile(
-                r"\$\{\{[ \t]*secrets\.[a-zA-Z0-9_]+[ \t]*\}\}", re.M
-            ),
+            "dependency_injection": re.compile(r"\$\{\{[ \t]*secrets\.[a-zA-Z0-9_]+[ \t]*\}\}", re.M),
             "macros": None,
             "pointers": None,
             "memory_alloc": None,
@@ -10216,9 +9205,7 @@ LANGUAGE_DEFINITIONS = {
             "cleanup": None,
             "encapsulation": None,
             "listeners": re.compile(r"^[ \t]*webhook:", re.M | re.I),
-            "test_skip": re.compile(
-                r"\|\|[ \t]*true\b|\b(?:--passWithNoTests|skipTests|--no-audit)\b", re.I
-            ),
+            "test_skip": re.compile(r"\|\|[ \t]*true\b|\b(?:--passWithNoTests|skipTests|--no-audit)\b", re.I),
         },
     },
     "pbtxt": {
@@ -10239,7 +9226,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: While standard .proto schemas use C-style (//) comments, the instantiated
         # Text Format (.pbtxt) strictly uses '#' for comments.
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {},
     },
     "yacc": {
@@ -10267,7 +9254,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Yacc and Lex files interleave grammar definitions with pure C/C++ code
         # blocks (enclosed in %{ %}), relying entirely on standard '/* */' and '//' comments.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10276,9 +9263,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             "branch": re.compile(r"\b(if|else|switch|case|for|while|do)\b|\|"),
             "args": re.compile(r"\$\d+|\$\$"),
-            "linear": re.compile(
-                r"\b(return|goto|break|continue|%token|%type|%left|%right|%nonassoc)\b"
-            ),
+            "linear": re.compile(r"\b(return|goto|break|continue|%token|%type|%left|%right|%nonassoc)\b"),
             # Executable Logic Anchor: Anchors specifically onto Grammar Rules
             # Matches "rule_name :" or "rule_name:" at the start of a line
             "func_start": re.compile(r"^[ \t]*([a-zA-Z_]\w*)(?=[ \t]*:)", re.M),
@@ -10290,9 +9275,7 @@ LANGUAGE_DEFINITIONS = {
             "io": re.compile(r"\b(fopen|fclose|fread|fwrite|yyin|yyout|fprintf)\b"),
             "api": re.compile(r"\b(%define|%code|%provides|%requires)\b"),
             "flux": re.compile(r"(?<![=!<>])=(?![=])|\+\+|--"),
-            "graveyard": re.compile(
-                r"//[ \t]*(?:if|for|while|return|%token)\b|/\*[ \t]*(?:if|for|while|%token)"
-            ),
+            "graveyard": re.compile(r"//[ \t]*(?:if|for|while|return|%token)\b|/\*[ \t]*(?:if|for|while|%token)"),
             "doc": re.compile(r"/\*\*|@param|@return"),
             "test": None,
             # --- PHASE 3: ARCHITECTURE & DOMAIN SENSORS ---
@@ -10306,28 +9289,18 @@ LANGUAGE_DEFINITIONS = {
             "scientific": None,
             "heat_triggers": re.compile(r"%\{|%\}|%%"),
             "import": re.compile(r'^[ \t]*#(?:include)\s*[<"][^>"]+[>"]', re.M),
-            "ownership": re.compile(
-                r"(?:@author|Author:|Created by:|Copyright)\s+(.*)", re.I
-            ),
+            "ownership": re.compile(r"(?:@author|Author:|Created by:|Copyright)\s+(.*)", re.I),
             # --- PHASE 4: SPECIALIZED SUB-SYSTEMS ---
             "planned_debt": GLOBAL_PLANNED_DEBT,
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             "civil_war": None,
             "ssr_boundaries": None,
             "events": None,
             "dependency_injection": None,
-            "macros": re.compile(
-                r"^[ \t]*#(?:define|undef|if|elif|else|endif|pragma)\b", re.M
-            ),
-            "pointers": re.compile(
-                r"->|&\w+|(?<=[=(,])[ \t]*\*(?:\s*const\s*)?[a-zA-Z_]\w*"
-            ),
-            "memory_alloc": re.compile(
-                r"\b(malloc|calloc|realloc|free|YYMALLOC|YYFREE)\b"
-            ),
+            "macros": re.compile(r"^[ \t]*#(?:define|undef|if|elif|else|endif|pragma)\b", re.M),
+            "pointers": re.compile(r"->|&\w+|(?<=[=(,])[ \t]*\*(?:\s*const\s*)?[a-zA-Z_]\w*"),
+            "memory_alloc": re.compile(r"\b(malloc|calloc|realloc|free|YYMALLOC|YYFREE)\b"),
             "inline_asm": None,
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             "telemetry": re.compile(r"\b(?:syslog|openlog|log_info|YYDPRINTF)\b"),
@@ -10369,8 +9342,8 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 8 (Singular/Unique)
         # Rationale: M4 uniquely uses the `dnl` (Delete to NewLine) macro to act as its
-        # line-level Ghost Mass.
-        "lexical_family": "single_line_only",
+        # line-level Commented / Non-Executable Text.
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"\bdnl\b"),
@@ -10380,17 +9353,13 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # M4 branching logic and Autoconf shell-generation branches.
-            "branch": re.compile(
-                r"\b(?:ifelse|ifdef|AS_IF|AS_CASE|m4_if|m4_case|m4_cond|m4_ifval|m4_ifblank)\b"
-            ),
+            "branch": re.compile(r"\b(?:ifelse|ifdef|AS_IF|AS_CASE|m4_if|m4_case|m4_cond|m4_ifval|m4_ifblank)\b"),
             # 2. args (Parameters / Coupling)
             # M4 positional arguments.
             "args": re.compile(r"\$[0-9]+|\$[@*#]"),
             # 3. linear (Sequential Boundaries)
             # Execution flow diversion and dependency signaling.
-            "linear": re.compile(
-                r"\b(?:divert|undivert|m4_divert|m4_undivert|m4_require|AC_REQUIRE)\b"
-            ),
+            "linear": re.compile(r"\b(?:divert|undivert|m4_divert|m4_undivert|m4_require|AC_REQUIRE)\b"),
             # 4. func_start (Executable Logic Anchors)
             # Defining a macro establishes an executable logic block in M4.
             "func_start": re.compile(
@@ -10407,35 +9376,25 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Dynamically altering the quote characters or comment strings breaks the parser context completely.
-            "safety_neg": re.compile(
-                r"\b(?:changequote|changecom|m4_changequote|m4_changecom|m4_ignore)\b"
-            ),
+            "safety_neg": re.compile(r"\b(?:changequote|changecom|m4_changequote|m4_changecom|m4_ignore)\b"),
             # 8. danger (High-Risk Execution / System Calls)
             # Executing raw shell commands during macro expansion (not generation).
             "danger": re.compile(r"\b(?:syscmd|esyscmd|m4_syscmd|m4_esyscmd)\b"),
             # 9. io (I/O & Network Boundaries)
             # Reading system values, creating temp files, or emitting generated configurations.
-            "io": re.compile(
-                r"\b(?:sysval|mkstemp|maketemp|m4_mkstemp|m4_maketemp|AC_CONFIG_FILES|AC_OUTPUT)\b"
-            ),
+            "io": re.compile(r"\b(?:sysval|mkstemp|maketemp|m4_mkstemp|m4_maketemp|AC_CONFIG_FILES|AC_OUTPUT)\b"),
             # 10. api (Public Surface Area)
             # M4 macros are inherently public, but these explicitly export state into the generated Makefile/C headers.
             "api": re.compile(r"\b(?:AC_SUBST|AC_DEFINE|AC_PROVIDE|m4_provide)\b"),
             # 11. flux (State Mutation)
             # Stack-based macro overriding and list appending.
-            "flux": re.compile(
-                r"\b(?:pushdef|popdef|m4_pushdef|m4_popdef|m4_append|m4_append_uniq|m4_combine)\b"
-            ),
+            "flux": re.compile(r"\b(?:pushdef|popdef|m4_pushdef|m4_popdef|m4_append|m4_append_uniq|m4_combine)\b"),
             # 12. graveyard (Dead / Commented-out Code)
             # Commented-out macro definitions.
-            "graveyard": re.compile(
-                r"^[ \t]*dnl[ \t]+(?:m4_define|define|AC_DEFUN|ifelse|AS_IF)\b", re.M
-            ),
+            "graveyard": re.compile(r"^[ \t]*dnl[ \t]+(?:m4_define|define|AC_DEFUN|ifelse|AS_IF)\b", re.M),
             # 13. doc (Structured Documentation)
             # Documentation blocks or explicit copyright insertions into the output script.
-            "doc": re.compile(
-                r"^[ \t]*dnl[ \t]+@(?:param|return|brief)|AC_COPYRIGHT\b", re.M
-            ),
+            "doc": re.compile(r"^[ \t]*dnl[ \t]+@(?:param|return|brief)|AC_COPYRIGHT\b", re.M),
             # 14. test (Testing & Assertions)
             # The GNU Autotest framework.
             "test": re.compile(r"\b(?:AT_SETUP|AT_CHECK|AT_CLEANUP|AT_INIT|AT_DATA)\b"),
@@ -10455,9 +9414,7 @@ LANGUAGE_DEFINITIONS = {
             "generics": None,
             # 21. comprehensions (Iterators / Comprehensions)
             # M4 map and foreach iterative constructs.
-            "comprehensions": re.compile(
-                r"\b(?:m4_foreach|m4_foreach_w|m4_map|m4_map_sep)\b"
-            ),
+            "comprehensions": re.compile(r"\b(?:m4_foreach|m4_foreach_w|m4_map|m4_map_sep)\b"),
             # 22. scientific (Numerical / Compute Libraries)
             # M4's native integer arithmetic evaluator.
             "scientific": re.compile(r"\b(?:eval|m4_eval)\b"),
@@ -10468,9 +9425,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (Dependency Inclusions)
             # File inclusions.
-            "import": re.compile(
-                r"^[ \t]*(?:include|sinclude|m4_include|m4_sinclude)\b", re.M
-            ),
+            "import": re.compile(r"^[ \t]*(?:include|sinclude|m4_include|m4_sinclude)\b", re.M),
             # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^[ \t]*dnl[ \t]+(?:Author|Maintainer|Copyright|License):|AC_COPYRIGHT",
@@ -10482,9 +9437,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure
-            "spec_exposure": re.compile(
-                r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries
@@ -10506,9 +9459,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
             # Logging configure progress securely to stdout and config.log.
-            "telemetry": re.compile(
-                r"\b(?:AC_MSG_CHECKING|AC_MSG_RESULT|AC_MSG_WARN|AC_MSG_NOTICE)\b"
-            ),
+            "telemetry": re.compile(r"\b(?:AC_MSG_CHECKING|AC_MSG_RESULT|AC_MSG_WARN|AC_MSG_NOTICE)\b"),
             # 39. print_hits (Standard Output / Debug Prints)
             # Raw M4 error printing.
             "print_hits": re.compile(r"\b(?:errprint|m4_errprint)\b"),
@@ -10516,9 +9467,7 @@ LANGUAGE_DEFINITIONS = {
             "cast_hits": None,
             # 41. bailout_hits (Execution Halts / Panics)
             # Hard aborts.
-            "bailout_hits": re.compile(
-                r"\b(?:m4_fatal|AC_MSG_ERROR|AC_MSG_FAILURE|AS_EXIT)\b"
-            ),
+            "bailout_hits": re.compile(r"\b(?:m4_fatal|AC_MSG_ERROR|AC_MSG_FAILURE|AS_EXIT)\b"),
             # 42. halt_hits (Thread Blocking / Sleeps)
             # Raw sleeps in generated scripts.
             "halt_hits": re.compile(r"\b(?:sleep)\b"),
@@ -10558,8 +9507,8 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["guile", "scheme", "csi", "racket", "racketsh"],
         # UPGRADED: Maps to Family 9 (Lisp_Semi) - *NEW FAMILY*
         # Rationale: Perfectly captures the Lisp ecosystem's reliance on ';' for line-level
-        # comments and `#| |#` for nested block-level Ghost Mass.
-        "lexical_family": "single_line_only",
+        # comments and `#| |#` for nested block-level Commented / Non-Executable Text.
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             # Scheme uses ';' for standard line-level literature.
@@ -10571,9 +9520,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Lisp control flow branches. Uses custom S-expression boundaries.
-            "branch": re.compile(
-                r"(?<=[ \t(\[])(if|cond|case|and|or|when|unless)(?=[ \t)\]\n\r])"
-            ),
+            "branch": re.compile(r"(?<=[ \t(\[])(if|cond|case|and|or|when|unless)(?=[ \t)\]\n\r])"),
             # 2. args (Parameters / Coupling)
             # Captures the parameter list inside a standard function definition: (define (func arg1 arg2) ...)
             "args": re.compile(
@@ -10590,9 +9537,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 3. linear (Sequential Boundaries)
             # Structural boundaries defining scope and sequential execution.
-            "linear": re.compile(
-                r"(?<=[ \t(\[])(let|let\*|letrec|letrec\*|begin|do)(?=[ \t)\]\n\r])"
-            ),
+            "linear": re.compile(r"(?<=[ \t(\[])(let|let\*|letrec|letrec\*|begin|do)(?=[ \t)\]\n\r])"),
             # 4. func_start (Executable Logic Anchors)
             # Anchors logic blocks. Captures the function name immediately following the parenthesis.
             "func_start": re.compile(
@@ -10621,14 +9566,10 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Explicit, raw manipulation of cons cells or unrestricted environments.
-            "safety_neg": re.compile(
-                r"(?<=[ \t(\[])(set-car!|set-cdr!|interaction-environment)(?=[ \t)\]\n\r])"
-            ),
+            "safety_neg": re.compile(r"(?<=[ \t(\[])(set-car!|set-cdr!|interaction-environment)(?=[ \t)\]\n\r])"),
             # 8. danger (High-Risk Execution / System Calls)
             # Dynamic code execution and emergency system exits.
-            "danger": re.compile(
-                r"(?<=[ \t(\[])(eval|exit|emergency-exit|quit)(?=[ \t)\]\n\r])"
-            ),
+            "danger": re.compile(r"(?<=[ \t(\[])(eval|exit|emergency-exit|quit)(?=[ \t)\]\n\r])"),
             # 9. io (I/O & Network Boundaries)
             # File operations and output ports.
             "io": re.compile(
@@ -10636,9 +9577,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 10. api (Public Surface Area)
             # Module exports defining the public surface.
-            "api": re.compile(
-                r"^[ \t]*\([ \t]*(?:export|define-public)(?=[ \t)\]\n\r])", re.M
-            ),
+            "api": re.compile(r"^[ \t]*\([ \t]*(?:export|define-public)(?=[ \t)\]\n\r])", re.M),
             # 11. flux (State Mutation)
             # Mutation of state. In Scheme, all mutating functions end with a bang (!).
             "flux": re.compile(
@@ -10652,9 +9591,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 13. doc (Structured Documentation)
             # Scheme documentation standards (triple semicolons or texinfo).
-            "doc": re.compile(
-                r"^[ \t]*;;;|^[ \t]*;[ \t]*@(?:param|return|author)", re.M
-            ),
+            "doc": re.compile(r"^[ \t]*;;;|^[ \t]*;[ \t]*@(?:param|return|author)", re.M),
             # 14. test (Testing & Assertions)
             # SRFI-64 and Guile testing frameworks (essential for mapping gpgscm tests).
             "test": re.compile(
@@ -10673,9 +9610,7 @@ LANGUAGE_DEFINITIONS = {
             "closures": re.compile(r"(?<=[ \t(\[])lambda(?=[ \t)\]\n\r])"),
             # 18. globals (Global / Shared State)
             # Top-level state bindings (defines that are NOT functions).
-            "globals": re.compile(
-                r"^[ \t]*\([ \t]*define\s+[a-zA-Z0-9_!?-]+\s+[^(\s]", re.M
-            ),
+            "globals": re.compile(r"^[ \t]*\([ \t]*define\s+[a-zA-Z0-9_!?-]+\s+[^(\s]", re.M),
             # 19. decorators
             "decorators": None,
             # 20. generics
@@ -10697,9 +9632,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 24. import (Dependency Inclusions)
             # Scheme module resolution dependencies.
-            "import": re.compile(
-                r"^[ \t]*\([ \t]*(?:import|use-modules|require)(?=[ \t)\]\n\r])", re.M
-            ),
+            "import": re.compile(r"^[ \t]*\([ \t]*(?:import|use-modules|require)(?=[ \t)\]\n\r])", re.M),
             # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^[ \t]*;+\s*(?:Author|Created by|Maintainer|Copyright):\s+(.*)",
@@ -10711,9 +9644,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war
             # Lisp/Scheme relies entirely on uniform space alignment. Tabs are highly destructive here.
             "civil_war": None,
@@ -10721,15 +9652,11 @@ LANGUAGE_DEFINITIONS = {
             "ssr_boundaries": None,
             # 32. events (Event Emitters / Pub-Sub)
             # Hook paradigms common in Guile/Emacs environments.
-            "events": re.compile(
-                r"(?<=[ \t(\[])(hook|add-hook!|run-hooks)(?=[ \t)\]\n\r])"
-            ),
+            "events": re.compile(r"(?<=[ \t(\[])(hook|add-hook!|run-hooks)(?=[ \t)\]\n\r])"),
             # 33. dependency_injection
             "dependency_injection": None,
             # 34. macros (Preprocessor Directives / Macros)
-            "macros": re.compile(
-                r"(?<=[ \t(\[])(define-syntax|define-macro|syntax-rules|syntax-case)(?=[ \t)\]\n\r])"
-            ),
+            "macros": re.compile(r"(?<=[ \t(\[])(define-syntax|define-macro|syntax-rules|syntax-case)(?=[ \t)\]\n\r])"),
             # 35. pointers
             "pointers": None,
             # 36. memory_alloc
@@ -10741,54 +9668,36 @@ LANGUAGE_DEFINITIONS = {
             "inline_asm": None,
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
-            "telemetry": re.compile(
-                r"(?<=[ \t(\[])(log-info|log-error|log-warn|log-debug|syslog)(?=[ \t)\]\n\r])"
-            ),
+            "telemetry": re.compile(r"(?<=[ \t(\[])(log-info|log-error|log-warn|log-debug|syslog)(?=[ \t)\]\n\r])"),
             # 39. print_hits (Standard Output / Debug Prints)
-            "print_hits": re.compile(
-                r"(?<=[ \t(\[])(display|write|newline|format\s+#t)(?=[ \t)\]\n\r])"
-            ),
+            "print_hits": re.compile(r"(?<=[ \t(\[])(display|write|newline|format\s+#t)(?=[ \t)\]\n\r])"),
             # 40. cast_hits (Explicit Type Casting)
             # Type coercions crossing memory boundaries.
             "cast_hits": re.compile(
                 r"(?<=[ \t(\[])(number->string|string->number|symbol->string|string->symbol|list->vector|vector->list|char->integer|integer->char)(?=[ \t)\]\n\r])"
             ),
             # 41. bailout_hits (Execution Halts / Panics)
-            "bailout_hits": re.compile(
-                r"(?<=[ \t(\[])(error|abort|exit|emergency-exit)(?=[ \t)\]\n\r])"
-            ),
+            "bailout_hits": re.compile(r"(?<=[ \t(\[])(error|abort|exit|emergency-exit)(?=[ \t)\]\n\r])"),
             # 42. halt_hits (Thread Blocking / Sleeps)
-            "halt_hits": re.compile(
-                r"(?<=[ \t(\[])(sleep|usleep|thread-sleep!)(?=[ \t)\]\n\r])"
-            ),
+            "halt_hits": re.compile(r"(?<=[ \t(\[])(sleep|usleep|thread-sleep!)(?=[ \t)\]\n\r])"),
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(
                 r"(?<=[ \t(\[])(bitwise-and|bitwise-ior|bitwise-xor|bitwise-not|arithmetic-shift|ash)(?=[ \t)\]\n\r])"
             ),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"(?<=[ \t(\[])(mutex-lock!|make-mutex)(?=[ \t)\]\n\r])"
-            ),
+            "sync_locks": re.compile(r"(?<=[ \t(\[])(mutex-lock!|make-mutex)(?=[ \t)\]\n\r])"),
             # 45. freeze_hits (Immutability Constraints)
             # Immutable strings and explicit quotations (meaning the list cannot be mutated safely).
-            "freeze_hits": re.compile(
-                r"(?<=[ \t(\[])(quote|string->immutable-string)(?=[ \t)\]\n\r])|\'(?=\()"
-            ),
+            "freeze_hits": re.compile(r"(?<=[ \t(\[])(quote|string->immutable-string)(?=[ \t)\]\n\r])|\'(?=\()"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r"(?<=[ \t(\[])(close-input-port|close-output-port|close-port)(?=[ \t)\]\n\r])"
-            ),
+            "cleanup": re.compile(r"(?<=[ \t(\[])(close-input-port|close-output-port|close-port)(?=[ \t)\]\n\r])"),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             # Module-internal definitions.
-            "encapsulation": re.compile(
-                r"^[ \t]*\([ \t]*define-private(?=[ \t)\]\n\r])", re.M
-            ),
+            "encapsulation": re.compile(r"^[ \t]*\([ \t]*define-private(?=[ \t)\]\n\r])", re.M),
             # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"(?<=[ \t(\[])(add-hook!)(?=[ \t)\]\n\r])"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"(?<=[ \t(\[])(test-skip|test-expect-fail)(?=[ \t)\]\n\r])"
-            ),
+            "test_skip": re.compile(r"(?<=[ \t(\[])(test-skip|test-expect-fail)(?=[ \t)\]\n\r])"),
         },
     },
     "mlir": {
@@ -10809,7 +9718,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: MLIR intentionally adopts standard LLVM assembly syntax conventions,
         # using '//' exclusively for line comments to maintain C++ ecosystem familiarity.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10841,7 +9750,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: Protobuf schemas strictly use standard '//' and '/* */' comments.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10866,7 +9775,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: HLO text format exclusively utilizes '//' for line-level comments, maintaining C++ ecosystem alignment.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -10898,7 +9807,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": [],
         # UPGRADED: Maps to Family 1 (Standard C-Style)
         # Rationale: TableGen was built to integrate seamlessly into LLVM's C++ codebase, natively supporting '//' and '/* */' comments.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -11004,7 +9913,7 @@ LANGUAGE_DEFINITIONS = {
         # UPGRADED: Maps to Family 3 (Pure Hash)
         # Rationale: Tcl natively uses '#' exclusively for line-level comments. It does not
         # have native block comments (developers sometimes hack `if 0 { ... }`, but `#` is the standard).
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"#"),
@@ -11014,9 +9923,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Tcl control flow keywords.
-            "branch": re.compile(
-                r"\b(?:if|elseif|else|switch|while|for|foreach|catch|try|trap|finally)\b"
-            ),
+            "branch": re.compile(r"\b(?:if|elseif|else|switch|while|for|foreach|catch|try|trap|finally)\b"),
             # 2. args (Parameters / Coupling)
             # Safely captures the parameter list `{...}` immediately following a proc name.
             "args": re.compile(
@@ -11031,15 +9938,11 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 3. linear (Sequential Boundaries)
             # Structural boundaries. EXCLUDES: global/upvar (globals/heat).
-            "linear": re.compile(
-                r"\b(?:proc|return|break|continue|namespace|variable|yield)\b"
-            ),
+            "linear": re.compile(r"\b(?:proc|return|break|continue|namespace|variable|yield)\b"),
             # 4. func_start (Executable Logic Anchors)
             # MUST HAVE EXACTLY ONE CAPTURE GROUP.
             # Captures standard procs and namespaced procs (e.g., `proc ::my::func`).
-            "func_start": re.compile(
-                r"^[ \t]*proc[ \t]+([a-zA-Z0-9_:]+)(?=[ \t]*\{|[ \t\n]|$)", re.M
-            ),
+            "func_start": re.compile(r"^[ \t]*proc[ \t]+([a-zA-Z0-9_:]+)(?=[ \t]*\{|[ \t\n]|$)", re.M),
             # 5. class_start (Object / Entity Declarations)
             # Captures TclOO, Snit, and Itcl class definitions.
             "class_start": re.compile(
@@ -11049,9 +9952,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
             # 6. safety (Defensive Programming / Validation)
             # Safe evaluation and error catching.
-            "safety": re.compile(
-                r"\b(?:catch|try|trap|finally|info[ \t]+exists|assert)\b"
-            ),
+            "safety": re.compile(r"\b(?:catch|try|trap|finally|info[ \t]+exists|assert)\b"),
             # 7. safety_neg (Safety Bypasses / Unchecked Types)
             # Unrestricted evaluation and context manipulation.
             "safety_neg": re.compile(r"\b(?:eval|uplevel|upvar)\b"),
@@ -11060,24 +9961,16 @@ LANGUAGE_DEFINITIONS = {
             "danger": re.compile(r"\b(?:exec|exit)\b|file[ \t]+delete[ \t]+-force"),
             # 9. io (I/O & Network Boundaries)
             # File system, sockets, and configuration. (Excludes puts which is mapped to print_hits).
-            "io": re.compile(
-                r"\b(?:open|close|read|gets|socket|fconfigure|file|source|vfs::)\b"
-            ),
+            "io": re.compile(r"\b(?:open|close|read|gets|socket|fconfigure|file|source|vfs::)\b"),
             # 10. api (Public Surface Area)
             # Exposing packages or namespace exports.
-            "api": re.compile(
-                r"^[ \t]*(?:package[ \t]+provide|namespace[ \t]+export)\b", re.M
-            ),
+            "api": re.compile(r"^[ \t]*(?:package[ \t]+provide|namespace[ \t]+export)\b", re.M),
             # 11. flux (State Mutation)
             # Variable state mutations.
-            "flux": re.compile(
-                r"\b(?:set|lappend|dict[ \t]+set|array[ \t]+set|incr|append)\b[ \t]+[a-zA-Z0-9_:]+"
-            ),
+            "flux": re.compile(r"\b(?:set|lappend|dict[ \t]+set|array[ \t]+set|incr|append)\b[ \t]+[a-zA-Z0-9_:]+"),
             # 12. graveyard (Dead / Commented-out Code)
             # Commented out structural code.
-            "graveyard": re.compile(
-                r"^[ \t]*#[ \t]*(?:proc|set|if|while|foreach|return)\b", re.M
-            ),
+            "graveyard": re.compile(r"^[ \t]*#[ \t]*(?:proc|set|if|while|foreach|return)\b", re.M),
             # 13. doc (Structured Documentation)
             # Tcl doc blocks.
             "doc": re.compile(r"^[ \t]*#[ \t]*@(?:param|return|brief|author)", re.M),
@@ -11092,9 +9985,7 @@ LANGUAGE_DEFINITIONS = {
             "concurrency": re.compile(r"\b(?:vwait|after|thread::|coroutine|yield)\b"),
             # 16. ui_framework (UI / View Components)
             # Tkinter/Tk graphical elements.
-            "ui_framework": re.compile(
-                r"\b(?:button|pack|grid|place|canvas|frame|label|ttk::)\b"
-            ),
+            "ui_framework": re.compile(r"\b(?:button|pack|grid|place|canvas|frame|label|ttk::)\b"),
             # 17. closures (Closures / Anonymous Functions)
             # Tcl 8.6 anonymous functions.
             "closures": re.compile(r"\bapply[ \t]+\{"),
@@ -11110,19 +10001,13 @@ LANGUAGE_DEFINITIONS = {
             "comprehensions": re.compile(r"\blmap\b"),
             # 22. scientific (Numerical / Compute Libraries)
             # Explicit math invocations via expr.
-            "scientific": re.compile(
-                r"\b(?:expr|math::)\b|\b(?:sin|cos|tan|sqrt|exp|log|pow)\b"
-            ),
+            "scientific": re.compile(r"\b(?:expr|math::)\b|\b(?:sin|cos|tan|sqrt|exp|log|pow)\b"),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Massive cognitive heat: Intercepting variables, tracking execution, and runtime aliasing.
-            "heat_triggers": re.compile(
-                r"\b(?:trace[ \t]+add|rename|interp[ \t]+create|interp[ \t]+alias)\b"
-            ),
+            "heat_triggers": re.compile(r"\b(?:trace[ \t]+add|rename|interp[ \t]+create|interp[ \t]+alias)\b"),
             # 24. import (Dependency Inclusions)
             # Package and module loading.
-            "import": re.compile(
-                r"^[ \t]*(?:package[ \t]+require|source|load)\b", re.M
-            ),
+            "import": re.compile(r"^[ \t]*(?:package[ \t]+require|source|load)\b", re.M),
             # 25. ownership (Authorship Metadata)
             "ownership": re.compile(
                 r"^[ \t]*#[ \t]*(?:Author|Created by|Maintainer|Copyright):\s+(.*)",
@@ -11133,9 +10018,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": GLOBAL_PLANNED_DEBT,
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
-            "spec_exposure": re.compile(
-                r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             # Tcl standardizes on spaces. Tabs indicate formatter friction.
             "civil_war": None,
@@ -11162,30 +10045,20 @@ LANGUAGE_DEFINITIONS = {
             # 43. bitwise_hits (Bitwise Operations)
             "bitwise_hits": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~|<<|>>"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(?:thread::mutex|thread::rwmutex|thread::cond)\b"
-            ),
+            "sync_locks": re.compile(r"\b(?:thread::mutex|thread::rwmutex|thread::cond)\b"),
             # 45. freeze_hits (Immutability Constraints)
             # Tcl lacks `const`, but setting a trace to prevent writes is the Tcl idiom for freezing.
-            "freeze_hits": re.compile(
-                r"\btrace[ \t]+add[ \t]+variable[ \t]+[a-zA-Z0-9_:]+[ \t]+write\b"
-            ),
+            "freeze_hits": re.compile(r"\btrace[ \t]+add[ \t]+variable[ \t]+[a-zA-Z0-9_:]+[ \t]+write\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
-            "cleanup": re.compile(
-                r'\b(?:close|unset)\b|rename[ \t]+[a-zA-Z0-9_:]+[ \t]+""'
-            ),
+            "cleanup": re.compile(r'\b(?:close|unset)\b|rename[ \t]+[a-zA-Z0-9_:]+[ \t]+""'),
             # 47. encapsulation (Access Modifiers / Encapsulation)
             # Internal namespaces and private `_` prefixed procs.
-            "encapsulation": re.compile(
-                r"\bnamespace[ \t]+eval\b|^[ \t]*proc[ \t]+_[a-zA-Z0-9_:]+", re.M
-            ),
+            "encapsulation": re.compile(r"\bnamespace[ \t]+eval\b|^[ \t]*proc[ \t]+_[a-zA-Z0-9_:]+", re.M),
             # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(?:bind|fileevent)\b"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
             # Using TclTest constraints to silently skip tests on certain OS environments.
-            "test_skip": re.compile(
-                r"-constraints[ \t]+[a-zA-Z0-9_]+\b|\btestConstraint\b"
-            ),
+            "test_skip": re.compile(r"-constraints[ \t]+[a-zA-Z0-9_]+\b|\btestConstraint\b"),
         },
     },
     "groovy": {
@@ -11210,7 +10083,7 @@ LANGUAGE_DEFINITIONS = {
         # EXECUTION SIGNATURES
         "shebangs": ["groovy"],
         # LEXICAL FAMILY
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # --- 2.3.C OPTICAL SPLIT CONTROLS ---
             "_line_anchor": re.compile(r"//"),
@@ -11219,9 +10092,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": re.compile(r"\*/"),
             # --- PHASE 1: GEOMETRY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
-            "branch": re.compile(
-                r"\b(if|else|switch|case|default|for|while|in|try|catch|finally)\b|\?|:"
-            ),
+            "branch": re.compile(r"\b(if|else|switch|case|default|for|while|in|try|catch|finally)\b|\?|:"),
             # 2. args (Parameters / Coupling)
             # Captures standard method arguments and Groovy closures (x, y ->)
             # CRITICAL FIX: Anchored the parenthesis capture to method signatures so it
@@ -11256,9 +10127,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(null)\b|return\s+null|catch\s*\(\s*(?:Exception|Throwable)\b|@SuppressWarnings|@SneakyThrows|\.get\(\)"
             ),
             # 8. danger (High-Risk Execution / System Calls)
-            "danger": re.compile(
-                r"\b(System\.exit|Runtime\.getRuntime\(\)\.exec|execute)\b"
-            ),
+            "danger": re.compile(r"\b(System\.exit|Runtime\.getRuntime\(\)\.exec|execute)\b"),
             # 9. io (I/O & Network Boundaries)
             "io": re.compile(
                 r"\b(File|Files|Paths|FileReader|FileWriter|file|copy|sync|uri|url|Socket|Connection|ResultSet)\b"
@@ -11289,15 +10158,11 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(synchronized|Thread|Runnable|Future|ExecutorService|Promise|Atomic\w+|task)\b|@(?:Async|Scheduled)"
             ),
             # 16. ui_framework (UI / View Components)
-            "ui_framework": re.compile(
-                r"\b(SwingBuilder|JFrame|JPanel|ModelAndView|ModelMap|Model|UIComponent)\b"
-            ),
+            "ui_framework": re.compile(r"\b(SwingBuilder|JFrame|JPanel|ModelAndView|ModelMap|Model|UIComponent)\b"),
             # 17. closures (Closures / Anonymous Functions)
             "closures": re.compile(r"->|\{\s*(?:it|[\w\s,]+)\s*->"),
             # 18. globals (Global / Shared State)
-            "globals": re.compile(
-                r"\b(System\.getProperty|System\.getenv|project\.ext)\b|@Value"
-            ),
+            "globals": re.compile(r"\b(System\.getProperty|System\.getenv|project\.ext)\b|@Value"),
             # 19. decorators (Decorators / Annotations)
             "decorators": re.compile(r"^[ \t]*@[\w.]+(?:\([^)]*\))?", re.M),
             # 20. generics (Generics / Type Parameters)
@@ -11307,9 +10172,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\.(?:collect|find|findAll|grep|inject|each|eachWithIndex|map|filter|reduce)\("
             ),
             # 22. scientific (Numerical / Compute Libraries)
-            "scientific": re.compile(
-                r"\b(Math\.|BigDecimal|BigInteger|Random|SecureRandom)\b"
-            ),
+            "scientific": re.compile(r"\b(Math\.|BigDecimal|BigInteger|Random|SecureRandom)\b"),
             # 23. heat_triggers (Metaprogramming & Reflection)
             # Groovy's highly dynamic Meta-Object Protocol (MOP).
             "heat_triggers": re.compile(
@@ -11325,9 +10188,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
-            "spec_exposure": re.compile(
-                r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I
-            ),
+            "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
             # 30. civil_war (Formatting Inconsistencies)
             "civil_war": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -11335,9 +10196,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(MarkupBuilder|StreamingMarkupBuilder|TemplateEngine|HttpServletRequest|HttpServletResponse|@ResponseBody)\b"
             ),
             # 32. events (Event Emitters / Pub-Sub)
-            "events": re.compile(
-                r"\b(ApplicationEvent|ApplicationListener|@EventListener|publishEvent)\b"
-            ),
+            "events": re.compile(r"\b(ApplicationEvent|ApplicationListener|@EventListener|publishEvent)\b"),
             # 33. dependency_injection (Dependency Injection / IoC)
             # Heavily captures Gradle plugin and dependency architecture.
             "dependency_injection": re.compile(
@@ -11347,7 +10206,7 @@ LANGUAGE_DEFINITIONS = {
             "macros": None,
             # 35. pointers (Pointer Arithmetic / Memory Addressing)
             "pointers": None,
-            # 36. memory_alloc 
+            # 36. memory_alloc
             "memory_alloc": None,
             # 37. inline_asm
             "inline_asm": None,
@@ -11372,9 +10231,7 @@ LANGUAGE_DEFINITIONS = {
             # EXCLUDES `<<` and `>>` because Groovy heavily overloads `<<` for list/stream appending.
             "bitwise_hits": re.compile(r"\^|~"),
             # 44. sync_locks (Thread Synchronization / Locks)
-            "sync_locks": re.compile(
-                r"\b(synchronized|ReentrantLock|ReadWriteLock|Semaphore|Lock|Mutex)\b"
-            ),
+            "sync_locks": re.compile(r"\b(synchronized|ReentrantLock|ReadWriteLock|Semaphore|Lock|Mutex)\b"),
             # 45. freeze_hits (Immutability Constraints)
             "freeze_hits": re.compile(r"\b(final|@Immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -11384,9 +10241,7 @@ LANGUAGE_DEFINITIONS = {
             # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(addListener|on[A-Z]\w*|subscribe)\b"),
             # 49. test_skip (Bypassed Tests / Ignored Specs)
-            "test_skip": re.compile(
-                r"@(?:Ignore|Disabled|PendingFeature)\b|mock\s*\(|spy\s*\("
-            ),
+            "test_skip": re.compile(r"@(?:Ignore|Disabled|PendingFeature)\b|mock\s*\(|spy\s*\("),
         },
     },
     "json": {
@@ -11420,7 +10275,7 @@ LANGUAGE_DEFINITIONS = {
         "discriminators": [".json", ".jsonc", ".json5", ".arb"],
         "shebangs": [],
         # THE FIX: JSON with comments relies on C-style comment structures, not Python/Ruby hashes.
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             # =====================================================================
             # [ CRITICAL ROADMAP: JSONC/JSON5 LEXICAL DELIMITERS & THE RE.COMPILE TRAP ]
@@ -11446,7 +10301,7 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         "discriminators": [".glsl", ".vert", ".frag"],
         "shebangs": [],
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -11460,7 +10315,7 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         "discriminators": ["flake.nix", "default.nix", "shell.nix"],
         "shebangs": [],
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             "_line_anchor": re.compile(r"#"),
             "_inline_comment": re.compile(r"#"),
@@ -11474,7 +10329,7 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         "discriminators": [".blp", ".ui"],
         "shebangs": [],
-        "lexical_family": "c_style_comment",
+        "lexical_family": "standard_block",
         "rules": {
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
@@ -11488,7 +10343,7 @@ LANGUAGE_DEFINITIONS = {
         "exact_matches": [],
         "discriminators": [],
         "shebangs": [],
-        "lexical_family": "single_line_only",
+        "lexical_family": "line_exclusive",
         "rules": {
             # Uses REM or :: for comments. No active logic rules needed (Inert Matter Bypass).
             "_line_anchor": re.compile(r"^[ \t]*(?:REM|::)", re.I | re.M),
@@ -11531,9 +10386,7 @@ PROJECT_OVERRIDES = {
     },
     "Apollo-11": {
         "agc_assembly": {
-            "_meta_purpose_block": re.compile(
-                r"^[ \t]*(?:FUNCTIONAL|PROGRAM)\s+DESCRIPTION\b", re.I
-            ),
+            "_meta_purpose_block": re.compile(r"^[ \t]*(?:FUNCTIONAL|PROGRAM)\s+DESCRIPTION\b", re.I),
             "_meta_purpose_line": re.compile(r"^[ \t]*Purpose[\s:\-]*(.*)", re.I),
             "_meta_boundary": re.compile(
                 r"^[ \t]*(?:Assembler|Filename|Pages|Website|Mod history|Copyright|Reference|PROGRAM NAME)[\s:\-]+",
@@ -11589,23 +10442,13 @@ PROJECT_OVERRIDES = {
         }
     },
     "discourse": {
-        "_shield_": {
-            "exclude_paths": ["config/unicorn_launcher", "pnpm-lock.yaml", "yarn.lock"]
-        },
+        "_shield_": {"exclude_paths": ["config/unicorn_launcher", "pnpm-lock.yaml", "yarn.lock"]},
         "javascript": {"extensions": [".js", ".jsx", ".mjs", ".cjs", ".gjs"]},
     },
-    "elasticsearch": {
-        "plaintext": {"extensions": [".txt", ".text", ".log", ".json", ".yaml", ".yml"]}
-    },
-    "exiftool": {
-        "plaintext": {"extensions": [".txt", ".text", ".out", ".args", ".fmt", ".xmp"]}
-    },
+    "elasticsearch": {"plaintext": {"extensions": [".txt", ".text", ".log", ".json", ".yaml", ".yml"]}},
+    "exiftool": {"plaintext": {"extensions": [".txt", ".text", ".out", ".args", ".fmt", ".xmp"]}},
     "express": {"html": {"extensions": [".html", ".htm", ".ejs", ".tmpl"]}},
     "fieldtrip": {"_shield_": {"exclude_dirs": ["external"]}},
-    "jenkins": {
-        "_shield_": {"exclude_paths": ["translation-tool.pl", "core/report-l10n.rb"]}
-    },
-    "redis": {
-        "_shield_": {"exclude_dirs": ["deps/lua", "deps/jemalloc", "deps/hiredis"]}
-    },
+    "jenkins": {"_shield_": {"exclude_paths": ["translation-tool.pl", "core/report-l10n.rb"]}},
+    "redis": {"_shield_": {"exclude_dirs": ["deps/lua", "deps/jemalloc", "deps/hiredis"]}},
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Tool: Vault Sentinel
-# Purpose: High-speed pre-commit hook to detect hardcoded secrets and credentials.
+# GitGalaxy Spoke: Secrets Scanner
+# Purpose: High-speed pre-commit hook to detect hardcoded secrets.
 # ==============================================================================
 import argparse
 import sys
@@ -33,11 +33,9 @@ except ImportError:
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("Vault Sentinel")
+    enforce_licensing_guard("Secrets Scanner")
 
-    parser = argparse.ArgumentParser(
-        description="Vault Sentinel: High-Speed Secrets Scanner"
-    )
+    parser = argparse.ArgumentParser(description="Secrets Scanner: High-Speed Secrets Scanner")
     parser.add_argument("target", help="Directory or file to scan")
     args = parser.parse_args()
 
@@ -46,7 +44,7 @@ def main():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
 
-    print(f"🛡️  Initializing Vault Sentinel on {target_path.name}...")
+    print(f"🛡️  Secrets Scanner engaging on {target_path.name}...")
 
     # Initialize lightweight filters
     filter_engine = ApertureFilter(target_path, LANGUAGE_DEFINITIONS, APERTURE_CONFIG)
@@ -84,18 +82,12 @@ def main():
 
             # Create a normalized string for checking against lists
             rel_path_str = str(file_path.relative_to(target_path)).replace("\\", "/")
-            is_whitelisted = any(
-                approved in rel_path_str for approved in ALLOWLIST_PATHS
-            )
+            is_whitelisted = any(approved in rel_path_str for approved in ALLOWLIST_PATHS)
 
             # 1. DENYLIST ENFORCEMENT (Wildcard Pattern Matching)
-            is_forbidden = any(
-                fnmatch.fnmatch(file, pattern) for pattern in DENYLIST_PATTERNS
-            )
+            is_forbidden = any(fnmatch.fnmatch(file, pattern) for pattern in DENYLIST_PATTERNS)
             if is_forbidden and not is_whitelisted:
-                print(
-                    f"[DENYLIST MATCH] Unauthorized file pattern detected: {rel_path_str}"
-                )
+                print(f"[DENYLIST MATCH] Unauthorized file pattern detected: {rel_path_str}")
                 forbidden_blocked += 1
                 leaks_found += 1
                 continue  # Skip deep scanning
@@ -105,9 +97,7 @@ def main():
 
             if reason and "CRITICAL LEAK" in reason:
                 if is_whitelisted:
-                    print(
-                        f"[ALLOWLIST BYPASS] Known safe test key ignored: {rel_path_str}"
-                    )
+                    print(f"[ALLOWLIST BYPASS] Known safe test key ignored: {rel_path_str}")
                     leaks_allowed += 1
                 else:
                     print(f"[PATH BREACH] Exposed Secret File: {rel_path_str}")
@@ -136,9 +126,7 @@ def main():
 
             if sec_results["counts"].get("private_info", 0) > 0:
                 if is_whitelisted:
-                    print(
-                        f"[ALLOWLIST BYPASS] Known safe secret ignored in: {rel_path_str}"
-                    )
+                    print(f"[ALLOWLIST BYPASS] Known safe secret ignored in: {rel_path_str}")
                     leaks_allowed += 1
                 else:
                     print(f"[CONTENT BREACH] Hardcoded Credential: {rel_path_str}")
@@ -169,20 +157,14 @@ def main():
     print("-" * 75)
 
     if leaks_found > 0:
-        print(
-            f" [BLOCKING ACTION] {leaks_found} unauthorized secrets exposed. Failing pipeline."
-        )
-        print(
-            " TIP: If this is a false positive, add the file path to ALLOWLIST_PATHS"
-        )
+        print(f" [BLOCKING ACTION] {leaks_found} unauthorized secrets exposed. Failing pipeline.")
+        print(" TIP: If this is a false positive, add the file path to ALLOWLIST_PATHS")
         print("         inside gitgalaxy/standards/gitgalaxy_config.py")
         sys.exit(1)
     else:
         print(" [SUCCESS] No unauthorized secrets detected.")
         if leaks_allowed > 0:
-            print(
-                f" NOTE: {leaks_allowed} known mock/safe files were bypassed via configuration."
-            )
+            print(f" NOTE: {leaks_allowed} known mock/safe files were bypassed via configuration.")
     print("=" * 75 + "\n")
 
 
