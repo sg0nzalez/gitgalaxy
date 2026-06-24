@@ -439,23 +439,35 @@ GUIDESTAR_CONFIG = {
 
 
 # ------------------------------------------------------------------------------
-# 4. LEXICAL SCANNER CONFIG (Comment Delimiters by Family)
-# Consumed by: prism.py, language_lens.py
+# 4. LEXICAL FAMILY HEURISTICS (Optical Delimiter Census)
+# Consumed by: language_lens.py (Tier 4 Heuristic Discovery)
 # ------------------------------------------------------------------------------
-# Defines the structural delimiters for extracting literature (comment_stream)
-COMMENT_DEFINITIONS = {
-    "mechanical_families": {
-        "c_style_comment": {"delimiters": ["//", "/*", "*/"]},
-        "recursive_c_style": {"delimiters": ["//", "/*", "*/"]},
-        "multi_style_dash": {"delimiters": ["--", "--[[", "]]", "{-", "-}"]},
-        "embedded_syntax": {"delimiters": ["//", "/*", "*/", "#"]},
-        "column_sensitive": {"delimiters": ["*>", "!", "C", "*", "D"]},
-        "single_line_only": {
-            "delimiters": [
-                "#", "<#", "#>", "=begin", "=end", "=pod", "=cut", 
-                ";", "//", "dnl", "%", "%{", "%}", "#|", "|#"
-            ]
-        },
+# NOTE: This dictionary does NOT split the executable code from the non-executable text.
+# That separation is handled by the compiled regexes in language_standards.py.
+# This dictionary is a heuristic fallback radar. It counts raw tokens to guess
+# the structural paradigm of unknown or extensionless files.
+LEXICAL_FAMILY_HEURISTICS = {
+    "lexical_families": {
+        # 1. Standard Block (Non-Recursive)
+        # The language uses both line and block delimiters, but blocks CANNOT be nested.
+        # Examples: C, C++, Java, JavaScript, PHP, SQL, Go, CSS.
+        "standard_block": {"delimiters": ["//", "/*", "*/", "--", "--[[", "]]", "{-", "-}", "#"]},
+        # 2. Recursive Block
+        # The language allows block comments to be safely nested inside one another.
+        # Examples: Rust, Swift, Dart, Scala.
+        "recursive_block": {"delimiters": ["//", "/*", "*/"]},
+        # 3. Line Exclusive
+        # The language possesses no native multi-line block syntax. The engine ignores closing tags.
+        # Examples: Python, Shell, Makefile, Ruby, PowerShell, Assembly.
+        "line_exclusive": {"delimiters": ["#", "<#", "#>", "=begin", "=end", ";", "dnl", "%", "#|", "|#"]},
+        # 4. Block Exclusive
+        # The language possesses no native single-line comment syntax. All text must be enclosed.
+        # Examples: HTML, XML.
+        "block_exclusive": {"delimiters": ["", "--!>"]},
+        # 5. Positional Anchored
+        # The engine must verify the token's physical column placement.
+        # Examples: Legacy COBOL, Legacy Fortran, ABAP.
+        "positional_anchored": {"delimiters": ["*>", "!", "C", "*", "D"]},
     }
 }
 

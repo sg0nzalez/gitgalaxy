@@ -50,7 +50,7 @@ class LanguageDetector:
     Linguistic Classification Engine.
 
     PURPOSE:
-    Converts raw text signals, file metadata, and Bayesian priors into a high-fidelity 
+    Converts raw text signals, file metadata, and Bayesian priors into a high-fidelity
     language classification ('Identity Lock').
 
     ARCHITECTURE (The Confidence Hierarchy):
@@ -65,11 +65,11 @@ class LanguageDetector:
     def __init__(
         self,
         language_definitions: Dict[str, Any],
-        comment_definitions: Dict[str, Any],
+        lexical_heuristics: Dict[str, Any],
         parent_logger: Optional[logging.Logger] = None,
     ):
         self.languages = language_definitions
-        self.comment_defs = comment_definitions
+        self.lexical_heuristics = lexical_heuristics
 
         if parent_logger:
             self.logger = parent_logger.getChild("lens")
@@ -83,9 +83,7 @@ class LanguageDetector:
 
         # --- BAYESIAN TUNING CONSTANTS (Dynamic Fetch) ---
         self.thresholds = LENS_CONFIG.get("THRESHOLDS", {})
-        self.COLLISION_FREQUENCIES = set(
-            LENS_CONFIG.get("COLLISION_FREQUENCIES", set())
-        )
+        self.COLLISION_FREQUENCIES = set(LENS_CONFIG.get("COLLISION_FREQUENCIES", set()))
         self.PROSE_ANCHORS = set(LENS_CONFIG.get("PROSE_ANCHORS", set()))
 
         # Compile syntactic disqualifiers on boot to save CPU cycles per file
@@ -107,9 +105,7 @@ class LanguageDetector:
 
         self.logger.debug("Initializing O(1) lookup maps for Linguistic Classifier...")
         self._calibrate_lookup_maps()
-        self.logger.debug(
-            f"Classifier Online | {len(self.extension_map)} Extensions | {len(self.anchor_map)} Anchors"
-        )
+        self.logger.debug(f"Classifier Online | {len(self.extension_map)} Extensions | {len(self.anchor_map)} Anchors")
 
     def _calibrate_lookup_maps(self):
         """Builds O(1) dictionaries mapping extensions and exact filenames to languages."""
@@ -131,9 +127,7 @@ class LanguageDetector:
 
         for anchor in self.PROSE_ANCHORS:
             if anchor not in self.anchor_map:
-                self.anchor_map[anchor] = (
-                    "markdown" if anchor == "README" else "plaintext"
-                )
+                self.anchor_map[anchor] = "markdown" if anchor == "README" else "plaintext"
 
     def focus(
         self, file_path: Union[str, Path], content_sample: str = "", **kwargs
@@ -171,7 +165,7 @@ class LanguageDetector:
             ext = ""
 
         # 2. Extract hidden true extensions (e.g. script.sh.template -> .sh)
-        # ONLY extract if the final extension is a known, safe wrapper. This prevents 
+        # ONLY extract if the final extension is a known, safe wrapper. This prevents
         # spoofing attacks like malware.exe.txt
         else:
             SAFE_WRAPPERS = {
@@ -184,16 +178,12 @@ class LanguageDetector:
                 ".gen",
                 ".in",
             }
-            if (ext not in self.extension_map or ext in SAFE_WRAPPERS) and len(
-                path_obj.suffixes
-            ) > 1:
+            if (ext not in self.extension_map or ext in SAFE_WRAPPERS) and len(path_obj.suffixes) > 1:
                 if ext in SAFE_WRAPPERS:
                     for middle_ext in reversed(path_obj.suffixes[:-1]):
                         if middle_ext.lower() in self.extension_map:
                             ext = middle_ext.lower()
-                            self.logger.debug(
-                                f"[{name}] Extracted underlying extension '{ext}' from template wrapper"
-                            )
+                            self.logger.debug(f"[{name}] Extracted underlying extension '{ext}' from template wrapper")
                             break
 
         if not intent_vector and has_intent:
@@ -203,17 +193,9 @@ class LanguageDetector:
                 "source_proof": "Legacy Context Pass",
             }
 
-        prior_lang = (
-            intent_vector.get("lang_id", "unknown") if intent_vector else "unknown"
-        )
-        prior_conf = (
-            intent_vector.get("prior_confidence", 0.10) if intent_vector else 0.10
-        )
-        prior_proof = (
-            intent_vector.get("source_proof", "Discovery")
-            if intent_vector
-            else "Discovery"
-        )
+        prior_lang = intent_vector.get("lang_id", "unknown") if intent_vector else "unknown"
+        prior_conf = intent_vector.get("prior_confidence", 0.10) if intent_vector else 0.10
+        prior_proof = intent_vector.get("source_proof", "Discovery") if intent_vector else "Discovery"
 
         result: DetectorResult = {
             "lang_id": "undeterminable",
@@ -331,13 +313,9 @@ class LanguageDetector:
             base_stem = path_obj.stem.lower()
             if ext == ".h":
                 if f"{base_stem}.c" in ext_tally:
-                    return self._forge_result(
-                        "c", 0.99, 0, "Sibling Anchor (.c)", result, content_sample
-                    )
+                    return self._forge_result("c", 0.99, 0, "Sibling Anchor (.c)", result, content_sample)
                 elif f"{base_stem}.cpp" in ext_tally or f"{base_stem}.cc" in ext_tally:
-                    return self._forge_result(
-                        "cpp", 0.99, 0, "Sibling Anchor (C++)", result, content_sample
-                    )
+                    return self._forge_result("cpp", 0.99, 0, "Sibling Anchor (C++)", result, content_sample)
                 elif f"{base_stem}.m" in ext_tally:
                     return self._forge_result(
                         "objective-c",
@@ -374,14 +352,10 @@ class LanguageDetector:
         )
 
         if is_conflict:
-            self.logger.warning(
-                f"[{name}] IDENTITY CONFLICT: Ext '{ext_lang}' contradicts Shebang '{shebang_lang}'"
-            )
+            self.logger.warning(f"[{name}] IDENTITY CONFLICT: Ext '{ext_lang}' contradicts Shebang '{shebang_lang}'")
 
             # 1. Cache the threat into RAM for the SAST Engine
-            result["anomaly_flags"].append(
-                f"Identity Masking: Extension ({ext_lang}) vs Shebang ({shebang_lang})"
-            )
+            result["anomaly_flags"].append(f"Identity Masking: Extension ({ext_lang}) vs Shebang ({shebang_lang})")
 
             # 2. Force the file into the Unclassified Baseline
             return self._forge_result(
@@ -415,24 +389,14 @@ class LanguageDetector:
                 0,
                 "Absolute Consensus (Ext + Shebang)",
             )
-        elif (
-            ext_lang
-            and ext_lang != "undeterminable"
-            and prior_lang == ext_lang
-            and prior_conf >= 0.75
-        ):
+        elif ext_lang and ext_lang != "undeterminable" and prior_lang == ext_lang and prior_conf >= 0.75:
             best_lang, best_conf, lock_tier, source_proof = (
                 ext_lang,
                 0.999,
                 0,
                 f"Absolute Consensus (Ext + {prior_proof})",
             )
-        elif (
-            shebang_lang
-            and shebang_lang != "undeterminable"
-            and prior_lang == shebang_lang
-            and prior_conf >= 0.75
-        ):
+        elif shebang_lang and shebang_lang != "undeterminable" and prior_lang == shebang_lang and prior_conf >= 0.75:
             best_lang, best_conf, lock_tier, source_proof = (
                 shebang_lang,
                 0.999,
@@ -480,21 +444,15 @@ class LanguageDetector:
         gravity_lang = None
         # Only apply Ecosystem Consensus if we don't already have a strong Tier 2 internal signature
         if ext in self.COLLISION_FREQUENCIES and ext_tally and lock_tier > 2:
-            gravity_lang, dominance = self._evaluate_ecosystem_gravity(
-                file_path, ext, ext_tally
-            )
+            gravity_lang, dominance = self._evaluate_ecosystem_gravity(file_path, ext, ext_tally)
 
             if gravity_lang:
                 if dominance >= self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70):
                     best_lang = gravity_lang
                     best_conf = 0.95
                     lock_tier = 1.5
-                    source_proof = (
-                        f"Ecosystem Consensus Lock ({dominance * 100:.0f}% Local Dominance)"
-                    )
-                    self.logger.debug(
-                        f"[{name}] Fast-tracked via Ecosystem Consensus -> {gravity_lang}"
-                    )
+                    source_proof = f"Ecosystem Consensus Lock ({dominance * 100:.0f}% Local Dominance)"
+                    self.logger.debug(f"[{name}] Fast-tracked via Ecosystem Consensus -> {gravity_lang}")
 
         # =========================================================================
         # TIER 1.7: UNKNOWN EXTENSION FALLBACK
@@ -525,15 +483,11 @@ class LanguageDetector:
             )
 
             is_true_unknown = (
-                lock_tier == 4
-                and best_lang in ("undeterminable", "unknown")
-                and ext not in self.COLLISION_FREQUENCIES
+                lock_tier == 4 and best_lang in ("undeterminable", "unknown") and ext not in self.COLLISION_FREQUENCIES
             )
 
             if is_true_unknown:
-                coding_loc = max(
-                    content_sample.count("\n") + (1 if content_sample else 0), 1
-                )
+                coding_loc = max(content_sample.count("\n") + (1 if content_sample else 0), 1)
                 spectral_id, spec_intensity = self._tier_4_heuristic_discovery(
                     content_sample, coding_loc, ext, gravity_lang
                 )
@@ -549,12 +503,8 @@ class LanguageDetector:
                 if spectral_id == best_lang:
                     best_conf = max(best_conf, 0.95)
                     lock_tier = 0
-                    source_proof = (
-                        f"Absolute Consensus (Lexically Verified: {source_proof})"
-                    )
-                    self.logger.debug(
-                        f"[{name}] Verification Success -> {source_proof}"
-                    )
+                    source_proof = f"Absolute Consensus (Lexically Verified: {source_proof})"
+                    self.logger.debug(f"[{name}] Verification Success -> {source_proof}")
                 else:
                     if ext in self.COLLISION_FREQUENCIES:
                         best_lang = spectral_id
@@ -564,12 +514,12 @@ class LanguageDetector:
                     elif lock_tier == 4:
                         if spec_intensity >= self.thresholds.get("FLOOR_TIER_4", 0.92):
                             best_lang, best_conf = spectral_id, spec_intensity
-                            source_proof = f"Heuristic Discovery (Passed {self.thresholds.get('FLOOR_TIER_4', 0.92)} Baseline)"
+                            source_proof = (
+                                f"Heuristic Discovery (Passed {self.thresholds.get('FLOOR_TIER_4', 0.92)} Baseline)"
+                            )
                         else:
                             best_lang, best_conf = "undeterminable", spec_intensity
-                            source_proof = (
-                                f"Failed Discovery Baseline ({spec_intensity:.2f})"
-                            )
+                            source_proof = f"Failed Discovery Baseline ({spec_intensity:.2f})"
                     elif lock_tier >= 2:
                         if spec_intensity > best_conf:
                             best_lang = spectral_id
@@ -591,33 +541,22 @@ class LanguageDetector:
                 else:
                     source_proof += " (Unverified Lexical Score)"
 
-        self.logger.debug(
-            f"[{name}] Final Classification -> '{best_lang}' (Tier: {lock_tier} | Conf: {best_conf:.2f})"
-        )
+        self.logger.debug(f"[{name}] Final Classification -> '{best_lang}' (Tier: {lock_tier} | Conf: {best_conf:.2f})")
 
-        if (
-            best_lang not in ("undeterminable", "plaintext", "unknown")
-            and content_sample
-        ):
+        if best_lang not in ("undeterminable", "plaintext", "unknown") and content_sample:
             result["lang_mix"] = self._detect_hybrids(content_sample, best_lang)
 
-        return self._forge_result(
-            best_lang, best_conf, lock_tier, source_proof, result, content_sample
-        )
+        return self._forge_result(best_lang, best_conf, lock_tier, source_proof, result, content_sample)
 
     def _evaluate_ecosystem_gravity(
         self, file_path: Union[str, Path], ext: str, global_tally: Dict[str, int]
     ) -> Tuple[Optional[str], float]:
         """
-        Resolves identical extension collisions (e.g., .h) by surveying the surrounding 
+        Resolves identical extension collisions (e.g., .h) by surveying the surrounding
         directory neighborhood for dominating implementation languages (C vs C++ vs Obj-C).
         """
         # 1. GATHER CANDIDATES
-        candidates = [
-            lid
-            for lid, data in self.languages.items()
-            if ext in data.get("extensions", [])
-        ]
+        candidates = [lid for lid, data in self.languages.items() if ext in data.get("extensions", [])]
 
         if ext == ".h" and "cpp" not in candidates and "cpp" in self.languages:
             candidates.append("cpp")
@@ -631,12 +570,8 @@ class LanguageDetector:
             parent_dir = Path(file_path).parent
             for child in parent_dir.iterdir():
                 if child.is_file():
-                    local_tally[child.suffix.lower()] = (
-                        local_tally.get(child.suffix.lower(), 0) + 1
-                    )
-                    local_tally[child.name.lower()] = (
-                        local_tally.get(child.name.lower(), 0) + 1
-                    )
+                    local_tally[child.suffix.lower()] = local_tally.get(child.suffix.lower(), 0) + 1
+                    local_tally[child.name.lower()] = local_tally.get(child.name.lower(), 0) + 1
         except Exception:
             pass
 
@@ -652,11 +587,7 @@ class LanguageDetector:
                 data = self.languages.get(lid, {})
 
                 support_exts = [e for e in data.get("extensions", []) if e != ext]
-                base_contributors = {
-                    e: tally.get(e.lower(), 0)
-                    for e in support_exts
-                    if tally.get(e.lower(), 0) > 0
-                }
+                base_contributors = {e: tally.get(e.lower(), 0) for e in support_exts if tally.get(e.lower(), 0) > 0}
 
                 # Single-Extension Ecosystem Support (e.g., MATLAB)
                 if sum(base_contributors.values()) == 0:
@@ -666,17 +597,13 @@ class LanguageDetector:
 
                 discriminators = data.get("discriminators", [])
                 discrim_contributors = {
-                    d: tally.get(d.lower(), 0)
-                    for d in discriminators
-                    if tally.get(d.lower(), 0) > 0
+                    d: tally.get(d.lower(), 0) for d in discriminators if tally.get(d.lower(), 0) > 0
                 }
                 discrim_mass = sum(discrim_contributors.values())
 
                 disqualifiers = data.get("disqualifiers", [])
                 toxic_contributors = {
-                    dq: tally.get(dq.lower(), 0)
-                    for dq in disqualifiers
-                    if tally.get(dq.lower(), 0) > 0
+                    dq: tally.get(dq.lower(), 0) for dq in disqualifiers if tally.get(dq.lower(), 0) > 0
                 }
                 toxic_mass = sum(toxic_contributors.values())
 
@@ -713,16 +640,12 @@ class LanguageDetector:
 
             if ext == ".h" and set(scores.keys()).issubset({"c", "cpp", "objective-c"}):
                 if dominance >= 0.55:
-                    dominance = max(
-                        dominance, self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70)
-                    )
+                    dominance = max(dominance, self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70))
 
             # Evaluate if this scope produced a statistical winner
             threshold = self.thresholds.get("ECOSYSTEM_DOMINANCE_MIN", 0.70)
             if scope_name == "Local":
-                threshold = (
-                    0.60  # Local folders need slightly less dominance to prove intent
-                )
+                threshold = 0.60  # Local folders need slightly less dominance to prove intent
 
             if dominance >= threshold:
                 if self.logger.isEnabledFor(logging.DEBUG):
@@ -750,9 +673,7 @@ class LanguageDetector:
         # 1. Standard Executable Shebang Check
         if content.startswith("#!"):
             first_line = content.split("\n", 1)[0].lower()
-            self.logger.debug(
-                f"Fingerprint Scan: Analyzing shebang line: '{first_line.strip()}'"
-            )
+            self.logger.debug(f"Fingerprint Scan: Analyzing shebang line: '{first_line.strip()}'")
 
             for lang_id, data in self.languages.items():
                 for trigger in data.get("shebangs", []):
@@ -760,8 +681,8 @@ class LanguageDetector:
                         return lang_id
 
         # 2. INTERNAL DISCRIMINATOR (Collision Resolution Only)
-        # DEFENSIVE GUARD: Internal discriminators are strictly for resolving known 
-        # extension collisions (e.g., Obj-C vs MATLAB .m files). They MUST NOT be used 
+        # DEFENSIVE GUARD: Internal discriminators are strictly for resolving known
+        # extension collisions (e.g., Obj-C vs MATLAB .m files). They MUST NOT be used
         # as global scanners for extensionless files, as their regexes are highly specific.
         if ext:
             for lang_id, data in self.languages.items():
@@ -785,14 +706,12 @@ class LanguageDetector:
         """
         The Strict Boundary Scanner.
         Evaluates the specific structural syntax of a file to verify a claimed extension.
-        If a file has an extension, it MUST be claimed by one of the known languages 
+        If a file has an extension, it MUST be claimed by one of the known languages
         for that extension; it is not allowed to randomly match an unrelated schema.
         """
         candidates = []
         if ext:
-            candidates = [
-                l for l, d in self.languages.items() if ext in d.get("extensions", [])
-            ]
+            candidates = [l for l, d in self.languages.items() if ext in d.get("extensions", [])]
 
             # --- DEFENSIVE GUARD: STRICT BOUNDARY ---
             if not candidates:
@@ -817,9 +736,7 @@ class LanguageDetector:
             family = data.get("lexical_family")
 
             # Syntax Disqualification Phase
-            if family in self.DISQUALIFIERS and self.DISQUALIFIERS[family].search(
-                content
-            ):
+            if family in self.DISQUALIFIERS and self.DISQUALIFIERS[family].search(content):
                 continue
 
             raw_score = 0.0
@@ -841,12 +758,8 @@ class LanguageDetector:
                 raw_score *= 1.25
 
             # Comment Delimiter Bonus
-            family_key = data.get("lexical_family", "c_style_comment")
-            delims = (
-                self.comment_defs.get("mechanical_families", {})
-                .get(family_key, {})
-                .get("delimiters", [])
-            )
+            family_key = data.get("lexical_family", "standard_block")
+            delims = self.lexical_heuristics.get("lexical_families", {}).get(family_key, {}).get("delimiters", [])
             for d in delims:
                 if d in content:
                     raw_score += 15.0
@@ -881,13 +794,11 @@ class LanguageDetector:
     ) -> Tuple[str, float]:
         """
         Heuristic Discovery for unknown or extensionless files.
-        Prioritizes graceful failure over blind guessing by enforcing a strict 1.5x margin 
+        Prioritizes graceful failure over blind guessing by enforcing a strict 1.5x margin
         between the leading language candidate and the runner-up.
         """
         if coding_loc < self.thresholds.get("TIER_4_MIN_LINES", 20):
-            self.logger.debug(
-                f"Tier 4 Discovery aborted: Insufficient physical mass ({coding_loc} < 20 lines)."
-            )
+            self.logger.debug(f"Tier 4 Discovery aborted: Insufficient physical mass ({coding_loc} < 20 lines).")
             return "plaintext", 0.40
 
         loc = max(coding_loc, 1)
@@ -897,49 +808,38 @@ class LanguageDetector:
         # PHASE 1: Comment Family Isolation
         # =========================================================================
         family_scores = {}
-        mechanical_families = self.comment_defs.get("mechanical_families", {})
+        lexical_families = self.lexical_heuristics.get("lexical_families", {})
 
-        if mechanical_families:
-            for fam_key, fam_data in mechanical_families.items():
+        if lexical_families:
+            for fam_key, fam_data in lexical_families.items():
                 delims = fam_data.get("delimiters", [])
                 family_scores[fam_key] = sum(content.count(d) for d in delims)
         else:
-            # Fallback for the 8 standardized mechanical delimiters if not externally defined
-            # Safely breaking apart the XML delimiter to prevent markdown render crashes
+            # Fallback for the 5 standardized lexical families if not externally defined
             xml_delim = "<" + "!--"
             family_scores = {
-                "c_style_comment": content.count("//") + content.count("/*"),
-                "single_line_only": content.count("#") + content.count(";"),
-                "multi_style_dash": content.count("--"),
-                "xml_angle": content.count(xml_delim),
-                "tex_percent": content.count("%"),
-                "bat_rem": len(re.findall(r"(?im)^REM\b", content)),
-                "quote_string": content.count('"""') + content.count("'''"),
+                "standard_block": content.count("//") + content.count("/*") + content.count("--"),
+                "recursive_block": content.count("//") + content.count("/*"),
+                "line_exclusive": content.count("#") + content.count(";"),
+                "block_exclusive": content.count(xml_delim),
+                "positional_anchored": content.count("*>") + content.count("!"),
             }
 
         winning_family = max(family_scores, key=family_scores.get, default=None)
 
         # Fail gracefully if no comments/structure exist to establish a lexical family
         if not winning_family or family_scores.get(winning_family, 0) == 0:
-            self.logger.debug(
-                "Tier 4 [Phase 1]: Failed to establish a lexical comment family (No delimiters found)."
-            )
+            self.logger.debug("Tier 4 [Phase 1]: Failed to establish a lexical comment family (No delimiters found).")
             return "undeterminable", 0.0
 
         self.logger.debug(
             f"Tier 4 [Phase 1]: Lexical Family Isolated -> '{winning_family}' (Score: {family_scores[winning_family]})"
         )
 
-        candidates = [
-            lid
-            for lid, data in self.languages.items()
-            if data.get("lexical_family") == winning_family
-        ]
+        candidates = [lid for lid, data in self.languages.items() if data.get("lexical_family") == winning_family]
 
         if not candidates:
-            self.logger.debug(
-                f"Tier 4 [Phase 1]: No candidate languages found for family '{winning_family}'."
-            )
+            self.logger.debug(f"Tier 4 [Phase 1]: No candidate languages found for family '{winning_family}'.")
             return "undeterminable", 0.0
 
         # =========================================================================
@@ -948,24 +848,16 @@ class LanguageDetector:
         surviving_candidates = []
         for lid in candidates:
             family_key = self.languages.get(lid, {}).get("lexical_family")
-            if family_key in self.DISQUALIFIERS and self.DISQUALIFIERS[
-                family_key
-            ].search(content):
-                self.logger.debug(
-                    f"Tier 4 [Phase 2]: Pruning '{lid}' via Heuristic Blacklist."
-                )
+            if family_key in self.DISQUALIFIERS and self.DISQUALIFIERS[family_key].search(content):
+                self.logger.debug(f"Tier 4 [Phase 2]: Pruning '{lid}' via Heuristic Blacklist.")
                 continue  # Pruned by specific anti-patterns
             surviving_candidates.append(lid)
 
         if not surviving_candidates:
-            self.logger.debug(
-                "Tier 4 [Phase 2]: All candidates pruned by heuristic blacklist."
-            )
+            self.logger.debug("Tier 4 [Phase 2]: All candidates pruned by heuristic blacklist.")
             return "undeterminable", 0.0
 
-        self.logger.debug(
-            f"Tier 4 [Phase 2]: Surviving candidates -> {surviving_candidates}"
-        )
+        self.logger.debug(f"Tier 4 [Phase 2]: Surviving candidates -> {surviving_candidates}")
 
         # =========================================================================
         # PHASE 3: Structural Density Scan
@@ -983,15 +875,10 @@ class LanguageDetector:
                     continue
 
                 # ---> DEFENSIVE GUARD: REGEX BACKTRACKING PREVENTION <---
-                # Aborts execution on extremely greedy, non-terminating patterns 
+                # Aborts execution on extremely greedy, non-terminating patterns
                 # that would lock the CPU during multi-line heuristic scanning.
                 raw_pat = getattr(regex, "pattern", str(regex))
-                clean_pat = (
-                    raw_pat.replace("(?i)", "")
-                    .replace("(?m)", "")
-                    .replace("(?s)", "")
-                    .strip()
-                )
+                clean_pat = raw_pat.replace("(?i)", "").replace("(?m)", "").replace("(?s)", "").strip()
                 if clean_pat in ("", "()", "(?:)", "^", "$"):
                     continue
 
@@ -1031,27 +918,21 @@ class LanguageDetector:
             # PHASE 4: The Density Equation (Hits / loc)
             # =====================================================================
             density_scores[lid] = regex_hits / loc
-            
+
             # Record execution time to penalize extremely slow, backtracking regex evaluations
             friction_scores[lid] = time.time() - t_start
 
         if not density_scores:
-            self.logger.debug(
-                "Tier 4 [Phase 3]: No structural signals detected for any candidate."
-            )
+            self.logger.debug("Tier 4 [Phase 3]: No structural signals detected for any candidate.")
             return "undeterminable", 0.0
 
         sorted_scores = sorted(density_scores.items(), key=lambda x: x[1], reverse=True)
         top_id, top_density = sorted_scores[0]
 
-        self.logger.debug(
-            f"Tier 4 [Phase 3]: Top signals -> {[(k, round(v, 4)) for k, v in sorted_scores[:3]]}"
-        )
+        self.logger.debug(f"Tier 4 [Phase 3]: Top signals -> {[(k, round(v, 4)) for k, v in sorted_scores[:3]]}")
 
         if top_density == 0.0:
-            self.logger.debug(
-                "Tier 4 [Phase 3]: Top density is 0.0. Failing gracefully."
-            )
+            self.logger.debug("Tier 4 [Phase 3]: Top density is 0.0. Failing gracefully.")
             return "undeterminable", 0.0
 
         # =========================================================================
@@ -1073,9 +954,7 @@ class LanguageDetector:
             if density_margin >= 1.5:
                 # If it's vastly slower, the regex engine is likely thrashing on false positives
                 if friction_ratio > 5.0:
-                    self.logger.warning(
-                        f"Tier 4 [Reconciliation]: TEMPORAL FRICTION ANOMALY on {top_id}..."
-                    )
+                    self.logger.warning(f"Tier 4 [Reconciliation]: TEMPORAL FRICTION ANOMALY on {top_id}...")
                     return "undeterminable", 0.0
 
                 return top_id, top_density
@@ -1087,25 +966,19 @@ class LanguageDetector:
                         f"Tier 4 [Reconciliation]: Collision. {top_id} density margin ({density_margin:.2f}x) was too weak, and friction ratio ({friction_ratio:.2f}x) failed to break the tie."
                     )
                     return "undeterminable", 0.0
-                self.logger.debug(
-                    f"Tier 4 [Reconciliation]: Friction Tie-Breaker utilized for {top_id}."
-                )
+                self.logger.debug(f"Tier 4 [Reconciliation]: Friction Tie-Breaker utilized for {top_id}.")
                 return top_id, top_density
 
             # 3. Absolute Ambiguity Resolution
             else:
-                if ext == ".h" and {top_id, runner_up_id}.issubset(
-                    {"c", "cpp", "objective-c"}
-                ):
+                if ext == ".h" and {top_id, runner_up_id}.issubset({"c", "cpp", "objective-c"}):
                     if gravity_lang in {"c", "cpp", "objective-c"}:
                         self.logger.debug(
                             f"Tier 4 [Reconciliation]: C/C++ Tie broken by Ecosystem Consensus -> {gravity_lang}"
                         )
                         return gravity_lang, top_density
                     # If no consensus exists, default to C as the lowest-level structural base
-                    self.logger.debug(
-                        "Tier 4 [Reconciliation]: C/C++ Tie broken by default architectural base -> c"
-                    )
+                    self.logger.debug("Tier 4 [Reconciliation]: C/C++ Tie broken by default architectural base -> c")
                     return "c", top_density
 
                 return "undeterminable", 0.0
@@ -1145,7 +1018,7 @@ class LanguageDetector:
     def _capture_raw_signal(self, file_path: Union[str, Path]) -> str:
         """
         DEFENSIVE GUARD: Restricts I/O memory allocation to 50KB.
-        Prevents Out-Of-Memory (OOM) crashes if the user accidentally points the 
+        Prevents Out-Of-Memory (OOM) crashes if the user accidentally points the
         analyzer at massive log dumps or multi-gigabyte auto-generated monoliths.
         """
         try:
@@ -1155,9 +1028,7 @@ class LanguageDetector:
             self.logger.error(f"Hardware/IO failure reading '{file_path}': {str(e)}")
             raise FocusingError(f"Failed to focus lens on {file_path}") from e
 
-    def _find_balanced_end(
-        self, text: str, start_pos: int, opener: str, closer: str
-    ) -> int:
+    def _find_balanced_end(self, text: str, start_pos: int, opener: str, closer: str) -> int:
         depth = 0
         in_string: Optional[str] = None
         limit = min(
@@ -1217,18 +1088,13 @@ class LanguageDetector:
 
             if t["pair"]:
                 open_char, close_char = t["pair"]
-                end_idx = self._find_balanced_end(
-                    content, t["start"], open_char, close_char
-                )
+                end_idx = self._find_balanced_end(content, t["start"], open_char, close_char)
             else:
                 search_limit = min(
-                    t["trigger_end"]
-                    + self.thresholds.get("HANDSHAKE_LOOKAHEAD_LIMIT", 50000),
+                    t["trigger_end"] + self.thresholds.get("HANDSHAKE_LOOKAHEAD_LIMIT", 50000),
                     total_len,
                 )
-                end_match = t["end_pattern"].search(
-                    content, pos=t["trigger_end"], endpos=search_limit
-                )
+                end_match = t["end_pattern"].search(content, pos=t["trigger_end"], endpos=search_limit)
                 end_idx = end_match.end() if end_match else total_len
 
             segment_len = end_idx - t["start"]
