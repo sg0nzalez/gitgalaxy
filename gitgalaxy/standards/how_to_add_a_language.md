@@ -52,16 +52,12 @@ This dictionary will be used by an AST-free physics engine to create a system of
 8. **Resource Management & Stability:** Pay special attention to Phase 5. Ensure that chaos (e.g., concurrency, events, flux) and order (e.g., sync_locks, listeners, freeze_hits) are cleanly separated into their specific regex keys so the physics engine can balance them.
 
 ### THE LEXICAL FAMILIES
-You must assign the language to one of these optical parsing families based on how it handles comments / non-executable text:
-* `std_c`: Standard C-style (Line: `//`, Block: `/* ... */`). Examples: C, C++, Java, JS, Go.
-* `nested_c`: Supports recursive block nesting (Line: `//`, Block: `/* /* */ */`). Examples: Rust, Swift, Scala.
-* `pure_hash`: Hash-style only (Line: `#`, Block: None). Examples: Python, Shell, Makefile.
-* `hybrid_hash`: Hash line + custom block (Line: `#`, Block: `<# #>` or `=begin =end`). Examples: PowerShell, Ruby.
-* `hybrid_dash`: Dash line + custom block (Line: `--`, Block: `/* */` or `--[[ ]]`). Examples: SQL, Lua, Haskell.
-* `polyglot`: Supports multiple line comment tokens (e.g., `//`, `#`, `/* */`). Examples: PHP, LiveCode.
-* `positional`: Legacy column-based parsing. Examples: Fortran (C/* in col 1), ABAP.
-* `singular`: SGML/XML style block only (``), or unique line delimiters (Assembly `;`). Examples: HTML, XML, Assembly.
-* `lisp_semi`: Lisp-style (Line: `;`, Block: `#| |#`). Examples: Scheme, Racket.
+You must assign the language to one of these 5 optical parsing families based on how it handles comments / non-executable text:
+* `standard_block`: The language uses both line and block delimiters, but blocks CANNOT be nested. Examples: C, C++, Java, JavaScript, PHP, SQL, Go, Ruby, Lua.
+* `recursive_block`: The language allows block comments to be safely nested inside one another. Examples: Rust, Swift, Dart, Scala.
+* `line_exclusive`: The language possesses no native multi-line block syntax. The engine ignores closing tags. Examples: Python, Shell, Makefile, Assembly, Scheme.
+* `block_exclusive`: The language possesses no native single-line comment syntax. All text must be enclosed. Examples: HTML, XML.
+* `positional_anchored`: The engine must verify the token's physical column placement. Examples: Legacy COBOL, Legacy Fortran, ABAP.
 
 ### OUTPUT SCHEMA & DEFINITIONS
 Generate a valid Python dictionary matching this exact structure. 
@@ -87,12 +83,12 @@ Generate a valid Python dictionary matching this exact structure.
         "_block_end": re.compile(r""),
 
         # --- PHASE 1: GEOMETRY & STRUCTURE ---
-        # branch (Control Flow / Branching): Control flow that forces the CPU to make a decision or jump. High density creates jagged shapes. Includes: if, else, switch, for, while, catch, try, &&, ||, ternary. EXCLUDES: Exceptions (throw, raise) — these belong in bailout_hits.
+        # branch (Control Flow / Branching): Control flow that forces the CPU to make a decision or jump. High density creates jagged shapes. Includes: if, else, switch, for, while, catch, try, &&, ||, ternary. EXCLUDES: Exceptions (throw, raise) — these belong in panics_and_aborts.
         "branch": re.compile(r""), 
         # args (Parameters / Coupling): Signatures defining input parameters. Drives the physical size/mass of the function. Includes: parameter blocks of functions, methods, and lambdas. Must safely step over type hints.
         "args": re.compile(r""), 
-        # linear (Sequential Boundaries): Keywords defining structural boundaries and straight-line execution. Smooths the geometry into spheres. Includes: var, return, class, import. EXCLUDES: Access modifiers (public, private) and Immutability keywords (const, final — these belong in freeze_hits).
-        "linear": re.compile(r""), 
+        # structural_boundaries (Sequential Boundaries): Keywords defining structural boundaries and straight-line execution. Smooths the geometry into spheres. Includes: var, return, class, import. EXCLUDES: Access modifiers (public, private) and Immutability keywords (const, final — these belong in immutability_locks).
+        "structural_boundaries": re.compile(r""), 
         # func_start (Executable Logic Anchors): Exact syntax anchoring the start of an executable block of logic. Includes: Method signatures, constructors. EXCLUDES: Interfaces, types, and classes.
         "func_start": re.compile(r""), 
         # class_start (Object / Entity Declarations): The syntax that defines an object-oriented class, struct, or record. Drives API Surface Area math.
@@ -101,18 +97,18 @@ Generate a valid Python dictionary matching this exact structure.
         # --- PHASE 2: RISK & STRUCTURAL INTEGRITY ---
         # safety (Defensive Programming / Validation): Defensive programming constructs that prevent crashes at runtime. Includes: try/catch, explicit null checks, guard. EXCLUDES: Immutability.
         "safety": re.compile(r""), 
-        # safety_neg (Safety Bypasses / Unchecked Types): Syntax that actively bypasses type safety, swallows errors, or relies on unpredictable state. Includes: Force unwrapping (!), any, raw memory casting, linter bypasses (@ts-ignore).
-        "safety_neg": re.compile(r""), 
-        # danger (High-Risk Execution / System Calls): Extreme tech debt, process-killing commands, and catastrophic runtime vulnerabilities. Includes: eval, exec, process.exit. EXCLUDES: TODO/HACK (debt) and print (print_hits).
-        "danger": re.compile(r""), 
+        # safety_bypasses (Safety Bypasses / Unchecked Types): Syntax that actively bypasses type safety, swallows errors, or relies on unpredictable state. Includes: Force unwrapping (!), any, raw memory casting, linter bypasses (@ts-ignore).
+        "safety_bypasses": re.compile(r""), 
+        # high_risk_execution (High-Risk Execution / System Calls): Extreme tech debt, process-killing commands, and catastrophic runtime vulnerabilities. Includes: eval, exec, process.exit. EXCLUDES: TODO/HACK (debt) and print (debug_prints).
+        "high_risk_execution": re.compile(r""), 
         # io (I/O & Network Boundaries): Interaction with the disk, network, or external systems. Includes: File writing/reading, HTTP clients, sockets. EXCLUDES: Logging/printing.
         "io": re.compile(r""), 
         # api (Public Surface Area): Code exposed to the outside world. Measures physical surface area (Mitigated by encapsulation). Captures explicit visibility markers (export, public) AND implicit architectural defaults. If the linker can touch it, it possesses surface area.
         "api": re.compile(r""), 
-        # flux (State Mutation): Mutation of state. Reassignment of variables or modifying collections. (Mitigated by freeze_hits). Includes: let, mut, volatile, .push(), .set().
-        "flux": re.compile(r""), 
-        # graveyard (Dead / Commented-out Code): Commented-out structural code and unused logic trails. Includes: // if (x), /* var y */.
-        "graveyard": re.compile(r""), 
+        # state_mutation (State Mutation): Mutation of state. Reassignment of variables or modifying collections. (Mitigated by immutability_locks). Includes: let, mut, volatile, .push(), .set().
+        "state_mutation": re.compile(r""), 
+        # dead_code (Dead / Commented-out Code): Commented-out structural code and unused logic trails. Includes: // if (x), /* var y */.
+        "dead_code": re.compile(r""), 
         # doc (Structured Documentation): Structured documentation meant to be parsed by IDEs or generators. Includes: JSDoc, Docstrings.
         "doc": re.compile(r""), 
         # test (Testing & Assertions): Assertions and unit testing framework keywords. (Mitigates test_skip). Includes: describe, it, assert, expect.
@@ -135,8 +131,8 @@ Generate a valid Python dictionary matching this exact structure.
         "comprehensions": re.compile(r""), 
         # scientific (Numerical / Compute Libraries): Math, data science, and complex rendering libraries. Includes: Math., numpy.
         "scientific": re.compile(r""), 
-        # heat_triggers (Metaprogramming & Reflection): Highly complex, "clever" code that causes cognitive meltdown. Includes: Reflection, Proxy, .bind().
-        "heat_triggers": re.compile(r""), 
+        # reflection_metaprogramming (Metaprogramming & Reflection): Highly complex, "clever" code that causes cognitive meltdown. Includes: Reflection, Proxy, .bind().
+        "reflection_metaprogramming": re.compile(r""), 
         # import (Dependency Inclusions): Dependency resolution and module loading. Includes: import, require, using.
         "import": re.compile(r""), 
         # _dependency_capture: Regex strictly capturing group 1 as the exact dependency path string.
@@ -149,12 +145,12 @@ Generate a valid Python dictionary matching this exact structure.
         "planned_debt": re.compile(r""), 
         # fragile_debt (Acknowledged Hacks / FIXMEs): Explicit admissions of fragile, dangerous, or ugly logic. Includes: HACK, FIXME, XXX, WTF.
         "fragile_debt": re.compile(r""), 
-        # private_info (Hardcoded Secrets / Credentials): Hardcoded secrets, static credentials, or API keys baked into code. Includes: password, secret, token, api_key.
-        "private_info": re.compile(r""), 
+        # hardcoded_secrets (Hardcoded Secrets / Credentials): Hardcoded secrets, static credentials, or API keys baked into code. Includes: password, secret, token, api_key.
+        "hardcoded_secrets": re.compile(r""), 
         # spec_exposure (Spec / Audit Traceability): Audit tags establishing traceability of intent. Includes: [SPEC-123], [audit].
         "spec_exposure": re.compile(r""), 
-        # civil_war (Formatting Inconsistencies): Structural formatting markers used to calculate Tabs vs. Spaces ratio. Often None.
-        "civil_war": None, 
+        # tabs_vs_spaces (Formatting Inconsistencies): Structural formatting markers used to calculate Tabs vs. Spaces ratio. Often None.
+        "tabs_vs_spaces": None, 
         # ssr_boundaries (Server-Side Rendering): Server-Side Rendering computation boundaries where backend meets frontend. Includes: getServerSideProps.
         "ssr_boundaries": re.compile(r""), 
         # events (Event Emitters / Pub-Sub): Event-driven architecture signatures and message brokers. (Mitigated by listeners). Includes: emit, EventEmitter, Kafka, Publisher.
@@ -173,20 +169,20 @@ Generate a valid Python dictionary matching this exact structure.
         # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
         # telemetry (Structured Logging / Telemetry): Structured logging and observability frameworks used safely in production. Acts as executable documentation.
         "telemetry": re.compile(r""), 
-        # print_hits (Standard Output / Debug Prints): Ad-hoc, temporary debug statements pushed to production. Includes: print(, console.log(.
-        "print_hits": re.compile(r""), 
-        # cast_hits (Explicit Type Casting): Explicitly bypassing the compiler's type-checker. Indicates misaligned data structures. Includes: as String, (int), static_cast.
-        "cast_hits": re.compile(r""), 
-        # bailout_hits (Execution Halts / Panics): Forcefully destroying the current execution context. Includes: throw, raise, panic!, abort().
-        "bailout_hits": re.compile(r""), 
-        # halt_hits (Thread Blocking / Sleeps): Forcing a thread to sleep (often an admission of a race condition). Includes: sleep(, delay(.
-        "halt_hits": re.compile(r""), 
-        # bitwise_hits (Bitwise Operations): Manipulating raw bytes and memory registers. Extremely dense, low-level logic. EXCLUDES logical &&/||.
-        "bitwise_hits": re.compile(r""), 
+        # debug_prints (Standard Output / Debug Prints): Ad-hoc, temporary debug statements pushed to production. Includes: print(, console.log(.
+        "debug_prints": re.compile(r""), 
+        # explicit_casts (Explicit Type Casting): Explicitly bypassing the compiler's type-checker. Indicates misaligned data structures. Includes: as String, (int), static_cast.
+        "explicit_casts": re.compile(r""), 
+        # panics_and_aborts (Execution Halts / Panics): Forcefully destroying the current execution context. Includes: throw, raise, panic!, abort().
+        "panics_and_aborts": re.compile(r""), 
+        # thread_sleeps (Thread Blocking / Sleeps): Forcing a thread to sleep (often an admission of a race condition). Includes: sleep(, delay(.
+        "thread_sleeps": re.compile(r""), 
+        # bitwise_ops (Bitwise Operations): Manipulating raw bytes and memory registers. Extremely dense, low-level logic. EXCLUDES logical &&/||.
+        "bitwise_ops": re.compile(r""), 
         # sync_locks (Thread Synchronization / Locks): Explicitly coordinating threaded logic to prevent race conditions. (Mitigates concurrency).
         "sync_locks": re.compile(r""), 
-        # freeze_hits (Immutability Constraints): Explicitly locking data so it cannot be mutated. (Mitigates flux). Includes: const, final, readonly.
-        "freeze_hits": re.compile(r""), 
+        # immutability_locks (Immutability Constraints): Explicitly locking data so it cannot be mutated. (Mitigates state_mutation). Includes: const, final, readonly.
+        "immutability_locks": re.compile(r""), 
         # cleanup (Resource Cleanup / Teardown): Explicitly destroying state or releasing resources to prevent leaks. (Mitigates memory_alloc and io). Includes: free(, dispose(), .close().
         "cleanup": re.compile(r""), 
         # encapsulation (Access Modifiers / Encapsulation): Explicitly hiding logic from the rest of the application. (Mitigates api). Includes: private, protected, internal.
@@ -207,3 +203,4 @@ Generate a valid Python dictionary matching this exact structure.
         "ipc_rpc_bridges": re.compile(r"") 
     }
 }
+```
