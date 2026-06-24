@@ -17,16 +17,17 @@ from typing import Dict, List, Any, Optional
 # SPATIAL MAPPER (Phase 7.5: Spatial Positioning Engine)
 # ------------------------------------------------------------------------------
 
+
 class SpatialMapper:
     """
     Transforms a flat list of files into a deterministic 3D Cartesian coordinate map.
 
-    Groups files into Directory Clusters (folders) and positions them relative to the 
+    Groups files into Directory Clusters (folders) and positions them relative to the
     highest-impact central node (God Object) of each sector while maintaining spatial clearance.
 
     DEFENSIVE ARCHITECTURE (Angular Spatial Hashing):
-    Standard physics engines crash on O(N^2) collision detection loops when placing thousands 
-    of nodes. This mapper neutralizes that by bucketing the map into 360 angular degrees. 
+    Standard physics engines crash on O(N^2) collision detection loops when placing thousands
+    of nodes. This mapper neutralizes that by bucketing the map into 360 angular degrees.
     A placement ray only checks the exact degree it points at, securing O(1) collision avoidance.
     """
 
@@ -41,9 +42,7 @@ class SpatialMapper:
 
         # --- SPATIAL CONSTANTS ---
         # Micro Angle: Nodes within folders follow the classic Golden Angle
-        self.MICRO_GOLDEN_ANGLE = math.pi * (
-            3.0 - math.sqrt(5.0)
-        )  # ~2.39996 rad (~137.5 deg)
+        self.MICRO_GOLDEN_ANGLE = math.pi * (3.0 - math.sqrt(5.0))  # ~2.39996 rad (~137.5 deg)
 
         # Macro Angle: Directory Clusters follow the user-tuned 92.4 degree step
         self.MACRO_GOLDEN_ANGLE = math.radians(92.4)
@@ -51,9 +50,7 @@ class SpatialMapper:
         # Base expansion multipliers
         self.MICRO_SPACING = 250.0  # Internal node-to-node density baseline
         self.MACRO_STEP_FACTOR = 1.5  # Inter-cluster step multiplier (Center-to-Center)
-        self.MAX_TILT_DEG = (
-            15.0  # Max degrees a cluster can tilt from horizontal plane
-        )
+        self.MAX_TILT_DEG = 15.0  # Max degrees a cluster can tilt from horizontal plane
         self.CORE_EXCLUSION_RADIUS = 600.0  # Clear center zone
         self.JITTER_MAGNITUDE = 100
 
@@ -76,9 +73,7 @@ class SpatialMapper:
         normalized = (h / 0xFFFFFFFF) * 2.0 - 1.0
         return normalized * amplitude
 
-    def map_repository(
-        self, parsed_files: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def map_repository(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Injects 3D coordinates using a Ray-Casting Dynamic Mask.
         Ensures ecosystem graphs wrap around previous turns of the spiral by measuring
@@ -87,9 +82,7 @@ class SpatialMapper:
         if not parsed_files:
             return []
 
-        self.logger.info(
-            f"Spatial Mapper: Executing Ray-Casting Dynamic Mask packing for {len(parsed_files)} nodes..."
-        )
+        self.logger.info(f"Spatial Mapper: Executing Ray-Casting Dynamic Mask packing for {len(parsed_files)} nodes...")
 
         # 1. Sectorization (Directory Grouping)
         sectors: Dict[str, List[Dict[str, Any]]] = {}
@@ -194,12 +187,8 @@ class SpatialMapper:
 
             # Jitter and Tilt logic
             sec_y = self._hash_jitter(s_name, 250.0)
-            tilt_mag = math.radians(
-                self._hash_jitter(s_name + "_tilt_mag", self.MAX_TILT_DEG)
-            )
-            tilt_dir = math.radians(
-                (self._hash_jitter(s_name + "_tilt_dir", 0.5) + 0.5) * 360.0
-            )
+            tilt_mag = math.radians(self._hash_jitter(s_name + "_tilt_mag", self.MAX_TILT_DEG))
+            tilt_dir = math.radians((self._hash_jitter(s_name + "_tilt_dir", 0.5) + 0.5) * 360.0)
 
             central_node_mass = self._get_mass(s_nodes[0])
             central_footprint = self._calculate_spatial_clearance(central_node_mass)

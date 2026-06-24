@@ -29,9 +29,7 @@ class {class_name}ApplicationTests {{
 """
 
 
-def generate_controller_test(
-    package_name: str, class_name: str, endpoint_path: str
-) -> str:
+def generate_controller_test(package_name: str, class_name: str, endpoint_path: str) -> str:
     """Forges a @WebMvcTest to verify REST API mappings without booting the full server."""
     service_var = class_name[0].lower() + class_name[1:]
 
@@ -75,9 +73,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="GitGalaxy Java Test Forge")
     parser.add_argument("ir_file", help="Path to the GitGalaxy _ir.json state dump")
-    parser.add_argument(
-        "--pkg", default="com.gitgalaxy.modernized", help="Base Java package name"
-    )
+    parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")
     args = parser.parse_args()
 
     ir_path = Path(args.ir_file).resolve()
@@ -98,17 +94,13 @@ def main():
 
         # 1. Forge Context Test
         context_code = generate_context_test(args.pkg, class_name)
-        (test_dir / f"{class_name}ApplicationTests.java").write_text(
-            context_code, encoding="utf-8"
-        )
+        (test_dir / f"{class_name}ApplicationTests.java").write_text(context_code, encoding="utf-8")
 
         # 2. Forge Controller Test
         controller_test_dir = test_dir / "controller"
         controller_test_dir.mkdir(exist_ok=True)
         controller_code = generate_controller_test(args.pkg, class_name, endpoint_path)
-        (controller_test_dir / f"{class_name}ControllerTest.java").write_text(
-            controller_code, encoding="utf-8"
-        )
+        (controller_test_dir / f"{class_name}ControllerTest.java").write_text(controller_code, encoding="utf-8")
 
         print(f"🧪 Spring Boot Test Suite Forged for {class_name}")
 

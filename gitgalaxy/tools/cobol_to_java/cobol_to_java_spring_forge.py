@@ -29,9 +29,7 @@ def parse_pic_clause(description: str) -> dict:
     constraints = {}
 
     # 1. Check for REDEFINES (Memory Overlays)
-    redefines_match = re.search(
-        r"REDEFINES\s+([A-Z0-9_\-]+)", description, re.IGNORECASE
-    )
+    redefines_match = re.search(r"REDEFINES\s+([A-Z0-9_\-]+)", description, re.IGNORECASE)
     if redefines_match:
         constraints["redefines"] = redefines_match.group(1)
 
@@ -106,10 +104,7 @@ def generate_java_entity(schema_json: dict, package_name: str) -> str:
     properties = schema_json.get("properties", {})
 
     # Check if we need List imports for OCCURS clauses
-    requires_list = any(
-        "OCCURS" in col_data.get("description", "").upper()
-        for col_data in properties.values()
-    )
+    requires_list = any("OCCURS" in col_data.get("description", "").upper() for col_data in properties.values())
 
     java = []
     java.append(f"package {package_name}.entity;\n")
@@ -188,9 +183,7 @@ def generate_java_entity(schema_json: dict, package_name: str) -> str:
         # --- SCENARIO 1: MEMORY OVERLAY (REDEFINES) ---
         if "redefines" in constraints:
             target_camel = constraints["redefines"].lower().split("_")
-            target_camel = target_camel[0] + "".join(
-                w.title() for w in target_camel[1:]
-            )
+            target_camel = target_camel[0] + "".join(w.title() for w in target_camel[1:])
 
             java.append(f"    // ⚠️ REDEFINES ALIAS: Maps to {target_camel} in memory")
             java.append("    @Transient")
@@ -222,9 +215,7 @@ def generate_java_entity(schema_json: dict, package_name: str) -> str:
 
         # 🛡️ STRICT STATE INITIALIZATION
         # For network metrics, initialize to "N/A" instead of leaving null or defaulting to 0.
-        if base_java_type == "String" and any(
-            keyword in camel_name.lower() for keyword in ["ping", "lag", "latency"]
-        ):
+        if base_java_type == "String" and any(keyword in camel_name.lower() for keyword in ["ping", "lag", "latency"]):
             java.append(f'    private {base_java_type} {camel_name} = "N/A";\n')
         else:
             java.append(f"    private {base_java_type} {camel_name};\n")
@@ -240,9 +231,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="GitGalaxy Java Entity Forge")
     parser.add_argument("schema_file", help="Path to the GitGalaxy _schema.json file")
-    parser.add_argument(
-        "--pkg", default="com.gitgalaxy.modernized", help="Base Java package name"
-    )
+    parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")
     args = parser.parse_args()
 
     schema_path = Path(args.schema_file).resolve()
@@ -253,9 +242,7 @@ def main():
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
         java_code = generate_java_entity(schema, args.pkg)
 
-        class_name = "".join(
-            word.capitalize() for word in schema.get("title", "Entity").split("_")
-        )
+        class_name = "".join(word.capitalize() for word in schema.get("title", "Entity").split("_"))
         out_path = schema_path.parent / f"{class_name}.java"
         out_path.write_text(java_code, encoding="utf-8")
 

@@ -102,9 +102,7 @@ class GuideStarLens:
         """Returns the specific Intent Lock for a given file path based on strict, pattern, or sector match."""
         path_obj = Path(path)
         filename = path_obj.name
-        rel_path = str(
-            path_obj.relative_to(self.root) if path_obj.is_absolute() else path_obj
-        ).replace("\\", "/")
+        rel_path = str(path_obj.relative_to(self.root) if path_obj.is_absolute() else path_obj).replace("\\", "/")
 
         # 1. Check direct filename match (e.g., 'main.py')
         lock = self.intent_locks.get(filename)
@@ -210,16 +208,23 @@ class GuideStarLens:
             elif filename in ("pyproject.toml", "Cargo.toml", "requirements.txt"):
                 self._parse_toml_style_manifest(path, lang)
         except Exception as e:
-            self.logger.debug(
-                f"GuideStar: Deep inspection failed for '{filename}': {e}"
-            )
+            self.logger.debug(f"GuideStar: Deep inspection failed for '{filename}': {e}")
 
     def _detect_ai_ecosystem(self, content: str, filename: str):
         """Scans manifest files for explicit AI/LLM orchestrators or tensor frameworks."""
         ai_keywords = {
-            "langchain", "llama_index", "openai", "anthropic", "torch",
-            "tensorflow", "transformers", "huggingface_hub", "vllm", "ollama",
-            "chromadb", "pinecone",
+            "langchain",
+            "llama_index",
+            "openai",
+            "anthropic",
+            "torch",
+            "tensorflow",
+            "transformers",
+            "huggingface_hub",
+            "vllm",
+            "ollama",
+            "chromadb",
+            "pinecone",
         }
 
         found = [kw for kw in ai_keywords if kw in content.lower()]
@@ -251,7 +256,9 @@ class GuideStarLens:
                 for name, cmd in scripts.items():
                     files = re.findall(r"([a-zA-Z0-9_\-\./]+\.(?:js|ts|mjs|cjs))", cmd)
                     for f in files:
-                        self._inject_intent_lock(f, "javascript", 0.85, f"Manifest Script (package.json:scripts:{name})")
+                        self._inject_intent_lock(
+                            f, "javascript", 0.85, f"Manifest Script (package.json:scripts:{name})"
+                        )
         except Exception:
             pass
 
@@ -262,9 +269,7 @@ class GuideStarLens:
                 content = f.read()
 
                 # Strategy 1: Find variable assignments like SRCS = main.c ...
-                matches = re.findall(
-                    r"(?:SRCS|SOURCES|FILES|TARGET)\s*[+:]?=\s*(.*)", content, re.I
-                )
+                matches = re.findall(r"(?:SRCS|SOURCES|FILES|TARGET)\s*[+:]?=\s*(.*)", content, re.I)
                 for m in matches:
                     files = m.split()
                     for f in files:
@@ -311,7 +316,7 @@ class GuideStarLens:
             self._inject_intent_lock(filename, predicted_lang, 0.85, f"Execution Trigger ({prefix_clean})")
 
     # ==============================================================================
-    # EXPLICIT AUTHORITY 
+    # EXPLICIT AUTHORITY
     # ==============================================================================
 
     def _scan_gitattributes(self):
@@ -357,12 +362,12 @@ class GuideStarLens:
                                 0.99,
                                 f"Authoritative Override (.gitattributes: {attr})",
                             )
-                            self.logger.debug(f"GuideStar: Locked pattern '{pattern}' to '{engine_lang}' via .gitattributes")
+                            self.logger.debug(
+                                f"GuideStar: Locked pattern '{pattern}' to '{engine_lang}' via .gitattributes"
+                            )
 
         except Exception as e:
-            self.logger.debug(
-                f"GuideStar: Deep inspection failed for .gitattributes: {e}"
-            )
+            self.logger.debug(f"GuideStar: Deep inspection failed for .gitattributes: {e}")
 
     # ==============================================================================
     # SECURITY EVASION DETECTION
@@ -371,10 +376,10 @@ class GuideStarLens:
     def _scan_gitignore_evasion(self):
         """
         Scans .gitignore for hostile force-includes (e.g., !payload.so).
-        
-        DEFENSIVE DESIGN: Attackers frequently use force-includes in .gitignore 
-        to bypass standard directory exclusions (like node_modules/) and force 
-        malicious compiled binaries to be tracked by the repository. We intercept 
+
+        DEFENSIVE DESIGN: Attackers frequently use force-includes in .gitignore
+        to bypass standard directory exclusions (like node_modules/) and force
+        malicious compiled binaries to be tracked by the repository. We intercept
         these here and flag them for the X-Ray Binary Sensor.
         """
         gitignore_path = self.root / ".gitignore"
@@ -395,7 +400,9 @@ class GuideStarLens:
                         if ext in hostile_bins:
                             clean_path = line[1:].strip("/")
 
-                            self.logger.critical(f"🚨 EVASION DETECTED: .gitignore is force-including a binary -> '{line}'")
+                            self.logger.critical(
+                                f"🚨 EVASION DETECTED: .gitignore is force-including a binary -> '{line}'"
+                            )
 
                             self._inject_intent_lock(
                                 clean_path,
@@ -405,9 +412,7 @@ class GuideStarLens:
                             )
 
         except Exception as e:
-            self.logger.debug(
-                f"GuideStar: Evasion inspection failed for .gitignore: {e}"
-            )
+            self.logger.debug(f"GuideStar: Evasion inspection failed for .gitignore: {e}")
 
     # ==============================================================================
     # DOCUMENTATION COVERAGE MAP
@@ -416,16 +421,24 @@ class GuideStarLens:
     def _calculate_documentation_coverage(self):
         """
         Scans the repository for high-value architectural literature.
-        
-        PERFORMANCE OPTIMIZATION: Instead of opening and reading thousands of 
-        Markdown files to determine their value, we use `os.stat()` to fetch 
-        the physical byte size of the file. This is an extremely fast O(1) disk 
+
+        PERFORMANCE OPTIMIZATION: Instead of opening and reading thousands of
+        Markdown files to determine their value, we use `os.stat()` to fetch
+        the physical byte size of the file. This is an extremely fast O(1) disk
         operation that allows us to build a heat map of documentation density.
         """
         anchor_patterns = {
-            "README.md", "README.txt", "README.rst", "ARCHITECTURE.md",
-            "DESIGN.md", "SPEC.md", "swagger.json", "openapi.yaml",
-            "openapi.json", "CONTRIBUTING.md", "USAGE.md",
+            "README.md",
+            "README.txt",
+            "README.rst",
+            "ARCHITECTURE.md",
+            "DESIGN.md",
+            "SPEC.md",
+            "swagger.json",
+            "openapi.yaml",
+            "openapi.json",
+            "CONTRIBUTING.md",
+            "USAGE.md",
         }
 
         for root_dir, dirs, files in os.walk(self.root):
@@ -457,4 +470,6 @@ class GuideStarLens:
                     rel_dir = "__root__"
 
                 self.documentation_coverage[rel_dir] = round(shield_strength, 3)
-                self.logger.debug(f"GuideStar: Projected {shield_strength*100:.1f}% Documentation Coverage over '{rel_dir}'")
+                self.logger.debug(
+                    f"GuideStar: Projected {shield_strength * 100:.1f}% Documentation Coverage over '{rel_dir}'"
+                )

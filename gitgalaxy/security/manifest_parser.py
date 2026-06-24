@@ -21,18 +21,14 @@ class ManifestParser:
 
     def __init__(self, parent_logger=None):
         self.logger = (
-            parent_logger.getChild("manifest_parser")
-            if parent_logger
-            else logging.getLogger("manifest_parser")
+            parent_logger.getChild("manifest_parser") if parent_logger else logging.getLogger("manifest_parser")
         )
 
         # Matches standard Python packages, extracting the base name and dropping version constraints (==, >=, ~)
         self.python_pkg_regex = re.compile(r"^([a-zA-Z0-9_\-]+)(?:[=><~].*)?$")
 
         # Matches direct URI references (git, file, http) that bypass PyPI registry verification
-        self.python_direct_uri_regex = re.compile(
-            r"^(?:git\+|file:|https?:|hg\+|svn\+|bzr\+)(.*)$"
-        )
+        self.python_direct_uri_regex = re.compile(r"^(?:git\+|file:|https?:|hg\+|svn\+|bzr\+)(.*)$")
 
     def build_resolution_map(self, manifest_paths: list) -> dict:
         """
@@ -58,9 +54,7 @@ class ManifestParser:
                 elif filename in ["pip.conf", ".pypirc", "pip.ini"]:
                     self._parse_pip_conf(manifest_path, resolution_map)
             except Exception as e:
-                self.logger.warning(
-                    f"Manifest Parser: Failed to parse structural definition {filename} - {e}"
-                )
+                self.logger.warning(f"Manifest Parser: Failed to parse structural definition {filename} - {e}")
 
         return resolution_map
 
@@ -85,9 +79,7 @@ class ManifestParser:
             if version_string.startswith("npm:"):
                 raw_pkg = version_string[4:]
                 if raw_pkg.startswith("@"):
-                    real_pkg = (
-                        raw_pkg.rsplit("@", 1)[0] if "@" in raw_pkg[1:] else raw_pkg
-                    )
+                    real_pkg = raw_pkg.rsplit("@", 1)[0] if "@" in raw_pkg[1:] else raw_pkg
                 else:
                     real_pkg = raw_pkg.split("@")[0]
                 resolution_map[alias] = real_pkg
@@ -96,9 +88,7 @@ class ManifestParser:
             # These dependencies are not fetched from the registry and lack cryptographic hash guarantees.
             elif version_string.startswith(("file:", "github:", "git+", "http")):
                 resolution_map[alias] = version_string
-                self.logger.warning(
-                    f"Manifest Parser: Flagged Direct URI resolution for '{alias}' -> {version_string}"
-                )
+                self.logger.warning(f"Manifest Parser: Flagged Direct URI resolution for '{alias}' -> {version_string}")
 
     def _parse_package_lock(self, filepath: Path, resolution_map: dict):
         """
@@ -117,11 +107,9 @@ class ManifestParser:
             resolved_url = info.get("resolved", "")
 
             # DEFENSIVE GUARD: Registry Spoofing
-            # If the resolved URL points to a non-standard domain or a direct Git link, map it 
+            # If the resolved URL points to a non-standard domain or a direct Git link, map it
             # so the downstream firewall can flag it as an untrusted source.
-            if resolved_url and not resolved_url.startswith(
-                "https://registry.npmjs.org/"
-            ):
+            if resolved_url and not resolved_url.startswith("https://registry.npmjs.org/"):
                 resolution_map[pkg_name] = resolved_url
                 self.logger.info(
                     f"Manifest Parser: Flagged non-standard registry resolution for '{pkg_name}' -> {resolved_url}"
@@ -142,9 +130,7 @@ class ManifestParser:
                 uri_match = self.python_direct_uri_regex.match(line)
                 if uri_match:
                     resolution_map[line] = line
-                    self.logger.warning(
-                        f"Manifest Parser: Flagged direct URI reference -> {line}"
-                    )
+                    self.logger.warning(f"Manifest Parser: Flagged direct URI reference -> {line}")
                     continue
 
                 # 2. Standard package capture
@@ -167,11 +153,7 @@ class ManifestParser:
                     continue
 
                 # Look for custom registry routing definitions
-                if (
-                    "index-url" in line
-                    or "extra-index-url" in line
-                    or "repository" in line
-                ):
+                if "index-url" in line or "extra-index-url" in line or "repository" in line:
                     parts = line.split("=")
                     if len(parts) == 2:
                         url = parts[1].strip()
@@ -179,13 +161,7 @@ class ManifestParser:
                         # DEFENSIVE GUARD: Insecure Protocols & Tunneling
                         # HTTP connections allow Man-in-the-Middle (MitM) package injection.
                         # Tunneling services (ngrok) in production configs indicate severe architectural risk.
-                        if (
-                            url.startswith("http://")
-                            or "ngrok" in url
-                            or "localtunnel" in url
-                        ):
-                            self.logger.warning(
-                                f"🚨 Manifest Parser: INSECURE REGISTRY PROTOCOL DETECTED -> {url}"
-                            )
+                        if url.startswith("http://") or "ngrok" in url or "localtunnel" in url:
+                            self.logger.warning(f"🚨 Manifest Parser: INSECURE REGISTRY PROTOCOL DETECTED -> {url}")
                             # Prefix with INSECURE_REGISTRY so the Supply Chain Firewall can instantly block it
                             resolution_map[f"INSECURE_REGISTRY_{filepath.name}"] = url

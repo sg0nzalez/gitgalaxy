@@ -40,12 +40,8 @@ def run_command(command: list, cwd: Path) -> tuple[bool, str, str]:
 
 def main():
     parser = argparse.ArgumentParser(description="GitGalaxy Batch Test Harness")
-    parser.add_argument(
-        "corpus_dir", help="Path to the directory containing legacy COBOL repos"
-    )
-    parser.add_argument(
-        "--n", type=int, default=0, help="Number of repositories to process (0 for all)"
-    )
+    parser.add_argument("corpus_dir", help="Path to the directory containing legacy COBOL repos")
+    parser.add_argument("--n", type=int, default=0, help="Number of repositories to process (0 for all)")
     args = parser.parse_args()
 
     corpus_path = Path(args.corpus_dir).resolve()
@@ -57,9 +53,7 @@ def main():
     master_log_path = reports_dir / f"master_batch_run_{timestamp}.txt"
 
     all_dirs = [d for d in corpus_path.iterdir() if d.is_dir()]
-    target_repos = [
-        d for d in all_dirs if not ("_gitgalaxy_" in d.name or "batch_test" in d.name)
-    ]
+    target_repos = [d for d in all_dirs if not ("_gitgalaxy_" in d.name or "batch_test" in d.name)]
     if args.n > 0:
         target_repos = target_repos[: args.n]
 
@@ -77,9 +71,7 @@ def main():
     }
 
     with open(master_log_path, "w", encoding="utf-8") as master_log:
-        master_log.write(
-            f"GITGALAXY BATCH RUN - {timestamp}\nSample Size: {len(target_repos)}\n\n"
-        )
+        master_log.write(f"GITGALAXY BATCH RUN - {timestamp}\nSample Size: {len(target_repos)}\n\n")
 
         for repo in target_repos:
             print(f"⚙️  Processing: {repo.name} ... ", end="", flush=True)
@@ -95,9 +87,7 @@ def main():
                 print("\n".join(err1.splitlines()[-15:]))
                 print("-" * 105 + "\n")
                 summary["failed_refractor"] += 1
-                repo_error_log.write_text(
-                    f"--- REFRACTOR STDERR ---\n{err1}\n\n--- STDOUT ---\n{out1}"
-                )
+                repo_error_log.write_text(f"--- REFRACTOR STDERR ---\n{err1}\n\n--- STDOUT ---\n{out1}")
                 continue
 
             clean_dirs = sorted(
@@ -122,9 +112,7 @@ def main():
                 print("\n".join(err2.splitlines()[-15:]))
                 print("-" * 105 + "\n")
                 summary["failed_java_forge"] += 1
-                repo_error_log.write_text(
-                    f"--- JAVA FORGE STDERR ---\n{err2}\n\n--- STDOUT ---\n{out2}"
-                )
+                repo_error_log.write_text(f"--- JAVA FORGE STDERR ---\n{err2}\n\n--- STDOUT ---\n{out2}")
                 continue
 
             java_dirs = sorted(
@@ -146,9 +134,7 @@ def main():
                 print("\n".join(out3.splitlines()[-15:]))
                 print("-" * 105 + "\n")
                 summary["failed_maven"] += 1
-                repo_error_log.write_text(
-                    f"--- MAVEN STDERR/STDOUT ---\n{out3}\n{err3}"
-                )
+                repo_error_log.write_text(f"--- MAVEN STDERR/STDOUT ---\n{out3}\n{err3}")
                 continue
 
             print("✅ SUCCESS (Fully Compiled)")
@@ -159,9 +145,7 @@ def main():
         print("----------------------------------------------------------------------")
         print(f"  • Perfect Successes    : {summary['passed']}/{len(target_repos)}")
         print(f" 📁 Master Log  : {master_log_path}")
-        print(
-            "======================================================================\n"
-        )
+        print("======================================================================\n")
 
 
 if __name__ == "__main__":

@@ -114,16 +114,10 @@ def forge_schemas(filepath: Path, ignore_vars: set = None, corporate_header: str
 
         # --- HONESTY SENSOR: DYNAMIC MEMORY ARRAY ---
         # match.group(0) grabs the full matched string from the regex
-        warning = (
-            " -- ⚠️ WARNING: OCCURS DEPENDING ON detected. Use JSONB."
-            if "DEPENDING ON" in match.group(0)
-            else ""
-        )
+        warning = " -- ⚠️ WARNING: OCCURS DEPENDING ON detected. Use JSONB." if "DEPENDING ON" in match.group(0) else ""
 
         # Add notes if it's a legacy packed decimal
-        comment = (
-            " -- Legacy: COMP-3 (Packed Decimal)" if usage and "COMP-3" in usage else ""
-        )
+        comment = " -- Legacy: COMP-3 (Packed Decimal)" if usage and "COMP-3" in usage else ""
 
         columns.append(f"    {safe_name.ljust(30)} {types['sql']}{comment}{warning}")
         json_properties[safe_name] = {

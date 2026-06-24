@@ -28,24 +28,20 @@ class GPURecorder:
 
     PURPOSE: Transforms heavily nested, row-based artifact data into flattened,
     numerical columns (Structure of Arrays) optimized for GPU/WebGL ingestion.
-    
-    MECHANICS: Minifies repetitive strings via Text Interning (Lookups). Executes 
-    destructive RAM eviction by aggressively `.pop()`ing the central pipeline lists 
+
+    MECHANICS: Minifies repetitive strings via Text Interning (Lookups). Executes
+    destructive RAM eviction by aggressively `.pop()`ing the central pipeline lists
     and manually triggering Python's Garbage Collector.
 
-    NOTE: While internal Python logic uses formal DevSecOps terminology (e.g., 'Artifacts', 
-    'Directory Groups'), the output JSON explicitly retains the legacy visual taxonomy 
-    ('galaxy', 'singularity', 'c_ids') to maintain strict compatibility with the 
+    NOTE: While internal Python logic uses formal DevSecOps terminology (e.g., 'Artifacts',
+    'Directory Groups'), the output JSON explicitly retains the legacy visual taxonomy
+    ('galaxy', 'singularity', 'c_ids') to maintain strict compatibility with the
     downstream WebGL rendering engine.
     """
 
     def __init__(self, version: str, parent_logger: Optional[logging.Logger] = None):
         self.version = version
-        self.logger = (
-            parent_logger.getChild("gpu_recorder")
-            if parent_logger
-            else logging.getLogger("gpu_recorder")
-        )
+        self.logger = parent_logger.getChild("gpu_recorder") if parent_logger else logging.getLogger("gpu_recorder")
 
         # --- DYNAMIC SCHEMA FETCH ---
         schemas = getattr(analysis_lens, "RECORDING_SCHEMAS", {})
@@ -109,14 +105,14 @@ class GPURecorder:
             "tel_pop": [],
             "tel_cfr": [],
             "ai_threats": [],
-            "satellite_data_flat": [], # Output retains WebGL 'satellite' namespace for functions
+            "satellite_data_flat": [],  # Output retains WebGL 'satellite' namespace for functions
             "satellite_offsets": [0],
             "imports": [],
-            "c_ids": [], # Directory Group / Constellation mappings
-            "a_ids": [], # Ecosystem Baseline / Archetype IDs
+            "c_ids": [],  # Directory Group / Constellation mappings
+            "a_ids": [],  # Ecosystem Baseline / Archetype IDs
             "a_dists": [],
-            "edges": [], # Inbound dependency pointers
-            "outbound_edges": [], # Outbound dependency pointers
+            "edges": [],  # Inbound dependency pointers
+            "outbound_edges": [],  # Outbound dependency pointers
         }
 
         # The 'Singularity' array maps 1:1 to Excluded Artifacts
@@ -157,9 +153,7 @@ class GPURecorder:
 
             # 1. Directory Group Mapping
             d_name = file_data.get("directory_group", "__monolith__")
-            repository_graph["c_ids"].append(
-                self._intern(d_name, self.dir_group_lookup)
-            )
+            repository_graph["c_ids"].append(self._intern(d_name, self.dir_group_lookup))
 
             # 2. Dynamic Architectural Fingerprint Extraction
             fingerprint = tel.get("archetype_fingerprint", {})
@@ -173,7 +167,7 @@ class GPURecorder:
                 sec_name, sec_dist = sorted_archs[1]
 
                 file_a_ids.append(self._intern(prim_name, self.archetype_lookup))
-                file_a_dists.append(int(round(prim_dist * 1000))) # Quantize to save bytes
+                file_a_dists.append(int(round(prim_dist * 1000)))  # Quantize to save bytes
 
                 # Identify architectural drift (Anti-Patterns)
                 if (sec_dist - prim_dist) <= 0.9:
@@ -199,18 +193,10 @@ class GPURecorder:
 
             # 4. Quantized Physics Metrics
             repository_graph["mass"].append(int(round(file_data.get("file_impact", 0.0) * 10)))
-            repository_graph["author_distribution"].append(
-                int(round(tel.get("author_distribution", 0.0) * 1000))
-            )
-            repository_graph["ownership_entropy"].append(
-                int(round(tel.get("ownership_entropy", 0.0) * 1000))
-            )
-            repository_graph["raw_churn_freq"].append(
-                int(round(tel.get("raw_churn_freq", 0.0) * 1000))
-            )
-            repository_graph["cog_raw"].append(
-                int(round(tel.get("densities", {}).get("cog_raw", 0.0) * 1000))
-            )
+            repository_graph["author_distribution"].append(int(round(tel.get("author_distribution", 0.0) * 1000)))
+            repository_graph["ownership_entropy"].append(int(round(tel.get("ownership_entropy", 0.0) * 1000)))
+            repository_graph["raw_churn_freq"].append(int(round(tel.get("raw_churn_freq", 0.0) * 1000)))
+            repository_graph["cog_raw"].append(int(round(tel.get("densities", {}).get("cog_raw", 0.0) * 1000)))
 
             repository_graph["pos_x"].append(int(round(file_data.get("pos_x", 0.0) * 10)))
             repository_graph["pos_y"].append(int(round(file_data.get("pos_y", 0.0) * 10)))
@@ -218,27 +204,17 @@ class GPURecorder:
 
             # 5. Flat Array Mapping (Structure of Arrays)
             repository_graph["risks_flat"].extend(
-                [
-                    int(v * 10)
-                    for v in file_data.get("risk_vector", [0] * len(self.RISK_SCHEMA))
-                ]
+                [int(v * 10) for v in file_data.get("risk_vector", [0] * len(self.RISK_SCHEMA))]
             )
             repository_graph["hits_flat"].extend(
-                [
-                    int(v)
-                    for v in file_data.get("hit_vector", [0] * len(self.HIT_SCHEMA))
-                ]
+                [int(v) for v in file_data.get("hit_vector", [0] * len(self.HIT_SCHEMA))]
             )
 
             # 6. Telemetry Interning
             domain_ctx = tel.get("domain_context", {})
-            repository_graph["tel_aid"].append(
-                self._intern(tel.get("ownership", "unknown"), self.author_lookup)
-            )
+            repository_graph["tel_aid"].append(self._intern(tel.get("ownership", "unknown"), self.author_lookup))
             repository_graph["tel_pid"].append(
-                self._intern(
-                    tel.get("identity_source_proof", "Discovery"), self.proof_lookup
-                )
+                self._intern(tel.get("identity_source_proof", "Discovery"), self.proof_lookup)
             )
             repository_graph["tel_purp"].append(
                 self._intern(
@@ -248,9 +224,7 @@ class GPURecorder:
             )
             repository_graph["tel_lt"].append(tel.get("identity_lock_tier", 4))
             repository_graph["tel_pop"].append(tel.get("popularity", 0))
-            repository_graph["tel_cfr"].append(
-                int(round(tel.get("control_flow_ratio", 0.0) * 1000))
-            )
+            repository_graph["tel_cfr"].append(int(round(tel.get("control_flow_ratio", 0.0) * 1000)))
 
             # 7. Threat Score Quantization
             ai_score_str = domain_ctx.get("AI Threat Score", "0.0%")
@@ -273,9 +247,7 @@ class GPURecorder:
                         func.get("branch", 0),
                         int(func.get("angle", 0) * 10),
                         func.get("args", 0),
-                        self._intern(
-                            func.get("texture", "standard"), self.texture_lookup
-                        ),
+                        self._intern(func.get("texture", "standard"), self.texture_lookup),
                         int(func.get("control_flow_ratio", 0.0) * 1000),
                         int(func.get("impact", func.get("magnitude", 0)) * 10),
                         int(func.get("start_line", 0)),
@@ -295,9 +267,7 @@ class GPURecorder:
 
             # 9. Dependency Resolution
             raw_imports = sorted(list(file_data.get("raw_imports", [])))
-            repository_graph["imports"].append(
-                [self._intern(imp, self.import_lookup) for imp in raw_imports]
-            )
+            repository_graph["imports"].append([self._intern(imp, self.import_lookup) for imp in raw_imports])
 
             current_outbound = []
             for imp in raw_imports:
@@ -325,20 +295,14 @@ class GPURecorder:
 
             excluded_artifacts["paths"].append(path)
             excluded_artifacts["exts"].append(self._intern(ext, self.ext_lookup))
-            excluded_artifacts["reasons"].append(
-                self._intern(unparsable.get("reason", "anomaly"), self.reason_lookup)
-            )
+            excluded_artifacts["reasons"].append(self._intern(unparsable.get("reason", "anomaly"), self.reason_lookup))
             excluded_artifacts["sizes"].append(int(unparsable.get("size_bytes", 0)))
-            excluded_artifacts["confidences"].append(
-                int(round(unparsable.get("identity_confidence", 0.0) * 1000))
-            )
+            excluded_artifacts["confidences"].append(int(round(unparsable.get("identity_confidence", 0.0) * 1000)))
             del unparsable
 
         # Evict detached dict references
         gc.collect()
-        self.logger.debug(
-            "GPU_RECORDER: RAM Eviction complete. Python GC cycle triggered."
-        )
+        self.logger.debug("GPU_RECORDER: RAM Eviction complete. Python GC cycle triggered.")
 
         # ==============================================================================
         # SUMMARY FLATTENING (UI Diagnostics)
@@ -425,9 +389,7 @@ class GPURecorder:
 
         try:
             with open(target_path, "w", encoding="utf-8") as f:
-                json.dump(
-                    payload, f, indent=None, separators=(",", ":"), ensure_ascii=False
-                )
+                json.dump(payload, f, indent=None, separators=(",", ":"), ensure_ascii=False)
             self.logger.info(f"GPU Manifest Sealed -> {target_path}")
         except Exception as e:
             self.logger.error(f"Failed to seal GPU manifest: {e}")

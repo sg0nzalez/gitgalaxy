@@ -29,9 +29,9 @@ class SecurityAuditor:
     """
     Machine Learning Threat Inference Engine.
 
-    Calculates deep N-th degree dependency graphs to map the systemic blast radius 
-    of every artifact. Passes the fused structural and topological context through 
-    a multi-class XGBoost classifier to identify behavioral signatures of malware 
+    Calculates deep N-th degree dependency graphs to map the systemic blast radius
+    of every artifact. Passes the fused structural and topological context through
+    a multi-class XGBoost classifier to identify behavioral signatures of malware
     (e.g., Trojans, Stealers, Droppers) that evade traditional static analysis.
     """
 
@@ -45,14 +45,8 @@ class SecurityAuditor:
     }
 
     # Updated default to the new multiclass model
-    def __init__(
-        self, model_path="gitgalaxy_malware_xgb_multiclass.json", parent_logger=None
-    ):
-        self.logger = (
-            parent_logger.getChild("ml_auditor")
-            if parent_logger
-            else logging.getLogger("ml_auditor")
-        )
+    def __init__(self, model_path="gitgalaxy_malware_xgb_multiclass.json", parent_logger=None):
+        self.logger = parent_logger.getChild("ml_auditor") if parent_logger else logging.getLogger("ml_auditor")
 
         # Load the Universal Schemas to map the raw vectors back to names
         self.SIGNAL_SCHEMA = RECORDING_SCHEMAS.get("SIGNAL_SCHEMA", [])
@@ -87,25 +81,19 @@ class SecurityAuditor:
                         )
                         self.model = None
                     else:
-                        self.logger.info(
-                            f"🧠 XGBoost Threat Model loaded successfully from: {model_file.resolve()}"
-                        )
+                        self.logger.info(f"🧠 XGBoost Threat Model loaded successfully from: {model_file.resolve()}")
                 except Exception as e:
-                    self.logger.error(
-                        f"❌ Failed to load XGBoost model. File exists but threw an error: {e}"
-                    )
+                    self.logger.error(f"❌ Failed to load XGBoost model. File exists but threw an error: {e}")
             else:
                 self.logger.warning(
                     f"⚠️ XGBoost model not found at {local_model} OR {util_model}. Running graph resolution only."
                 )
         else:
-            self.logger.warning(
-                "⚠️ Pandas or XGBoost not installed in this environment. Running graph resolution only."
-            )
+            self.logger.warning("⚠️ Pandas or XGBoost not installed in this environment. Running graph resolution only.")
 
     def audit_repository(self, artifacts, is_shadow_patch=False):
         """
-        Orchestrates the resolution of transitive dependency graphs and 
+        Orchestrates the resolution of transitive dependency graphs and
         executes the XGBoost model against the generated feature matrix.
         """
         if not artifacts:
@@ -131,9 +119,7 @@ class SecurityAuditor:
             df = self._construct_feature_matrix(artifacts)
 
             if df.empty:
-                self.logger.warning(
-                    "Feature matrix is empty after extraction. Aborting inference."
-                )
+                self.logger.warning("Feature matrix is empty after extraction. Aborting inference.")
                 return artifacts
 
             # 2. DEFENSIVE GUARD: Schema Alignment
@@ -181,35 +167,25 @@ class SecurityAuditor:
                     artifact["telemetry"]["domain_context"] = {}
 
                 if is_threat:
-                    threat_name = self.CLASS_NAMES.get(
-                        predicted_class, "Unknown Threat"
-                    )
+                    threat_name = self.CLASS_NAMES.get(predicted_class, "Unknown Threat")
                     artifact["telemetry"]["domain_context"]["AI Threat Class"] = threat_name
-                    artifact["telemetry"]["domain_context"]["AI Threat Confidence"] = (
-                        f"{ml_score}%"
-                    )
+                    artifact["telemetry"]["domain_context"]["AI Threat Confidence"] = f"{ml_score}%"
                     artifact["is_ml_threat"] = True
                     threats_found += 1
-                    self.logger.warning(
-                        f"🚨 AI THREAT DETECTED: {artifact.get('path')} ({threat_name} | {ml_score}%)"
-                    )
+                    self.logger.warning(f"🚨 AI THREAT DETECTED: {artifact.get('path')} ({threat_name} | {ml_score}%)")
                 else:
                     artifact["is_ml_threat"] = False
 
-            self.logger.info(
-                f"XGBoost Inference Complete. Found {threats_found} potential threats."
-            )
+            self.logger.info(f"XGBoost Inference Complete. Found {threats_found} potential threats.")
 
         except Exception as e:
-            self.logger.error(
-                f"❌ Fatal error during XGBoost Inference: {e}", exc_info=True
-            )
+            self.logger.error(f"❌ Fatal error during XGBoost Inference: {e}", exc_info=True)
 
         return artifacts
 
     def _resolve_dependency_graph(self, artifacts):
         """
-        Resolves transitive fragility and blast radius using C-optimized traversals (NetworkX) 
+        Resolves transitive fragility and blast radius using C-optimized traversals (NetworkX)
         if available, falling back to a pure Python BFS deque if missing.
         """
         resolution_map = {}
@@ -349,18 +325,10 @@ class SecurityAuditor:
                 safe_denom = max(logic_loc, coding_loc, 1)
 
                 functions = artifact.get("functions", [])
-                max_func_comp = max(
-                    [func.get("branch", 0) for func in functions] if functions else [0]
-                )
-                avg_func_args = sum([func.get("args", 0) for func in functions]) / max(
-                    len(functions), 1
-                )
+                max_func_comp = max([func.get("branch", 0) for func in functions] if functions else [0])
+                avg_func_args = sum([func.get("args", 0) for func in functions]) / max(len(functions), 1)
 
-                hit_dict = {
-                    self.SIGNAL_SCHEMA[i]: hits[i]
-                    for i in range(len(self.SIGNAL_SCHEMA))
-                    if i < len(hits)
-                }
+                hit_dict = {self.SIGNAL_SCHEMA[i]: hits[i] for i in range(len(self.SIGNAL_SCHEMA)) if i < len(hits)}
 
                 # 2. Build the Row Dictionary
                 row = {
@@ -377,27 +345,13 @@ class SecurityAuditor:
                     "log_max_func_complexity": np.log1p(np.maximum(max_func_comp, 0)),
                     "log_avg_func_args": np.log1p(np.maximum(avg_func_args, 0)),
                     "func_complexity_gini": float(tel.get("func_complexity_gini", 0.0)),
-                    "func_internal_density": float(
-                        tel.get("func_internal_density", 0.0)
-                    ),
-                    "design_slop_orphans": float(
-                        hit_dict.get("design_slop_orphans", 0)
-                    ),
-                    "design_slop_duplicates": float(
-                        hit_dict.get("design_slop_duplicates", 0)
-                    ),
-                    "log_direct_upstream": np.log1p(
-                        np.maximum(dep.get("direct_upstream", 0), 0)
-                    ),
-                    "log_direct_downstream": np.log1p(
-                        np.maximum(dep.get("direct_downstream", 0), 0)
-                    ),
-                    "log_total_upstream": np.log1p(
-                        np.maximum(dep.get("total_upstream", 0), 0)
-                    ),
-                    "log_total_downstream": np.log1p(
-                        np.maximum(dep.get("total_downstream", 0), 0)
-                    ),
+                    "func_internal_density": float(tel.get("func_internal_density", 0.0)),
+                    "design_slop_orphans": float(hit_dict.get("design_slop_orphans", 0)),
+                    "design_slop_duplicates": float(hit_dict.get("design_slop_duplicates", 0)),
+                    "log_direct_upstream": np.log1p(np.maximum(dep.get("direct_upstream", 0), 0)),
+                    "log_direct_downstream": np.log1p(np.maximum(dep.get("direct_downstream", 0), 0)),
+                    "log_total_upstream": np.log1p(np.maximum(dep.get("total_upstream", 0), 0)),
+                    "log_total_downstream": np.log1p(np.maximum(dep.get("total_downstream", 0), 0)),
                 }
 
                 # 3. Reconstruct Density Signatures
@@ -405,9 +359,7 @@ class SecurityAuditor:
                     col_name = f"hit_{key}"
                     if col_name not in exclusion_list:
                         raw_density = (val / safe_denom) * 100.0
-                        row[f"log_density_{col_name}"] = np.log1p(
-                            np.maximum(raw_density, 0)
-                        )
+                        row[f"log_density_{col_name}"] = np.log1p(np.maximum(raw_density, 0))
 
                 # 4. Contextual/Mitigation Columns
                 contextual = [
@@ -423,14 +375,12 @@ class SecurityAuditor:
                 ]
                 for col_name, val in contextual:
                     raw_density = (val / safe_denom) * 100.0
-                    row[f"log_density_{col_name}"] = np.log1p(
-                        np.maximum(raw_density, 0)
-                    )
+                    row[f"log_density_{col_name}"] = np.log1p(np.maximum(raw_density, 0))
 
                 # Bind to the new Ecosystem Baseline variables established in the Statistical Auditor
                 row["assigned_macro_species"] = tel.get("ecosystem_baseline_cluster", 0)
                 row["primary_z_score"] = float(tel.get("ecosystem_z_score", 0.0))
-                
+
                 for i in range(11):
                     row[f"dist_to_{i}"] = float(tel.get(f"dist_to_{i}", 0.0))
 

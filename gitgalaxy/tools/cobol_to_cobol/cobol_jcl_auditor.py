@@ -64,9 +64,7 @@ def parse_jcl_intent(filepath: Path) -> dict:
 
 def audit_zero_trust_jcls(forged_dir: Path, original_dir: Path) -> dict:
     """Core logic to fetch bloat metrics."""
-    legacy_jcls = list(original_dir.rglob("*.[jJ][cC][lL]")) + list(
-        original_dir.rglob("*.txt")
-    )
+    legacy_jcls = list(original_dir.rglob("*.[jJ][cC][lL]")) + list(original_dir.rglob("*.txt"))
     legacy_map = {}
 
     # 1. Map Legacy JCLs by Intent (Handling multi-step monoliths)
@@ -76,9 +74,7 @@ def audit_zero_trust_jcls(forged_dir: Path, original_dir: Path) -> dict:
         metrics = parse_jcl_intent(lj)
         for pgm in metrics["exec_pgms"]:
             # If multiple legacy JCLs call the same program, keep the biggest one
-            if pgm not in legacy_map or metrics.get("lines_of_code", 0) > legacy_map[
-                pgm
-            ].get("lines_of_code", 0):
+            if pgm not in legacy_map or metrics.get("lines_of_code", 0) > legacy_map[pgm].get("lines_of_code", 0):
                 legacy_map[pgm] = {"file": lj, "metrics": metrics}
 
     # 2. Compare against Forged JCLs
@@ -101,15 +97,10 @@ def audit_zero_trust_jcls(forged_dir: Path, original_dir: Path) -> dict:
         if pgm_name in legacy_map:
             twin_metrics = legacy_map[pgm_name]["metrics"]
 
-            loc_saved = max(
-                0, twin_metrics["lines_of_code"] - forged_metrics["lines_of_code"]
-            )
+            loc_saved = max(0, twin_metrics["lines_of_code"] - forged_metrics["lines_of_code"])
             excess_dds = max(
                 0,
-                len(
-                    twin_metrics["data_definitions"]
-                    - forged_metrics["data_definitions"]
-                ),
+                len(twin_metrics["data_definitions"] - forged_metrics["data_definitions"]),
             )
 
             report["audited"] += 1
@@ -125,8 +116,7 @@ def audit_zero_trust_jcls(forged_dir: Path, original_dir: Path) -> dict:
 
     if report["original_loc"] > 0:
         report["bloat_reduction_pct"] = round(
-            ((report["original_loc"] - report["forged_loc"]) / report["original_loc"])
-            * 100,
+            ((report["original_loc"] - report["forged_loc"]) / report["original_loc"]) * 100,
             1,
         )
     else:
@@ -140,13 +130,9 @@ def main():
 
     enforce_licensing_guard("Zero-Trust Meta Auditor")
 
-    parser = argparse.ArgumentParser(
-        description="GitGalaxy Zero-Trust Meta Auditor (v5)"
-    )
+    parser = argparse.ArgumentParser(description="GitGalaxy Zero-Trust Meta Auditor (v5)")
     parser.add_argument("forged", help="Directory containing the forged GitGalaxy JCLs")
-    parser.add_argument(
-        "legacy", help="Directory containing the original legacy IBM JCLs"
-    )
+    parser.add_argument("legacy", help="Directory containing the original legacy IBM JCLs")
     parser.add_argument(
         "--json",
         action="store_true",
@@ -185,9 +171,7 @@ def main():
         for pgm, data in report["program_breakdown"].items():
             loc = str(data["loc_saved"]).rjust(4)
             io = str(data["io_blocked"]).rjust(2)
-            print(
-                f"  [+] {pgm.ljust(10)} | LOC Saved: {loc} | I/O Blocked: {io} | Ref: {data['legacy_file']}"
-            )
+            print(f"  [+] {pgm.ljust(10)} | LOC Saved: {loc} | I/O Blocked: {io} | Ref: {data['legacy_file']}")
 
         print("--------------------------------------------------------------")
         print(" 📊 FINAL AUDIT METRICS:")
@@ -195,9 +179,7 @@ def main():
         print(f"  > Original Legacy LOC    : {report['original_loc']}")
         print(f"  > GitGalaxy Forged LOC   : {report['forged_loc']}")
         print(f"  > Bloat Reduction        : {report['bloat_reduction_pct']}%")
-        print(
-            f"  > Over-Permissioned I/O  : {report['excess_dds_blocked']} Boundaries Shed"
-        )
+        print(f"  > Over-Permissioned I/O  : {report['excess_dds_blocked']} Boundaries Shed")
 
     print("==============================================================\n")
 

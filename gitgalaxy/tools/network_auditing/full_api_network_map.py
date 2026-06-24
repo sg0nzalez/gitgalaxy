@@ -43,9 +43,7 @@ FRAMEWORK_TRAPS = {
     },
     "Golang (Gorilla/Mux/Gin/Fiber)": {
         "ext": [".go"],
-        "regex": re.compile(
-            r'\.(GET|POST|PUT|DELETE|PATCH)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE
-        ),
+        "regex": re.compile(r'\.(GET|POST|PUT|DELETE|PATCH)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
     },
     "C# (.NET Controllers)": {
         "ext": [".cs"],
@@ -56,15 +54,11 @@ FRAMEWORK_TRAPS = {
     },
     "C# (.NET Minimal APIs)": {
         "ext": [".cs"],
-        "regex": re.compile(
-            r'\.Map(Get|Post|Put|Delete|Patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE
-        ),
+        "regex": re.compile(r'\.Map(Get|Post|Put|Delete|Patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
     },
     "PHP (Laravel/Symfony)": {
         "ext": [".php"],
-        "regex": re.compile(
-            r'Route::(get|post|put|delete|patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE
-        ),
+        "regex": re.compile(r'Route::(get|post|put|delete|patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
     },
     "Rust (Actix/Rocket)": {
         "ext": [".rs"],
@@ -127,12 +121,8 @@ def parse_official_swagger(swagger_path: Path) -> set:
         with open(swagger_path, "r", encoding="utf-8") as f:
             if swagger_path.suffix.lower() in [".yaml", ".yml"]:
                 if yaml is None:
-                    print(
-                        f" ❌ Error: PyYAML is required to parse .yaml Swagger files ({swagger_path.name})."
-                    )
-                    print(
-                        "    Please run 'pip install pyyaml' or provide a .json specification."
-                    )
+                    print(f" ❌ Error: PyYAML is required to parse .yaml Swagger files ({swagger_path.name}).")
+                    print("    Please run 'pip install pyyaml' or provide a .json specification.")
                     sys.exit(1)
                 swagger_data = yaml.safe_load(f)
             else:
@@ -183,9 +173,7 @@ def main():
     enforce_licensing_guard("Full API Network Map")
 
     parser = argparse.ArgumentParser(description="GitGalaxy Full API Network Map")
-    parser.add_argument(
-        "source", help="Directory containing the application source code"
-    )
+    parser.add_argument("source", help="Directory containing the application source code")
     parser.add_argument(
         "--swagger",
         required=False,
@@ -204,9 +192,7 @@ def main():
         print(f"Error: Target source directory '{source_path}' does not exist.")
         sys.exit(1)
 
-    print(
-        f"🗺️  GitGalaxy Network Mapper analyzing physical endpoints in: {source_path.name}...\n"
-    )
+    print(f"🗺️  GitGalaxy Network Mapper analyzing physical endpoints in: {source_path.name}...\n")
 
     # ==============================================================================
     # AUTO-DISCOVERY HANDSHAKE & THE AUDIT
@@ -218,9 +204,7 @@ def main():
         candidates = auto_discover_swagger(source_path)
 
         if not candidates:
-            print(
-                " ❌ [ABORT] No OpenAPI/Swagger specifications found in the repository."
-            )
+            print(" ❌ [ABORT] No OpenAPI/Swagger specifications found in the repository.")
             print("    Please provide one manually using the --swagger flag.")
             sys.exit(1)
 
@@ -229,34 +213,23 @@ def main():
         test_cands = []
         for c in candidates:
             parts = [p.lower() for p in c.relative_to(source_path).parts]
-            if (
-                "test" in parts
-                or "tests" in parts
-                or "__tests__" in parts
-                or "testing" in parts
-            ):
+            if "test" in parts or "tests" in parts or "__tests__" in parts or "testing" in parts:
                 test_cands.append(c)
             else:
                 primary_cands.append(c)
 
         if len(primary_cands) == 1 and not args.merge_all:
             swagger_path = primary_cands[0]
-            print(
-                f" 🎯 Auto-discovered Primary Swagger: {swagger_path.relative_to(source_path)}"
-            )
+            print(f" 🎯 Auto-discovered Primary Swagger: {swagger_path.relative_to(source_path)}")
             if test_cands:
-                print(
-                    f" 🛡️  Safely bypassed {len(test_cands)} schemas detected in test directories:"
-                )
+                print(f" 🛡️  Safely bypassed {len(test_cands)} schemas detected in test directories:")
                 for tc in test_cands:
                     print(f"    - [Assumed Test] {tc.relative_to(source_path)}")
             print("")
             approved_apis = parse_official_swagger(swagger_path)
 
         elif len(candidates) > 1 and not args.merge_all:
-            print(
-                f" ⚠️  [AMBIGUITY] Multiple OpenAPI/Swagger specifications found ({len(candidates)})."
-            )
+            print(f" ⚠️  [AMBIGUITY] Multiple OpenAPI/Swagger specifications found ({len(candidates)}).")
             print("    To prevent test-file pollution, automatic merging is disabled.")
             print("\n    Discovered Files (By Endpoint Count):")
 
@@ -274,18 +247,14 @@ def main():
 
             for c, count, is_test in preview_stats:
                 badge = "[TEST DIR]" if is_test else "[PRIMARY]"
-                print(
-                    f"    - {badge.ljust(11)} [{count} routes] {c.relative_to(source_path)}"
-                )
+                print(f"    - {badge.ljust(11)} [{count} routes] {c.relative_to(source_path)}")
 
             print("\n    Please specify the correct schema using the --swagger flag,")
             print("    OR use the --merge-all flag to union all of them together.")
             sys.exit(1)
 
         elif len(candidates) > 1 and args.merge_all:
-            print(
-                f" 🎯 --merge-all active. Unioning {len(candidates)} discovered specifications...\n"
-            )
+            print(f" 🎯 --merge-all active. Unioning {len(candidates)} discovered specifications...\n")
             for c in candidates:
                 try:
                     approved_apis.update(parse_official_swagger(c))
@@ -293,9 +262,7 @@ def main():
                     pass
         else:
             swagger_path = candidates[0]
-            print(
-                f" 🎯 Auto-discovered Swagger specification: {swagger_path.relative_to(source_path)}\n"
-            )
+            print(f" 🎯 Auto-discovered Swagger specification: {swagger_path.relative_to(source_path)}\n")
             approved_apis = parse_official_swagger(swagger_path)
     else:
         swagger_path = Path(args.swagger).resolve()
@@ -315,9 +282,7 @@ def main():
     print("==========================================================")
     print(" 📡 SHADOW API SECURITY AUDIT")
     print("==========================================================")
-    framework_str = (
-        ", ".join(frameworks_detected) if frameworks_detected else "None Detected"
-    )
+    framework_str = ", ".join(frameworks_detected) if frameworks_detected else "None Detected"
     print(f" Physical Frameworks Tracked    : {framework_str}")
     print(f" Documented Endpoints (Swagger) : {len(approved_apis)}")
     print(f" Physical Endpoints (Source)    : {len(physical_endpoints)}")
@@ -348,11 +313,7 @@ def run_api_audit(source_path: Path) -> dict:
     if not candidates:
         return {"status": "no_swagger", "shadow_count": 0, "ghost_count": 0}
 
-    primary_cands = [
-        c
-        for c in candidates
-        if "test" not in [p.lower() for p in c.relative_to(source_path).parts]
-    ]
+    primary_cands = [c for c in candidates if "test" not in [p.lower() for p in c.relative_to(source_path).parts]]
     if len(primary_cands) != 1:
         return {"status": "ambiguous", "shadow_count": 0, "ghost_count": 0}
 

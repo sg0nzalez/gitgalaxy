@@ -33,9 +33,7 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
 
     # 2. Map internal file variables to physical external boundaries (DD Names)
     file_map = {}
-    for match in re.finditer(
-        r"SELECT\s+([A-Z0-9-]+)\s+ASSIGN\s+(?:TO\s+)?([A-Z0-9@#$\-]+)", content
-    ):
+    for match in re.finditer(r"SELECT\s+([A-Z0-9-]+)\s+ASSIGN\s+(?:TO\s+)?([A-Z0-9@#$\-]+)", content):
         raw_dd = match.group(2)
         clean_dd = re.sub(r"^(?:UT|UR)-S-", "", raw_dd)
         file_map[match.group(1)] = clean_dd
@@ -73,9 +71,7 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
 
     # 3. Extract exact Functional Intent (OPEN INPUT vs OPEN OUTPUT)
     # We run this on the safe_content where dead code is invisible.
-    for match in re.finditer(
-        r"OPEN\s+(INPUT|OUTPUT|I-O|EXTEND)\s+([^.]+)\.", safe_content
-    ):
+    for match in re.finditer(r"OPEN\s+(INPUT|OUTPUT|I-O|EXTEND)\s+([^.]+)\.", safe_content):
         mode = match.group(1)
         # Handle multiple files opened on the same line
         files_raw = re.sub(r"\s+", " ", match.group(2)).replace(",", " ").split()

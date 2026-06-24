@@ -65,9 +65,7 @@ class Chronometer:
         self.repo_min_time = time.time()
         self.repo_max_time = time.time()
 
-        self.logger.debug(
-            f"Initializing Time-Series Analyzer for: '{self.root.name}'..."
-        )
+        self.logger.debug(f"Initializing Time-Series Analyzer for: '{self.root.name}'...")
 
         # 1. Git Binary Verification & Boundary Survey
         self._initialize_history_scan()
@@ -81,9 +79,7 @@ class Chronometer:
             try:
                 subprocess.run(["git", "--version"], capture_output=True, check=True)
                 self.is_git_enabled = True
-                self.logger.debug(
-                    "Git binary verified. Commencing Deep Boundary Survey."
-                )
+                self.logger.debug("Git binary verified. Commencing Deep Boundary Survey.")
             except (subprocess.CalledProcessError, FileNotFoundError):
                 self.logger.warning("Git binary not found. Falling back to OS Walk.")
 
@@ -141,14 +137,10 @@ class Chronometer:
                     if res_min_time.stdout.strip():
                         self.repo_min_time = float(res_min_time.stdout.strip())
 
-                self.logger.debug(
-                    f"Boundaries Locked (Git): {self.repo_min_time} to {self.repo_max_time}"
-                )
+                self.logger.debug(f"Boundaries Locked (Git): {self.repo_min_time} to {self.repo_max_time}")
                 return
             except Exception as e:
-                self.logger.warning(
-                    f"Git boundary survey failed, falling back to FS scan: {e}"
-                )
+                self.logger.warning(f"Git boundary survey failed, falling back to FS scan: {e}")
 
         # Fallback: OS Walk for boundaries utilizing global Aperture configs
         black_holes = self.aperture_config.get("IGNORED_DIRECTORIES", set())
@@ -158,9 +150,7 @@ class Chronometer:
         count = 0
         for root, dirs, files in os.walk(self.root):
             # Skip noise sectors dynamically
-            dirs[:] = [
-                d for d in dirs if not d.startswith(".") and d not in black_holes
-            ]
+            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in black_holes]
             for f in files:
                 try:
                     m = os.path.getmtime(os.path.join(root, f))
@@ -222,19 +212,16 @@ class Chronometer:
 
         # ======================================================================
         # DEFENSIVE ARCHITECTURE: Compute & RAM Starvation Guard
-        # Parsing a decade-long Git log for a monolithic repository will crash 
-        # the CI/CD runner by exhausting available RAM and stalling the CPU. 
-        # We enforce a dual-axis kill switch: 
+        # Parsing a decade-long Git log for a monolithic repository will crash
+        # the CI/CD runner by exhausting available RAM and stalling the CPU.
+        # We enforce a dual-axis kill switch:
         # Axis 1 (Volume): Stop scanning once 50% of active files are mapped (max 5000).
         # Axis 2 (Time): Hard abort after 'timeout_limit' seconds.
         # ======================================================================
         required_files = min(int(total_files * 0.50), 5000)
         timeout_limit = self.chrono_config.get("STREAM_TIMEOUT_SECONDS", 15.0)
 
-        self.logger.info(
-            f"Chronometer: Engaging 1-Year Historical Sweep. "
-            f"Budget: {timeout_limit}s"
-        )
+        self.logger.info(f"Chronometer: Engaging 1-Year Historical Sweep. Budget: {timeout_limit}s")
 
         ignored_hashes = self._load_ignored_revs()
 
@@ -262,9 +249,7 @@ class Chronometer:
         duration = time.time() - start_time
 
         # Filter our churn map to only count currently tracked files for the final pct
-        coverage_achieved = len(
-            [k for k in self.churn_map.keys() if k in tracked_files]
-        )
+        coverage_achieved = len([k for k in self.churn_map.keys() if k in tracked_files])
         pct = coverage_achieved / max(total_files, 1) * 100
 
         self.logger.info(
@@ -328,9 +313,7 @@ class Chronometer:
 
                         skip_current_commit = False
                         current_ts = float(parts[1])
-                        current_author = (
-                            parts[2].strip() if len(parts) > 2 else "Unknown"
-                        )
+                        current_author = parts[2].strip() if len(parts) > 2 else "Unknown"
                         continue
 
                 if skip_current_commit:
@@ -351,9 +334,7 @@ class Chronometer:
                 # Track Ownership Entropy
                 if path_key not in self.author_map:
                     self.author_map[path_key] = {}
-                self.author_map[path_key][current_author] = (
-                    self.author_map[path_key].get(current_author, 0) + 1
-                )
+                self.author_map[path_key][current_author] = self.author_map[path_key].get(current_author, 0) + 1
 
                 # Track Stability (MTime)
                 if current_ts > self.mtime_map.get(path_key, 0.0):
@@ -366,10 +347,10 @@ class Chronometer:
         finally:
             # ==================================================================
             # DEFENSIVE ARCHITECTURE: Zombie Process & FD Leak Prevention
-            # Because our Compute Guards will frequently break the Popen stream 
+            # Because our Compute Guards will frequently break the Popen stream
             # *before* Git finishes outputting the log, the OS pipe remains open.
-            # If we do not explicitly send a SIGKILL and flush the File Descriptors 
-            # via communicate(), we will spawn thousands of Zombie Processes that 
+            # If we do not explicitly send a SIGKILL and flush the File Descriptors
+            # via communicate(), we will spawn thousands of Zombie Processes that
             # will eventually take down the host machine.
             # ==================================================================
             if process:
@@ -397,9 +378,9 @@ class Chronometer:
         """
         ========================================================================
         DEFENSIVE ARCHITECTURE: Zero-I/O Thread Safety
-        This method is called thousands of times per second by the isolated 
-        Multi-Processing worker pool during Phase 1. If it triggered disk reads 
-        or Git CLI commands, it would cause an IPC deadlock. All lookups here 
+        This method is called thousands of times per second by the isolated
+        Multi-Processing worker pool during Phase 1. If it triggered disk reads
+        or Git CLI commands, it would cause an IPC deadlock. All lookups here
         are guaranteed to be O(1) RAM dictionary accesses.
         ========================================================================
         """

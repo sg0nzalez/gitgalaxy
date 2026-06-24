@@ -32,9 +32,7 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
     if len(time_buckets) > 15:
         print(" (Filtering to Top 15 Highest Volume Spikes)")
         # Sort by highest hits, grab top 15, then resort chronologically for the graph
-        top_offenders = sorted(time_buckets.items(), key=lambda x: x[1], reverse=True)[
-            :15
-        ]
+        top_offenders = sorted(time_buckets.items(), key=lambda x: x[1], reverse=True)[:15]
         display_buckets = dict(sorted(top_offenders))
     else:
         display_buckets = dict(sorted(time_buckets.items()))
@@ -88,17 +86,13 @@ Expected JSON Schema:
         type=str,
         help="Path to GitGalaxy ir_state.json to auto-extract targets",
     )
-    parser.add_argument(
-        "--out", type=str, help="Optional: Custom directory to save the results log"
-    )
+    parser.add_argument("--out", type=str, help="Optional: Custom directory to save the results log")
     args = parser.parse_args()
 
     # Validate target log file exists before initializing the stream
     target_path = Path(args.target).resolve()
     if not target_path.exists() or not target_path.is_file():
-        print(
-            f"\n[ERROR] Target log file does not exist or is not a file: {target_path}"
-        )
+        print(f"\n[ERROR] Target log file does not exist or is not a file: {target_path}")
         sys.exit(1)
 
     # -------------------------------------------------------------------------
@@ -119,20 +113,13 @@ Expected JSON Schema:
             # Strict Schema Validation
             if not isinstance(ir_state, dict):
                 raise ValueError("The root of the JSON file must be an object {}.")
-            if (
-                "analysis" not in ir_state
-                or "known_programs" not in ir_state["analysis"]
-            ):
-                raise ValueError(
-                    "JSON is missing the required ['analysis']['known_programs'] path."
-                )
+            if "analysis" not in ir_state or "known_programs" not in ir_state["analysis"]:
+                raise ValueError("JSON is missing the required ['analysis']['known_programs'] path.")
 
             search_targets = ir_state["analysis"]["known_programs"]
 
             if not isinstance(search_targets, list) or not search_targets:
-                print(
-                    "\n[WARNING] 'known_programs' array is empty or invalid. Nothing to search."
-                )
+                print("\n[WARNING] 'known_programs' array is empty or invalid. Nothing to search.")
                 sys.exit(0)
 
             print(f"Loaded {len(search_targets)} targets from {state_path.name}")
@@ -147,9 +134,7 @@ Expected JSON Schema:
     elif args.keywords:
         search_targets = args.keywords
     else:
-        print(
-            "\n[ERROR] You must provide targets using either -k/--keywords or --input_state."
-        )
+        print("\n[ERROR] You must provide targets using either -k/--keywords or --input_state.")
         parser.print_help()
         sys.exit(1)
 
@@ -161,16 +146,12 @@ Expected JSON Schema:
         # Pre-compile regex for speed. Encode to bytes for fast binary reading.
         try:
             pattern_str = rf"{kw}"
-            keyword_patterns[kw] = re.compile(
-                pattern_str.encode("utf-8"), re.IGNORECASE
-            )
+            keyword_patterns[kw] = re.compile(pattern_str.encode("utf-8"), re.IGNORECASE)
         except re.error as e:
             print(f"\n[ERROR] Invalid regex generated for keyword '{kw}': {e}")
             sys.exit(1)
 
-    ts_pattern = re.compile(
-        rb"(\d{4}-\d{2}-\d{2}[T\s]\d{2}|\b[A-Z][a-z]{2}\s+\d{1,2}\s\d{2})"
-    )
+    ts_pattern = re.compile(rb"(\d{4}-\d{2}-\d{2}[T\s]\d{2}|\b[A-Z][a-z]{2}\s+\d{1,2}\s\d{2})")
     histograms = {kw: defaultdict(int) for kw in search_targets}
 
     # Determine output paths
@@ -207,9 +188,7 @@ Expected JSON Schema:
 
                         # Bucket by hour
                         bucket = (
-                            ts_match.group(1).decode("utf-8", errors="ignore") + ":00"
-                            if ts_match
-                            else "Unknown Time"
+                            ts_match.group(1).decode("utf-8", errors="ignore") + ":00" if ts_match else "Unknown Time"
                         )
                         histograms[kw][bucket] += 1
 

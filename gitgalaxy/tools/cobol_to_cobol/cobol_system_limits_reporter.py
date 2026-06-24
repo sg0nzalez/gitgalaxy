@@ -20,9 +20,7 @@ SYSTEM_LIMIT_RULES = {
         "description": "Control flow mathematically compromised. The target of a GO TO is being dynamically rewritten.",
     },
     "COPY_REPLACING": {
-        "regex": re.compile(
-            r'\bCOPY\s+[\'"]?[A-Z0-9\-]+[\'"]?\s+REPLACING\b', re.IGNORECASE
-        ),
+        "regex": re.compile(r'\bCOPY\s+[\'"]?[A-Z0-9\-]+[\'"]?\s+REPLACING\b', re.IGNORECASE),
         "severity": "HIGH",
         "description": "Macro substitution detected. AST math may drift from actual compiled execution.",
     },
@@ -70,9 +68,7 @@ def main():
 
     enforce_licensing_guard("System Limit Reporter (The Legacy Forge)")
 
-    parser = argparse.ArgumentParser(
-        description="GitGalaxy System Limit Reporter (Honesty Protocol)"
-    )
+    parser = argparse.ArgumentParser(description="GitGalaxy System Limit Reporter (Honesty Protocol)")
     parser.add_argument("target", help="Path to a .cbl file OR a directory to scan")
     args = parser.parse_args()
 
@@ -93,9 +89,7 @@ def main():
         print("⚠️ No .cbl or .cob files found in the target location.")
         sys.exit(0)
 
-    print(
-        f"\n🔎 GitGalaxy Honesty Protocol scanning {len(cobol_files)} files for structural dragons...\n"
-    )
+    print(f"\n🔎 GitGalaxy Honesty Protocol scanning {len(cobol_files)} files for structural dragons...\n")
     print("=" * 90)
 
     total_anomalies = 0
@@ -109,16 +103,10 @@ def main():
 
     print("=" * 90)
     if total_anomalies == 0:
-        print(
-            " ✅ No structural limits detected. DAG is 100% mathematically deterministic."
-        )
+        print(" ✅ No structural limits detected. DAG is 100% mathematically deterministic.")
     else:
-        print(
-            f" 🚨 WARNING: Found {total_anomalies} structural anomalies requiring human architectural review."
-        )
-    print(
-        "==========================================================================================\n"
-    )
+        print(f" 🚨 WARNING: Found {total_anomalies} structural anomalies requiring human architectural review.")
+    print("==========================================================================================\n")
 
 
 if __name__ == "__main__":

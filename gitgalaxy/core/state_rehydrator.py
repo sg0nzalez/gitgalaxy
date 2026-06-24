@@ -11,10 +11,10 @@ class StateRehydrator:
     """
     Restores the GitGalaxy engine's memory state from a previous SQLite audit.
 
-    DEFENSIVE DESIGN: During a 'Delta Scan' (incremental update), it is incredibly 
-    inefficient to re-parse 10,000 unchanged files just to figure out how 2 modified 
-    files impact them. This class rehydrates the previous architectural state directly 
-    into RAM, allowing the engine to instantly execute dependency resolution without 
+    DEFENSIVE DESIGN: During a 'Delta Scan' (incremental update), it is incredibly
+    inefficient to re-parse 10,000 unchanged files just to figure out how 2 modified
+    files impact them. This class rehydrates the previous architectural state directly
+    into RAM, allowing the engine to instantly execute dependency resolution without
     triggering the CPU-bound logic splicers.
     """
 
@@ -68,8 +68,8 @@ class StateRehydrator:
         for f in file_rows:
             rel_path = f["file_path"]
 
-            # DEFENSIVE DESIGN: We must perfectly reconstruct the dictionary schema 
-            # expected by `galaxyscope.py` so the Orchestrator can execute its 
+            # DEFENSIVE DESIGN: We must perfectly reconstruct the dictionary schema
+            # expected by `galaxyscope.py` so the Orchestrator can execute its
             # downstream graph recalculation without throwing KeyError exceptions.
             ram_state[rel_path] = {
                 "path": rel_path,
@@ -93,6 +93,6 @@ class StateRehydrator:
             }
 
         conn.close()
-        
+
         # Return the standardized payload
         return {"commit_hash": latest_hash, "ram_cache": ram_state}

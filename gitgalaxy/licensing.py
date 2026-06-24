@@ -103,7 +103,7 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
                     if line and not line.startswith("#") and "=" in line:
                         key, val = line.split("=", 1)
                         # Only inject if it's not already set in the system environment
-                        os.environ.setdefault(key.strip(), val.strip().strip('"\''))
+                        os.environ.setdefault(key.strip(), val.strip().strip("\"'"))
         except Exception:
             pass  # Fail gracefully if the .env file is locked by OS permissions
     # -----------------------------------
@@ -197,9 +197,7 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
         " Incident has been flagged. Executing under maximum compliance friction.",
         file=sys.stderr,
     )
-    print(
-        " Contact joe@gitgalaxy.io to acquire a valid commercial key.", file=sys.stderr
-    )
+    print(" Contact joe@gitgalaxy.io to acquire a valid commercial key.", file=sys.stderr)
     print(
         "\n >>> Enforcing 10-second synchronization delay for compliance visibility...",
         file=sys.stderr,

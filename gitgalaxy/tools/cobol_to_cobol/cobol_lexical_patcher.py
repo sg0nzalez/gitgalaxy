@@ -50,18 +50,12 @@ def patch_lexical_traps(filepath: Path) -> bool:
             content,
             flags=re.IGNORECASE,
         )
-        print(
-            f"   ↳ [!] {dialect} Detected: Safely upgraded NEXT SENTENCE to CONTINUE."
-        )
+        print(f"   ↳ [!] {dialect} Detected: Safely upgraded NEXT SENTENCE to CONTINUE.")
     else:
         # COBOL-74 Strict Mode: We must leave it as NEXT SENTENCE to prevent compiler strokes.
         # We rewrite it cleanly to ensure standard spacing for the AST slicer, but NO modern syntax.
-        patched_content = re.sub(
-            r"\bNEXT\s+SENTENCE\b", "NEXT SENTENCE", content, flags=re.IGNORECASE
-        )
-        print(
-            f"   ↳ [!] {dialect} Detected: Engaged ultra-conservative punch-card mode. Bypassing modern injection."
-        )
+        patched_content = re.sub(r"\bNEXT\s+SENTENCE\b", "NEXT SENTENCE", content, flags=re.IGNORECASE)
+        print(f"   ↳ [!] {dialect} Detected: Engaged ultra-conservative punch-card mode. Bypassing modern injection.")
 
     # Save the sanitized code back to the file if changes were made
     if content != patched_content:

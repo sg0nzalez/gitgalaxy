@@ -48,9 +48,7 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
 
     if is_batch:
         # --- BATCH PARADIGM ---
-        java.append(
-            '    @PostMapping(value = "/execute-batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)'
-        )
+        java.append('    @PostMapping(value = "/execute-batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)')
         java.append(f"    public ResponseEntity<?> execute{camel_prog}Batch(")
 
         params = []
@@ -74,9 +72,7 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
                 unique_var_name = base_var_name
                 unique_param_name = f"{dd_name_raw}File"
 
-            params.append(
-                f'@RequestParam("{unique_param_name}") MultipartFile {unique_var_name}'
-            )
+            params.append(f'@RequestParam("{unique_param_name}") MultipartFile {unique_var_name}')
 
         if params:
             java.append("        " + ",\n        ".join(params))
@@ -86,9 +82,7 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
         java.append("    ) {")
         java.append("        // ⚠️ BATCH PARADIGM DETECTED")
         java.append("        // Pass the InputStream directly to the Service layer.")
-        java.append(
-            f"        {service_var}Service.execute{camel_prog}(/* pass streams here */);\n"
-        )
+        java.append(f"        {service_var}Service.execute{camel_prog}(/* pass streams here */);\n")
 
     else:
         # --- TRANSACTIONAL PARADIGM ---
@@ -109,9 +103,7 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
 
         java.append("    ) {")
         java.append("        // ⚡ TRANSACTIONAL PARADIGM DETECTED")
-        java.append(
-            f"        {service_var}Service.execute{camel_prog}(/* pass DTOs here */);\n"
-        )
+        java.append(f"        {service_var}Service.execute{camel_prog}(/* pass DTOs here */);\n")
 
     if outputs:
         java.append(f"        // Expected Outputs: {', '.join(outputs)}")
@@ -130,9 +122,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="GitGalaxy API Contract Forge")
     parser.add_argument("ir_file", help="Path to the GitGalaxy _ir.json state dump")
-    parser.add_argument(
-        "--pkg", default="com.gitgalaxy.modernized", help="Base Java package name"
-    )
+    parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")
     args = parser.parse_args()
 
     ir_path = Path(args.ir_file).resolve()
@@ -142,12 +132,7 @@ def main():
     try:
         ir_state = json.loads(ir_path.read_text(encoding="utf-8"))
         java_code = generate_rest_controller(ir_state, args.pkg)
-        prog_id = (
-            ir_state.get("metadata", {})
-            .get("file_name", "Unknown")
-            .split(".")[0]
-            .capitalize()
-        )
+        prog_id = ir_state.get("metadata", {}).get("file_name", "Unknown").split(".")[0].capitalize()
         out_path = ir_path.parent / f"{prog_id}Controller.java"
         out_path.write_text(java_code, encoding="utf-8")
         print(f"🌐 API Contract Forged: {out_path.name}")

@@ -133,9 +133,9 @@ ASSET_MASKS = {
     },
     # ==============================================================================
     # DEFENSIVE DESIGN: RECURSIVE TESTING TRAP PREVENTION
-    # SAST tools frequently generate false-positive "Lack of Coverage" alerts on 
-    # configuration files or the test artifacts themselves. This explicit exclusion 
-    # mask ensures the engine never demands unit tests for inert data, generated 
+    # SAST tools frequently generate false-positive "Lack of Coverage" alerts on
+    # configuration files or the test artifacts themselves. This explicit exclusion
+    # mask ensures the engine never demands unit tests for inert data, generated
     # scaffolding, or test snapshots, drastically reducing alert fatigue.
     # ==============================================================================
     "UNTESTABLE_EXTENSIONS": {
@@ -253,9 +253,7 @@ PATH_MODIFIERS = {
         # Translation files, constants, and enums have massive line counts but almost
         # zero logical complexity. Dampen them heavily so they don't look like giant risks.
         (
-            re.compile(
-                r"(?:^|/)(?:i18n|locales?|translations?|constants?|enums?)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:i18n|locales?|translations?|constants?|enums?)/", re.I),
             0.80,
         ),
         # 2. The Abstraction (Declarations & Headers)
@@ -299,9 +297,7 @@ PATH_MODIFIERS = {
         # Highly secure zones dedicated to authentication, authorization, and cryptography.
         # Massive reduction in risk exposure because this is explicit defensive mass.
         (
-            re.compile(
-                r"(?:^|/)(?:auth|security|policies|permissions|roles|crypto)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:auth|security|policies|permissions|roles|crypto)/", re.I),
             0.80,
         ),
         # 2. The Contract (Strong Typing, Models & Schemas)
@@ -384,9 +380,7 @@ PATH_MODIFIERS = {
         # 1. The Blueprint (Standard Directories)
         # Expanded to catch singular /doc/, /tutorials/, /guides/, and /wiki/
         (
-            re.compile(
-                r"(?:^|/)(?:docs?|examples?|tutorials?|guides?|wiki|man)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:docs?|examples?|tutorials?|guides?|wiki|man)/", re.I),
             0.0,
         ),
         # 2. The Glossary (Core Repository Literature)
@@ -404,9 +398,7 @@ PATH_MODIFIERS = {
         # 4. The Interactive Spec (API Docs & Notebooks)
         # Catches Swagger/OpenAPI schemas and Jupyter Notebooks (executable examples)
         (
-            re.compile(
-                r"(?:^|/)(?:swagger|openapi)\.(?:json|yaml|yml)$|\.ipynb$", re.I
-            ),
+            re.compile(r"(?:^|/)(?:swagger|openapi)\.(?:json|yaml|yml)$|\.ipynb$", re.I),
             0.90,
         ),
         # 5. The Story (UI Component Documentation)
@@ -429,9 +421,7 @@ PATH_MODIFIERS = {
         # Only drops to 0 if the file inside /spec/ belongs to a spec-heavy language,
         # OR if it explicitly has '.spec' or '_spec' in the filename.
         (
-            re.compile(
-                r"(?:^|/)specs?/.*\.(?:rb|js|jsx|ts|tsx|dart)$|\.spec\b|_spec\b", re.I
-            ),
+            re.compile(r"(?:^|/)specs?/.*\.(?:rb|js|jsx|ts|tsx|dart)$|\.spec\b|_spec\b", re.I),
             0.0,
         ),
         # 3. The Perl Sieve
@@ -465,9 +455,7 @@ PATH_MODIFIERS = {
         # Boilerplates, stubs, and generators intentionally contain commented-out
         # "example" code. Dampen this heavily so the engine doesn't penalize it.
         (
-            re.compile(
-                r"(?:^|/)(?:templates?|stubs?|scaffolds?|fixtures?|examples?)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:templates?|stubs?|scaffolds?|fixtures?|examples?)/", re.I),
             0.75,
         ),
         # 2. The Lab (Experimental Safe Zones)
@@ -484,9 +472,7 @@ PATH_MODIFIERS = {
         # Expanded to include /src/, /lib/, and /services/. Leaving dead code in
         # the main execution arteries creates structural friction and doubt.
         (
-            re.compile(
-                r"(?:^|/)(?:core|kernel|main|src|lib|services|providers)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:core|kernel|main|src|lib|services|providers)/", re.I),
             1.15,
         ),
         # 4. Application Entrypoints (Application Entrypoints)
@@ -524,9 +510,7 @@ PATH_MODIFIERS = {
         # interconnected data graphs to the client. A mistake here can cause
         # catastrophic N+1 database queries or data leaks.
         (
-            re.compile(
-                r"(?:^|/)(?:graphql|resolvers?|mutations?|queries|rpc|grpc|trpc)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:graphql|resolvers?|mutations?|queries|rpc|grpc|trpc)/", re.I),
             1.20,
         ),
         # 4. The Distribution Contract (SDKs & Public Exports)
@@ -600,9 +584,7 @@ PATH_MODIFIERS = {
         # constants, or configs should be completely static after boot. If the
         # engine detects state mutations here, the application is poisoning its own roots.
         (
-            re.compile(
-                r"(?:^|/)(?:configs?|envs?|globals?|constants?|settings?)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:configs?|envs?|globals?|constants?|settings?)/", re.I),
             1.25,
         ),
         # The Migration Exemption (Database State Changes)
@@ -621,19 +603,17 @@ PATH_MODIFIERS = {
     "Structural Mass": [
         # ==============================================================================
         # DEFENSIVE DESIGN: PARSER SATURATION & AST BLOAT PREVENTION
-        # Massive auto-generated files (e.g., Protobufs, Swagger, Webpack chunks) 
-        # will mathematically crush standard AST parsers and inflate a repository's 
-        # structural mass. These targeted dampeners artificially reduce the gravitational 
-        # weight of generated code, ensuring human-written architecture remains the 
+        # Massive auto-generated files (e.g., Protobufs, Swagger, Webpack chunks)
+        # will mathematically crush standard AST parsers and inflate a repository's
+        # structural mass. These targeted dampeners artificially reduce the gravitational
+        # weight of generated code, ensuring human-written architecture remains the
         # focal point of the analysis without risking OOM (Out of Memory) crashes.
         # ==============================================================================
         # The Cryptographic & Test Vector Dampener
         # Auto-generated data arrays explode parser argument math. Extreme reduction
         # prevents these static payloads from registering as massive logic hubs.
         (
-            re.compile(
-                r"(?:^|/)(?:wycheproof_tests|test_vectors|testdata|tests/data)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:wycheproof_tests|test_vectors|testdata|tests/data)/", re.I),
             0.001,
         ),
         # The Code-Generation Dampener
@@ -658,9 +638,7 @@ PATH_MODIFIERS = {
         # Neutralizes standard third-party ecosystem folders (vendor, node_modules)
         # to prevent external dependencies from eclipsing the core repository.
         (
-            re.compile(
-                r"(?:^|/)(?:resources/lib|vendor|node_modules|third_party)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:resources/lib|vendor|node_modules|third_party)/", re.I),
             0.02,
         ),
         # The Global Frontend Vendor Dampener
@@ -687,18 +665,14 @@ PATH_MODIFIERS = {
         # Dampens UI components that are purely exported SVG path data (e.g., Icon.jsx).
         # Prevents raw vector math from artificially inflating UI framework density.
         (
-            re.compile(
-                r"(?:^|/)(?:icons?|illustrations?|logos?|assets?)/.*\.jsx?|tsx?$", re.I
-            ),
+            re.compile(r"(?:^|/)(?:icons?|illustrations?|logos?|assets?)/.*\.jsx?|tsx?$", re.I),
             0.10,
         ),
         # ---> NEW: The Test Snapshot & Fixture Dampener <---
         # Neutralizes auto-generated UI snapshots and massive mock data payloads (like cryptographic keys)
         # so they do not artificially inflate the mass of the verification suite.
         (
-            re.compile(
-                r"(?:^|/)(?:__snapshots__|__mocks__|fixtures?)/|.*\.snap$", re.I
-            ),
+            re.compile(r"(?:^|/)(?:__snapshots__|__mocks__|fixtures?)/|.*\.snap$", re.I),
             0.001,
         ),
         # ---> NEW: The Academic Test Script Dampener <---
@@ -708,9 +682,7 @@ PATH_MODIFIERS = {
         # Reduces the structural weight of CI/CD shell scripts and automation tooling
         # so deployment pipelines don't mimic core application complexity.
         (
-            re.compile(
-                r"(?:^|/)(?:scripts?|ci|cd|docker|e2e)/.*\.(?:sh|bash|zsh)$", re.I
-            ),
+            re.compile(r"(?:^|/)(?:scripts?|ci|cd|docker|e2e)/.*\.(?:sh|bash|zsh)$", re.I),
             0.10,
         ),
         # The Declarative & Type Definition Dampener
@@ -973,10 +945,10 @@ LANGUAGE_SECURITY_PROFILES = {
     },
     # ==============================================================================
     # DEFENSIVE DESIGN: POLYGLOT CONTEXTUAL ANOMALY DETECTION
-    # A vulnerability's severity is dictated by its environment. Standard OS execution 
-    # is expected in a shell script, but highly anomalous in a frontend UI component. 
-    # This matrix multiplies threat scores when an asset exhibits behaviors hostile 
-    # to its native ecosystem (e.g., detecting C-style memory pointers inside a Node.js 
+    # A vulnerability's severity is dictated by its environment. Standard OS execution
+    # is expected in a shell script, but highly anomalous in a frontend UI component.
+    # This matrix multiplies threat scores when an asset exhibits behaviors hostile
+    # to its native ecosystem (e.g., detecting C-style memory pointers inside a Node.js
     # web layer), flagging potential Trojans or backdoors.
     # ==============================================================================
     "ECOSYSTEM_MISMATCH_WEIGHTS": {
@@ -984,12 +956,8 @@ LANGUAGE_SECURITY_PROFILES = {
             "memory": 5.0,
             "logic_bomb": 3.0,
         },  # C code hiding in a JS app = Trojan
-        "infra_in_web": {
-            "logic_bomb": 4.0
-        },  # Shell script hiding in a JS app = Backdoor
-        "web_in_systems": {
-            "flux": 3.0
-        },  # JS embedded in C firmware = Bizarre architecture
+        "infra_in_web": {"logic_bomb": 4.0},  # Shell script hiding in a JS app = Backdoor
+        "web_in_systems": {"flux": 3.0},  # JS embedded in C firmware = Bizarre architecture
     },
     # ---> THE ARCHETYPE VIOLATION MATRIX (k=10 Edition) <---
     # Multiplies threat mass based on how anomalous the behavior is for the file's physical DNA.

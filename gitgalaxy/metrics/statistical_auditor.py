@@ -22,8 +22,8 @@ class StatisticalAuditor:
     """
     GitGalaxy Statistical Auditor.
 
-    PURPOSE: Acts as the 3rd-gate quality control filter to catch structural anomalies 
-    and data dumps using language-specific Median Absolute Deviation (MAD) outliers 
+    PURPOSE: Acts as the 3rd-gate quality control filter to catch structural anomalies
+    and data dumps using language-specific Median Absolute Deviation (MAD) outliers
     and explicit hard-floor density checks.
 
     ARCHITECTURE:
@@ -87,9 +87,7 @@ class StatisticalAuditor:
             "inline_asm",
         ]
 
-    def audit(
-        self, parsed_files: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    def audit(self, parsed_files: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """Executes statistical gating to identify data-dumps and structural outliers."""
         import os  # Required for extension splitting in Consensus Engine
 
@@ -97,23 +95,19 @@ class StatisticalAuditor:
             self.logger.debug("Statistical Audit skipped: Empty file roster provided.")
             return [], []
 
-        self.logger.info(
-            f"Scanning {len(parsed_files)} artifacts for structural anomalies and data dumps..."
-        )
+        self.logger.info(f"Scanning {len(parsed_files)} artifacts for structural anomalies and data dumps...")
 
         total_files = max(len(parsed_files), 1)
         orphan_threshold = max(3, int(math.log10(total_files) * 2))
-        self.logger.debug(
-            f"Dynamic Ecosystem Orphan Threshold set to: <= {orphan_threshold} files."
-        )
+        self.logger.debug(f"Dynamic Ecosystem Orphan Threshold set to: <= {orphan_threshold} files.")
 
         verified_files, unparsable_files = [], []
 
         # ======================================================================
         # DEFENSIVE ARCHITECTURE: Heuristic Extension Consensus
-        # Certain file extensions (like .h or .m) are ambiguous across languages 
-        # (C vs C++ vs Objective-C). If the regex parser lacked high confidence, 
-        # we check the macro-state of the repository. If 80% of the repository's 
+        # Certain file extensions (like .h or .m) are ambiguous across languages
+        # (C vs C++ vs Objective-C). If the regex parser lacked high confidence,
+        # we check the macro-state of the repository. If 80% of the repository's
         # confidently parsed .h files are C++, we force the ambiguous file to align.
         # ======================================================================
         confident_artifacts = []
@@ -232,20 +226,14 @@ class StatisticalAuditor:
         for lid, group in by_lang.items():
             if lid in ("undeterminable", "unknown"):
                 for artifact in group:
-                    unparsable_files.append(
-                        self._format_for_exclusion(
-                            artifact, "Pre-filtered Noise (Pre-Audit)"
-                        )
-                    )
-                self.logger.debug(
-                    f"[{lid}] Bypassed {len(group)} artifacts (already excluded)."
-                )
+                    unparsable_files.append(self._format_for_exclusion(artifact, "Pre-filtered Noise (Pre-Audit)"))
+                self.logger.debug(f"[{lid}] Bypassed {len(group)} artifacts (already excluded).")
                 continue
 
             # ==================================================================
             # DEFENSIVE ARCHITECTURE: Dynamic Auditability Check
-            # Prevent pure data files (YAML, JSON, CSV) from triggering the 
-            # statistical outliers by checking if their language definition 
+            # Prevent pure data files (YAML, JSON, CSV) from triggering the
+            # statistical outliers by checking if their language definition
             # even contains executable logic signals.
             # ==================================================================
             is_inert = False
@@ -254,9 +242,7 @@ class StatisticalAuditor:
                 rules = self.lang_defs[lid].get("rules", {})
 
                 # POSITIVE COUNT: How many actual, active logic sensors exist?
-                active_signals = sum(
-                    1 for key in self.SIGNAL_KEYS if rules.get(key) is not None
-                )
+                active_signals = sum(1 for key in self.SIGNAL_KEYS if rules.get(key) is not None)
 
                 if active_signals == 0:
                     is_inert = True
@@ -266,9 +252,7 @@ class StatisticalAuditor:
             # Immediately bypass inert matter from all statistical checks
             if is_inert:
                 verified_files.extend(group)
-                self.logger.debug(
-                    f"[{lid}] Bypassed {len(group)} artifact(s) (Inert Data Format: 0 Active Signals)."
-                )
+                self.logger.debug(f"[{lid}] Bypassed {len(group)} artifact(s) (Inert Data Format: 0 Active Signals).")
                 continue
 
             # ==================================================================
@@ -279,23 +263,20 @@ class StatisticalAuditor:
                 # Require an absolute Tier 0 Convergent Lock for orphans to survive.
                 # If ALL files in this tiny group are Tier 1 or worse (> 0), banish them.
                 all_weak_claims = all(
-                    artifact.get("telemetry", {}).get(
-                        "identity_lock_tier", artifact.get("lock_tier", 4)
-                    )
-                    > 0
+                    artifact.get("telemetry", {}).get("identity_lock_tier", artifact.get("lock_tier", 4)) > 0
                     for artifact in group
                 )
 
                 if all_weak_claims:
-                    relegation_reason = f"Statistically Insignificant Sample (Population {len(group)}). Reverting to plaintext."
+                    relegation_reason = (
+                        f"Statistically Insignificant Sample (Population {len(group)}). Reverting to plaintext."
+                    )
                     self.logger.warning(f"[{lid}] {relegation_reason}")
 
                     for artifact in group:
                         # Strip the hallucination, keep the mass visible in the 3D map
                         artifact["lang_id"] = "plaintext"
-                        artifact["telemetry"]["identity_source_proof"] = (
-                            "Low-Sample Guard Fallback"
-                        )
+                        artifact["telemetry"]["identity_source_proof"] = "Low-Sample Guard Fallback"
                         artifact["equations"] = {}  # Inert matter has no logic equations
                         verified_files.append(artifact)
                     continue
@@ -311,9 +292,7 @@ class StatisticalAuditor:
                     equations = artifact.get("equations", {})
                     signal_hits = sum(equations.get(k, 0) for k in self.SIGNAL_KEYS)
                     # Denominator MUST be total physical lines to detect 'hollowness'
-                    total_physical_loc = max(
-                        artifact.get("total_loc", artifact.get("coding_loc", 1)), 1
-                    )
+                    total_physical_loc = max(artifact.get("total_loc", artifact.get("coding_loc", 1)), 1)
                     artifact["_rho"] = signal_hits / total_physical_loc
 
                     # Polyglot Defense: Only add pure files to the statistical baseline
@@ -332,10 +311,7 @@ class StatisticalAuditor:
 
             # 2. Confidence Anchor (At least one file with C > 0.85)
             has_anchor = any(
-                artifact.get("telemetry", {}).get(
-                    "identity_confidence", artifact.get("intensity", 0.0)
-                )
-                > 0.85
+                artifact.get("telemetry", {}).get("identity_confidence", artifact.get("intensity", 0.0)) > 0.85
                 for artifact in group
             )
 
@@ -388,12 +364,8 @@ class StatisticalAuditor:
                 # Extract telemetry from Phase 1 OR fallback to root meta keys
                 telemetry = artifact.get("telemetry", {})
                 lock_tier = telemetry.get("identity_lock_tier", artifact.get("lock_tier", 4))
-                source_proof = telemetry.get(
-                    "identity_source_proof", artifact.get("source_proof", "Discovery")
-                )
-                confidence = telemetry.get(
-                    "identity_confidence", artifact.get("intensity", 0.0)
-                )
+                source_proof = telemetry.get("identity_source_proof", artifact.get("source_proof", "Discovery"))
+                confidence = telemetry.get("identity_confidence", artifact.get("intensity", 0.0))
 
                 # ZERO-DENSITY THRESHOLD: Hard Floor check for data dumps disguised as code
                 if loc > 50 and rho == 0 and not is_minified:
@@ -406,9 +378,7 @@ class StatisticalAuditor:
                 # to be minified, obfuscated, or packed with embedded binaries.
                 elif loc > 30 and rho > 3.0 and not is_minified:
                     is_outlier = True
-                    relegation_reason = (
-                        f"Packed Payload Guard (Impossible Density: {rho:.2f} hits/line)"
-                    )
+                    relegation_reason = f"Packed Payload Guard (Impossible Density: {rho:.2f} hits/line)"
 
                 # THE ROBUST Z-SCORE (MAD)
                 # Bypassed if the file is a heavy polyglot (its density is blended)
@@ -416,15 +386,11 @@ class StatisticalAuditor:
                     mi = (0.6745 * (rho - median_rho)) / mad
 
                     # 4. Probabilistic Threshold Gating (T_adj = -3.5 * Ci)
-                    t_adj = -5 * max(
-                        confidence, 0.1
-                    )  # Floor confidence to prevent 0 threshold
+                    t_adj = -5 * max(confidence, 0.1)  # Floor confidence to prevent 0 threshold
 
                     if mi < t_adj:
                         is_outlier = True
-                        relegation_reason = (
-                            f"Statistical Anomaly (Z-Score: {mi:.2f} < {t_adj:.2f})"
-                        )
+                        relegation_reason = f"Statistical Anomaly (Z-Score: {mi:.2f} < {t_adj:.2f})"
 
                 # 4. Routing logic for Outliers
                 if is_outlier:
@@ -467,9 +433,7 @@ class StatisticalAuditor:
                             )
 
                         # Format it as Noise to save memory and ensure schema consistency
-                        unparsable_files.append(
-                            self._format_for_exclusion(artifact, relegation_reason)
-                        )
+                        unparsable_files.append(self._format_for_exclusion(artifact, relegation_reason))
                         relegated_count += 1
                 else:
                     verified_files.append(artifact)
@@ -520,9 +484,7 @@ class StatisticalAuditor:
 
         return False
 
-    def _format_for_exclusion(
-        self, artifact: Dict[str, Any], reason: str
-    ) -> Dict[str, Any]:
+    def _format_for_exclusion(self, artifact: Dict[str, Any], reason: str) -> Dict[str, Any]:
         """
         Formats an audited artifact to match the Orchestrator's Exclusion Queue schema.
         This ensures structural inertia and prevents the JSON archive from bloating.
@@ -535,15 +497,9 @@ class StatisticalAuditor:
             "size_bytes": artifact.get("size_bytes", 0),
             # Preserve Phase 1 Telemetry for SBOM Traceability
             "failed_claim": artifact.get("lang_id", "unknown"),
-            "identity_confidence": telemetry.get(
-                "identity_confidence", artifact.get("intensity", 0.0)
-            ),
-            "identity_lock_tier": telemetry.get(
-                "identity_lock_tier", artifact.get("lock_tier", 4)
-            ),
-            "identity_source_proof": telemetry.get(
-                "identity_source_proof", artifact.get("source_proof", "Discovery")
-            ),
+            "identity_confidence": telemetry.get("identity_confidence", artifact.get("intensity", 0.0)),
+            "identity_lock_tier": telemetry.get("identity_lock_tier", artifact.get("lock_tier", 4)),
+            "identity_source_proof": telemetry.get("identity_source_proof", artifact.get("source_proof", "Discovery")),
         }
 
     def _is_threat(self, artifact: Dict[str, Any]) -> bool:

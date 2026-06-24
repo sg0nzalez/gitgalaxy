@@ -76,13 +76,9 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                 threats_found += 1
                 # The Allowlist Loophole Fix: A blacklisted import is ALWAYS a threat. Never suppress it.
                 if true_pkg != pkg:
-                    print(
-                        f"[BLACKLISTED IMPORT] Spoofed alias blocked: '{pkg}' -> '{true_pkg}' in: {rel_path_str}"
-                    )
+                    print(f"[BLACKLISTED IMPORT] Spoofed alias blocked: '{pkg}' -> '{true_pkg}' in: {rel_path_str}")
                 else:
-                    print(
-                        f"[BLACKLISTED IMPORT] Unauthorized package '{pkg}' blocked in: {rel_path_str}"
-                    )
+                    print(f"[BLACKLISTED IMPORT] Unauthorized package '{pkg}' blocked in: {rel_path_str}")
             elif true_pkg in APPROVED_IMPORTS:
                 imports_whitelisted += 1
             else:
@@ -143,9 +139,7 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
             if is_whitelisted:
                 threats_allowed += 1
             else:
-                print(
-                    f"\n[THREAT DETECTED] Density Threshold Breached in: {rel_path_str}"
-                )
+                print(f"\n[THREAT DETECTED] Density Threshold Breached in: {rel_path_str}")
                 for risk, density in exposures.items():
                     print(f"   -> {risk}: {density * 100:.1f}%")
                 threats_found += 1
@@ -169,12 +163,8 @@ def main():
 
     enforce_licensing_guard("Supply Chain Firewall")
 
-    parser = argparse.ArgumentParser(
-        description="Supply Chain Firewall (RAM-Exclusive Mode)"
-    )
-    parser.add_argument(
-        "target", help="Path to the compiled GalaxyScope RAM graph (e.g., results.json)"
-    )
+    parser = argparse.ArgumentParser(description="Supply Chain Firewall (RAM-Exclusive Mode)")
+    parser.add_argument("target", help="Path to the compiled GalaxyScope RAM graph (e.g., results.json)")
     args = parser.parse_args()
 
     target_path = Path(args.target).resolve()
@@ -182,9 +172,7 @@ def main():
         print(f"Error: RAM graph '{target_path}' does not exist.")
         sys.exit(1)
 
-    print(
-        f"🧱 Initializing Supply Chain Firewall with RAM graph from {target_path.name}..."
-    )
+    print(f"🧱 Initializing Supply Chain Firewall with RAM graph from {target_path.name}...")
 
     try:
         with open(target_path, "r", encoding="utf-8") as f:
@@ -199,11 +187,7 @@ def main():
     # relying purely on strict exact-match dependencies and behavioral math.
     results = run_firewall_audit(parsed_files, alias_map={})
 
-    mode_str = (
-        "Strict (Exclude Blacklist and Unknown)"
-        if STRICT_IMPORT_MODE
-        else "Audit (Allow Whitelist + Unknown)"
-    )
+    mode_str = "Strict (Exclude Blacklist and Unknown)" if STRICT_IMPORT_MODE else "Audit (Allow Whitelist + Unknown)"
 
     print("\n" + "=" * 75)
     print(" 🧱 SUPPLY CHAIN FIREWALL: SCAN SUMMARY")
@@ -220,9 +204,7 @@ def main():
     print("-" * 75)
 
     if results["threats_found"] > 0:
-        print(
-            f" [BLOCKING ACTION] {results['threats_found']} high-risk dependencies or policy violations blocked."
-        )
+        print(f" [BLOCKING ACTION] {results['threats_found']} high-risk dependencies or policy violations blocked.")
         sys.exit(1)
     else:
         print(" [SUCCESS] Dependency supply chain is clean.")

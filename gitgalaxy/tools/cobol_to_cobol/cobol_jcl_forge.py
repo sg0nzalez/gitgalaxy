@@ -32,9 +32,7 @@ def analyze_cobol_intent(filepath: Path) -> dict:
         monolith_code = " ".join(clean_lines)
 
         # 2. EXTRACT PROGRAM-ID (With fallback to file name)
-        prog_id_match = re.search(
-            r'PROGRAM-ID\.\s+[\'"]?([A-Z0-9\-]+)[\'"]?', monolith_code, re.IGNORECASE
-        )
+        prog_id_match = re.search(r'PROGRAM-ID\.\s+[\'"]?([A-Z0-9\-]+)[\'"]?', monolith_code, re.IGNORECASE)
         if prog_id_match:
             intent["program_id"] = prog_id_match.group(1).strip()
         else:
@@ -49,22 +47,16 @@ def analyze_cobol_intent(filepath: Path) -> dict:
             internal_name = match.group(1).strip()
             raw_dd = match.group(2).strip()
             clean_dd = re.sub(r"^(?:UT|UR)-S-", "", raw_dd)
-            intent["files_requested"].append(
-                {"internal": internal_name, "dd_name": clean_dd}
-            )
+            intent["files_requested"].append({"internal": internal_name, "dd_name": clean_dd})
 
         # 4. TRANSACTIONAL I/O: Detect EXEC CICS blocks
-        cics_matches = re.findall(
-            r"EXEC\s+CICS.*?END-EXEC\.", monolith_code, re.IGNORECASE
-        )
+        cics_matches = re.findall(r"EXEC\s+CICS.*?END-EXEC\.", monolith_code, re.IGNORECASE)
         if cics_matches:
             intent["is_cics"] = True
             intent["cics_calls"] = len(cics_matches)
 
         # 5. DATABASE I/O: Detect EXEC SQL blocks
-        sql_matches = re.findall(
-            r"EXEC\s+SQL.*?END-EXEC\.", monolith_code, re.IGNORECASE
-        )
+        sql_matches = re.findall(r"EXEC\s+SQL.*?END-EXEC\.", monolith_code, re.IGNORECASE)
         if sql_matches:
             intent["is_db2"] = True
             intent["sql_calls"] = len(sql_matches)
@@ -141,12 +133,8 @@ def generate_zero_trust_jcl(
 def main():
     parser = argparse.ArgumentParser(description="GitGalaxy Zero-Trust JCL Forge (v5)")
     parser.add_argument("target", help="Target directory or specific COBOL file")
-    parser.add_argument(
-        "--job", default="GITGJOB", help="Job name for the generated JCL"
-    )
-    parser.add_argument(
-        "--acct", default="12345", help="Account code for the generated JCL"
-    )
+    parser.add_argument("--job", default="GITGJOB", help="Job name for the generated JCL")
+    parser.add_argument("--acct", default="12345", help="Account code for the generated JCL")
     parser.add_argument(
         "--out",
         type=str,
@@ -209,9 +197,7 @@ def main():
 
         io_str = f"({', '.join(io_parts)})" if io_parts else "(No I/O)"
 
-        print(
-            f"  [+] Forged: {file_path.name.ljust(15)} -> {out_path.name.ljust(15)} {io_str}"
-        )
+        print(f"  [+] Forged: {file_path.name.ljust(15)} -> {out_path.name.ljust(15)} {io_str}")
         success_count += 1
 
     print("--------------------------------------------------------------")
