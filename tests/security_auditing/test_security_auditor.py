@@ -3,7 +3,7 @@ import numpy as np
 from unittest.mock import patch
 
 # We patch the schemas before importing so the Auditor doesn't fail on boot
-MOCK_SCHEMAS = {"SIGNAL_SCHEMA": ["danger", "io", "flux", "safety", "graveyard", "structural_tab_indentations"]}
+MOCK_SCHEMAS = {"SIGNAL_SCHEMA": ["high_risk_execution", "io", "state_mutation", "safety", "dead_code", "structural_tab_indentations"]}
 
 with patch("gitgalaxy.security.security_auditor.RECORDING_SCHEMAS", MOCK_SCHEMAS):
     from gitgalaxy.security.security_auditor import SecurityAuditor
@@ -71,7 +71,7 @@ def test_construct_feature_matrix(mock_artifacts):
     auditor = SecurityAuditor()
 
     # Explicitly inject the schema into the instance so the dictionary mapping works
-    auditor.SIGNAL_SCHEMA = ["danger", "io", "flux", "safety", "graveyard"]
+    auditor.SIGNAL_SCHEMA = ["high_risk_execution", "io", "state_mutation", "safety", "dead_code"]
     auditor._resolve_dependency_graph(mock_artifacts)  # Pre-load graph data
 
     df = auditor._construct_feature_matrix(mock_artifacts)
@@ -79,7 +79,7 @@ def test_construct_feature_matrix(mock_artifacts):
     assert not df.empty
     assert len(df) == 2
     # Ensure the log_density math didn't crash
-    assert "log_density_hit_danger" in df.columns
+    assert "log_density_hit_high_risk_execution" in df.columns
     assert "log_logic_loc" in df.columns
 
 
@@ -108,7 +108,7 @@ def test_audit_repository_ml_inference(mock_xgb_class, mock_artifacts):
     """
     # 1. Setup the Mock Model
     mock_model = mock_xgb_class.return_value
-    mock_model.feature_names_in_ = ["log_logic_loc", "log_density_hit_danger"]
+    mock_model.feature_names_in_ = ["log_logic_loc", "log_density_hit_high_risk_execution"]
 
     # Predict probabilities for 2 files across 5 classes (0=Safe, 1=Botnet, 2=Trojan, etc)
     # File 1: 99% confident it's a Botnet (Class 1)
@@ -206,7 +206,7 @@ def test_audit_repository_threshold_gating(mock_xgb_class, mock_artifacts):
 def test_construct_feature_matrix_exclusion_list(mock_artifacts):
     """Ensures noisy signals (like indentation factions) are stripped before ML evaluation."""
     auditor = SecurityAuditor()
-    auditor.SIGNAL_SCHEMA = ["danger", "structural_tab_indentations"]
+    auditor.SIGNAL_SCHEMA = ["high_risk_execution", "structural_tab_indentations"]
     
     # Inject the excluded signal into the mock artifact
     mock_artifacts[0]["hit_vector"] = [5, 100]
@@ -214,7 +214,7 @@ def test_construct_feature_matrix_exclusion_list(mock_artifacts):
     auditor._resolve_dependency_graph(mock_artifacts)
     df = auditor._construct_feature_matrix(mock_artifacts)
 
-    assert "log_density_hit_danger" in df.columns
+    assert "log_density_hit_high_risk_execution" in df.columns
     assert "log_density_hit_structural_tab_indentations" not in df.columns, (
         "Exclusion list failed! Noisy signal leaked into the feature matrix."
     )

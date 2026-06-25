@@ -17,14 +17,14 @@ def create_synthetic_star(
     """Generates a perfectly structured raw detector payload."""
     base_signals = {
         "branch": 0,
-        "linear": 0,
+        "structural_boundaries": 0,
         "args": 0,
         "func_start": 0,
-        "danger": 0,
-        "sec_danger": 0,
-        "safety_neg": 0,
+        "high_risk_execution": 0,
+        "sec_high_risk_execution": 0,
+        "safety_bypasses": 0,
         "safety": 0,
-        "flux": 0,
+        "state_mutation": 0,
         "todo": 0,
         "fixme": 0,
         "empty_stubs": 0,
@@ -35,7 +35,7 @@ def create_synthetic_star(
         "api": 0,
         "concurrency": 0,
         "sync_locks": 0,
-        "graveyard": 0,
+        "dead_code": 0,
         "spec": 0,
         "pointers": 0,
         "indent_tabs": 0,
@@ -97,9 +97,9 @@ def test_signal_processor_apocalypse_breaches(processor):
         20,
         {
             "branch": 5000,
-            "danger": 5000,
-            "sec_danger": 5000,
-            "flux": 5000,
+            "high_risk_execution": 5000,
+            "sec_high_risk_execution": 5000,
+            "state_mutation": 5000,
             "planned_debt": 5000,
             "fragile_debt": 5000,
             "api": 5000,
@@ -139,7 +139,7 @@ def test_signal_processor_error_risk_floor(processor):
         processor,
         "shielded",
         5,
-        {"danger": 5000, "sec_danger": 5000, "safety": 500, "test": 500},
+        {"high_risk_execution": 5000, "sec_high_risk_execution": 5000, "safety": 500, "test": 500},
     )
 
     res = processor.calculate_risk_vector(meta, sig)
@@ -257,7 +257,7 @@ def test_signal_processor_git_forensics(processor):
 def test_signal_processor_math_overflow_shield(processor):
     """Proves astronomical negative densities trigger and survive the OverflowError."""
     meta, sig = create_synthetic_star(
-        processor, "absurd", 1, {"sec_danger": -99999999, "branch": -99999999}
+        processor, "absurd", 1, {"sec_high_risk_execution": -99999999, "branch": -99999999}
     )
 
     try:
@@ -275,7 +275,7 @@ def test_signal_processor_math_overflow_shield(processor):
 def test_signal_processor_aggregations(processor):
     """Triggers the final galaxy-level summary and forensic reports."""
     m1, sig1 = create_synthetic_star(processor, "f1", 100, {"branch": 10})
-    m2, sig2 = create_synthetic_star(processor, "f2", 200, {"sec_danger": 10})
+    m2, sig2 = create_synthetic_star(processor, "f2", 200, {"sec_high_risk_execution": 10})
 
     # Process and unwrap correctly!
     tel1 = processor.calculate_risk_vector(m1, sig1)
@@ -307,7 +307,7 @@ def test_signal_processor_aggregations(processor):
 def test_signal_processor_minified_tripwire(processor):
     """Proves minified files bypass standard math and trigger explicit risk spikes."""
     meta, sig = create_synthetic_star(
-        processor, "vendor_bundle", 1000, {"sec_danger": 50}
+        processor, "vendor_bundle", 1000, {"sec_high_risk_execution": 50}
     )
     meta["is_minified"] = True  # Trigger the tripwire
 
@@ -359,13 +359,13 @@ def test_signal_processor_doc_and_secrets_bypass(processor):
 def test_signal_processor_memory_exhaustion(processor):
     """Proves recursive functions with high state mutation trigger the Memory Exhaustion multiplier."""
     # Baseline: Normal function with state mutation
-    meta1, sig1 = create_synthetic_star(processor, "safe_flux", 100, {"flux": 50})
+    meta1, sig1 = create_synthetic_star(processor, "safe_flux", 100, {"state_mutation": 50})
     meta1["functions"] = [
         {"name": "safe", "loc": 100, "is_recursive": False, "big_o_depth": 1}
     ]
 
     # Memory Exhaustion: Recursive function + State mutation (No lazy evaluation)
-    meta2, sig2 = create_synthetic_star(processor, "oom_flux", 100, {"flux": 50})
+    meta2, sig2 = create_synthetic_star(processor, "oom_flux", 100, {"state_mutation": 50})
     meta2["functions"] = [
         {"name": "bomb", "loc": 100, "is_recursive": True, "big_o_depth": 1}
     ]
@@ -475,7 +475,7 @@ def test_signal_processor_algorithmic_dos(processor):
             "loc": 250,
             "big_o_depth": 3,
             "db_complexity": 2,
-            "hit_vector": {"api": 4, "safety": 1, "bailout_hits": 2},
+            "hit_vector": {"api": 4, "safety": 1, "panics_and_aborts": 2},
         }
     ]
 
@@ -508,7 +508,7 @@ def test_signal_processor_security_lenses(processor):
         processor,
         "logic_bomb",
         100,
-        {"branch": 50, "sec_danger": 20, "sec_tainted_injection": 5},
+        {"branch": 50, "sec_high_risk_execution": 20, "sec_tainted_injection": 5},
     )
 
     # 2. Obscured Payload (Requires intent_mass via sec_danger to bypass the 95% false-positive shield)
@@ -517,16 +517,16 @@ def test_signal_processor_security_lenses(processor):
         "obscured",
         100,
         {
-            "sec_heat_triggers": 20,
-            "sec_bitwise_hits": 50,
+            "sec_reflection_metaprogramming": 20,
+            "sec_bitwise_ops": 50,
             "sec_shadow_imports": 5,
-            "sec_danger": 10,
+            "sec_high_risk_execution": 10,
         },
     )
 
     # 3. Injection Surface
     m_inj, sig_inj = create_synthetic_star(
-        processor, "injection", 100, {"sec_io": 30, "sec_danger": 30}
+        processor, "injection", 100, {"sec_io": 30, "sec_high_risk_execution": 30}
     )
 
     # 4. Memory Corruption (Requires native memory language like 'c' + malicious intent to bypass the 95% shield)
@@ -534,7 +534,7 @@ def test_signal_processor_security_lenses(processor):
         processor,
         "memory",
         100,
-        {"pointers": 50, "memory_alloc": 20, "sec_danger": 10},
+        {"pointers": 50, "memory_alloc": 20, "sec_high_risk_execution": 10},
     )
     m_mem["lang_id"] = "c"
 
@@ -577,7 +577,7 @@ def test_signal_processor_structural_metrics(processor):
 
     # Graveyard (High dead code)
     m_grave, sig_grave = create_synthetic_star(
-        processor, "graveyard", 100, {"graveyard": 80}
+        processor, "dead_code", 100, {"dead_code": 80}
     )
 
     # Spec Match (0 specs for 10 functions = 100% risk)
@@ -588,7 +588,7 @@ def test_signal_processor_structural_metrics(processor):
     r_grave = processor.calculate_risk_vector(m_grave, sig_grave)
     r_spec = processor.calculate_risk_vector(m_spec, sig_spec)
 
-    idx_grave = processor.RISK_SCHEMA.index("graveyard")
+    idx_grave = processor.RISK_SCHEMA.index("dead_code")
     idx_spec = processor.RISK_SCHEMA.index("spec_match")
 
     assert r_grave["risk_vector"][idx_grave] > 50.0, (
@@ -615,7 +615,7 @@ def test_signal_processor_design_slop(processor):
         processor,
         "sloppy_debt",
         100,
-        {"planned_debt": 10, "design_slop_orphans": 5, "design_slop_duplicates": 2},
+        {"planned_debt": 10, "orphaned_logic": 5, "duplicate_logic": 2},
     )
 
     r_clean = processor.calculate_risk_vector(m_clean, sig_clean)
@@ -793,12 +793,12 @@ def test_signal_processor_flux_immutability(processor):
 
     # 1. Pure Flux (High mutation)
     m_flux, sig_flux = create_synthetic_star(
-        processor, "high_flux", 100, {"flux": 30}
+        processor, "high_flux", 100, {"state_mutation": 30}
     )
 
     # 2. Frozen Flux (High mutation, but heavily mitigated by freeze/const/final)
     m_frozen, sig_frozen = create_synthetic_star(
-        processor, "frozen_flux", 100, {"flux": 30, "freeze_hits": 40}
+        processor, "frozen_flux", 100, {"state_mutation": 30, "immutability_locks": 40}
     )
 
     r_flux = processor.calculate_risk_vector(m_flux, sig_flux)
@@ -838,7 +838,7 @@ def test_signal_processor_contextual_mismatch(processor):
         processor,
         "native",
         100,
-        {"branch": 50, "sec_danger": 20, "sec_tainted_injection": 5},
+        {"branch": 50, "sec_high_risk_execution": 20, "sec_tainted_injection": 5},
     )
     m_native["lang_id"] = "c"
     m_native["metadata"] = {"folder_dominant_lang": "cpp"}
@@ -848,7 +848,7 @@ def test_signal_processor_contextual_mismatch(processor):
         processor,
         "alien",
         100,
-        {"branch": 50, "sec_danger": 20, "sec_tainted_injection": 5},
+        {"branch": 50, "sec_high_risk_execution": 20, "sec_tainted_injection": 5},
     )
     m_alien["lang_id"] = "c"
     m_alien["metadata"] = {"folder_dominant_lang": "javascript"}
@@ -870,7 +870,7 @@ def test_signal_processor_science_shield(processor):
     """Proves that Scientific/Math logic dampens the false-positive threat of Logic Bombs."""
     # 1. Standard executable with dangerous triggers
     m_std, sig_std = create_synthetic_star(
-        processor, "standard", 100, {"branch": 30, "sec_danger": 20}
+        processor, "standard", 100, {"branch": 30, "sec_high_risk_execution": 20}
     )
 
     # 2. Scientific executable with the exact same triggers
@@ -878,7 +878,7 @@ def test_signal_processor_science_shield(processor):
         processor,
         "science",
         100,
-        {"branch": 30, "sec_danger": 20, "scientific": 10},
+        {"branch": 30, "sec_high_risk_execution": 20, "scientific": 10},
     )
 
     r_std = processor.calculate_risk_vector(m_std, sig_std)
@@ -926,7 +926,7 @@ def test_signal_processor_civil_war_void(processor):
     )
 
     r_void = processor.calculate_risk_vector(m_void, sig_void)
-    idx_civil = processor.RISK_SCHEMA.index("civil_war")
+    idx_civil = processor.RISK_SCHEMA.index("tabs_vs_spaces")
 
     assert r_void["risk_vector"][idx_civil] == 50.0, (
         "Void state failed to default to 50.0% neutral exposure!"
@@ -940,7 +940,7 @@ def test_signal_processor_llm_execution_vulnerability(processor):
     """Proves that pairing an LLM Orchestrator with dynamic execution creates a massive Injection Surface spike."""
     # 1. Standard dynamic execution
     m_std, sig_std = create_synthetic_star(
-        processor, "std_exec", 100, {"sec_danger": 10}
+        processor, "std_exec", 100, {"sec_high_risk_execution": 10}
     )
 
     # 2. Agentic dynamic execution
@@ -948,7 +948,7 @@ def test_signal_processor_llm_execution_vulnerability(processor):
         processor,
         "agent_exec",
         100,
-        {"sec_danger": 10, "llm_orchestrator": 5, "ai_tools": 5},
+        {"sec_high_risk_execution": 10, "llm_orchestrator": 5, "ai_tools": 5},
     )
 
     r_std = processor.calculate_risk_vector(m_std, sig_std)
@@ -971,7 +971,7 @@ def test_signal_processor_crypto_professionalism_shield(processor):
         processor,
         "raw_obf",
         100,
-        {"sec_heat_triggers": 50, "sec_bitwise_hits": 50, "sec_danger": 10},
+        {"sec_reflection_metaprogramming": 50, "sec_bitwise_ops": 50, "sec_high_risk_execution": 10},
     )
 
     # 2. Professional cryptography (Same obfuscation, but heavily documented and safe)
@@ -980,9 +980,9 @@ def test_signal_processor_crypto_professionalism_shield(processor):
         "pro_crypto",
         100,
         {
-            "sec_heat_triggers": 50,
-            "sec_bitwise_hits": 50,
-            "sec_danger": 10,
+            "sec_reflection_metaprogramming": 50,
+            "sec_bitwise_ops": 50,
+            "sec_high_risk_execution": 10,
             "doc": 100,
             "safety": 20,
             "cryptography": 10,
@@ -1009,7 +1009,7 @@ def test_signal_processor_llm_api_secrets(processor):
         processor,
         "std_leak",
         500,
-        {"sec_private_info": 1, "globals": 1, "sec_heat_triggers": 1},
+        {"sec_hardcoded_secrets": 1, "globals": 1, "sec_reflection_metaprogramming": 1},
     )
 
     # 2. Careless LLM API secret leak (Calling APIs without using global variables)
@@ -1017,7 +1017,7 @@ def test_signal_processor_llm_api_secrets(processor):
         processor,
         "llm_leak",
         500,
-        {"sec_private_info": 1, "llm_api": 5, "globals": 0, "sec_heat_triggers": 1},
+        {"sec_hardcoded_secrets": 1, "llm_api": 5, "globals": 0, "sec_reflection_metaprogramming": 1},
     )
 
 
@@ -1027,7 +1027,7 @@ def test_signal_processor_llm_api_secrets(processor):
 def test_signal_processor_safe_minified(processor):
     """Proves that minified files with zero malicious intent safely bypass the tripwire."""
     m_safe, sig_safe = create_synthetic_star(
-        processor, "jquery_min", 100, {"branch": 50, "flux": 20}
+        processor, "jquery_min", 100, {"branch": 50, "state_mutation": 20}
     )
     m_safe["is_minified"] = True
 
@@ -1047,12 +1047,12 @@ def test_signal_processor_safe_minified(processor):
 def test_signal_processor_lazy_evaluation_shield(processor):
     """Proves that lazy evaluation (generators/streams) neutralizes the Memory Exhaustion multiplier."""
     # 1. Ticking Memory Exhaustion Bomb (O(N^3) + High Flux + No Lazy Eval)
-    m_oom, sig_oom = create_synthetic_star(processor, "oom_bomb", 100, {"flux": 20})
+    m_oom, sig_oom = create_synthetic_star(processor, "oom_bomb", 100, {"state_mutation": 20})
     m_oom["functions"] = [{"name": "heavy_loop", "loc": 50, "big_o_depth": 3}]
 
     # 2. Safe Stream (O(N^3) + High Flux + Lazy Evaluation)
     m_lazy, sig_lazy = create_synthetic_star(
-        processor, "lazy_stream", 100, {"flux": 20, "lazy_evaluation": 10}
+        processor, "lazy_stream", 100, {"state_mutation": 20, "lazy_evaluation": 10}
     )
     m_lazy["functions"] = [{"name": "generator", "loc": 50, "big_o_depth": 3}]
 
@@ -1103,7 +1103,7 @@ def test_signal_processor_ai_topology_dl_ml(processor):
 def test_signal_processor_paranoid_mode(processor):
     """Proves that Paranoid Mode tightens the Sigmoid thresholds across security lenses."""
     m_para, sig_para = create_synthetic_star(
-        processor, "paranoid_file", 500, {"sec_danger": 5, "sec_io": 5}
+        processor, "paranoid_file", 500, {"sec_high_risk_execution": 5, "sec_io": 5}
     )
 
     # Calculate in Standard Mode
@@ -1166,7 +1166,7 @@ def test_signal_processor_sigmoid_overflow(processor):
         processor,
         "super_shield",
         1,
-        {"safety": 15000, "test": 15000, "doc": 15000, "freeze_hits": 15000},
+        {"safety": 15000, "test": 15000, "doc": 15000, "immutability_locks": 15000},
     )
 
     # Create a file with mathematically impossible danger to force a massive positive density
@@ -1174,7 +1174,7 @@ def test_signal_processor_sigmoid_overflow(processor):
         processor,
         "super_bomb",
         1,
-        {"branch": 15000, "concurrency": 15000, "flux": 15000, "sec_danger": 15000},
+        {"branch": 15000, "concurrency": 15000, "state_mutation": 15000, "sec_high_risk_execution": 15000},
     )
 
     # If these execute without crashing the test runner, the except blocks are working perfectly.
@@ -1281,7 +1281,7 @@ def test_signal_processor_tech_debt_slop(processor):
         processor,
         "fragile_slop",
         500,
-        {"fragile_debt": 2, "design_slop_orphans": 2, "design_slop_duplicates": 1},
+        {"fragile_debt": 2, "orphaned_logic": 2, "duplicate_logic": 1},
     )
 
     r_debt = processor.calculate_risk_vector(m_debt, sig_debt)
@@ -1381,7 +1381,7 @@ def test_signal_processor_hardware_bridge_shield(processor):
     """Proves that Hardware Bridges (Serial/USB I/O) are forgiven for dynamic execution."""
     # 1. Raw Execution (Malicious)
     m_raw, sig_raw = create_synthetic_star(
-        processor, "raw_exec", 100, {"sec_danger": 10, "sec_io": 10}
+        processor, "raw_exec", 100, {"sec_high_risk_execution": 10, "sec_io": 10}
     )
 
     # 2. Hardware Execution (Expected Arduino/Serial behavior)
@@ -1389,7 +1389,7 @@ def test_signal_processor_hardware_bridge_shield(processor):
         processor,
         "hw_exec",
         100,
-        {"sec_danger": 10, "sec_io": 10, "hardware_bridge": 10},
+        {"sec_high_risk_execution": 10, "sec_io": 10, "hardware_bridge": 10},
     )
 
     r_raw = processor.calculate_risk_vector(m_raw, sig_raw)

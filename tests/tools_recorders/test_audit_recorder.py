@@ -10,7 +10,7 @@ def recorder():
     # We patch the schema dynamically so our tests are immune to upstream schema changes
     mock_schemas = {
         "RISK_SCHEMA": ["secrets_risk", "indentation_faction", "logic_bomb"],
-        "SIGNAL_SCHEMA": ["sec_private_info", "sec_danger"],
+        "SIGNAL_SCHEMA": ["sec_hardcoded_secrets", "sec_high_risk_execution"],
         "EXPOSURE_LABELS": {
             "secrets_risk": "Secrets Risk Exposure",
             "indentation_faction": "Indentation Consistency",

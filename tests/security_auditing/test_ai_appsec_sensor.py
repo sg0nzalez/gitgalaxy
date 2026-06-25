@@ -17,7 +17,7 @@ def test_rce_funnel_detection():
             "telemetry": {
                 "llm_api": 1,  # ☢️ AI is present
                 "arch_api": 1,  # ☢️ Exposed to the public internet
-                "sec_danger": 1,  # ☢️ Contains eval() or subprocess execution
+                "sec_high_risk_execution": 1,  # ☢️ Contains eval() or subprocess execution
                 "safety_density": 0.9,
             }
         }
@@ -111,7 +111,7 @@ def test_safe_baseline():
             "telemetry": {
                 "llm_api": 1,  # ✅ AI is present
                 "arch_api": 0,  # ✅ Not exposed to the public
-                "sec_danger": 0,  # ✅ No eval/subprocess
+                "sec_high_risk_execution": 0,  # ✅ No eval/subprocess
                 "sec_secrets": 0,  # ✅ No secrets exposed
                 "safety_density": 0.95,  # ✅ High defensive try/catch density
             },

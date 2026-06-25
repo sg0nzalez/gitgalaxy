@@ -134,7 +134,7 @@ def test_c_pointer_ambiguity_overlap():
     exponential evaluation on massive strings of pointer asterisks.
     """
     c_api = LANGUAGE_DEFINITIONS["c"]["rules"]["api"]
-    c_cast = LANGUAGE_DEFINITIONS["c"]["rules"]["cast_hits"]
+    c_cast = LANGUAGE_DEFINITIONS["c"]["rules"]["explicit_casts"]
 
     # The Pathological String: An unclosed cast with absurd pointer depth
     poison_cast = "( int " + "* " * 200 + ") "
@@ -184,7 +184,7 @@ def test_thermodynamic_operator_collisions():
     positives in the wrong metric categories.
     """
     # 1. C++ Bitwise vs. I/O Streams
-    cpp_bitwise = LANGUAGE_DEFINITIONS["cpp"]["rules"]["bitwise_hits"]
+    cpp_bitwise = LANGUAGE_DEFINITIONS["cpp"]["rules"]["bitwise_ops"]
     assert len(list(cpp_bitwise.finditer("std::cout << 'Hello'"))) == 0, (
         "C++ bitwise tripped on a cout stream!"
     )
@@ -193,7 +193,7 @@ def test_thermodynamic_operator_collisions():
     )
 
     # 2. Rust Closures vs. Bitwise
-    rust_bitwise = LANGUAGE_DEFINITIONS["rust"]["rules"]["bitwise_hits"]
+    rust_bitwise = LANGUAGE_DEFINITIONS["rust"]["rules"]["bitwise_ops"]
     assert len(list(rust_bitwise.finditer("let x = |a| a + 1;"))) == 0, (
         "Rust bitwise tripped on a closure!"
     )

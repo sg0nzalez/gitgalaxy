@@ -12,12 +12,12 @@ from gitgalaxy.metrics.statistical_auditor import StatisticalAuditor
 
 MOCK_LANG_DEFS = {
     "cpp": {
-        "rules": {"branch": 1, "args": 1, "linear": 1, "pointers": 1, "memory_alloc": 1}
+        "rules": {"branch": 1, "args": 1, "structural_boundaries": 1, "pointers": 1, "memory_alloc": 1}
     },
     "c": {
-        "rules": {"branch": 1, "args": 1, "linear": 1, "pointers": 1, "memory_alloc": 1}
+        "rules": {"branch": 1, "args": 1, "structural_boundaries": 1, "pointers": 1, "memory_alloc": 1}
     },
-    "python": {"rules": {"branch": 1, "args": 1, "linear": 1}},
+    "python": {"rules": {"branch": 1, "args": 1, "structural_boundaries": 1}},
     "json": {"rules": {}}  # Inert data format (0 logic signals)
 }
 
@@ -81,7 +81,7 @@ def test_auditor_zero_density_threshold(auditor):
             "name": "data_dump.cpp",
             "lang_id": "cpp",
             "coding_loc": 150,  # > 50
-            "equations": {"branch": 0, "linear": 0},  # 0 logic signals
+            "equations": {"branch": 0, "structural_boundaries": 0},  # 0 logic signals
             "telemetry": {
                 "identity_lock_tier": 0,  # <-- Tier 0 Bypass for the Low-Sample Guard!
                 "identity_source_proof": "Absolute Override",
@@ -107,7 +107,7 @@ def test_auditor_packed_payload_guard(auditor):
             "name": "packed_logic.cpp",
             "lang_id": "cpp",
             "coding_loc": 40,
-            "equations": {"branch": 200, "linear": 100},
+            "equations": {"branch": 200, "structural_boundaries": 100},
             "telemetry": {
                 "identity_lock_tier": 0
             },  # <--- CHANGE TO 0 (Bypass Low-Sample Guard)
@@ -137,7 +137,7 @@ def test_auditor_threat_quarantine_guard(auditor):
             "name": "malware.cpp",
             "lang_id": "cpp",
             "coding_loc": 100,
-            "equations": {"sec_danger": 1},
+            "equations": {"sec_high_risk_execution": 1},
             "telemetry": {"identity_lock_tier": 0},  # <--- Bypasses the Low-Sample Guard
         }
     ]
@@ -196,7 +196,7 @@ def test_auditor_dead_code_bypass(auditor):
             "name": "graveyard.cpp",
             "lang_id": "cpp",
             "coding_loc": 100,
-            "equations": {"branch": 0, "linear": 0}, # Would normally fail Zero-Density
+            "equations": {"branch": 0, "structural_boundaries": 0}, # Would normally fail Zero-Density
             "doc_loc": 600, # Massive comment-to-code ratio triggers dead code bypass
             "telemetry": {"identity_lock_tier": 0},
         }

@@ -53,8 +53,8 @@ def test_sentinel_content_breach(
 
     mock_security = mock_security_class.return_value
     mock_security.scan_content.return_value = {
-        "counts": {"private_info": 1},
-        "snippets": {"private_info": ["AKIAIOSFODNN7EXAMPLE"]},
+        "counts": {"hardcoded_secrets": 1},
+        "snippets": {"hardcoded_secrets": ["AKIAIOSFODNN7EXAMPLE"]},
     }
 
     repo_dir = tmp_path / "deepscan_repo"
@@ -96,7 +96,7 @@ def test_sentinel_allowlist_bypass(
     )
 
     mock_security = mock_security_class.return_value
-    mock_security.scan_content.return_value = {"counts": {"private_info": 5}}
+    mock_security.scan_content.return_value = {"counts": {"hardcoded_secrets": 5}}
 
     repo_dir = tmp_path / "allowlist_repo"
     repo_dir.mkdir()
@@ -146,7 +146,7 @@ def test_ignore_rules_traversal(
     mock_aperture.evaluate_path_integrity.return_value = (True, 100, None)
     
     mock_security = mock_security_class.return_value
-    mock_security.scan_content.return_value = {"counts": {"private_info": 0}}
+    mock_security.scan_content.return_value = {"counts": {"hardcoded_secrets": 0}}
 
     repo_dir = tmp_path / "ignore_repo"
     repo_dir.mkdir()

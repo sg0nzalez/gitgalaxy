@@ -137,7 +137,7 @@ def test_behavioral_threat_evaluation(tmp_path, monkeypatch):
             {
                 "path": "logic.js",
                 "raw_imports": [],
-                "equations": {"homoglyphs": 500, "danger": 50},
+                "equations": {"homoglyphs": 500, "high_risk_execution": 50},
                 "coding_loc": 50,
             }
         ]
@@ -174,13 +174,13 @@ def test_build_time_execution_multiplier(monkeypatch):
         {
             "path": "setup.py",
             "raw_imports": [],
-            "equations": {"danger": 20},
+            "equations": {"high_risk_execution": 20},
             "coding_loc": 1000,
         },
         {
             "path": "standard_app.py",
             "raw_imports": [],
-            "equations": {"danger": 20},
+            "equations": {"high_risk_execution": 20},
             "coding_loc": 1000,
         }
     ]

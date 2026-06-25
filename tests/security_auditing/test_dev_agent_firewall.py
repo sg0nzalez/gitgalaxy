@@ -73,7 +73,7 @@ def test_hallucination_zone_detection():
     mock_files = [
         {
             "telemetry": {
-                "heat_triggers": 3,  # ☢️ > 2 dynamic execution triggers
+                "reflection_metaprogramming": 3,  # ☢️ > 2 dynamic execution triggers
                 "doc_density": 0.15,  # ☢️ < 0.20 density
             }
         }
@@ -133,7 +133,7 @@ def test_safe_agentic_baseline():
             "max_big_o": 1,  # ✅ Simple O(N) logic
             "risk_vector": [10, 5],  # ✅ Low risk debt (15)
             "telemetry": {
-                "heat_triggers": 0,  # ✅ No dynamic execution
+                "reflection_metaprogramming": 0,  # ✅ No dynamic execution
                 "doc_density": 0.85,  # ✅ Highly documented
                 "state_flux": 10,  # ✅ Low flux
                 "has_tests": True,  # ✅ Safely tested

@@ -93,7 +93,7 @@ def test_process_payload_integration(tmp_path):
     assert ir_state["metadata"]["file_name"] == "MAINPGM.cbl"
 
     # 2. Verify Graveyard Sub-Tool Integration
-    assert "DEAD-VAR" in ir_state["analysis"]["graveyard"]["orphaned_vars"], (
+    assert "DEAD-VAR" in ir_state["analysis"]["dead_code"]["orphaned_vars"], (
         "Orchestrator failed to invoke Graveyard Reaper!"
     )
 

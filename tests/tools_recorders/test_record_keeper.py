@@ -9,7 +9,7 @@ def keeper():
     """Initializes the RecordKeeper with a controlled schema for deterministic testing."""
     mock_schemas = {
         "RISK_SCHEMA": ["tech_debt", "cognitive_load"],
-        "SIGNAL_SCHEMA": ["danger", "io", "prompt_injection"]
+        "SIGNAL_SCHEMA": ["high_risk_execution", "io", "prompt_injection"]
     }
     with patch("gitgalaxy.recorders.record_keeper.RECORDING_SCHEMAS", mock_schemas):
         return RecordKeeper()
@@ -76,7 +76,7 @@ def mock_pipeline_state():
                     "db_complexity": 3,
                     "docstring": "Handles incoming API requests.",
                     "calls_out_to": ["validate_token"],
-                    "hit_vector": {"danger": 1, "io": 2}
+                    "hit_vector": {"high_risk_execution": 1, "io": 2}
                 }
             ]
         }

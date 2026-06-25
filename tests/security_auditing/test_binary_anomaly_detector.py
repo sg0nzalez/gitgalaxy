@@ -23,7 +23,7 @@ def test_xray_routing_matrix(
 
     mock_security = mock_security_class.return_value
     mock_security.scan_content.return_value = {
-        "counts": {"entropy": 6.5, "bitwise_hits": 0}
+        "counts": {"entropy": 6.5, "bitwise_ops": 0}
     }
     mock_security.scan_binary.return_value = {}
 
@@ -76,8 +76,8 @@ def test_xray_deep_scan_threats(mock_aperture_class, mock_security_class, tmp_pa
 
     def mock_scan_content(content, limit):
         if "MZ" in content:
-            return {"counts": {"entropy": 6.8, "bitwise_hits": 2}}
-        return {"counts": {"entropy": 1.2, "bitwise_hits": 0}}
+            return {"counts": {"entropy": 6.8, "bitwise_ops": 2}}
+        return {"counts": {"entropy": 1.2, "bitwise_ops": 0}}
 
     mock_security.scan_binary.side_effect = mock_scan_binary
     mock_security.scan_content.side_effect = mock_scan_content
@@ -105,7 +105,7 @@ def test_xray_shebang_shield(mock_aperture_class, mock_security_class, tmp_path)
 
     mock_security = mock_security_class.return_value
     mock_security.scan_content.return_value = {
-        "counts": {"entropy": 0, "bitwise_hits": 0}
+        "counts": {"entropy": 0, "bitwise_ops": 0}
     }
     mock_security.scan_binary.return_value = {
         "threat_snippet": "Suspicious execution header: #!/bin/bash"
@@ -169,8 +169,8 @@ def test_main_clean_run(
     # We must trigger an anomaly in the bypassed file so the engine logs it as 'allowed'
     def mock_scan_content(content, limit):
         if "bypassed" in content:
-            return {"counts": {"entropy": 6.0, "bitwise_hits": 0}}
-        return {"counts": {"entropy": 0, "bitwise_hits": 0}}
+            return {"counts": {"entropy": 6.0, "bitwise_ops": 0}}
+        return {"counts": {"entropy": 0, "bitwise_ops": 0}}
 
     mock_security.scan_content.side_effect = mock_scan_content
 
@@ -215,7 +215,7 @@ def test_main_anomaly_detected(
     mock_security = mock_security_class.return_value
     mock_security.scan_binary.return_value = {}
     mock_security.scan_content.side_effect = lambda content, limit: (
-        {"counts": {"entropy": 5.0, "bitwise_hits": 1}}
+        {"counts": {"entropy": 5.0, "bitwise_ops": 1}}
         if "HIGH ENTROPY" in content
         else {"counts": {}}
     )
@@ -303,7 +303,7 @@ def test_xray_test_folder_bypass(mock_aperture_class, mock_security_class, tmp_p
     
     # Mock returning high entropy for this file
     mock_security.scan_content.return_value = {
-        "counts": {"entropy": 7.5, "bitwise_hits": 0}
+        "counts": {"entropy": 7.5, "bitwise_ops": 0}
     }
 
     with patch("sys.argv", ["xray", str(repo_dir)]):
