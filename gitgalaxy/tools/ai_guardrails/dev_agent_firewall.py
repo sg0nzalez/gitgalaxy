@@ -49,7 +49,7 @@ class DevAgentFirewall:
                 )
 
             # 3. The Hallucination Zone (Metaprogramming + Low Docs)
-            meta_heavy = file_data.get("telemetry", {}).get("heat_triggers", 0) > 2
+            meta_heavy = file_data.get("telemetry", {}).get("reflection_metaprogramming", 0) > 2
             doc_density = file_data.get("telemetry", {}).get("doc_density", 1.0)
 
             if meta_heavy and doc_density < 0.2:

@@ -321,9 +321,9 @@ class StructuralExtractor:
             "branching": "branch",
             "io_ops": "io",
             "safety": "safety",
-            "danger": "danger",
+            "high_risk_execution": "high_risk_execution",
             "concurrency": "concurrency",
-            "logic_flux": "flux",
+            "logic_flux": "state_mutation",
         }
 
         self.MAX_SATELLITES = 250
@@ -477,7 +477,7 @@ class StructuralExtractor:
                 cls["method_count"] = len(class_methods)
 
                 # State Entanglement: Density of state mutations (flux) inside the class methods
-                total_flux = sum(m.get("hit_vector", {}).get("flux", 0) for m in class_methods)
+                total_flux = sum(m.get("hit_vector", {}).get("state_mutation", 0) for m in class_methods)
                 cls["state_entanglement"] = round((total_flux / max(cls["method_count"], 1)) * 5.0, 2)
 
                 # LCOM (Lack of Cohesion of Methods): Approximation using arguments vs mutations
@@ -493,7 +493,7 @@ class StructuralExtractor:
                 del cls["_end_line"]
 
             branch_hits = equations.get("branch", 0)
-            linear_hits = equations.get("linear", 0)
+            linear_hits = equations.get("structural_boundaries", 0)
             total_control_flow_ratio = round(branch_hits / max(branch_hits + linear_hits, 1), 3)
 
             # Use the newly standardized keys from the updated coding_analysis
@@ -531,7 +531,7 @@ class StructuralExtractor:
                 func["usage_status"] = usage_status
 
             if orphan_count > 0:
-                equations["design_slop_orphans"] = orphan_count
+                equations["orphaned_logic"] = orphan_count
 
             # Calculate total file footprint, preferring the unshielded raw text if available
             file_token_mass = get_token_mass(raw_content if raw_content else code_stream)
@@ -947,10 +947,10 @@ class StructuralExtractor:
             # ==============================================================================
 
             # 1. Taint Tracking (RCE Weaponization)
-            if "sec_danger" in spatial_map and ("sec_io" in spatial_map or "io" in spatial_map):
+            if "sec_high_risk_execution" in spatial_map and ("sec_io" in spatial_map or "io" in spatial_map):
                 io_hits = sorted(spatial_map.get("sec_io", []) + spatial_map.get("io", []))
                 _, corroborated_rce = self._correlate_signals(
-                    targets=spatial_map["sec_danger"],
+                    targets=spatial_map["sec_high_risk_execution"],
                     dampeners=io_hits,
                     max_distance=250,
                 )
@@ -958,40 +958,40 @@ class StructuralExtractor:
                 mitigations["amplified_rce"] += corroborated_rce
 
             # 2. The Silencer Region (True Safety)
-            if "danger" in spatial_map and "safety" in spatial_map:
+            if "high_risk_execution" in spatial_map and "safety" in spatial_map:
                 unmitigated_danger, mitigated_danger = self._correlate_signals(
-                    targets=spatial_map["danger"],
+                    targets=spatial_map["high_risk_execution"],
                     dampeners=spatial_map["safety"],
                     max_distance=500,
                 )
-                counts["danger"] -= mitigated_danger
+                counts["high_risk_execution"] -= mitigated_danger
                 mitigations["mitigated_danger"] += mitigated_danger
 
             # 3. The Race Condition Radar
-            if "concurrency" in spatial_map and "flux" in spatial_map:
+            if "concurrency" in spatial_map and "state_mutation" in spatial_map:
                 unmitigated_flux, _ = self._correlate_signals(
-                    targets=spatial_map["flux"],
+                    targets=spatial_map["state_mutation"],
                     dampeners=spatial_map.get("sync_locks", []),
                     max_distance=300,
                 )
                 if unmitigated_flux > 0:
                     _, race_conditions = self._correlate_signals(
                         targets=spatial_map["concurrency"],
-                        dampeners=spatial_map["flux"],
+                        dampeners=spatial_map["state_mutation"],
                         max_distance=150,
                     )
                     counts["concurrency"] += race_conditions * 5
                     mitigations["amplified_race_conditions"] += race_conditions
 
             # 4. The Active Hemorrhage
-            if "sec_private_info" in spatial_map and ("telemetry" in spatial_map or "print_hits" in spatial_map):
-                sinks = sorted(spatial_map.get("telemetry", []) + spatial_map.get("print_hits", []))
+            if "sec_hardcoded_secrets" in spatial_map and ("telemetry" in spatial_map or "debug_prints" in spatial_map):
+                sinks = sorted(spatial_map.get("telemetry", []) + spatial_map.get("debug_prints", []))
                 _, active_leaks = self._correlate_signals(
-                    targets=spatial_map["sec_private_info"],
+                    targets=spatial_map["sec_hardcoded_secrets"],
                     dampeners=sinks,
                     max_distance=150,
                 )
-                counts["sec_private_info"] += active_leaks * 50
+                counts["sec_hardcoded_secrets"] += active_leaks * 50
                 mitigations["amplified_leaks"] += active_leaks
 
             # 5. The Memory Leak / UAF Tracker
@@ -1026,7 +1026,7 @@ class StructuralExtractor:
 
         # The specific rules designed to extract telemetry from human-readable text
         comment_rules = [
-            "graveyard",
+            "dead_code",
             "doc",
             "ownership",
             "planned_debt",
@@ -1890,11 +1890,11 @@ class StructuralExtractor:
                     hit_vector[key] = count
 
             branch_hits = hit_vector.get("branch", 0)
-            linear_hits = hit_vector.get("linear", 0)
+            linear_hits = hit_vector.get("structural_boundaries", 0)
         else:
             # Fallback for untested manual calls
             branch_pattern = rules.get("branch")
-            linear_pattern = rules.get("linear")
+            linear_pattern = rules.get("structural_boundaries")
             branch_hits = (
                 len(branch_pattern.findall(block))
                 if hasattr(branch_pattern, "findall")
@@ -1944,13 +1944,13 @@ class StructuralExtractor:
                 is_recursive = True
 
         # --- NEW: FUNCTION-LEVEL DATABASE COMPLEXITY (Data Gravity) ---
-        # Mapped to active v6 schemas: 'io' (DB connections/SQL), 'flux' (mutations), and 'serialization_parsing' (JSON/ORMs).
+        # Mapped to active v6 schemas: 'io' (DB connections/SQL), 'state_mutation' (mutations), and 'serialization_parsing' (JSON/ORMs).
         db_complexity = 0
         if hit_vector:
             db_complexity = (
                 (hit_vector.get("io", 0) * 3)
                 + (hit_vector.get("serialization_parsing", 0) * 2)
-                + (hit_vector.get("flux", 0) * 1)
+                + (hit_vector.get("state_mutation", 0) * 1)
             )
 
         # --- NEW: FUNCTION-LEVEL KEYWORD DENSITY (The Micro-Auditor) ---
@@ -2210,11 +2210,11 @@ class StructuralExtractor:
         if any(v in name_lower for v in ["test", "assert", "mock", "stub"]):
             return "verification"
 
-        danger_pattern = rules.get("danger")
+        danger_pattern = rules.get("high_risk_execution")
         io_pattern = rules.get("io")
 
         if danger_pattern and hasattr(danger_pattern, "search") and danger_pattern.search(block):
-            return "danger"
+            return "high_risk_execution"
         if io_pattern and hasattr(io_pattern, "search") and io_pattern.search(block):
             return "io"
 

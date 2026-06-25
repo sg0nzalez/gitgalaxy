@@ -389,13 +389,13 @@ class AuditRecorder:
         }
 
         sec_hit_mapping = {
-            "sec_danger": "Dynamic Code Execution (RCE)",
-            "sec_safety_neg": "Security Control & Safety Bypasses",
+            "sec_high_risk_execution": "Dynamic Code Execution (RCE)",
+            "sec_safety_bypasses": "Security Control & Safety Bypasses",
             "sec_io": "Network & I/O Exfiltration Vectors",
-            "sec_flux": "Prototype Pollution & Global State Flux",
-            "sec_heat_triggers": "Obfuscation & Encoding Signatures",
-            "sec_graveyard": "Commented-out Executable Logic (Shadow Logic)",
-            "sec_bitwise_hits": "Low-Level Cryptographic & Bitwise Operations",
+            "sec_state_mutation": "Prototype Pollution & Global State Flux",
+            "sec_reflection_metaprogramming": "Obfuscation & Encoding Signatures",
+            "sec_dead_code": "Commented-out Executable Logic (Shadow Logic)",
+            "sec_bitwise_ops": "Low-Level Cryptographic & Bitwise Operations",
             "sec_shadow_imports": "Steganographic Payload Imports",
             "sec_homoglyphs": "Unicode Homoglyphs & Typosquatting",
         }

@@ -55,8 +55,8 @@ def main():
 
     # DEFENSIVE DESIGN (SENSOR OPTIMIZATION): Restrict the Security Lens to entropy and bitwise operations to minimize CPU overhead during binary evaluation.
     security.THREAT_SIGNATURES = {
-        "heat_triggers": security.THREAT_SIGNATURES["heat_triggers"],
-        "bitwise_hits": security.THREAT_SIGNATURES["bitwise_hits"],
+        "reflection_metaprogramming": security.THREAT_SIGNATURES["reflection_metaprogramming"],
+        "bitwise_ops": security.THREAT_SIGNATURES["bitwise_ops"],
     }
 
     anomalies_found = 0
@@ -153,7 +153,7 @@ def main():
                 has_anomaly = True
                 anomaly_msgs.append("Mathematically dense/encrypted strings detected (Shannon Entropy > 4.8)")
 
-            if sec_results["counts"].get("bitwise_hits", 0) > 0:
+            if sec_results["counts"].get("bitwise_ops", 0) > 0:
                 has_anomaly = True
                 anomaly_msgs.append("Obfuscated bitwise operations (XOR loops) detected")
 
@@ -209,8 +209,8 @@ def run_xray_audit(target_path: Path) -> dict:
     filter_engine = ApertureFilter(target_path, LANGUAGE_DEFINITIONS, APERTURE_CONFIG)
     security = SecurityLens()
     security.THREAT_SIGNATURES = {
-        "heat_triggers": security.THREAT_SIGNATURES["heat_triggers"],
-        "bitwise_hits": security.THREAT_SIGNATURES["bitwise_hits"],
+        "reflection_metaprogramming": security.THREAT_SIGNATURES["reflection_metaprogramming"],
+        "bitwise_ops": security.THREAT_SIGNATURES["bitwise_ops"],
     }
 
     anomalies_found = 0
@@ -250,7 +250,7 @@ def run_xray_audit(target_path: Path) -> dict:
                 content = head_bytes.decode("utf-8", errors="ignore")
                 sr = security.scan_content(content, 100)
                 if (
-                    sr["counts"].get("entropy", 0) > 0 or sr["counts"].get("bitwise_hits", 0) > 0
+                    sr["counts"].get("entropy", 0) > 0 or sr["counts"].get("bitwise_ops", 0) > 0
                 ) and not is_whitelisted:
                     anomalies_found += 1
             except Exception:

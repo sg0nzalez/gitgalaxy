@@ -71,7 +71,7 @@ class SecurityLens:
         # ------------------------------------------------------------------
         self.THREAT_SIGNATURES = {
             # 1. Obfuscation & Encoding Signatures
-            "heat_triggers": re.compile(
+            "reflection_metaprogramming": re.compile(
                 r"\b(?:atob|btoa|base64_decode|base64_encode|gzuncompress|str_rot13)\b|"
                 r"\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4}|"
                 r'(?:\w{15,}[ \t]*=[ \t]*["\'][A-Za-z0-9+/]{40,}={0,2}["\'])|'
@@ -79,7 +79,7 @@ class SecurityLens:
                 re.I,
             ),
             # 2. Security Control & Safety Bypasses (e.g., Disabling SSL Verification)
-            "safety_neg": re.compile(
+            "safety_bypasses": re.compile(
                 r"\b(?:atob|btoa|base64_decode|gzinflate|gzuncompress|str_rot13|urldecode)[ \t]*\([ \t]*(?:atob|btoa|base64_decode|gzinflate|gzuncompress|str_rot13|urldecode)\b|"
                 r"\b(?:auto_prepend_file|auto_append_file)\b|"
                 r'\b(?:ini_set|ini_restore|putenv)[ \t]*\([ \t]*["\'](?:disable_functions|safe_mode|open_basedir|allow_url_fopen)["\'][ \t]*,[ \t]*["\']?(?:0|off|false|)["\']?\)|'
@@ -97,7 +97,7 @@ class SecurityLens:
                 re.I | re.X,
             ),
             # 4. Dynamic Code Execution (RCE Vectors)
-            "danger": re.compile(
+            "high_risk_execution": re.compile(
                 r"\b(?:BPXBATCH|IKJEFT01|IRXJCL)\b|"
                 r"\bEXEC\s+CICS\s+(?:START|LINK\s+PROGRAM|XCTL)\b\s*\(\s*[A-Za-z_-]+\s*\)|"
                 r'\b(?:eval|Function|setTimeout|setInterval)\b\s*\(\s*(?:atob|base64_decode|gzinflate|\$|_[a-zA-Z]|["\']|`)|'
@@ -110,7 +110,7 @@ class SecurityLens:
                 re.I | re.X,
             ),
             # 5. Prototype Pollution & Global State Flux
-            "flux": re.compile(
+            "state_mutation": re.compile(
                 r"\b[A-Za-z0-9_]+\.prototype\.[A-Za-z0-9_]+[ \t]*=|"
                 r"\.__proto__[ \t]*=[ \t]*[{a-zA-Z]|"
                 r"\b(?:window|global|globalThis|document)\.(?:fetch|eval|setTimeout|setInterval|Promise|console|JSON)[ \t]*=|"
@@ -121,13 +121,13 @@ class SecurityLens:
                 re.I,
             ),
             # 6. Commented-out Executable Logic (Shadow Logic)
-            "graveyard": re.compile(
+            "dead_code": re.compile(
                 r"(?://|#|--|\*>|^.{6}\*)[^\n]*?\b(?:http|bash|curl|wget|eval|base64|nc\s+-e|/dev/tcp|BPXBATCH)\b|"
                 r"/\*(?:(?!\*/).){0,500}?\b(?:http|bash|curl|wget|eval|base64|nc\s+-e|/dev/tcp)\b",
                 re.I,
             ),
             # 7. Low-Level Cryptographic & Bitwise Operations
-            "bitwise_hits": re.compile(
+            "bitwise_ops": re.compile(
                 r"\b\w+[ \t]*=[ \t]*(?:\w+[ \t]*\^[ \t]*\w+[ \t]*){2,20}|"
                 r"(?:\w+\[[^\]\n]{1,50}\][ \t]*\^[ \t]*=?[ \t]*(?:0x[0-9a-fA-F]+|\d+|\w+)[ \t]*;[ \t]*){3,20}",
                 re.I,
@@ -148,7 +148,7 @@ class SecurityLens:
                 re.I,
             ),
             # 10. Hardcoded Secrets & Credentials
-            "private_info": re.compile(
+            "hardcoded_secrets": re.compile(
                 r"\b(password|secret|token|api[_-]?key|client[_-]?secret|credentials|private[_-]?key|auth[_-]?token)\b[ \t]*(?:[:=]|=>)[ \t]*[\"'][A-Za-z0-9\-_+/=]{16,}[\"']|"
                 r"\b(PASSWORD|SECRET|TOKEN|KEY|CREDENTIALS)[A-Za-z0-9_-]*\b[ \t]+(?:IS[ \t]+)?(?:PIC[ \t]+[A-Za-z0-9\-\(\)]+[ \t]+)?VALUE[ \t]+['\"][^'\"]+['\"]|"
                 r"-----BEGIN (?:RSA |DSA |EC |OPENSSH |PGP )?(?:PRIVATE KEY|MESSAGE|CERTIFICATE)-----|"
@@ -231,7 +231,7 @@ class SecurityLens:
                     # Map the exact line indexes of critical threats for the Taint Tracker
                     if not is_auto_gen and key in {
                         "io",
-                        "danger",
+                        "high_risk_execution",
                         "llm_hooks",
                         "db_hooks",
                     }:
@@ -266,7 +266,7 @@ class SecurityLens:
         taint_snippets = []
 
         has_global_io = counts.get("io", 0) > 0
-        has_global_danger = counts.get("danger", 0) > 0
+        has_global_danger = counts.get("high_risk_execution", 0) > 0
         has_global_llm = counts.get("llm_hooks", 0) > 0
         has_global_db = counts.get("db_hooks", 0) > 0
 
@@ -301,7 +301,7 @@ class SecurityLens:
                 line = safe_lines[line_idx]
 
                 has_io = "io" in threats
-                has_danger = "danger" in threats
+                has_danger = "high_risk_execution" in threats
                 has_llm = "llm_hooks" in threats
                 has_db = "db_hooks" in threats
 
@@ -381,8 +381,8 @@ class SecurityLens:
 
         # 1. Hidden Malware Risk
         malware_hits = (
-            aggregated_hits.get("heat_triggers", 0)
-            + aggregated_hits.get("bitwise_hits", 0)
+            aggregated_hits.get("reflection_metaprogramming", 0)
+            + aggregated_hits.get("bitwise_ops", 0)
             + aggregated_hits.get("shadow_imports", 0)
             + aggregated_hits.get("homoglyphs", 0)
             + aggregated_hits.get("entropy", 0)
@@ -392,14 +392,14 @@ class SecurityLens:
             exposures["Hidden Malware Risk"] = malware_density
 
         # 2. Logic Bomb / Sabotage Risk
-        sabotage_hits = aggregated_hits.get("graveyard", 0) + (aggregated_hits.get("danger", 0) * 1.5)
+        sabotage_hits = aggregated_hits.get("dead_code", 0) + (aggregated_hits.get("high_risk_execution", 0) * 1.5)
         sabotage_density = (sabotage_hits / loc_safe) * network_multiplier
         if sabotage_density >= self.policy["logic_bomb_threshold"]:
             exposures["Logic Bomb Risk"] = sabotage_density
 
         # 3. Data Injection Risk
         injection_hits = (
-            aggregated_hits.get("io", 0) + aggregated_hits.get("danger", 0) + aggregated_hits.get("flux", 0)
+            aggregated_hits.get("io", 0) + aggregated_hits.get("high_risk_execution", 0) + aggregated_hits.get("state_mutation", 0)
         )
         injection_density = (injection_hits / loc_safe) * network_multiplier
         if injection_density >= self.policy["injection_surface_threshold"]:
@@ -412,7 +412,7 @@ class SecurityLens:
             exposures["Memory Corruption Risk"] = memory_density
 
         # 5. Secrets Risk
-        secrets_hits = aggregated_hits.get("private_info", 0)
+        secrets_hits = aggregated_hits.get("hardcoded_secrets", 0)
         secrets_density = (secrets_hits / loc_safe) * network_multiplier
         if secrets_density >= self.policy["secrets_risk_threshold"]:
             exposures["Secrets Leak Risk"] = secrets_density
@@ -446,7 +446,7 @@ class SecurityLens:
 
         for header in self.THREAT_HEADERS:
             if header in raw_bytes:
-                threats["sec_danger"] = 1
+                threats["sec_high_risk_execution"] = 1
                 threats["threat_snippet"] = f"Embedded execution header found: {header}"
                 break
 
@@ -460,7 +460,7 @@ class SecurityLens:
                     entropy -= probability * math.log2(probability)
 
                 if entropy > 7.95:
-                    threats["sec_heat_triggers"] = 1
+                    threats["sec_reflection_metaprogramming"] = 1
                     threats["threat_snippet"] = f"Extreme binary entropy detected: {entropy:.2f}"
         except Exception:
             pass

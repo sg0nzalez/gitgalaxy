@@ -168,7 +168,7 @@ def process_payload(filepath: Path, state_manager: IRStateManager, target_var: s
 
     # A. Graveyard Reaper (Identifies Dead Memory & Phantom Logic)
     graveyard_data = x_ray_dead_code(filepath)
-    ir["analysis"]["graveyard"] = graveyard_data
+    ir["analysis"]["dead_code"] = graveyard_data
 
     if graveyard_data:
         # Save to the abstracted State Manager (RAM or SQL)
@@ -334,7 +334,7 @@ def main():
                 master_scaffold_stats["slices_extracted"] += 1
 
         # Aggregate Graveyard Stats
-        gy = ir_state["analysis"].get("graveyard")
+        gy = ir_state["analysis"].get("dead_code")
         if gy:
             master_graveyard_stats["loc_saved"] += gy.get("loc_saved", 0)
             master_graveyard_stats["orphaned_vars"] += len(gy.get("orphaned_vars", []))

@@ -1648,12 +1648,12 @@ class Orchestrator:
             # =================================================================
             popularity = self.popularity_scores.get(rel_path, 0)
             if popularity > 0 and "equations" in meta:
-                orphans = meta["equations"].get("design_slop_orphans", 0)
+                orphans = meta["equations"].get("orphaned_logic", 0)
                 if orphans > 0:
                     # 1. Convert the dead weight into API Exposure
                     meta["equations"]["api"] = meta["equations"].get("api", 0) + orphans
                     # 2. Wipe the Technical Debt
-                    meta["equations"]["design_slop_orphans"] = 0
+                    meta["equations"]["orphaned_logic"] = 0
 
                     # 3. Heal the function metadata
                     for func in meta.get("functions", []):
@@ -1782,8 +1782,8 @@ class Orchestrator:
                 },
             }
 
-            if "sec_private_info" in SignalProcessor.SIGNAL_SCHEMA:
-                idx = SignalProcessor.SIGNAL_SCHEMA.index("sec_private_info")
+            if "sec_hardcoded_secrets" in SignalProcessor.SIGNAL_SCHEMA:
+                idx = SignalProcessor.SIGNAL_SCHEMA.index("sec_hardcoded_secrets")
                 synthetic_star["hit_vector"][idx] = 1
 
             self.parsed_files.append(synthetic_star)

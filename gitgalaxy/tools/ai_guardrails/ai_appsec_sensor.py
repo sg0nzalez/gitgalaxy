@@ -35,7 +35,7 @@ class AIAppSecSensor:
             db_complexity = file_data.get("max_db_complexity", 0)  # Data gravity
 
             # Security DNA
-            sec_danger = telemetry.get("sec_danger", 0) > 0  # eval, exec, subprocess
+            sec_danger = telemetry.get("sec_high_risk_execution", 0) > 0  # eval, exec, subprocess
             sec_secrets = telemetry.get("sec_secrets", 0) > 0  # Hardcoded keys/env access
             safety_density = telemetry.get("safety_density", 1.0)  # Defensive programming (try/catch, regex)
 

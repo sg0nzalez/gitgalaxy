@@ -115,7 +115,7 @@ class SignalProcessor:
                     "logic_bomb": 3.0,
                 },  # C code hiding in a JS app = Trojan
                 "infra_in_web": {"logic_bomb": 4.0},  # Shell script hiding in a JS app = Backdoor
-                "web_in_systems": {"flux": 3.0},  # JS embedded in C firmware = Bizarre architecture
+                "web_in_systems": {"state_mutation": 3.0},  # JS embedded in C firmware = Bizarre architecture
             },
         )
 
@@ -159,7 +159,7 @@ class SignalProcessor:
         Detects architectural boundary violations and embedded payloads (e.g., C code in a JS directory).
         """
         # Default multipliers if no specific context rules apply
-        multipliers = {"memory": 1.0, "logic_bomb": 1.0, "flux": 1.0, "injection": 1.0}
+        multipliers = {"memory": 1.0, "logic_bomb": 1.0, "state_mutation": 1.0, "injection": 1.0}
 
         file_lang = file_lang.lower()
         folder_lang = folder_lang.lower() if folder_lang else file_lang
@@ -355,9 +355,9 @@ class SignalProcessor:
 
                 # 2. Check for ANY malicious intent (eval, network fetching, etc.)
                 intent_mass = (
-                    raw_signals.get("sec_danger", 0)
+                    raw_signals.get("sec_high_risk_execution", 0)
                     + raw_signals.get("sec_io", 0)
-                    + raw_signals.get("sec_safety_neg", 0)
+                    + raw_signals.get("sec_safety_bypasses", 0)
                 )
 
                 if intent_mass > 0:
@@ -411,8 +411,8 @@ class SignalProcessor:
                     blanket_risk_vector[self.RISK_SCHEMA.index("churn")] = min(raw_churn_freq * 10, 100.0)
                 if "documentation" in self.RISK_SCHEMA:
                     blanket_risk_vector[self.RISK_SCHEMA.index("documentation")] = 0.0  # <-- The Fix! 0% Risk.
-                if "civil_war" in self.RISK_SCHEMA:
-                    blanket_risk_vector[self.RISK_SCHEMA.index("civil_war")] = 50.0
+                if "tabs_vs_spaces" in self.RISK_SCHEMA:
+                    blanket_risk_vector[self.RISK_SCHEMA.index("tabs_vs_spaces")] = 50.0
 
                 return {
                     "risk_vector": blanket_risk_vector,
@@ -588,7 +588,7 @@ class SignalProcessor:
             for key in self.SIGNAL_SCHEMA:
                 # ---> THE DIMENSIONAL FIX: Ignore hardware_bridge and cryptography <---
                 if key in {
-                    "civil_war",
+                    "tabs_vs_spaces",
                     "indent_tabs",
                     "indent_spaces",
                     "hardware_bridge",
@@ -657,13 +657,13 @@ class SignalProcessor:
             # ---> HIGHER-ORDER SYNTHESIS: The OOM (Out of Memory) Bomb <---
             # If O(N^3) or recursive, AND high flux, AND NO lazy_evaluation -> Massive Flux Multiplier
             oom_multiplier = 1.0
-            if (max_big_o >= 3 or has_recursion) and raw_signals.get("flux", 0) > 0:
+            if (max_big_o >= 3 or has_recursion) and raw_signals.get("state_mutation", 0) > 0:
                 if raw_signals.get("lazy_evaluation", 0) == 0:
                     oom_multiplier = 3.0  # Ticking OOM bomb (Bloating RAM)
                 else:
                     oom_multiplier = 0.5  # Safely streamed (O(1) memory)
 
-            mp_map["flux"] = mp_map.get("flux", 1.0) * oom_multiplier
+            mp_map["state_mutation"] = mp_map.get("state_mutation", 1.0) * oom_multiplier
             # --------------------------------------------------------------
 
             cog_score, cog_raw = self._calc_cog_load(loc, raw_signals, irc, fc, mp_map.get("cog", 1.0), func_gini)
@@ -713,13 +713,13 @@ class SignalProcessor:
                 "verification": test_score,
                 "api_exposure": self._calc_api_exposure(raw_signals, total_loc, popularity),
                 "concurrency": self._calc_concurrency(loc, raw_signals, irc, mp_map.get("async", 1.0), functions),
-                "state_flux": self._calc_state_flux(loc, raw_signals, irc, mp_map.get("flux", 1.0)),
-                "graveyard": self._calc_graveyard(total_loc, raw_signals, mp_map.get("dead", 1.0)),
+                "state_flux": self._calc_state_flux(loc, raw_signals, irc, mp_map.get("state_mutation", 1.0)),
+                "dead_code": self._calc_graveyard(total_loc, raw_signals, mp_map.get("dead", 1.0)),
                 "spec_match": spec_score,
                 "stability": stability_score,
                 "churn": 0.0,
                 "documentation": doc_score,
-                "civil_war": self._calc_civil_war(raw_signals),
+                "tabs_vs_spaces": self._calc_civil_war(raw_signals),
                 "algorithmic_dos": self._calc_algorithmic_dos(
                     loc,
                     raw_signals,
@@ -790,7 +790,7 @@ class SignalProcessor:
 
             api_exposure = raw_signals.get("api", 0)
             concurrency = raw_signals.get("concurrency", 0)
-            flux = raw_signals.get("flux", 0)
+            flux = raw_signals.get("state_mutation", 0)
 
             file_mass = sum_function_impacts + api_exposure + concurrency + flux + (loc / 50.0)
 
@@ -1367,10 +1367,10 @@ class SignalProcessor:
                     raw_signals.get(k, 0)
                     for k in [
                         "branch",
-                        "flux",
+                        "state_mutation",
                         "concurrency",
-                        "heat_triggers",
-                        "danger",
+                        "reflection_metaprogramming",
+                        "high_risk_execution",
                     ]
                 ]
             ) / safe_loc + (irc / safe_loc)
@@ -1381,10 +1381,10 @@ class SignalProcessor:
             return 0.0, 0.0
 
         branch_density = branches / safe_loc
-        flux_density = raw_signals.get("flux", 0) / safe_loc
+        flux_density = raw_signals.get("state_mutation", 0) / safe_loc
         concurrency_density = raw_signals.get("concurrency", 0) / safe_loc
-        heat_density = raw_signals.get("heat_triggers", 0) / safe_loc
-        danger_density = raw_signals.get("danger", 0) / safe_loc
+        heat_density = raw_signals.get("reflection_metaprogramming", 0) / safe_loc
+        danger_density = raw_signals.get("high_risk_execution", 0) / safe_loc
 
         clamped_branch = min(branch_density * 1.0, t.get("branch_clamp", 0.5))
         clamped_flux = min(flux_density * t.get("flux_mult", 2.0), t.get("flux_clamp", 0.75))
@@ -1423,9 +1423,9 @@ class SignalProcessor:
         t = self.risk_tuning.get("safety", {})
 
         attack_hits = (
-            (raw_signals.get("danger", 0) * t.get("danger_weight", 4.0))
-            + (raw_signals.get("safety_neg", 0) * t.get("safety_neg_weight", 1.5))
-            + (raw_signals.get("flux", 0) * t.get("flux_weight", 0.5))
+            (raw_signals.get("high_risk_execution", 0) * t.get("danger_weight", 4.0))
+            + (raw_signals.get("safety_bypasses", 0) * t.get("safety_neg_weight", 1.5))
+            + (raw_signals.get("state_mutation", 0) * t.get("flux_weight", 0.5))
         )
         defense_hits = (
             (raw_signals.get("safety", 0) * self.WEIGHT_DEFENSE)
@@ -1448,7 +1448,7 @@ class SignalProcessor:
         except OverflowError:
             score = 100.0 if net_exposure > 0 else 0.0
 
-        danger_density = (raw_signals.get("danger", 0) + raw_signals.get("safety_neg", 0)) / safe_loc
+        danger_density = (raw_signals.get("high_risk_execution", 0) + raw_signals.get("safety_bypasses", 0)) / safe_loc
         if danger_density > t.get("vulnerability_density_min", 0.03) and attack > defense:
             floor = min(
                 t.get("breach_floor_max", 80.0),
@@ -1465,8 +1465,8 @@ class SignalProcessor:
         stubs = raw_signals.get("func_empty", 0)
 
         # --- NEW: UNTRACKED COMPLEXITY (SLOP) ---
-        orphans = raw_signals.get("design_slop_orphans", 0)
-        duplicates = raw_signals.get("design_slop_duplicates", 0)
+        orphans = raw_signals.get("orphaned_logic", 0)
+        duplicates = raw_signals.get("duplicate_logic", 0)
 
         if good_debt == 0 and bad_debt == 0 and stubs == 0 and orphans == 0 and duplicates == 0:
             return 0.0
@@ -1630,7 +1630,7 @@ class SignalProcessor:
                 total_untested_impact += untested_impact
 
         # Add file-level danger as raw unverified mass
-        file_level_danger = float(raw_signals.get("danger", 0))
+        file_level_danger = float(raw_signals.get("high_risk_execution", 0))
         total_untested_impact += file_level_danger
 
         # Step D: Executable Density Normalization & Ecosystem Modifiers
@@ -1666,11 +1666,11 @@ class SignalProcessor:
         return min(base_score, 100.0)
 
     def _calc_graveyard(self, total_loc: float, raw_signals: Dict[str, int], mp: float) -> float:
-        hits = raw_signals.get("graveyard", 0)
+        hits = raw_signals.get("dead_code", 0)
         if hits == 0:
             return 0.0
 
-        t = self.risk_tuning.get("graveyard", {})
+        t = self.risk_tuning.get("dead_code", {})
         deprecated_lines = hits * t.get("hit_mult", 3.0)
         density = (deprecated_lines / max(total_loc, t.get("safe_mass_floor", 50.0))) * 100.0
 
@@ -1766,8 +1766,8 @@ class SignalProcessor:
         # THE FIX: Dropped padding to 0 so mutations immediately impact density
         loc_padding = tuning.get("loc_padding", 0)
 
-        raw_flux = float(raw_signals.get("flux", 0))
-        freeze_hits = float(raw_signals.get("freeze_hits", 0))
+        raw_flux = float(raw_signals.get("state_mutation", 0))
+        freeze_hits = float(raw_signals.get("immutability_locks", 0))
 
         # MITIGATION BALANCE: Subtract immutability from raw mutation.
         net_volatility = max(0.0, raw_flux - (freeze_hits * 0.5))
@@ -1812,15 +1812,15 @@ class SignalProcessor:
         arch_matrix = self.CONTEXT_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("obscured_payload_multiplier", 1.0)
 
-        obfuscation_indicators = (raw_signals.get("sec_heat_triggers", 0) * 5.0) + (
-            raw_signals.get("sec_bitwise_hits", 0) * 2.0
+        obfuscation_indicators = (raw_signals.get("sec_reflection_metaprogramming", 0) * 5.0) + (
+            raw_signals.get("sec_bitwise_ops", 0) * 2.0
         )
-        malicious_payload = raw_signals.get("sec_safety_neg", 0) * 3.0
+        malicious_payload = raw_signals.get("sec_safety_bypasses", 0) * 3.0
         exfiltration = raw_signals.get("sec_io", 0) * 4.0
-        rce_indicators = raw_signals.get("sec_danger", 0) * 5.0
-        state_corruption = raw_signals.get("sec_flux", 0) * 3.0
-        dead_code_threat = raw_signals.get("sec_graveyard", 0) * 2.0
-        secrets = raw_signals.get("sec_private_info", 0) * 1.5
+        rce_indicators = raw_signals.get("sec_high_risk_execution", 0) * 5.0
+        state_corruption = raw_signals.get("sec_state_mutation", 0) * 3.0
+        dead_code_threat = raw_signals.get("sec_dead_code", 0) * 2.0
+        secrets = raw_signals.get("sec_hardcoded_secrets", 0) * 1.5
 
         # Extension mismatch is proof of active evasion. Assign it a massive 20.0x mass.
         evasion_indicators = (raw_signals.get("sec_shadow_imports", 0) * 10.0) + (
@@ -1908,11 +1908,11 @@ class SignalProcessor:
         arch_matrix = self.CONTEXT_VIOLATION_MATRIX.get(archetype, {})
         arch_multiplier = arch_matrix.get("logic_bomb_multiplier", 1.0)
 
-        trigger = raw_signals.get("branch", 0) + (raw_signals.get("halt_hits", 0) * 3.0)
+        trigger = raw_signals.get("branch", 0) + (raw_signals.get("thread_sleeps", 0) * 3.0)
         payload = (
-            (raw_signals.get("bailout_hits", 0) * 2.0)
+            (raw_signals.get("panics_and_aborts", 0) * 2.0)
             + (raw_signals.get("cleanup", 0) * 1.5)
-            + (raw_signals.get("sec_danger", 0) * 4.0)
+            + (raw_signals.get("sec_high_risk_execution", 0) * 4.0)
         )
 
         # ---> THE AGENTIC SHIELD <---
@@ -1937,11 +1937,11 @@ class SignalProcessor:
             dos_mass = attack_surface * (max_big_o**2) * 10.0
 
             # 2. State Flux Bomb (Memory Exhaustion)
-            flux = raw_signals.get("flux", 0) + raw_signals.get("globals", 0)
+            flux = raw_signals.get("state_mutation", 0) + raw_signals.get("globals", 0)
             dos_mass += flux * (max_big_o**2) * 5.0
 
             # 3. The Shielding Dampener (Safety Guardrails)
-            if raw_signals.get("safety", 0) > 0 or raw_signals.get("bailout_hits", 0) > 0:
+            if raw_signals.get("safety", 0) > 0 or raw_signals.get("panics_and_aborts", 0) > 0:
                 dos_mass *= 0.25  # 75% reduction if guardrails exist
 
             sabotage_mass += dos_mass
@@ -1961,7 +1961,7 @@ class SignalProcessor:
         if sabotage_mass == 0:
             return 0.0
 
-        explicit_threats = raw_signals.get("sec_graveyard", 0) + raw_signals.get("sec_heat_triggers", 0)
+        explicit_threats = raw_signals.get("sec_dead_code", 0) + raw_signals.get("sec_reflection_metaprogramming", 0)
         if max_big_o >= 3:
             explicit_threats += 1  # Preserve DoS Mass from being zeroed out
 
@@ -1996,10 +1996,10 @@ class SignalProcessor:
         arch_multiplier = arch_matrix.get("injection_surface_multiplier", 1.0)
 
         input_vectors = raw_signals.get("sec_io", 0) + (raw_signals.get("ssr_boundaries", 0) * 2.0)
-        execution_vectors = (raw_signals.get("sec_danger", 0) * 4.0) + (raw_signals.get("sec_safety_neg", 0) * 2.0)
+        execution_vectors = (raw_signals.get("sec_high_risk_execution", 0) * 4.0) + (raw_signals.get("sec_safety_bypasses", 0) * 2.0)
 
         # ---> LLM EXECUTION VULNERABILITY (Prompt Injection to Exec) <---
-        if raw_signals.get("sec_danger", 0) > 0 and (
+        if raw_signals.get("sec_high_risk_execution", 0) > 0 and (
             raw_signals.get("llm_orchestrator", 0) > 0 or raw_signals.get("ai_tools", 0) > 0
         ):
             # If an AI can trigger eval/exec/OS commands, it's a massive vulnerability
@@ -2027,7 +2027,7 @@ class SignalProcessor:
         if injection_mass == 0:
             return 0.0
 
-        explicit_threats = raw_signals.get("sec_danger", 0) + raw_signals.get("sec_io", 0)
+        explicit_threats = raw_signals.get("sec_high_risk_execution", 0) + raw_signals.get("sec_io", 0)
         if explicit_threats == 0 and taint_confirmed == 0 and not getattr(self, "is_paranoid", False):
             injection_mass *= 0.10
 
@@ -2085,7 +2085,7 @@ class SignalProcessor:
             (raw_signals.get("pointers", 0) * 2.5)
             + (raw_signals.get("memory_alloc", 0) * 3.0)
             + (raw_signals.get("inline_asm", 0) * 5.0)
-            + (raw_signals.get("cast_hits", 0) * 1.5)
+            + (raw_signals.get("explicit_casts", 0) * 1.5)
         )
 
         if raw_memory_mass == 0:
@@ -2096,9 +2096,9 @@ class SignalProcessor:
         net_risk = max(raw_memory_mass - mitigation_mass, 0.0) * arch_multiplier
 
         explicit_threats = (
-            raw_signals.get("sec_danger", 0)
-            + raw_signals.get("sec_safety_neg", 0)
-            + raw_signals.get("sec_heat_triggers", 0)
+            raw_signals.get("sec_high_risk_execution", 0)
+            + raw_signals.get("sec_safety_bypasses", 0)
+            + raw_signals.get("sec_reflection_metaprogramming", 0)
         )
         if explicit_threats == 0 and not getattr(self, "is_paranoid", False):
             net_risk *= 0.05
@@ -2129,20 +2129,20 @@ class SignalProcessor:
         Calculates Secrets Risk Exposure (Credential Exposure).
         Looks for hardcoded credentials. Trusts the SecurityLens RHS-string sensor.
         """
-        base_leak = raw_signals.get("sec_private_info", 0) * 10.0
+        base_leak = raw_signals.get("sec_hardcoded_secrets", 0) * 10.0
 
         if base_leak == 0:
             return 0.0
 
         careless_amplifiers = (
-            1.0 + raw_signals.get("print_hits", 0) + raw_signals.get("graveyard", 0) + raw_signals.get("globals", 0)
+            1.0 + raw_signals.get("debug_prints", 0) + raw_signals.get("dead_code", 0) + raw_signals.get("globals", 0)
         )
 
         # LLM API keys are massive targets. If they are calling APIs without globals, spike the risk.
         if raw_signals.get("llm_api", 0) > 0 and raw_signals.get("globals", 0) == 0:
             careless_amplifiers *= 3.0
 
-        if not getattr(self, "is_paranoid", False) and raw_signals.get("sec_heat_triggers", 0) == 0:
+        if not getattr(self, "is_paranoid", False) and raw_signals.get("sec_reflection_metaprogramming", 0) == 0:
             careless_amplifiers = min(careless_amplifiers, 2.0)
 
         leak_mass = base_leak * careless_amplifiers
@@ -2203,13 +2203,13 @@ class SignalProcessor:
             hv = func.get("hit_vector", {})
             api_hits = hv.get("api", 0)
             io_hits = hv.get("io", 0) + hv.get("sec_io", 0)
-            flux_hits = hv.get("flux", 0) + hv.get("globals", 0)
+            flux_hits = hv.get("state_mutation", 0) + hv.get("globals", 0)
 
             choke_multiplier = 1.0 + api_hits + io_hits + flux_hits
             func_threat *= choke_multiplier
 
             # 3. The Dampeners (Guardrails)
-            safety_hits = hv.get("safety", 0) + hv.get("bailout_hits", 0) + hv.get("cleanup", 0)
+            safety_hits = hv.get("safety", 0) + hv.get("panics_and_aborts", 0) + hv.get("cleanup", 0)
             if safety_hits > 0:
                 func_threat *= 0.5  # 50% reduction for bounded iteration
 
@@ -2271,7 +2271,7 @@ class SignalProcessor:
         # ====================================================================
         # NEW: CALCULATE CUMULATIVE RISK (Excluding Formatting Inconsistency)
         # ====================================================================
-        civil_war_idx = self.RISK_SCHEMA.index("civil_war") if "civil_war" in self.RISK_SCHEMA else -1
+        civil_war_idx = self.RISK_SCHEMA.index("tabs_vs_spaces") if "tabs_vs_spaces" in self.RISK_SCHEMA else -1
 
         def get_cumulative_risk(f):
             rv = f.get("risk_vector", [])
@@ -2326,7 +2326,7 @@ class SignalProcessor:
                     "path": p,
                     "score": round(btw * flux_risk, 3),
                     "btw": round(btw, 4),
-                    "flux": flux_risk,
+                    "state_mutation": flux_risk,
                 }
             )
             bottlenecks["fragile_dependency_chain"].append(
@@ -2394,7 +2394,7 @@ class SignalProcessor:
             "Dead Code Exposure": "dead",
             "API Exposure": "api",
             "Concurrency Exposure": "async",
-            "State Flux Exposure": "flux",
+            "State Flux Exposure": "state_mutation",
             "Specification Exposure": "spec",
             "Churn Exposure": "churn",
             "Algorithmic DoS Exposure": "algorithmic_dos",

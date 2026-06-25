@@ -52,8 +52,8 @@ def main():
 
     # SENSOR OPTIMIZATION: Only evaluate keys and dead-code logic for maximum performance
     security.THREAT_SIGNATURES = {
-        "private_info": security.THREAT_SIGNATURES["private_info"],
-        "graveyard": security.THREAT_SIGNATURES["graveyard"],
+        "hardcoded_secrets": security.THREAT_SIGNATURES["hardcoded_secrets"],
+        "dead_code": security.THREAT_SIGNATURES["dead_code"],
     }
 
     leaks_found = 0
@@ -124,13 +124,13 @@ def main():
 
             sec_results = security.scan_content(content, len(content.splitlines()))
 
-            if sec_results["counts"].get("private_info", 0) > 0:
+            if sec_results["counts"].get("hardcoded_secrets", 0) > 0:
                 if is_whitelisted:
                     print(f"[ALLOWLIST BYPASS] Known safe secret ignored in: {rel_path_str}")
                     leaks_allowed += 1
                 else:
                     print(f"[CONTENT BREACH] Hardcoded Credential: {rel_path_str}")
-                    for snip in sec_results["snippets"].get("private_info", []):
+                    for snip in sec_results["snippets"].get("hardcoded_secrets", []):
                         print(f"   -> {snip}")
                     leaks_found += 1
         except Exception:

@@ -418,7 +418,7 @@ class LLMRecorder:
 
         for i, risk_slug in enumerate(self.RISK_SCHEMA):
             # Skip the non-risk formatting stat
-            if risk_slug == "civil_war":
+            if risk_slug == "tabs_vs_spaces":
                 continue
 
             vals = [s.get("risk_vector", [])[i] for s in parsed_files if len(s.get("risk_vector", [])) > i]
@@ -607,10 +607,10 @@ class LLMRecorder:
                         lines.append(f"- `{s.get('path')}` -> **{s.get('risk_vector')[flux_idx]}%** Exposure")
 
         orphan_idx = (
-            self.SIGNAL_SCHEMA.index("design_slop_orphans") if "design_slop_orphans" in self.SIGNAL_SCHEMA else -1
+            self.SIGNAL_SCHEMA.index("orphaned_logic") if "orphaned_logic" in self.SIGNAL_SCHEMA else -1
         )
         dup_idx = (
-            self.SIGNAL_SCHEMA.index("design_slop_duplicates") if "design_slop_duplicates" in self.SIGNAL_SCHEMA else -1
+            self.SIGNAL_SCHEMA.index("duplicate_logic") if "duplicate_logic" in self.SIGNAL_SCHEMA else -1
         )
 
         if orphan_idx >= 0 and dup_idx >= 0:
@@ -813,7 +813,7 @@ class LLMRecorder:
 
                 file_risks = []
                 for i, r_val in enumerate(rv):
-                    if i < len(self.RISK_SCHEMA) and self.RISK_SCHEMA[i] != "civil_war" and r_val > 0:
+                    if i < len(self.RISK_SCHEMA) and self.RISK_SCHEMA[i] != "tabs_vs_spaces" and r_val > 0:
                         file_risks.append((self.RISK_SCHEMA[i], r_val))
 
                 file_risks.sort(key=lambda x: x[1], reverse=True)
@@ -844,19 +844,19 @@ class LLMRecorder:
 
         sorted_files = sorted(parsed_files, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
 
-        structure_keys = {"branch", "linear", "args", "func_start", "class_start"}
+        structure_keys = {"branch", "structural_boundaries", "args", "func_start", "class_start"}
         risk_keys = {
-            "danger",
-            "flux",
-            "graveyard",
-            "safety_neg",
+            "high_risk_execution",
+            "state_mutation",
+            "dead_code",
+            "safety_bypasses",
             "planned_debt",
             "fragile_debt",
-            "design_slop_orphans",
-            "design_slop_duplicates",
+            "orphaned_logic",
+            "duplicate_logic",
         }
         arch_keys = {"io", "concurrency", "api", "import"}
-        defense_keys = {"safety", "freeze_hits", "cleanup", "test", "sync_locks", "doc"}
+        defense_keys = {"safety", "immutability_locks", "cleanup", "test", "sync_locks", "doc"}
 
         for s in sorted_files:
             p = s.get("path", "UNK")
@@ -1136,7 +1136,7 @@ class LLMRecorder:
                 for c in cm:
                     if c["score"] > 0:
                         lines.append(
-                            f"- `{c['path']}` -> **Severity: {c['score']}** (Bridge: {c['btw']} * Flux: {c['flux']}%)"
+                            f"- `{c['path']}` -> **Severity: {c['score']}** (Bridge: {c['btw']} * Flux: {c['state_mutation']}%)"
                         )
                 lines.append("")
 

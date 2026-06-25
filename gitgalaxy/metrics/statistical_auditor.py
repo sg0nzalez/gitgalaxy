@@ -55,19 +55,19 @@ class StatisticalAuditor:
         self.SIGNAL_KEYS = [
             "branch",
             "args",
-            "linear",
+            "structural_boundaries",
             "func_start",
             "class_start",
             "import",
             "api",
             "decorators",
             "safety",
-            "safety_neg",
-            "danger",
-            "flux",
-            "heat_triggers",
+            "safety_bypasses",
+            "high_risk_execution",
+            "state_mutation",
+            "reflection_metaprogramming",
             "keyword_debt",
-            "private_info",
+            "hardcoded_secrets",
             "io",
             "concurrency",
             "ui_framework",
@@ -476,7 +476,7 @@ class StatisticalAuditor:
             total_signals = sum(equations.values())
 
             # Condition 2: Over 50% of the active signals are commented-out structural logic
-            if total_signals > 0 and equations.get("graveyard", 0) > (total_signals * 0.5):
+            if total_signals > 0 and equations.get("dead_code", 0) > (total_signals * 0.5):
                 return True
 
         except Exception as e:

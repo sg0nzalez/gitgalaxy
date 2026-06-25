@@ -346,8 +346,8 @@ class SecurityAuditor:
                     "log_avg_func_args": np.log1p(np.maximum(avg_func_args, 0)),
                     "func_complexity_gini": float(tel.get("func_complexity_gini", 0.0)),
                     "func_internal_density": float(tel.get("func_internal_density", 0.0)),
-                    "design_slop_orphans": float(hit_dict.get("design_slop_orphans", 0)),
-                    "design_slop_duplicates": float(hit_dict.get("design_slop_duplicates", 0)),
+                    "orphaned_logic": float(hit_dict.get("orphaned_logic", 0)),
+                    "duplicate_logic": float(hit_dict.get("duplicate_logic", 0)),
                     "log_direct_upstream": np.log1p(np.maximum(dep.get("direct_upstream", 0), 0)),
                     "log_direct_downstream": np.log1p(np.maximum(dep.get("direct_downstream", 0), 0)),
                     "log_total_upstream": np.log1p(np.maximum(dep.get("total_upstream", 0), 0)),
@@ -365,9 +365,9 @@ class SecurityAuditor:
                 contextual = [
                     (
                         "raw_danger",
-                        hit_dict.get("danger", 0) + hit_dict.get("sec_danger", 0),
+                        hit_dict.get("high_risk_execution", 0) + hit_dict.get("sec_high_risk_execution", 0),
                     ),
-                    ("raw_sec_private_info", hit_dict.get("sec_private_info", 0)),
+                    ("raw_sec_private_info", hit_dict.get("sec_hardcoded_secrets", 0)),
                     (
                         "raw_sec_tainted_injection",
                         hit_dict.get("sec_tainted_injection", 0),
