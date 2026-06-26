@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 # ==============================================================================
 # GitGalaxy Tool: Supply Chain Firewall
-# Purpose: Zero-Trust Dependency Verification and Behavioral Policy Enforcement.
-# Architecture: RAM-Exclusive Logic Gate (Consumes Phase 1 Topological Graph)
+#
+# PURPOSE: 
+# Zero-Trust Dependency Verification and Behavioral Policy Enforcement.
+#
+# ARCHITECTURAL DECISION:
+# Operating as a RAM-Exclusive Logic Gate, this firewall consumes the Phase 1 
+# Dependency Graph. By completely divesting from redundant O(N) disk parsing, 
+# it achieves near-instant policy enforcement. It mitigates Namespace Hijacking 
+# and Dependency Confusion attacks by comparing raw codebase imports against 
+# resolved manifest aliases, while enforcing dynamic risk thresholds based on 
+# build-time execution contexts and network topography.
 # ==============================================================================
 import argparse
 import sys
@@ -13,7 +22,7 @@ from pathlib import Path
 from gitgalaxy.security.security_lens import SecurityLens
 from gitgalaxy.standards.analysis_lens import ThreatPolicy
 
-# Safely import the config, falling back if the user hasn't added exceptions yet
+# Safely import the config, falling back if the user hasn't configured exceptions yet
 try:
     from gitgalaxy.standards.gitgalaxy_config import (
         ALLOWLIST_PATHS,
@@ -57,18 +66,25 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
         # 1. ZERO-TRUST IMPORT VERIFICATION
         # =====================================================================
         for raw_pkg in file_node.get("raw_imports", []):
-            # The Relative Path Shield: Ignore native internal routing
+            # DEFENSIVE DESIGN (RELATIVE PATH SHIELD):
+            # Ignore native internal routing (e.g., './utils') to focus strictly 
+            # on external supply chain dependencies.
             if raw_pkg.startswith("."):
                 continue
 
-            # The Deep-Path Truncator: Normalize sub-module paths to their base package name
+            # DEFENSIVE DESIGN (DEEP-PATH TRUNCATOR):
+            # Attackers often hide malicious payloads deep inside nested sub-modules.
+            # Normalizing paths (e.g., 'lodash/nested/file' -> 'lodash') ensures 
+            # policy rules evaluate the authoritative root package.
             if raw_pkg.startswith("@"):
                 parts = raw_pkg.split("/")
                 pkg = f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else raw_pkg
             else:
                 pkg = raw_pkg.split("/")[0]
 
-            # The Identity Translation Shield: Dereference manifest aliases
+            # DEFENSIVE DESIGN (IDENTITY TRANSLATION SHIELD):
+            # Dereference manifest aliases to catch Dependency Confusion attacks 
+            # where a malicious package masks itself behind a trusted internal alias.
             true_pkg = safe_alias_map.get(pkg, pkg)
 
             if true_pkg in BLACKLISTED_IMPORTS:
@@ -98,16 +114,18 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
         # =====================================================================
         # 2. BEHAVIORAL POLICY ENFORCEMENT (Leveraging Phase 1 Measurements)
         # =====================================================================
-        # Extract the raw threat equations calculated natively by Prism/Detector in Phase 1
+        # Extract the raw structural signatures calculated natively by the Structural Signature Analysis Engine in Phase 1
         equations = file_node.get("equations", {})
         loc = file_node.get("coding_loc", 1)
 
         # Clone the dictionary to safely apply the sandbox multiplier without corrupting global RAM
         local_counts = dict(equations)
 
-        # THE BUILD-TIME EXECUTION MULTIPLIER (STATIC SANDBOX)
-        # Apply an artificial density multiplier to manifest triggers so any
-        # I/O or Danger hits instantly trigger a blocking action from the firewall.
+        # DEFENSIVE DESIGN (BUILD-TIME EXECUTION MULTIPLIER):
+        # Configuration scripts (like setup.py or package.json) are executed by CI/CD 
+        # runners at build time. RCE here compromises the host before the app even runs.
+        # We apply an artificial density multiplier to manifest triggers so any I/O or 
+        # Danger signatures instantly trigger a blocking action from the firewall.
         build_time_multiplier = 1.0
         filename = Path(rel_path_str).name
         if filename in [
@@ -126,7 +144,7 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                 if isinstance(local_counts[k], (int, float)):
                     local_counts[k] = int(local_counts[k] * build_time_multiplier)
 
-        # Evaluate risk using Phase 1 network topography context (e.g., Blast Radius)
+        # Evaluate risk using Phase 1 network topography context (e.g., Downstream Exposure)
         network_metrics = file_node.get("dependency_network", {})
         exposures = security.evaluate_risk(local_counts, safe_loc, network_metrics)
 
@@ -156,8 +174,8 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
 def main():
     """
     Standalone Execution Mode.
-    Because the firewall is now completely divested of redundant O(N) disk parsing,
-    it must be fed the compiled JSON RAM-graph generated by the GalaxyScope orchestrator.
+    Because the firewall is decoupled from redundant O(N) disk parsing,
+    it must be fed the compiled JSON Dependency Graph generated by the GalaxyScope orchestrator.
     """
     from gitgalaxy.licensing import enforce_licensing_guard
 
@@ -184,7 +202,7 @@ def main():
         sys.exit(1)
 
     # In standalone CLI mode, we bypass the dynamic manifest parsing for speed,
-    # relying purely on strict exact-match dependencies and behavioral math.
+    # relying purely on strict exact-match dependencies and behavioral structural signatures.
     results = run_firewall_audit(parsed_files, alias_map={})
 
     mode_str = "Strict (Exclude Blacklist and Unknown)" if STRICT_IMPORT_MODE else "Audit (Allow Whitelist + Unknown)"

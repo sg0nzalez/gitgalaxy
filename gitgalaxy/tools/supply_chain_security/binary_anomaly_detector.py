@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 # ==============================================================================
 # GitGalaxy Tool: Binary Anomaly Detector
-# Purpose: Fast triage of binary anomalies, magic byte mismatches, and obfuscated payloads.
+#
+# PURPOSE: 
+# Performs high-speed triage of binary anomalies, magic byte mismatches, and 
+# obfuscated payloads within the CI/CD pipeline.
+#
+# ARCHITECTURAL DECISION:
+# Traditional SAST tools struggle with binaries, either ignoring them completely 
+# (allowing steganography/hidden malware) or attempting to parse them, causing 
+# pipeline timeouts. This module acts as a lightweight heuristic gatekeeper, 
+# relying on mathematical entropy and header verification to detect malicious 
+# packing without requiring deep binary execution.
 # ==============================================================================
 import argparse
 import sys
@@ -15,7 +25,7 @@ from gitgalaxy.core.aperture import ApertureFilter
 from gitgalaxy.security.security_lens import SecurityLens
 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
 
-# Safely import the config, falling back if the user hasn't added exceptions yet
+# Safely import the config, falling back if the user hasn't configured exceptions yet
 try:
     from gitgalaxy.standards.gitgalaxy_config import (
         APERTURE_CONFIG,
@@ -53,7 +63,12 @@ def main():
     filter_engine = ApertureFilter(target_path, LANGUAGE_DEFINITIONS, APERTURE_CONFIG)
     security = SecurityLens()
 
-    # DEFENSIVE DESIGN (SENSOR OPTIMIZATION): Restrict the Security Lens to entropy and bitwise operations to minimize CPU overhead during binary evaluation.
+    # ==============================================================================
+    # DEFENSIVE DESIGN (SENSOR OPTIMIZATION):
+    # Restrict the Security Lens to entropy and bitwise operations. By disabling 
+    # the heavy AST and regex processors used for source code, we minimize CPU 
+    # overhead and prevent Catastrophic Backtracking on dense binary data.
+    # ==============================================================================
     security.THREAT_SIGNATURES = {
         "reflection_metaprogramming": security.THREAT_SIGNATURES["reflection_metaprogramming"],
         "bitwise_ops": security.THREAT_SIGNATURES["bitwise_ops"],
@@ -72,7 +87,10 @@ def main():
     for root, dirs, files in os.walk(target_path):
         rel_root = str(Path(root).relative_to(target_path))
 
-        # Root Traversal Optimization: Evaluate top-level directories against ignore rules.
+        # ARCHITECTURAL DECISION (ROOT TRAVERSAL PRUNING):
+        # We evaluate top-level directories against ignore rules and modify the `dirs` 
+        # list in-place. This prevents the OS from walking down massive ignored trees 
+        # (like `node_modules` or `.git`), saving massive I/O overhead.
         if rel_root == ".":
             dirs[:] = [d for d in dirs if filter_engine._check_ignore_rules(d)]
         elif not filter_engine._check_ignore_rules(rel_root):
@@ -84,7 +102,7 @@ def main():
             file_path = Path(root) / file
             ext = file_path.suffix.lower()
 
-            # Create a normalized string for checking against lists
+            # Create a normalized string for checking against configurations
             rel_path_str = str(file_path.relative_to(target_path)).replace("\\", "/")
 
             # Evaluate Global vs. Tool-Specific Bypasses
@@ -93,7 +111,10 @@ def main():
 
             is_whitelisted = is_global_allow or is_xray_bypass
 
-            # FALSE POSITIVE MITIGATION: Test directories frequently generate high-entropy mock data (e.g., cryptographic keys). Bypass deep scanning for these paths.
+            # FALSE POSITIVE MITIGATION (TEST DIRECTORIES):
+            # Unit tests frequently generate high-entropy mock data (e.g., mock 
+            # cryptographic keys, dummy hashes). We whitelist these paths to prevent 
+            # pipeline friction, assuming test directories are not deployed to production.
             if (
                 "/test/" in rel_path_str.lower()
                 or "/tests/" in rel_path_str.lower()
@@ -109,8 +130,9 @@ def main():
                 anomalies_found += 1
                 continue
 
-            # NOTE: We intentionally DO NOT call evaluate_path_integrity here!
-            # X-Ray needs to scan binaries (.png, .zip), which the other tools drop.
+            # NOTE: We intentionally bypass `evaluate_path_integrity` here.
+            # This specific detector must scan actual binaries (.png, .zip, .dll), 
+            # which standard Aperture filtering drops.
             files_to_deep_scan.append((file_path, rel_path_str, ext, is_whitelisted))
 
     # ==============================================================================
@@ -125,27 +147,32 @@ def main():
 
     for file_path, rel_path_str, ext, is_whitelisted in files_to_deep_scan:
         try:
-            # Read the first 8KB of the file as raw bytes
+            # DEFENSIVE DESIGN (MEMORY SHIELD):
+            # Read only the first 8KB of the file. This is sufficient to capture 
+            # magic bytes, execution headers, and enough string data for an accurate 
+            # entropy calculation, completely preventing Out-Of-Memory (OOM) crashes on huge files.
             with open(file_path, "rb") as f:
                 head_bytes = f.read(8192)
 
             has_anomaly = False
             anomaly_msgs = []
 
-            # 1. Binary X-Ray (Magic Bytes & Headers)
+            # 1. Binary Analysis (Magic Bytes & Execution Headers)
             binary_threats = security.scan_binary(head_bytes, ext)
 
-            # EXPECTED HEADER EXCEPTION
+            # EXPECTED HEADER EXCEPTION:
+            # Shell scripts naturally contain the '#!/bin/' header. We clear this 
+            # specific threat if the extension matches a known script format.
             if binary_threats:
                 threat_msg = binary_threats.get("threat_snippet", "")
                 if ext in [".sh", ".bash", ".zsh", ".command"] and "#!/bin/" in threat_msg:
-                    binary_threats = {}  # Clear the threat, it is expected
+                    binary_threats = {}
 
             if binary_threats:
                 has_anomaly = True
                 anomaly_msgs.append(binary_threats.get("threat_snippet", "Unknown Binary Threat"))
 
-            # 2. String Entropy X-Ray (Encrypted/Packed Payloads)
+            # 2. String Entropy Analysis (Encrypted/Packed Payloads)
             content = head_bytes.decode("utf-8", errors="ignore")
             sec_results = security.scan_content(content, 100)
 
@@ -180,14 +207,14 @@ def main():
     print("\n" + "=" * 75)
     print(" BINARY ANOMALY DETECTOR: SCAN SUMMARY")
     print("=" * 75)
-    print(f" Files Evaluated    : {files_evaluated:,}")
-    print(f" Files Deep Scanned : {len(files_to_deep_scan):,}")
-    print(f" Time Elapsed       : {time_delta:.2f} seconds")
-    print(f" Scan Velocity      : {scan_rate:,.0f} files/sec")
+    print(f" Files Evaluated      : {files_evaluated:,}")
+    print(f" Files Deep Scanned   : {len(files_to_deep_scan):,}")
+    print(f" Time Elapsed         : {time_delta:.2f} seconds")
+    print(f" Scan Velocity        : {scan_rate:,.0f} files/sec")
     print("-" * 75)
-    print(f" Anomalies Detected : {anomalies_found:,}")
+    print(f" Anomalies Detected   : {anomalies_found:,}")
     print(f" File Denylist Blocks : {forbidden_blocked:,}")
-    print(f" File Allowlist Bypasses: {anomalies_allowed:,}")
+    print(f" Allowlist Bypasses   : {anomalies_allowed:,}")
     print("-" * 75)
 
     if anomalies_found > 0:
@@ -205,7 +232,7 @@ def main():
 
 
 def run_xray_audit(target_path: Path) -> dict:
-    """Programmatic entry point for GalaxyScope."""
+    """Programmatic entry point for GalaxyScope (orchestrator execution)."""
     filter_engine = ApertureFilter(target_path, LANGUAGE_DEFINITIONS, APERTURE_CONFIG)
     security = SecurityLens()
     security.THREAT_SIGNATURES = {
@@ -214,7 +241,8 @@ def run_xray_audit(target_path: Path) -> dict:
     }
 
     anomalies_found = 0
-    # Minimal silent scan
+    
+    # Minimal silent scan for headless execution
     for root, dirs, files in os.walk(target_path):
         rel_root = str(Path(root).relative_to(target_path))
         if rel_root == ".":
@@ -226,11 +254,13 @@ def run_xray_audit(target_path: Path) -> dict:
         for file in files:
             file_path = Path(root) / file
             rel_path_str = str(file_path.relative_to(target_path)).replace("\\", "/")
+            
             is_whitelisted = (
                 any(a in rel_path_str for a in ALLOWLIST_PATHS)
                 or file_path.suffix.lower() in XRAY_BYPASS_EXTENSIONS
                 or any(b in rel_path_str for b in XRAY_BYPASS_PATHS)
             )
+            
             if "/test/" in rel_path_str.lower() or "/tests/" in rel_path_str.lower():
                 is_whitelisted = True
 
@@ -242,11 +272,14 @@ def run_xray_audit(target_path: Path) -> dict:
                 with open(file_path, "rb") as f:
                     head_bytes = f.read(8192)
                 ext = file_path.suffix.lower()
+                
+                # Check Binary Headers
                 bt = security.scan_binary(head_bytes, ext)
                 if bt and not (ext in [".sh", ".bash", ".zsh"] and "#!/bin/" in bt.get("threat_snippet", "")):
                     if not is_whitelisted:
                         anomalies_found += 1
 
+                # Check String Entropy
                 content = head_bytes.decode("utf-8", errors="ignore")
                 sr = security.scan_content(content, 100)
                 if (
