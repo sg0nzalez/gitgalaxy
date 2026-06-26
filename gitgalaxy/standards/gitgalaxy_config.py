@@ -104,7 +104,7 @@ XRAY_BYPASS_PATHS = [
 # ------------------------------------------------------------------------------
 APERTURE_CONFIG = {
     # --- 0. THE SECRETS SHUNT ---
-    # Files caught here will bypass standard physics math and instantly
+    # Files caught here will bypass standard structural signature analysis and instantly
     # register a 100.0 score on the Secrets Risk exposure vector.
     "SECRETS_EXTENSIONS": {
         ".pem",
@@ -360,7 +360,7 @@ APERTURE_CONFIG = {
 # ------------------------------------------------------------------------------
 # These files are granted a high confidence score for importance by the GuideStar Lens.
 # If found, their Bayesian confidence is boosted (+0.10) to ensure they
-# remain visible in the 3D map as high-priority architectural anchors.
+# remain visible in the topological map as high-priority contextual baselines.
 PRIORITY_WHITELIST = [
     # --- AI Ecosystem Anchor ---
     "__gitgalaxy_meta__.json",
@@ -587,7 +587,7 @@ CHRONOMETER_CONFIG = {
 STATIC_ARCHETYPES = {
     "literature": "Static: Literature & Documentation",
     "data": "Static: Declarative Data & Configurations",
-    "minified": "Static: Minified & Vendor Opaque Mass",
+    "minified": "Static: Minified & Vendor Opaque Footprint",
     "unknown": "Static: Unmapped / Unsupported Format",
 }
 

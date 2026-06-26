@@ -55,8 +55,8 @@ class FilterResult(TypedDict):
 class ApertureFilter:
     """
     Primary ingestion filter for the analysis engine. Performs perimeter gating to ensure
-    only valid, maintainable source code reaches the CPU-bound Regex/AST detectors.
-    Integrates with GuideStar's Bayesian 'Intent Locks' to dynamically adjust suppression
+    only valid, maintainable source code reaches the CPU-bound Structural Signature extractors.
+    Integrates with GuideStar's Bayesian 'Contextual Baselines' to dynamically adjust suppression
     thresholds for known, high-priority artifacts (like package.json).
     """
 
@@ -311,7 +311,7 @@ class ApertureFilter:
 
         # --- TIER 3.1: THE MONOLITH AMALGAMATION SHIELD ---
         # DEFENSIVE DESIGN: 30,000+ lines in a single file is usually an amalgamation (e.g. sqlite3.c).
-        # Standard Regex engines suffer from Catastrophic Backtracking on files of this magnitude.
+        # Standard Structural Signature extractors suffer from Catastrophic Backtracking on files of this magnitude.
         if report["loc"] > 30000:
             report.update(
                 {
@@ -399,7 +399,7 @@ class ApertureFilter:
 
         # --- TIER 3.9: TEST DATA & ARRAY SHIELD ---
         # DEFENSIVE DESIGN: Massive comma-separated arrays or hex blobs (like embedded images
-        # inside C++ headers) contain 0 architectural logic, but will completely stall an AST parser.
+        # inside C++ headers) contain 0 executable payload, but will completely stall a structural parser.
         if report["loc"] > 500:
             hex_count = content.count("0x") + content.count("0X")
             if hex_count > report["loc"]:

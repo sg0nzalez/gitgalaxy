@@ -13,18 +13,18 @@ from typing import Dict, List, Optional, Tuple, Any, TypedDict
 from gitgalaxy.standards.language_standards import LENS_CONFIG, PRISM_CONFIG
 
 # ==============================================================================
-# GitGalaxy Phase 2: Lexical Comment Scanner (The Prism)
+# GitGalaxy Phase 2: Payload & Surface Splitter (The Prism)
 # Strategy v6.2.0 Protocol: Safe Delimiter Extraction & Format Bypasses
 # ==============================================================================
 
 
 class PrismResult(TypedDict):
     """
-    The dual-stream output of the Prism.
+    The dual-output of the Prism.
 
     Attributes:
-        code_stream (str): The pure executable logic stream.
-        comment_stream (str): The pure documentation/comment stream.
+        code_stream (str): The executable payload.
+        comment_stream (str): The documentation surface.
         coding_loc (int): Lines of code (non-empty, non-comment).
         doc_loc (int): Lines of comments/documentation.
     """
@@ -43,11 +43,11 @@ class PrismError(Exception):
 
 class Prism:
     """
-    GitGalaxy Phase 2: The Prism (Lexical Stream Splitter)
+    GitGalaxy Phase 2: The Prism (Payload & Surface Splitter)
 
     PURPOSE: Just as a physical prism splits a unified beam of light into distinct
-    spectrums, this class performs high-speed lexical scanning to separate a unified
-    file into pure executable logic and documentation streams while preserving string literals.
+    spectrums, this class performs high-speed structural scanning to separate a unified
+    file into a pure executable payload and documentation surface while preserving string literals.
 
     DEFENSIVE ARCHITECTURE (Why Regex over AST?):
     Standard Abstract Syntax Trees (ASTs) are brittle, language-specific, and require
@@ -90,7 +90,7 @@ class Prism:
         # --- TIER 2: REGEX PRE-COMPILATION ---
         self.REGEX_MATRIX: Dict[str, re.Pattern] = self._compile_regex_matrix()
 
-        # Phase 6.1 Handshake Registry (Synchronized securely via Universal Laws)
+        # Phase 6.1 Handshake Registry (Synchronized securely via Language Standards)
         self.EMBEDDED_TRIGGERS = []
         for trigger_config in LENS_CONFIG.get("HANDSHAKE_REGISTRY", []):
             self.EMBEDDED_TRIGGERS.append(
@@ -112,12 +112,12 @@ class Prism:
         self.PHP_HEREDOC_PATTERN = re.compile(PRISM_CONFIG.get("PHP_HEREDOC_PATTERN", ""), re.M)
         self.PHP_MULTILINE_STRING = re.compile(PRISM_CONFIG.get("PHP_MULTILINE_STRING", ""), re.M)
 
-        self.logger.info(f"Lexical Scanner Online | Calibrated {len(self.REGEX_MATRIX)} syntax rules.")
+        self.logger.info(f"Structural Scanner Online | Calibrated {len(self.REGEX_MATRIX)} syntax rules.")
 
     def split_streams(self, content: str, primary_lang: str) -> PrismResult:
-        """Decouples the signal into mutually exclusive streams (Executable Logic vs Documentation)."""
+        """Decouples the file into mutually exclusive components (Executable Payload vs Documentation Surface)."""
         if not content:
-            self.logger.debug("Lexical Scan skipped: Empty content buffer.")
+            self.logger.debug("Structural Scan skipped: Empty content buffer.")
             return {
                 "code_stream": "",
                 "comment_stream": "",
@@ -190,7 +190,7 @@ class Prism:
             # This forces mutual exclusivity: if a line has code and a comment, it counts as Code.
             doc_loc = max(0, total_active_lines - coding_loc)
 
-            self.logger.debug(f"Lexical Scan Complete: {coding_loc} Executable LOC | {doc_loc} Documentation LOC.")
+            self.logger.debug(f"Structural Scan Complete: {coding_loc} Executable LOC | {doc_loc} Documentation LOC.")
 
             return {
                 "code_stream": final_code,
@@ -201,7 +201,7 @@ class Prism:
 
         except Exception as e:
             self.logger.error(
-                f"Catastrophic structural failure during lexical scan: {e}",
+                f"Catastrophic structural failure during structural scan: {e}",
                 exc_info=True,
             )
             raise PrismError(f"Prism failure: {e}")
@@ -210,7 +210,7 @@ class Prism:
         """Surgically strips documentation using an ordered, additive pipeline."""
         lits = []
 
-        # 1. PRE-PROCESSING: Extract doc-mass BEFORE any early returns
+        # 1. PRE-PROCESSING: Extract documentation surface BEFORE any early returns
         if lang_id in ("python", "micropython", "ruby"):
             text, python_lits = self._strip_python_docstrings(text)
             lits.extend(python_lits)

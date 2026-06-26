@@ -11,11 +11,11 @@ import re
 
 """
 analysis_lens.py
-Phase 4+: The Laws of Physics, Threat Policies, and Mathematical Constants.
+Phase 4+: Structural Policies, Threat Policies, and Mathematical Constants.
 
 This file contains the immutable mathematical constants, security thresholds, 
 and spatial modifiers used by the Signal Processor to calculate risk exposures 
-and physical mass.
+and structural magnitude.
 """
 
 # ------------------------------------------------------------------------------
@@ -57,8 +57,8 @@ class ThreatPolicy:
 
 
 # ------------------------------------------------------------------------------
-# 2. CORE PHYSICS CONSTANTS
-# Consumed by: signal_processor.py
+# 2. CORE STRUCTURAL CONSTANTS
+# # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
 ENGINE_CONSTANTS = {
     "WEIGHT_RISK": 2.5,
@@ -244,8 +244,8 @@ ASSET_MASKS = {
     },
 }
 # ------------------------------------------------------------------------------
-# 4. ENVIRONMENTAL PHYSICS (Path Modifiers)
-# Consumed by: signal_processor.py
+# 4. ENVIRONMENTAL MODIFIERS (Path Modifiers)
+# # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
 PATH_MODIFIERS = {
     "Cognitive Load Exposure": [
@@ -854,7 +854,7 @@ RISK_EQUATION_TUNING = {
 }
 
 # ------------------------------------------------------------------------------
-# 6. DOMAIN ONTOLOGIES (Security Profiles & Alien Entity Rules)
+# 6. DOMAIN ONTOLOGIES (Security Profiles & Architectural Anomaly Rules)
 # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
 LANGUAGE_SECURITY_PROFILES = {
@@ -1202,7 +1202,7 @@ RECORDING_SCHEMAS = {
         "locs": "Total Lines of Code (LOC)",
         "lang_ids": "Detected Languages",
         "lang_id": "Primary Language",
-        "mass": "Structural Complexity Mass",
+        "mass": "Structural Mass",
         "author_distribution": "Author Distribution",
         "control_flow_ratio": "Control Flow Ratio",
         "verification": "Testing & Verification Exposure",
@@ -1308,7 +1308,7 @@ RECORDING_SCHEMAS = {
         "api_exposure": "API Exposure",
         "concurrency": "Concurrency Exposure",
         "state_flux": "State Flux Exposure",
-        "dead_code": "Graveyard Exposure",
+        "dead_code": "Commented Logic Exposure",
         "spec_match": "Specification Exposure",
         "stability": "Instability Exposure",
         "churn": "Volatility Exposure",

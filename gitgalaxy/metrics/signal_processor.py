@@ -16,7 +16,7 @@ from gitgalaxy.standards import analysis_lens as config
 from gitgalaxy.standards import analysis_lens
 
 # ==============================================================================
-# GitGalaxy Phase 4: Signal Processor (The Physics Engine)
+# GitGalaxy Phase 4: Signal Processor (The Structural Signature Analysis Engine)
 # Strategy v6.2.0 Protocol: Temporal Normalization & Universal Exposure
 # ==============================================================================
 
@@ -77,7 +77,7 @@ class SignalProcessor:
         # ---> NEW: Fetch Language-Specific Clustering Models <---
         self.LANGUAGE_INFERENCE_MODELS = getattr(config, "SPECIFIC_FILE_INFERENCE_MODEL", {})
 
-        # Fetch Physics Constants
+        # Fetch Structural Constants
         physics = getattr(config, "ENGINE_CONSTANTS", {})
         self.WEIGHT_RISK = physics.get("WEIGHT_RISK", 2.5)
         self.WEIGHT_DEFENSE = physics.get("WEIGHT_DEFENSE", 1.0)
@@ -199,9 +199,9 @@ class SignalProcessor:
 
     def _calculate_silo_risk(self, authors: dict) -> float:
         """
-        Calculates the 'Bus Factor' risk of a file.
-        100% = A single developer wrote the entire file (High Silo Risk).
-        0% = Perfectly distributed across multiple developers (Low Silo Risk).
+        Calculates the Authorship Centralization risk of a file.
+        100% = A single developer wrote the entire file (High Centralization).
+        0% = Perfectly distributed across multiple developers (Low Centralization).
         """
         if not authors:
             return 0.0
@@ -221,7 +221,7 @@ class SignalProcessor:
         raw_signals: Dict[str, int],
         umbrella_bonus: float = 0.0,
     ) -> Dict[str, Any]:
-        """Calculates risk exposure, temporal physics, and per-file physical impact."""
+        """Calculates risk exposure, temporal analysis, and per-file structural impact."""
         rel_path = meta.get("path", "unknown")
         loc = 1  # Safe fallback for the except block
 
@@ -329,7 +329,7 @@ class SignalProcessor:
                 return {
                     "risk_vector": blanket_risk_vector,
                     "hit_vector": [0] * len(self.SIGNAL_SCHEMA),
-                    "file_impact": 150.0,  # Massive physical footprint for the 3D map
+                    "file_impact": 150.0,  # Massive structural footprint for the topological map
                     "telemetry": {
                         "archetype": getattr(config, "STATIC_ARCHETYPES", {}).get(
                             "data", "Static: Declarative Data & Configurations"
@@ -424,7 +424,7 @@ class SignalProcessor:
                         ),
                         "control_flow_ratio": 0.0,
                         "ownership_entropy": 0.0,  # <-- FIX: Documentation has no logic entropy
-                        "author_distribution": 0.0,  # <-- FIX: Plaintext changelogs don't have a Bus Factor
+                        "author_distribution": 0.0,  # <-- FIX: Plaintext changelogs don't have Authorship Centralization risk
                         "ownership": dominant_author,
                         "domain_context": ghost_meta,
                     },
@@ -444,8 +444,8 @@ class SignalProcessor:
             folder_lang = ghost_meta.get("folder_dominant_lang", lang_id)
             eco_mp = self._get_context_multipliers(lang_id, folder_lang)
 
-            self.logger.debug(f"[{rel_path}] Physics Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc}, Ot: {ot:.2f})")
-
+            self.logger.debug(f"[{rel_path}] Structural Calc | Lang: {lang_id} (Fc: {fc:.2f}, Irc: {irc}, Ot: {ot:.2f})")
+            
             hit_vector = [raw_signals.get(key, 0) for key in self.SIGNAL_SCHEMA]
 
             # ------------------------------------------------------------------
@@ -767,7 +767,7 @@ class SignalProcessor:
             risk_vector_ordered = [round(exposure_vector[key], 4) for key in self.RISK_SCHEMA]
 
             # ------------------------------------------------------------------
-            # 4. CALCULATE FILE IMPACT (The Mass)
+            # 4. CALCULATE FILE IMPACT (Structural Magnitude)
             # ------------------------------------------------------------------
             functions = meta.get("functions", [])
             func_start = raw_signals.get("func_start", 0)
@@ -795,7 +795,7 @@ class SignalProcessor:
             file_mass = sum_function_impacts + api_exposure + concurrency + flux + (loc / 50.0)
 
             # ------------------------------------------------------------------
-            # 5. EXECUTE OWNERSHIP ENTROPY MATH & SILO RISK
+            # 5. EXECUTE OWNERSHIP ENTROPY MATH & AUTHORSHIP CENTRALIZATION
             # ------------------------------------------------------------------
             authors_map = meta.get("authors", {})
             ownership_score = self._calc_ownership_entropy(authors_map)
@@ -840,7 +840,7 @@ class SignalProcessor:
 
         except Exception as e:
             self.logger.error(
-                f"Catastrophic physics failure on artifact '{rel_path}': {e}",
+                f"Catastrophic structural failure on artifact '{rel_path}': {e}",
                 exc_info=True,
             )
             return {
@@ -1153,11 +1153,11 @@ class SignalProcessor:
 
                 if pr > 1.0:
                     ai_topology["insights"].append(
-                        f"Systemic Risk (High): The AI components are deeply embedded with a massive Blast Radius (PageRank: {pr}). Hallucinations or prompt injections here will cascade catastrophically across the system."
+                        f"Systemic Risk (High): The AI components are deeply embedded with a massive Dependency Blast Radius (PageRank: {pr}). Hallucinations or prompt injections here will cascade catastrophically across the system."
                     )
                 elif pr < 0.2:
                     ai_topology["insights"].append(
-                        "Containment (Low Risk): The AI components are safely isolated at the edge of the network with a minimal blast radius."
+                        "Containment (Low Risk): The AI components are safely isolated at the edge of the network with a minimal dependency blast radius."
                     )
 
                 if btw > 0.05:
@@ -1279,7 +1279,7 @@ class SignalProcessor:
                 file_data["risk_vector"][idx] = round(final_churn, 2)
 
     # ==========================================================================
-    # FORENSIC EQUATIONS (The Physics Models)
+    # FORENSIC EQUATIONS (The Structural Models)
     # ==========================================================================
 
     def _calc_raw_temporal_signals(self, temp: Dict[str, Any]) -> Tuple[float, float]:
@@ -1331,7 +1331,7 @@ class SignalProcessor:
 
     def _calc_civil_war(self, raw_signals: Dict[str, int]) -> float:
         """
-        Calculates Layout Consistency (Tabs vs Spaces).
+        Calculates Formatting Inconsistencies (Tabs vs Spaces).
         0 = Pure Tabs (Consistent), 100 = Pure Spaces (Consistent), 50 = High Discrepancy.
         """
         tab_lines = raw_signals.get("indent_tabs", 0)
@@ -1542,7 +1542,7 @@ class SignalProcessor:
         net_exposure = max(0.0, risk_hits - (defense_hits / 2.0))
         density = (net_exposure / max(loc, 1)) * 100.0
 
-        # 4. THE MULTIPLIERS (Blast Radius & Bus Factor)
+        # 4. THE MULTIPLIERS (Dependency Blast Radius & Authorship Centralization)
         # Undocumented code is exponentially more dangerous if it is highly
         # integrated (popularity) or siloed to a single developer.
         network_multiplier = 1.0 + (popularity / 10.0)
@@ -1641,7 +1641,7 @@ class SignalProcessor:
         # umbrella_bonus is max 50.0. If bonus is 50, dampener is 0.5.
         guidestar_dampener = max(1.0 - (umbrella_bonus / 100.0), 0.1)
 
-        # Network Blast Radius (Amplifier)
+        # Dependency Blast Radius (Amplifier)
         blast_radius = mp + min(popularity * 0.2, 3.0)
 
         adjusted_density = (raw_density * guidestar_dampener) * blast_radius
@@ -1684,8 +1684,8 @@ class SignalProcessor:
 
     def _calc_api_exposure(self, raw_signals: dict, total_loc: int, popularity: int = 0) -> float:
         """
-        YIN: Publicly exposed surfaces (api).
-        YANG: Internal/Private boundaries (encapsulation).
+        RISK: Publicly exposed surfaces (api).
+        MITIGATION: Internal/Private boundaries (encapsulation).
         """
         api_hits = float(raw_signals.get("api", 0))
         encapsulation = float(raw_signals.get("encapsulation", 0))
@@ -1719,8 +1719,8 @@ class SignalProcessor:
         functions: List[Dict[str, Any]] = None,
     ) -> float:
         """
-        YIN: Threads/Async execution + Thread Starvation (O(N) Bombs).
-        YANG: Mutex/Locks/Semaphores (sync_locks).
+        RISK: Threads/Async execution + Thread Starvation (O(N) Bombs).
+        MITIGATION: Mutex/Locks/Semaphores (sync_locks).
         """
         tuning = self.risk_tuning.get("concurrency", {})
         loc_padding = tuning.get("loc_padding", 150)
@@ -1758,8 +1758,8 @@ class SignalProcessor:
 
     def _calc_state_flux(self, loc: int, raw_signals: Dict[str, int], irc: int, mp: float) -> float:
         """
-        YIN: State mutation (flux).
-        YANG: Immutability enforcements (freeze_hits).
+        RISK: State mutation (flux).
+        MITIGATION: Immutability enforcements (freeze_hits).
         """
         tuning = self.risk_tuning.get("state_flux", {})
 

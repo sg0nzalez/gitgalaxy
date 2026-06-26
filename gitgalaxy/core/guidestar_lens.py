@@ -24,7 +24,7 @@ from gitgalaxy.standards.gitgalaxy_config import GUIDESTAR_CONFIG
 
 class GuideStarLens:
     """
-    The GuideStar Lens provides 'Social Proof' for files by parsing repository
+    The GuideStar Lens provides Contextual Baselines for files by parsing repository
     instructions and structural metadata.
 
     DEFENSIVE DESIGN: Before spinning up heavy regex engines or AST parsers,
@@ -79,7 +79,7 @@ class GuideStarLens:
         Phase 0.5: Main orchestration method that dispatches scouts to scan
         manifests, configurations, and explicit directives.
         """
-        self.logger.info("GuideStar: Scanning sectors for Social & Roadmap Proof...")
+        self.logger.info("GuideStar: Scanning sectors for Contextual Baselines & Roadmap Proof...")
 
         # 1. Inspect package managers and build manifests
         self._scan_package_manifests()
@@ -178,7 +178,7 @@ class GuideStarLens:
     # ==============================================================================
 
     def _scan_package_manifests(self):
-        """Identifies authoritative project anchors and parses their internal logic."""
+        """Identifies authoritative project contextual baselines and parses their internal logic."""
         # Dynamically inject requirements.txt if it wasn't in the global config
         active_manifests = dict(self.MANIFEST_MAP)
         if "requirements.txt" not in active_manifests:
@@ -425,7 +425,8 @@ class GuideStarLens:
         PERFORMANCE OPTIMIZATION: Instead of opening and reading thousands of
         Markdown files to determine their value, we use `os.stat()` to fetch
         the physical byte size of the file. This is an extremely fast O(1) disk
-        operation that allows us to build a heat map of documentation density.
+        operation that allows us to build a topological map of documentation coverage, 
+        making the assumption the larger doc files have more information in them.
         """
         anchor_patterns = {
             "README.md",
@@ -447,7 +448,7 @@ class GuideStarLens:
             if any(part in self._gs_config.get("IGNORED_DIRECTORIES", set()) for part in dir_path.parts):
                 continue
 
-            local_shield_mass = 0
+            local_shield_footprint = 0
 
             for file in files:
                 if file in anchor_patterns or file.lower().endswith(".md"):
@@ -457,13 +458,13 @@ class GuideStarLens:
 
                         # Ignore stubs (e.g., "# Project Title" and nothing else)
                         if size_bytes > 150:
-                            local_shield_mass += size_bytes
+                            local_shield_footprint += size_bytes
                     except OSError:
                         pass
 
-            if local_shield_mass > 0:
+            if local_shield_footprint > 0:
                 # 3000+ bytes of documentation provides a 100% (1.0) shield for this folder.
-                shield_strength = min(local_shield_mass / 3000.0, 1.0)
+                shield_strength = min(local_shield_footprint / 3000.0, 1.0)
 
                 rel_dir = str(dir_path.relative_to(self.root)).replace("\\", "/")
                 if rel_dir == ".":

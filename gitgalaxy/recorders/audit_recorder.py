@@ -118,7 +118,7 @@ class AuditRecorder:
         pretty_directory_groups = {}
         directory_groups_meta = summary.get("directory_groups", {})
 
-        # Sort folders descending by physical mass
+        # Sort folders descending by structural magnitude
         sorted_directory_groups = sorted(
             directory_groups_meta.items(),
             key=lambda x: x[1].get("total_mass", 0.0),
@@ -128,7 +128,7 @@ class AuditRecorder:
         # Initialize the ordered dictionary with directory-level aggregates
         for d_name, d_data in sorted_directory_groups:
             pretty_directory_groups[d_name] = {
-                "Directory Group Mass": d_data.get("total_mass", 0.0),
+                "Directory Group Magnitude": d_data.get("total_mass", 0.0),
                 "File Count": d_data.get("file_count", 0),
                 "Average Risk Exposures": {
                     exposure_labels.get(k, self.format_label(k)): f"{v}%"
@@ -250,11 +250,11 @@ class AuditRecorder:
                     "Total LOC": file_data.get("total_loc", 0),
                     "Coding LOC": file_data.get("coding_loc", 0),
                     "Documentation LOC": file_data.get("doc_loc", 0),
-                    "Structural Mass": round(file_data.get("file_impact", 0.0), 3),
+                    "Structural Magnitude": round(file_data.get("file_impact", 0.0), 3),
                     "Control Flow Ratio": f"{round(telemetry.get('control_flow_ratio', 0.0) * 100, 1)}%",
                     "Popularity Rank": telemetry.get("popularity", 0),
                     "Raw Churn Frequency": telemetry.get("raw_churn_freq", 0.0),
-                    "Author Distribution": telemetry.get("author_distribution", 0.0),
+                    "Authorship Centralization": telemetry.get("author_distribution", 0.0),
                     "Ownership Entropy": telemetry.get("ownership_entropy", 0.0),
                     "Raw Cognitive Density": telemetry.get("densities", {}).get("cog_raw", 0.0),
                 },
@@ -283,13 +283,13 @@ class AuditRecorder:
                     "Direct Upstream (Fragility)": file_data.get("dependency_network", {}).get(
                         "direct_upstream", len(file_data.get("raw_imports", []))
                     ),
-                    "Direct Downstream (Blast Radius)": file_data.get("dependency_network", {}).get(
+                    "Direct Downstream (Dependency Blast Radius)": file_data.get("dependency_network", {}).get(
                         "direct_downstream", telemetry.get("popularity", 0)
                     ),
                     "Total Upstream (Absolute Fragility)": file_data.get("dependency_network", {}).get(
                         "total_upstream", 0
                     ),
-                    "Total Downstream (Absolute Blast Radius)": file_data.get("dependency_network", {}).get(
+                    "Total Downstream (Absolute Dependency Blast Radius)": file_data.get("dependency_network", {}).get(
                         "total_downstream", 0
                     ),
                 },
@@ -317,7 +317,7 @@ class AuditRecorder:
                 }
 
                 reordered_d_data = {
-                    "Directory Group Mass": d_data.get("Directory Group Mass", 0.0),
+                    "Directory Group Magnitude": d_data.get("Directory Group Magnitude", 0.0),
                     "File Count": d_data.get("File Count", folder_files),
                     "Ecosystem Fingerprint (Archetypes)": fingerprint,
                     "Average Risk Exposures": d_data.get("Average Risk Exposures", {}),
@@ -351,7 +351,7 @@ class AuditRecorder:
                 }
             )
 
-        # 3.2 Append optically bypassed artifacts to the local output list
+        # 3.2 Append structurally bypassed artifacts to the local output list
         for anon_path in summary.get("unparsable_files", {}).get("unparsable_artifacts", []):
             pretty_unparsable.append(
                 {
@@ -360,7 +360,7 @@ class AuditRecorder:
                     "Diagnostic Reason": "Engine Bypass (Dense Structure or Unrecognized Syntax)",
                     "Size": "Unknown (Parser Bypass)",
                     "Identity Confidence": "0.0% (Scan Yielded No Data)",
-                    "Discovery Proof": "Lexical Splicer Shielding",
+                    "Discovery Proof": "Structural Signature Extractor Shielding",
                 }
             )
 
@@ -526,7 +526,7 @@ class AuditRecorder:
                     k: f"{v['pct']}% ({v['count']} files)" for k, v in global_fingerprint["ml_clusters"].items()
                 }
             if "static_mass" in global_fingerprint:
-                pretty_global_fingerprint["Inert Structural Mass (Static Categories)"] = {
+                pretty_global_fingerprint["Static Assets (Static Categories)"] = {
                     k: f"{v['pct']}% ({v['count']} files)" for k, v in global_fingerprint["static_mass"].items()
                 }
         else:
@@ -553,7 +553,7 @@ class AuditRecorder:
             "2. Global Ecosystem Summary": summary,
             "3. Forensic Security & Vulnerability Audit": security_audit,
             "4. High-Value Forensic Report": forensic_report,
-            "5. Unparsable Files (Excluded Artifacts Queue)": pretty_unparsable,
+            "5. Unparsable Artifacts (Excluded Artifacts Queue)": pretty_unparsable,
             "6. Parsed Files (Scanned Artifacts)": pretty_directory_groups,
         }
 

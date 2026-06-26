@@ -36,7 +36,7 @@ def get_token_mass(text: str, deep_scan: bool = False) -> Optional[int]:
 
 
 # ==============================================================================
-# GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Cartographer
+# GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Topological Mapper
 # Strategy v6.3.0 Protocol: Fluid-State Counters, Language Sliding & Semantic Modes
 # ==============================================================================
 
@@ -97,13 +97,13 @@ class LogicData(TypedDict, total=False):
 
 
 # ==============================================================================
-# THE OPTICAL CONFIGURATION MATRIX
+# THE STRUCTURAL SIGNATURE CONFIGURATION MATRIX
 # ==============================================================================
 
 
 class ScopeParsingRegistry:
     """
-    The Optical Calibration Matrix for GalaxyScope's Primary Detector.
+    The Structural Signature Calibration Matrix for GalaxyScope's Primary Detector.
     Defines the structural heuristics required to slice non-brace languages.
 
     DEFENSIVE ARCHITECTURE:
@@ -228,7 +228,7 @@ class ScopeParsingRegistry:
 
     @classmethod
     def get_config(cls, lang_id: str) -> Optional[dict]:
-        """Resolves aliases and returns the optical physics config for the language."""
+        """Resolves aliases and returns the structural signature config for the language."""
         if not lang_id:
             return None
         normalized_id = lang_id.lower()
@@ -243,7 +243,7 @@ class ScopeParsingRegistry:
 
 
 # ------------------------------------------------------------------------------
-# THE DETECTOR (Optical Detector)
+# THE DETECTOR (Structural Detector)
 # ------------------------------------------------------------------------------
 
 
@@ -356,18 +356,18 @@ class StructuralExtractor:
         self.raw_content_lines = raw_content.splitlines() if raw_content else []
         regex_telemetry = {}
 
-        # We always extract the metadata first, even for Dark Matter files
+        # We always extract the metadata first, even for Unparsable Artifacts
         ghost_meta = self._decode_comment_stream(comment_stream)
 
         # ---> THE ECOSYSTEM GRAVITY OVERRIDE <---
         # If the broader ecosystem safely locked a contested file (like a .h header)
         # into a C-family language, we trust the gravity and artificially boost the confidence.
-        # This prevents pure-macro headers from falling below the 0.42 floor and vanishing into Dark Matter.
+        # This prevents pure-macro headers from falling below the 0.42 floor and vanishing into Unparsable Artifacts.
         if self.primary_lang_id in ["c", "cpp", "objective-c"]:
             confidence = 1.0
 
-        # 1. The Custom Singularity Bypass & Prose Deflection
-        # Rejects unverified artifacts AND Inert Matter files before wasting compute
+        # 1. The Custom Unparsable Artifact Bypass & Prose Deflection
+        # Rejects unverified artifacts AND Static Assets before wasting compute
         if confidence < 0.42 or self.primary_lang_id in (
             "plaintext",
             "markdown",
@@ -376,7 +376,7 @@ class StructuralExtractor:
             "csv",
         ):
             self.logger.debug(
-                f"[DIAGNOSTIC] Bypass triggered (Conf: {confidence:.2f} | Lang: {self.primary_lang_id}). Relegating to Dark Matter/Ghost Mass."
+                f"[DIAGNOSTIC] Bypass triggered (Conf: {confidence:.2f} | Lang: {self.primary_lang_id}). Relegating to Unparsable Artifacts."
             )
             return {
                 "equations": {},
@@ -416,7 +416,7 @@ class StructuralExtractor:
         try:
             line_count = sum(1 for l in code_stream.splitlines() if l.strip())
 
-            # --- EXISTING OPTICAL PIPELINE ---
+            # --- EXISTING STRUCTURAL PIPELINE ---
             segments = self._partition_segments(code_stream, self.primary_lang_id)
 
             equations, mitigation_telemetry, segment_spatial_maps, extracted_parents = self.coding_analysis(
@@ -675,7 +675,7 @@ class StructuralExtractor:
 
         return meta
 
-    def _extract_ghost_tether(self, start_line: int, lang_id: str) -> str:
+    def _extract_documentation_tether(self, start_line: int, lang_id: str) -> str:
         """Surgically extracts the human intent (docstring/comments) using exact spatial coordinates."""
         if not hasattr(self, "raw_content_lines") or not self.raw_content_lines:
             return ""
@@ -1183,7 +1183,7 @@ class StructuralExtractor:
         segment_spatial_maps: List[Dict[str, List[int]]],
         regex_telemetry: dict = None,
     ) -> Tuple[List[FunctionNode], float]:
-        """The Master Routing Dispatcher: Directs the optical signal into the correct integration mode."""
+        """The Master Routing Dispatcher: Directs the structural signal into the correct integration mode."""
         all_satellites = []
         global_impact = 0.0
 
@@ -1192,19 +1192,19 @@ class StructuralExtractor:
             rules = lang_config.get("rules", {})
             family = lang_config.get("lexical_family", "c_style_comment")
 
-            optical_mode = ScopeParsingRegistry.get_mode(lang_id)
+            integration_mode = ScopeParsingRegistry.get_mode(lang_id)
 
             t_mode_start = time.perf_counter()
             mode_name = "Unknown"
 
-            if optical_mode == "mode_d":
+            if integration_mode == "mode_d":
                 mode_name = "Mode_D_Keywords"
                 sats, impact = self._slice_by_keywords(code, lang_id, rules, offset, spatial_map)
-            elif optical_mode == "mode_e":
+            elif integration_mode == "mode_e":
                 mode_name = "Mode_E_Terminator"
                 sats, impact = self._slice_by_terminator(code, lang_id, rules, offset, spatial_map)
             else:
-                # Fallback to standard optical heuristics (Modes A, B, C)
+                # Fallback to standard structural heuristics (Modes A, B, C)
                 func_start = rules.get("func_start")
                 if not func_start:
                     continue
@@ -1545,7 +1545,7 @@ class StructuralExtractor:
 
             last_end_idx = end_idx
 
-            # Extract the raw payload using the ORIGINAL code to retain the exact physics payload
+            # Extract the raw payload using the ORIGINAL code to retain the exact executable payload
             block = code[start_idx:end_idx].strip()
             if not block or len(block.splitlines()) < 2:
                 continue
@@ -1982,30 +1982,30 @@ class StructuralExtractor:
         effective_loc = min(loc, (total_signals + 1) * 10)
 
         # ---> THE FIX 2: SUB-LINEAR ARGUMENT DAMPENER & BIG-O SCALAR <---
-        # Apply a square root to the arguments to prevent combinatorial mass explosions
-        # on edge-case mega-functions, while preserving the core physics philosophy.
+        # Apply a square root to the arguments to prevent combinatorial magnitude explosions
+        # on edge-case mega-functions, while preserving the core structural philosophy.
         arg_multiplier = math.sqrt(args_count + 1)
 
         # Apply Big O Depth as an exponential gravity multiplier.
         # O(N)=1.0x, O(N^2)=1.5x, O(N^3)=2.0x, etc.
         complexity_multiplier = 1.0 + ((big_o_depth - 1) * 0.5)
 
-        # Recursive functions are dangerous and mathematically dense. Double their mass.
+        # Recursive functions are dangerous and mathematically dense. Double their magnitude.
         if is_recursive:
             complexity_multiplier *= 2.0
 
         # Calculate magnitude using the dampened arguments, Big-O depth, and logic-bounded length
         magnitude = float((branch_hits + 1) * arg_multiplier * complexity_multiplier + (0.05 * effective_loc))
 
-        # ---> THE FIX: SPATIAL GEOMETRY MATH <---
+        # ---> THE FIX: LOGIC TOPOLOGY MATH <---
         # Calculate the Control Flow Ratio and the Fractal Fibonacci Angle (Theta)
         total_cf_signals = branch_hits + linear_hits
         control_flow_ratio = (branch_hits / total_cf_signals) if total_cf_signals > 0 else 0.0
         angle = 22.5 + (1.0 - control_flow_ratio) * 67.5
 
-        # ---> NEW: THE GHOST TETHER <---
+        # ---> NEW: THE DOCUMENTATION TETHER <---
         # Re-attach the human intent using the exact starting line coordinate!
-        docstring = self._extract_ghost_tether(start_line, self.primary_lang_id)
+        docstring = self._extract_documentation_tether(start_line, self.primary_lang_id)
 
         # ---> NEW: LEVEL 3 WIRING (Function Call Chains) <---
         # We scan the block for any word followed by a parenthesis, minus common language keywords.

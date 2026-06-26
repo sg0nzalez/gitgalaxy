@@ -108,7 +108,7 @@ class GPURecorder:
             "satellite_data_flat": [],  # Output retains WebGL 'satellite' namespace for functions
             "satellite_offsets": [0],
             "imports": [],
-            "c_ids": [],  # Directory Group / Constellation mappings
+            "c_ids": [],  # Directory Group / Subsystem mappings
             "a_ids": [],  # Ecosystem Baseline / Archetype IDs
             "a_dists": [],
             "edges": [],  # Inbound dependency pointers
@@ -191,7 +191,7 @@ class GPURecorder:
             repository_graph["m_locs"].append(int(file_data.get("coding_loc", 0)))
             repository_graph["d_locs"].append(int(file_data.get("doc_loc", 0)))
 
-            # 4. Quantized Physics Metrics
+            # 4. Quantized Structural Metrics
             repository_graph["mass"].append(int(round(file_data.get("file_impact", 0.0) * 10)))
             repository_graph["author_distribution"].append(int(round(tel.get("author_distribution", 0.0) * 1000)))
             repository_graph["ownership_entropy"].append(int(round(tel.get("ownership_entropy", 0.0) * 1000)))

@@ -11,7 +11,7 @@ import re
 
 """
 language_standards.py
-Phase 2 & 3: The Optical Registry & Syntax Dictionaries.
+Phase 2 & 3: The Lexical Registry & Syntax Dictionaries.
 
 This file contains the compiled regular expressions, mechanical delimiters, 
 and language-specific rules used to physically slice, parse, and identify 
@@ -19,7 +19,7 @@ source code across the repository.
 """
 
 # ------------------------------------------------------------------------------
-# 1. LENS CONFIGURATION (Language Identification & Disambiguation)
+# 1. STRUCTURAL SIGNATURE CONFIGURATION (Language Identification & Disambiguation)
 # Consumed by: language_lens.py
 # ------------------------------------------------------------------------------
 LENS_CONFIG = {
@@ -194,7 +194,7 @@ _DENSE_FRAGILE = (
 GLOBAL_FRAGILE_DEBT = re.compile(f"{_SPACED_FRAGILE}|{_DENSE_FRAGILE}", re.I)
 
 # ------------------------------------------------------------------------------
-# 4. LANGUAGE DEFINITIONS (The Core Optical Matrix)
+# 4. LANGUAGE DEFINITIONS (The Structural Signature Matrix)
 # Consumed by: detector.py, language_lens.py, prism.py
 # ------------------------------------------------------------------------------
 LANGUAGE_DEFINITIONS = {
@@ -273,7 +273,7 @@ LANGUAGE_DEFINITIONS = {
             # JSONC/JSON5 multi-line blocks use standard C-style delimiters.
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Includes match/case (3.10+) and logical short-circuits. EXCLUDES exceptions.
             "branch": re.compile(r"\b(if|elif|else|for|while|with|try|finally|match|case|and|or)\b"),
@@ -330,7 +330,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\bglobal\b|\bnonlocal\b|\b(?:self|cls)\.\w+[ \t]*=|:=|(?:\.\w+)?\.(?:append|extend|update|pop|remove|insert|clear)\s*\("
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"#[ \t]*(?:def|class|import|if|for|while|try|return)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(
@@ -395,7 +395,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -422,19 +422,19 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(logging|logger|structlog|sentry_sdk|datadog|loguru)\.(?:info|error|warn|warning|debug|trace|log|exception|critical)\b"
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(print|input)\s*\("),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\b(int|str|float|list|dict|set|tuple|bool|bytes|cast)\b\s*\("),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(raise|quit|exit|sys\.exit|abort)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(time\.sleep|asyncio\.sleep|Thread\.join)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|\^|~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(Lock|RLock|Semaphore|BoundedSemaphore|Event|Condition|Barrier)\b"),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(Final|frozenset|mappingproxy|immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|__exit__|del|shutdown|cleanup)\b\s*\("),
@@ -510,7 +510,7 @@ LANGUAGE_DEFINITIONS = {
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token (Includes JSDoc // style)
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
@@ -519,8 +519,8 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES throw (bailout_hits).
             "branch": re.compile(
@@ -601,7 +601,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b(let|var|this\.|setState|mut|push|pop|shift|unshift|splice|sort|reverse|\.current[ \t]*=|\.set\(|\.delete\(|\.add\()\b"
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"//[ \t]*(?:if|for|while|function|class|return|var|const|let|import)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r"/\*\*|@param|@return|@throws|@deprecated|@typedef|@type|@template"),
@@ -681,7 +681,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -704,22 +704,22 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(logger|winston|pino|morgan|datadog|prometheus|newrelic|sentry)\.(?:info|error|warn|debug|trace|log)\b"
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\bconsole\.(?:log|warn|error|dir|trace|info|table|time)\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\b(Number|String|Boolean|BigInt|Symbol|Array\.from)\b\s*\("),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|abort|process\.exit)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(sleep|delay|setTimeout|setInterval|Atomics\.wait)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>>?|\^|~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|Atomics\.lock|Atomics\.wait)\b",
                 re.I,
             ),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(const|readonly|final|Object\.freeze|Object\.seal)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(dispose|close|destroy|clearTimeout|clearInterval|removeEventListener|delete)\b"),
@@ -788,7 +788,7 @@ LANGUAGE_DEFINITIONS = {
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token (Includes TSDoc /// references)
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
@@ -797,8 +797,8 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # EXCLUDES: Exceptions (throw). Includes control flow and logical short-circuits.
             "branch": re.compile(
@@ -877,7 +877,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b(let|var|this\.|setState|push|pop|shift|unshift|splice|sort|reverse|\.current[ \t]*=|\.set\(|\.delete\(|\.add\()\b"
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"//[ \t]*(?:if|for|while|function|class|return|export|import)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r"/\*\*|@param|@return|@throws|@deprecated|@typedef|@type|@template|@callback"),
@@ -955,7 +955,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -980,22 +980,22 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(logger|winston|pino|morgan|datadog|prometheus|newrelic|sentry)\.(?:info|error|warn|debug|trace|log)\b"
             ),
-            # 39. print_hits (The Amateur)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs)
             "debug_prints": re.compile(r"\bconsole\.(?:log|warn|error|dir|trace|info|table|time)\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\bas\s+[A-Z]\w*|<\s*[A-Z]\w*\s*>\s*[a-zA-Z_]"),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|fatalError|abort|process\.exit)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(sleep|delay|setTimeout|setInterval|Atomics\.wait)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|\^|~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|Atomics\.lock|Atomics\.wait)\b",
                 re.I,
             ),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(const|readonly|final|Object\.freeze|Object\.seal)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(dispose|close|destroy|clearTimeout|clearInterval|removeEventListener|delete)\b"),
@@ -1060,7 +1060,7 @@ LANGUAGE_DEFINITIONS = {
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token (Includes Javadoc /**)
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
@@ -1069,7 +1069,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Includes modern switch expressions (yield) and pattern guards (when).
             # EXCLUDES: Exceptions (throw) - moved to bailout_hits.
@@ -1153,7 +1153,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b(volatile|Atomic\w+)\b|^[ \t]*(?:this\.)?\w+[ \t]*=|@(?:Setter|Data)\b|(?:\w+\.)?(?:set[A-Z]\w+|add|put|remove|clear|addAll|replace|computeIfAbsent)\s*\("
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"//[ \t]*(?:public|private|protected|class|void|if|for|while|return|import)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(
@@ -1207,7 +1207,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -1237,26 +1237,26 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(log|logger|LOGGER|LoggerFactory|LogManager|MDC|Tracer|Span)\.(?:info|error|warn|warning|debug|trace|log)\b|@Slf4j|@Log4j2"
             ),
-            # 39. print_hits (The Amateur)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs)
             "debug_prints": re.compile(
                 r"\b(System\.out\.(?:print|println|printf)|System\.err\.(?:print|println|printf)|\.printStackTrace\(\))\b"
             ),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(
                 r"\(\s*(?:int|long|short|byte|char|float|double|boolean|[A-Z][A-Za-z0-9_]*)\s*\)\s*[a-zA-Z_$]"
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|abort|System\.exit|halt)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(Thread\.sleep|TimeUnit\.[A-Z_]+\.sleep|delay|CountDownLatch\.await)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>>?|\^|~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|ReentrantLock|ReadWriteLock|Condition)\b",
                 re.I,
             ),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(final|immutable|unmodifiable[A-Z]\w*|Object\.freeze)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|dispose|shutdown|free|release|cleaner\.register)\b\s*\("),
@@ -1318,7 +1318,7 @@ LANGUAGE_DEFINITIONS = {
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token (Includes XML Doc ///)
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
@@ -1327,7 +1327,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES throw (bailout_hits).
             # Includes pattern matching (and, or, not) and null-coalescing.
@@ -1464,7 +1464,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b(set|field)\s*[{;]|volatile|ref\s|out\s|^[ \t]*(?:this\.)?\w+[ \t]*=|(?:\w+\.)?(?:Add|Remove|Clear|Insert|Push|Pop|Update)\s*\("
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(
                 r"//[ \t]*(?:public|private|protected|internal|class|void|if|for|foreach|while|return|using)\b"
             ),
@@ -1522,7 +1522,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (The Blazor/Razor Horizon)
             "ssr_boundaries": re.compile(
@@ -1555,25 +1555,25 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(?:ILogger|_logger|Log|TelemetryClient|ActivitySource)\.(?:LogInformation|LogError|LogWarning|LogDebug|StartActivity|TrackEvent)\b|\[LoggerMessage"
             ),
-            # 39. print_hits (The Amateur)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs)
             "debug_prints": re.compile(r"\b(Console\.(?:Write|WriteLine|Error)|Debug\.(?:Write|WriteLine|Print))\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(
                 r"\bas\s+[A-Z]\w*|\(\s*(?:int|long|short|byte|char|float|double|decimal|bool|string|[A-Z][A-Za-z0-9_]*)\s*\)\s*[a-zA-Z_$]"
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|abort|FailFast|Environment\.Exit)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(sleep|delay|Wait\(\)|Task\.Delay|Thread\.Sleep)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             # Low-level byte manipulation. Safely maps to C# bitwise operators without overlapping language-specific pipelines.
             "bitwise_ops": re.compile(r"<<|>>|\^|~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|Monitor|Semaphore|Interlocked|SpinLock|ReaderWriterLockSlim)\b",
                 re.I,
             ),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(const|readonly|init|Immutable[A-Z]\w*)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(dispose|close|free|delete|GC\.Collect|GC\.SuppressFinalize)\b\s*\("),
@@ -1616,7 +1616,7 @@ LANGUAGE_DEFINITIONS = {
         "shebangs": ["go", "gorun", "yaegi"],
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token.
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
@@ -1625,7 +1625,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Includes select/case and range-based loops. EXCLUDES panic (bailout_hits).
             "branch": re.compile(
@@ -1689,7 +1689,7 @@ LANGUAGE_DEFINITIONS = {
             # 11. flux (State Mutation)
             # Mutation of state. Reassignment and channel sends.
             "state_mutation": re.compile(r":=|(?<![=!<>])=(?![=])|<-|\bappend\(|\batomic\.(?:Add|Store|Swap)"),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"//[ \t]*(?:func|type|var|const|import|if|for|switch|select|return)\b"),
             # 13. doc (Structured Documentation)
             # GoDoc standard: comments immediately preceding a declaration.
@@ -1746,7 +1746,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             # Gofmt mandates tabs; finding spaces at start signals structural friction.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -1776,22 +1776,22 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(slog|logrus|zap|zerolog|log)\.(?:Info|Warn|Error|Debug|Trace)(?:f|ln)?\b|\btrace\.Span\b"
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(fmt\.Print|fmt\.Println|fmt\.Printf|println|print)\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             # Type assertions and conversions.
             "explicit_casts": re.compile(
                 r"\.\([a-zA-Z_]\w*\)|\b(?:int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|float32|float64|byte|rune|uintptr|string)\s*\("
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(panic|os\.Exit|log\.Fatal)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(time\.Sleep|time\.After|runtime\.Gosched)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|\^|&\^"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(Mutex|RWMutex|Lock|Unlock|RLock|RUnlock|atomic\.|sync\.Map|sync\.Pool)\b"),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\bconst\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(defer|Close|Unlock|RUnlock|Stop|Cleanup)\b\s*\("),
@@ -1842,7 +1842,7 @@ LANGUAGE_DEFINITIONS = {
         # unlike standard C/C++. Standard C parsing would prematurely terminate here.
         "lexical_family": "recursive_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token (Includes /// and //!)
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the same '//' delimiter.
@@ -1851,7 +1851,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # REQUIRED for Family 2: Recursive logic markers
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES panic!/throw (bailout_hits).
             "branch": re.compile(r"\b(if|else|match|for|while|loop|break|continue)\b|\?|&&|\|\|"),
@@ -1917,7 +1917,7 @@ LANGUAGE_DEFINITIONS = {
             # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const (freeze_hits).
             "state_mutation": re.compile(r"\bmut\b|\.borrow_mut\(\)|\.write\(\)|Cell::|RefCell::|Atomic[A-Za-z0-9]+"),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"//[ \t]*(?:fn|let|struct|impl|mod|use|match|for|while|loop|if|return)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r"///|//!|#!?\[doc\b[^\]]*\]"),
@@ -1986,7 +1986,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -2012,23 +2012,23 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(r"\b(?:log::|tracing::)?(?:info!|warn!|error!|debug!|trace!|span!|instrument)\b"),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(println!|print!|eprintln!|eprint!|dbg!)\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             # Forceful type coercion bypassing the safety engine. Enforces strict mapping to the `as` keyword followed by standard primitive types.
             "explicit_casts": re.compile(
                 r"\bas\s+(?:i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize|f32|f64|bool|char)\b"
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(panic!|abort|process::exit|fatalError)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(std::thread::sleep|tokio::time::sleep|Duration::from)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             # Low-level byte manipulation. CRITICAL: Removed the pipe '|' (used for closures `|x| x+1` and patterns), ampersand '&' (used for references), and exclamation '!' (used for macros and logical NOT).
             "bitwise_ops": re.compile(r"<<|>>|\^"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(Mutex|RwLock|lock|barrier|atomic|Semaphore)\b", re.I),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(const|static|immutable|readonly)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(drop|free|delete|close|shutdown)\b\s*\("),
@@ -2098,7 +2098,7 @@ LANGUAGE_DEFINITIONS = {
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # C++ uses '//' for standard line-level Literature (Commented / Non-Executable Text).
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
@@ -2210,7 +2210,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b(mutable|std::move|std::exchange|std::swap|std::atomic)\b|(?<![=!<>])=(?![=])|&(?!\s*const)|\+\+|--|(?:\+=|-=|\*=|/=|%=|<<=|>>=|&=|\|=|\^=)"
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented-out execution logic indicating dead features. MUST enforce that the structural keyword immediately follows the comment token.
             "dead_code": re.compile(
                 r"//[ \t]*(?:if|for|while|auto|class|struct|std::cout|std::print|printf|void|int|return)\b"
@@ -2276,7 +2276,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(r"\b(FCGI_Accept|render_template|Inja::|ctemplate::)\b"),
@@ -2303,29 +2303,29 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(r"\b(log|logger|LOGGER|spdlog|glog|syslog)\.(?:info|error|warn|debug|trace)\b"),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(
                 r"\b(std::cout|std::cerr|std::clog|printf|fprintf|vprintf|puts|putchar|std::print|std::println)\b"
             ),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             # Forceful type coercion bypassing the safety engine. Captures modern explicitly named casts and strict C-style groupings.
             "explicit_casts": re.compile(
                 r"\b(?:static_cast|dynamic_cast|reinterpret_cast|const_cast|bit_cast)\b|<\s*[A-Za-z_]\w*\s*>|\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed)\s*\)\s*[a-zA-Z_]"
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|abort|exit|_Exit|quick_exit|std::terminate|longjmp)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             # Admission of race conditions or lazy polling.
             "thread_sleeps": re.compile(r"\b(sleep|delay|usleep|nanosleep|std::this_thread::sleep_for)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             # Low-level byte manipulation. CRITICAL: Removed bare `<<` and `>>` to prevent catastrophic false positives on `std::cout` and `std::cin` streams. Explicit bitwise assignments (`<<=`, `&=`) are retained as they are unambiguous.
             "bitwise_ops": re.compile(r"\^|(?<![=!])~|<<=|>>=|&=|\|=|\^="),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|std::lock_guard|std::scoped_lock|std::unique_lock|mtx_lock)\b",
                 re.I,
             ),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(const|constexpr|consteval|constinit|final|readonly|Immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(delete|free|close|fclose|dispose|shutdown|std::destroy|reset)\b\s*\("),
@@ -2385,7 +2385,7 @@ LANGUAGE_DEFINITIONS = {
         # (/* */) is handled by the Section 2.3.C.3 Heuristic Pass.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Modern C (C99+) uses '//' for standard line-level Commented / Non-Executable Text.
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the standard '//' delimiter.
@@ -2394,7 +2394,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and jumps. EXCLUDES exit/abort (bailout_hits).
             "branch": re.compile(r"\b(if|else|switch|case|default|for|while|do|break|continue|goto)\b|&&|\|\||\?"),
@@ -2496,7 +2496,7 @@ LANGUAGE_DEFINITIONS = {
             # 11. flux (State Mutation)
             # Mutation of state. EXCLUDES const/constexpr (freeze_hits).
             "state_mutation": re.compile(r"(?<![=!<>])=(?![=])|\*(?!\s*const)\w+[ \t]*=|(?:\+\+|--)"),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"(?://|/\*)[ \t]*(?:if|for|while|struct|union|enum|void|int|return)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r"///|/\*\*|@param|@return|@brief|@details|\\param|\\return|\\brief|\\details"),
@@ -2550,7 +2550,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(r"\b(FCGI_Accept|khttp_parse|MHD_start_daemon|facil\.io)\b"),
@@ -2576,9 +2576,9 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(r"\b(?:syslog|openlog|log_info|log_error|log_warn|log_debug|vsyslog)\b"),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(printf|fprintf|vprintf|puts|putchar|perror)\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(
                 # =====================================================================
                 # [ROADMAP: NESTED OPTIONAL SPACES (ReDoS TRAP)]
@@ -2590,17 +2590,17 @@ LANGUAGE_DEFINITIONS = {
                 # =====================================================================
                 r"\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed|void)\s*[*]*\s*\)\s*[a-zA-Z_]"
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(abort|exit|_Exit|quick_exit|return\s+-1)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(sleep|usleep|nanosleep|thrd_sleep)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|\^|(?<![=!])~|<<=|>>=|&=|\|=|\^="),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(
                 r"\b(mtx_lock|mtx_unlock|pthread_mutex_lock|atomic_flag_test_and_set|atomic_store)\b"
             ),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(const|constexpr|alignas|restrict)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(free|fclose|close|munmap|destroy|shutdown)\b\s*\("),
@@ -2625,7 +2625,7 @@ LANGUAGE_DEFINITIONS = {
             "blueprint_version": "v5.0",
             "status": "production",
         },
-        # COMPREHENSIVE SURFACE AREA: Merged standard suffixes, legacy formats, UI templates (.phtml, .ctp), and CMS "dark matter" (.module, .inc).
+        # COMPREHENSIVE SURFACE AREA: Merged standard suffixes, legacy formats, UI templates (.phtml, .ctp), and CMS "unparsable artifacts" (.module, .inc).
         "extensions": [
             ".php",
             ".phtml",
@@ -2665,7 +2665,7 @@ LANGUAGE_DEFINITIONS = {
         # comment styles (//, #, and /* */).
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # PHP supports both '//' and '#' for line-level Commented / Non-Executable Text.
             "_line_anchor": re.compile(r"//|#"),
             # Inline comments follow the same dual-token logic.
@@ -2673,7 +2673,7 @@ LANGUAGE_DEFINITIONS = {
             # Block comment start: /* '_block_start': re.compile(r'/\*'),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Control flow. Includes modern match expression. EXCLUDES throw (bailout_hits).
             "branch": re.compile(
@@ -2725,7 +2725,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*\s*(?:[-+*./%&|])?=|&\$|\bglobal\s+\$|(?:\w+)?(?:->|::)[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*[ \t]*=|array_(?:push|pop|shift|unshift|splice)\b|(?:\+\+|--)"
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(
                 r"//\s*[;{}]|/\*\s*(?:function|class|namespace|use|if|foreach)\s|#\s*\$|//\s*(?:echo|print|\$|return|var_dump)"
             ),
@@ -2807,7 +2807,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -2835,21 +2835,21 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:Log::|LoggerInterface|logger\(|Monolog\\|error_log|Psr\\Log)\b.*?(?:info|error|warning|debug|trace|notice|critical|alert|emergency)\b",
                 re.I,
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(echo|print|var_dump|print_r|printf|vprintf|var_export|die|exit|dd|dump)\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(
                 r"\((?:int|integer|bool|boolean|float|double|string|array|object|unset)\)\s*|\bsettype\s*\("
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|die|exit|abort)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(sleep|usleep|time_nanosleep|time_sleep_until)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(mutex|lock|synchronized|Semaphore|flock|sem_acquire)\b", re.I),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(const|readonly|final)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(unset|fclose|mysql_close|mysqli_close|PDO::null|dispose|cleanup)\b\s*\("),
@@ -2895,7 +2895,7 @@ LANGUAGE_DEFINITIONS = {
         # a unique '<# #>' syntax for multi-line block comments, requiring hybrid parsing logic.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # PowerShell uses '#' for standard line-level literature.
             "_line_anchor": re.compile(r"#"),
             # Inline comments are also triggered by the '#' token.
@@ -2904,7 +2904,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"<#"),
             # Block comment end: #>
             "_block_end": re.compile(r"#>"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # branch: decisions that split flow. Includes ternary operators (?) and null-coalescing (??).
             "branch": re.compile(
                 r"\b(if|else|elseif|switch|for|foreach|while|do|until|try|catch|finally|throw|trap|break|continue|return)\b|-and|-or|-not|-xor|\?|\?\?",
@@ -2913,7 +2913,7 @@ LANGUAGE_DEFINITIONS = {
             # args: Parameters / Coupling. Captures the param block mass of functions and script files.
             "args": re.compile(r"\bparam\s*\([^)]*\)|\bfunction\s+[a-zA-Z0-9_-]+\s*\([^)]*\)", re.I),
             # linear: Sequential I/O & Network Boundaries. Structural boundaries defining scope (process, begin, end).
-            # EXCLUDES access modifiers (hidden, static) to prevent Geometry Inflation.
+            # EXCLUDES access modifiers (hidden, static) to prevent Structural Complexity Inflation.
             "structural_boundaries": re.compile(
                 r"\b(function|filter|workflow|configuration|class|enum|process|begin|end|clean|return|exit|using|namespace)\b",
                 re.I,
@@ -2969,7 +2969,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\$(?:[a-zA-Z]+:)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*|\[[^\]\n]+\]){0,4}[ \t]*(?:\+\+|--)",
                 re.I,
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented-out execution logic indicating dead features. Supports both `//` and `#` style comments.
             "dead_code": re.compile(r"(?:#|<#)[ \t]*(?:function|class|if|foreach|while|return)\b", re.I),
             # doc: Structured Documentation. Get-Help comment-based documentation.
@@ -3042,7 +3042,7 @@ LANGUAGE_DEFINITIONS = {
             "planned_debt": GLOBAL_PLANNED_DEBT,
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             # Structural formatting violating norms. Handled natively by the GitGalaxy Signal Processor.
             "tabs_vs_spaces": None,
             "ssr_boundaries": re.compile(
@@ -3072,35 +3072,35 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(Write-Verbose|Write-Debug|Write-Information|Write-Warning|Start-Transcript|Write-Log)\b",
                 re.I,
             ),
-            # print_hits: Standard output. Raw terminal pollution.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs)
             "debug_prints": re.compile(r"\b(Write-Host|echo)\b", re.I),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             # Forceful type coercion. PHP has a strict, built-in casting syntax which prevents false positives naturally.
             "explicit_casts": re.compile(
                 r"\[(?:int|long|string|char|byte|bool|double|float|decimal|array|hashtable)\]\s*[\$\(]",
                 re.I,
             ),
-            # bailout_hits: Detonators. Aborting execution context.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|Exit)\b|-ErrorAction\s+Stop", re.I),
-            # halt_hits: Temporal Duct Tape. Forcing threads to sleep.
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(Start-Sleep|sleep)\b", re.I),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             # Low-level byte manipulation. CRITICAL: Removed the pipe '|' (PHP 8 Union Types), ampersand '&' (Pass-by-reference `&$var`), and used lookarounds for `<<` to prevent triggering on Heredocs (`<<<EOF`).
             "bitwise_ops": re.compile(r"-(?:band|bor|bxor|bnot|shl|shr)\b", re.I),
             # sync_locks: Barricades. Coordinated threading logic.
             "sync_locks": re.compile(r"\b(lock|Monitor|Mutex|Semaphore|atomic|WaitOne)\b", re.I),
-            # freeze_hits: Data Cryogenics. Immutability via Constant variables.
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"New-Variable\s+[^;]*?-Option\s+Constant|readonly", re.I),
-            # cleanup: The Janitor. Resource release.
+            # 46. cleanup (Resource Cleanup / Teardown) Resource release.
             "cleanup": re.compile(
                 r"\b(dispose|Remove-Variable|Remove-Item|Remove-Module|Stop-Transcript)\b",
                 re.I,
             ),
-            # encapsulation: The Vault. Hiding logic from the application.
+            # 47. encapsulation (Encapsulation / Access Modifiers)
             "encapsulation": re.compile(r"\b(hidden|private)\b", re.I),
-            # listeners: The Sinks. Waiting for external state broadcasts.
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(Register-ObjectEvent|on_|Connect-)\b", re.I),
-            # test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs) Safety Theater.
             "test_skip": re.compile(r"\b(pending|skip|Ignore)\b", re.I),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (PowerShell Specifics) ---
             "serialization_parsing": re.compile(
@@ -3151,7 +3151,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Relies strictly on '#' for line-level Commented / Non-Executable Text; no native block delimiters.
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Shell uses '#' for standard line-level literature.
             "_line_anchor": re.compile(r"#"),
             # Inline comments are also triggered by the '#' token.
@@ -3159,7 +3159,7 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: Shell lacks native multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logic jumps. Includes test constructs [[ ]] and [ ].
             # CRITICAL: Excluded bare '((' and '))' to prevent ReDoS on massive subshell nesting.
@@ -3220,7 +3220,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*[a-zA-Z_]\w*(?:\[[^\]]+\])?=(?![=~])|\b(?:let|declare)\s+[a-zA-Z_]\w*=|\[\+\]=|\(\([^)]*(?:\+\+|--|[-+*/%]=)[^)]*\)\)",
                 re.M,
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented-out execution logic indicating dead features.
             "dead_code": re.compile(r"#[ \t]*(?:if|for|while|function|export|echo|printf|cd|rm|sudo|ls)\b"),
             # 13. doc (Structured Documentation)
@@ -3306,7 +3306,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"#\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             # Legacy CGI shell environments.
@@ -3334,19 +3334,19 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(?:logger|syslog|log_info|log_err|log_warn|log_debug)\b|>\s*/dev/(?:stderr|console)"
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(echo|printf|print|read)\b"),
-            # 40. cast_hits
+            # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": None,
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(exit|kill|abort|halt|return\s+[1-9][0-9]*)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(sleep|read\s+-t)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": None,
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(flock|mkdir|mkfifo|lockfile|sem)\b"),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(readonly|declare\s+-r|typeset\s+-r)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(rm\s+-f|trap\s+.*EXIT|unset|exit|logout)\b"),
@@ -3414,7 +3414,7 @@ LANGUAGE_DEFINITIONS = {
         # utilizes the `=begin ... =end` block syntax, requiring hybrid parsing rules.
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Ruby uses '#' for standard line-level literature (Commented / Non-Executable Text).
             "_line_anchor": re.compile(r"#"),
             # Inline comments are also triggered by the '#' token.
@@ -3486,7 +3486,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"@[a-zA-Z_]\w*\s*(?:\+|-|\*|/)?=|@@[a-zA-Z_]\w*\s*(?:\+|-|\*|/)?=|\b(?:push|pop|shift|unshift|delete|clear|merge!|update!|gsub!|map!|select!|reject!)\b|<<"
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"#[ \t]*(?:def|class|module|if|unless|while|puts|p)\b"),
             # 13. doc (Structured Documentation)
             # Captures YARD tags, Sorbet signatures, RDoc blocks/modifiers, and standard documentation headers.
@@ -3567,7 +3567,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -3594,19 +3594,19 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(?:Rails\.logger|Logger\.new|SemanticLogger|[a-zA-Z_]\w*logger)\.(?:debug|info|warn|error|fatal|unknown)\b"
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(puts|print|p|pp|warn)\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\b(Integer|Float|String|Array|Hash|Complex|Rational)\b\s*\("),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(raise|fail|abort|exit!)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\bsleep\b\s*[0-9.]+"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"\^|(?<![=!])~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(mutex|lock|synchronized|Semaphore|Monitor|Atomic[A-Z]\w*)\b", re.I),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(freeze|frozen_string_literal|immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|GC\.start|dispose|shutdown|cleanup)\b\s*\("),
@@ -3644,7 +3644,7 @@ LANGUAGE_DEFINITIONS = {
         # rather than standard C-style early termination.
         "lexical_family": "recursive_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the same '//' delimiter.
@@ -3653,7 +3653,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # REQUIRED for Family 2: Recursive logic markers
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. Includes modern typed throws (throws(Error)).
             # EXCLUDES throw/rethrows (bailout_hits).
@@ -3726,7 +3726,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b(var|inout|mutating|didSet|willSet|_modify)\b|@(?:State|Binding|FocusState|Bindable|Observable)|^[ \t]*(?:self\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*){0,5}\s*[-+*/]?=|\.(?:append|insert|remove|toggle|updateValue)\("
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"//[ \t]*(?:let|var|func|class|struct|actor|extension|if|guard|return)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r"///|/\*\*|-\s*parameter|-\s*returns:|-\s*throws:|-\s*warning:"),
@@ -3783,7 +3783,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -3817,24 +3817,24 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:Logger|OSLog|os_log)\b|\bLogger\([^)]*\)\.(?:info|error|warning|debug|trace|notice|critical|fault)\b",
                 re.I,
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(print|debugPrint|dump)\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(
                 r"\bas[!?]?\s+[A-Z]\w*|\bis\s+[A-Z]\w*|\b(?:Int|Double|Float|Float16|CGFloat|String|Bool)\s*\("
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|fatalError|abort|exit|preconditionFailure)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(sleep|delay|Task\.sleep)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|\^|(?<![=!])~|<<=|>>=|\^="),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(
                 r"\b(mutex|lock|synchronized|Semaphore|OSAllocatedUnfairLock|MainActor|distributed)\b",
                 re.I,
             ),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(let|final|static|readonly|Immutable|Sendable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(deinit|close|free|dispose|shutdown|removeAll)\b\s*\("),
@@ -3884,7 +3884,7 @@ LANGUAGE_DEFINITIONS = {
         # block comments (/* /* */ */). Using standard C parsing would cause early termination here.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the same '//' delimiter.
@@ -3893,7 +3893,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. Includes modern 'when' and Elvis operator.
             # EXCLUDES throw (bailout_hits).
@@ -3963,7 +3963,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(var|MutableList|MutableMap|MutableSet|MutableState|MutableStateFlow|Atomic[A-Za-z0-9]+)\b|^[ \t]*(?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*\s*[-+*/%]?=|\.(?:add|addAll|remove|put|set|update)\(",
                 re.M,
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"//[ \t]*(?:val|var|fun|class|interface|object|if|when|for|return|import)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r"/\*\*|@param|@return|@property|@receiver|@constructor|@throws|@see|@since"),
@@ -4023,7 +4023,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -4051,21 +4051,21 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(?:Timber|Log|Logger|LoggerFactory)\.(?:i|e|w|d|v|info|error|warn|warning|debug|trace|verbose)\b|@Slf4j"
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(println|print)\b\s*\("),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(
                 r"\bas\??\s+[A-Z]\w*|\.to(?:Int|Long|Short|Byte|Double|Float|String|Boolean|UInt|ULong|UShort|UByte)\(\)"
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|raise|exitProcess|return|panic)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(delay|Thread\.sleep|yield)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"\.(?:shl|shr|ushr|and|or|xor|inv)\(|\b(?:shl|shr|ushr|xor)\b"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(mutex|lock|synchronized|Semaphore|Atomic[A-Z]\w*)\b", re.I),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(val|const|immutable|readonly)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|dispose|shutdown|use|cleanup)\b\s*\("),
@@ -4113,7 +4113,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Uses '--' for line-level and '/*' '*/' for block-level Commented / Non-Executable Text.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # SQLite uses '--' for standard line-level literature.
             "_line_anchor": re.compile(r"--"),
             # Inline comments are also triggered by the '--' token.
@@ -4122,7 +4122,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical filters. Includes case logic and modern IIF().
             "branch": re.compile(
@@ -4196,7 +4196,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(UPDATE|SET|ALTER\s+TABLE|ADD\s+COLUMN|DROP\s+COLUMN|RENAME\s+TO|UPSERT|ON\s+CONFLICT\s+DO\s+UPDATE|ON\s+CONFLICT\s+DO\s+NOTHING|REPLACE\s+INTO|EXCLUDED\.[a-zA-Z_]\w*|jsonb?_(?:insert|replace|set|remove|patch))\b",
                 re.I,
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(
                 r"--[ \t]*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|PRAGMA)\b",
                 re.I,
@@ -4267,7 +4267,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"--\s*\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
@@ -4301,22 +4301,22 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:sqlite_stat1|sqlite_stat4|ANALYZE)\b|^[ \t]*\.(?:trace|log|show|stats|timer)\b",
                 re.I | re.M,
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(
                 r"\b(?:disp|warning|fprintf(?![ \t]*\([ \t]*[a-zA-Z_]))\b|^\.print\b|^\.echo\b",
                 re.I | re.M,
             ),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\bCAST[ \t]*\([^)]+[ \t]+AS[ \t]+[a-zA-Z_]+\s*\)", re.I),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(ABORT|RAISE|EXIT|QUIT)\b|\.exit|\.quit", re.I),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\bPRAGMA\s+busy_timeout\b|\.pause", re.I),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|\^|~|(?<!\|)\|(?!\|)"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(BEGIN\s+EXCLUSIVE|BEGIN\s+IMMEDIATE|PRAGMA\s+synchronous)\b", re.I),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(STRICT|WITHOUT\s+ROWID|CONSTANT|READONLY)\b", re.I),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(DROP\s+TABLE|VACUUM|DETACH|CLOSE|CLEAR|DELETE\s+FROM)\b", re.I),
@@ -4375,7 +4375,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Uses SGML-style block delimiters () exclusively; no single-line anchor.
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # EXPLICIT: HTML has no native single-line comment anchor.
             "_line_anchor": None,
             # EXPLICIT: HTML has no native inline comment token.
@@ -4384,7 +4384,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"<!--"),
             # Block comment end: Accept both --> and permissive HTML parser form --!>.
             "_block_end": re.compile(r"--!?>"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # User-driven branching and declarative framework conditionals.
             "branch": re.compile(
@@ -4442,7 +4442,7 @@ LANGUAGE_DEFINITIONS = {
             # 11. flux (State Mutation)
             # HTML is declarative markup. State mutation (DOM manipulation) belongs in JS.
             "state_mutation": None,
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented-out structural logic.
             "dead_code": re.compile(
                 r"<!--[ \t]*<(?:div|script|style|form|table|a|p|section|span|img|ul|li|nav|header|footer|main)\b",
@@ -4519,7 +4519,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             # Back-end template engine hydration.
@@ -4552,23 +4552,23 @@ LANGUAGE_DEFINITIONS = {
                 r'<script[^>]*src="[^"]*(?:analytics|gtag|gtm|segment|plausible|mixpanel)[^"]*"|\bdata-layer\b|\bnavigator\.sendBeacon\b',
                 re.I,
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             # Ad-hoc debug statements in scripts.
             "debug_prints": re.compile(
                 r"\b(?:document\.write|alert|confirm|prompt|console\.(?:log|error|warn|dir|trace|info))\s*\(",
                 re.I,
             ),
-            # 40. cast_hits
+            # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": None,
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(?:process\.exit|history\.back|window\.close)\s*\(", re.I),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(?:setTimeout|setInterval)\s*\(", re.I),
-            # 43. bitwise_hits
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": None,
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": None,
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r'\b(?:readonly|disabled|inert|aria-disabled="true")\b', re.I),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
@@ -4596,7 +4596,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".css", ".scss", ".sass", ".less", ".styl", ".pcss"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: CSS rarely uses extensionless configurations.
         "exact_matches": [],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: CSS linting, PostCSS, and utility framework configurations acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: CSS linting, PostCSS, and utility framework configurations acting as disambiguation anchors.
         "discriminators": [
             ".css",
             "postcss.config.js",
@@ -4610,7 +4610,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Uses '/*' and '*/' for blocks; preprocessors add '//' for lines.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Standard C-family line comment token (Supported in SCSS/SASS/LESS).
             "_line_anchor": re.compile(r"//"),
             # Inline comments follow the same '//' delimiter.
@@ -4619,7 +4619,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical gating. Includes Container/Media queries and logic-gating pseudo-selectors.
             "branch": re.compile(
@@ -4686,7 +4686,7 @@ LANGUAGE_DEFINITIONS = {
             # in volatility. Must remain `None`.
             # =====================================================================
             "state_mutation": None,
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented-out structural rules.
             "dead_code": re.compile(
                 r"/\*[ \t]*(?:@media|@container|@supports|@keyframes|\.[a-zA-Z]|#[a-zA-Z]|[a-zA-Z][\w-]*[ \t]*{)\b",
@@ -4750,7 +4750,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]|\bfigma\.com/file/", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
@@ -4773,7 +4773,7 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry
             "telemetry": None,
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             # =====================================================================
             # THE FIX: Prevent String Literal Hallucinations.
             # HISTORICAL CONTEXT FOR FUTURE LLMS: CSS does not possess a runtime
@@ -4782,19 +4782,19 @@ LANGUAGE_DEFINITIONS = {
             # (e.g., `content: "console.log";`). Must remain `None`.
             # =====================================================================
             "debug_prints": None,
-            # 40. cast_hits
+            # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": None,
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             # Execution resets.
             "panics_and_aborts": re.compile(r"\b(unset|initial|revert|revert-layer)\b", re.I),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(?:transition-delay|animation-delay)\b", re.I),
-            # 43. bitwise_hits
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": None,
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             # Coordinating cascade layers and containment.
             "sync_locks": None,
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             # Explicit locks on data mutation.
             "immutability_locks": re.compile(r"!important\b|\bconstant\b", re.I),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -4855,7 +4855,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Fixed-format requires Column 1 monitoring ('C' or '*'); Free-format uses '!'.
         "lexical_family": "positional_anchored",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Line Anchor Logic:
             # Matches Column 1 indicators for Legacy (C, c, *, d, D)
             # and start-of-line '!' for Modern/Free-form.
@@ -4866,7 +4866,7 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: Fortran does not support standard multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Control flow that forces the CPU to make a decision or jump. High density creates jagged shapes.
             # Includes standard conditional blocks, legacy computed GO TO, and modern SELECT TYPE / SELECT RANK.
@@ -4884,7 +4884,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 3. linear (Sequential Boundaries)
             # Structural boundaries defining straight-line execution and data types.
-            # CRITICAL GUARDRAIL: Access modifiers (PUBLIC, PRIVATE, PROTECTED) do not belong here. Explicitly omitted to prevent the Geometry Inflator Bug.
+            # CRITICAL GUARDRAIL: Access modifiers (PUBLIC, PRIVATE, PROTECTED) do not belong here. Explicitly omitted to prevent the Structural Complexity Inflation Bug
             "structural_boundaries": re.compile(
                 r"\b(PROGRAM|MODULE|SUBMODULE|BLOCK\s+DATA|CONTAINS|END\s+(?:PROGRAM|MODULE|SUBROUTINE|FUNCTION|BLOCK|TYPE|ASSOCIATE)|RETURN|IMPLICIT|USE|ASSOCIATE|BLOCK|INTEGER|REAL|COMPLEX|LOGICAL|CHARACTER|DOUBLE\s+PRECISION|CLASS)\b",
                 re.I,
@@ -4991,7 +4991,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?!\b(?:KIND|LEN|UNIT|FMT|FILE|STATUS|ACTION)\s*=)[A-Za-z0-9_%\(\)]+[ \t]*=[^=>]",
                 re.I,
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented-out logic, commented-out structural code. Supports both Fortran 90+ (`!`) and legacy F77 (`C`/`*` in column 1).
             "dead_code": re.compile(r"(?i)(?:!|^[cC*])[ \t]*(?:if|do|where|call|function|subroutine|allocate)\b"),
             # 13. doc (Structured Documentation)
@@ -5042,7 +5042,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 23. heat_triggers (Metaprogramming & Reflection)
-            # Extreme "Logic Heat": Memory aliasing (`EQUIVALENCE`), multiple entry points (`ENTRY`), Object-Oriented runtime dispatch (`CLASS DEFAULT`, `%`), and unstructured `NAMELIST` loading.
+            # High Cognitive Load: Memory aliasing (`EQUIVALENCE`), multiple entry points (`ENTRY`), Object-Oriented runtime dispatch (`CLASS DEFAULT`, `%`), and unstructured `NAMELIST` loading.
             "reflection_metaprogramming": re.compile(
                 r"\b(EQUIVALENCE|ENTRY|SELECT\s+TYPE|CLASS\s+DEFAULT|NAMELIST|VOLATILE)\b",
                 re.I,
@@ -5069,7 +5069,7 @@ LANGUAGE_DEFINITIONS = {
             # Audit tags establishing traceability of intent back to physics papers or architectural specifications.
             # CRITICAL: Removed (?i) to enforce strict uppercase [SPEC-XYZ] tags and prevent prose collisions.
             "spec_exposure": re.compile(r"\[\s*(?:SPEC\s*-\s*\d+|AUDIT-[A-Z0-9_-]+)\s*\]"),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             # Identifies Tab indentation. In Legacy Fortran 77, columns strictly dictate syntax (1-5 label, 6 continuation, 7+ code).
             # Using tabs violates strict standard constraints, establishing heavy tech debt/formatter civil wars.
             "tabs_vs_spaces": None,
@@ -5105,27 +5105,27 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:call[ \t]+)?(?:log_info|log_error|log_warn|log_debug|logger%info|logger%error|logger%warn|logger%debug|flog)\b",
                 re.I,
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             # Raw terminal output natively dumping to stdout.
             "debug_prints": re.compile(r"\b(?:PRINT\b|WRITE\s*\(\s*(?:\*|6)\s*[,)])", re.I),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             # Forceful type coercion bypassing the safety engine. Strictly defining known Fortran intrinsic type conversion functions.
             "explicit_casts": re.compile(r"(?i)\b(?:int|real|cmplx|dble|achar|char|iachar|ichar)[ \t]*\([^)]*\)"),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             # Hard execution destruction and unrecoverable exceptions.
             "panics_and_aborts": re.compile(r"(?i)\b(?:stop|error[ \t]+stop|return)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             # Forcing threads to sleep.
             "thread_sleeps": re.compile(r"(?i)\bcall[ \t]+(?:sleep|usleep)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             # Low-level byte manipulation utilizing Fortran's explicit intrinsic bitwise functions.
             "bitwise_ops": re.compile(r"(?i)\b(?:iand|ior|ieor|not|ishft|ishftc|btest|ibset|ibclr|ibits)\b"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             # Explicit coordination to prevent race conditions .
             "sync_locks": re.compile(
                 r"(?i)\b(?:lock|unlock|critical|sync[ \t]+all|sync[ \t]+images|sync[ \t]+memory)\b"
             ),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             # Explicit locking of data to prevent mutation .
             "immutability_locks": re.compile(r"(?i)\b(?:parameter|intent[ \t]*\([ \t]*in[ \t]*\))\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -5170,7 +5170,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Assembly is assembled directly to machine code; no extensionless exact configurations exist.
         "exact_matches": [],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, linker scripts (.ld), and build systems acting as gravity anchors to resolve .inc or .s files.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Primary sibling extensions, linker scripts (.ld), and build systems acting as disambiguation anchors to resolve .inc or .s files.
         "discriminators": [
             ".asm",
             ".s",
@@ -5187,7 +5187,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Uses unique line delimiters ';' (NASM/Intel) and '#' (GAS/ARM).
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Assembly uses ';' or '#' for standard line-level literature.
             # (Note: '//' is occasionally used in modern GAS but ';' remains the anchor).
             "_line_anchor": re.compile(r"[;#]"),
@@ -5196,7 +5196,7 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: Standard Assembly does not support multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES system exits/halts (bailout_hits).
             "branch": re.compile(
@@ -5255,7 +5255,7 @@ LANGUAGE_DEFINITIONS = {
             # 11. flux (State Mutation)
             # Explicit memory/register swaps and atomic increments.
             "state_mutation": re.compile(r"\b(xchg|cmpxchg|inc|dec)\b", re.I),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"(?i)(?:;|#|//)[ \t]*(?:jmp|call|mov|push|pop|cmp|add|sub)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r"^[;#@/|]+\s*@(?:param|return|brief|author|note)", re.M | re.I),
@@ -5313,7 +5313,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|rfc)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
@@ -5346,23 +5346,23 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:call|bl)\s+(?:log_info|log_error|log_warn|log_debug|syslog)\b",
                 re.I,
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(?:call|bl)\s+(?:printf|puts|sys_write)\b", re.I),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"(?i)\b(?:byte|word|dword|qword)[ \t]+ptr\b"),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             # Hard execution destruction and unrecoverable hardware exceptions. [cite: 780]
             "panics_and_aborts": re.compile(r"(?i)\b(?:hlt|ud2|brk|svc|int[ \t]+3)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             # Forcing hardware threads to sleep or pause execution. [cite: 781]
             "thread_sleeps": re.compile(r"(?i)\b(?:pause|hlt|wfi|wfe)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             # Low-level byte manipulation natively supported by the instruction set. [cite: 782]
             "bitwise_ops": re.compile(r"(?i)\b(?:and|or|xor|not|shl|shr|sal|sar|rol|ror|lsl|lsr|asr)\b"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             # Explicit hardware coordination to prevent race conditions (e.g., atomic instructions, memory barriers). [cite: 783]
             "sync_locks": re.compile(r"(?i)\b(?:lock|xchg|cmpxchg|stxr|ldxr|dmb|dsb|isb)\b"),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             # Explicit locking of data to prevent mutation (e.g., read-only data sections or constants). [cite: 784]
             "immutability_locks": re.compile(r"(?i)\b(?:equ|\.rodata|\.rdata)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -5406,7 +5406,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Digitized source uses '#' for line-level Commented / Non-Executable Text.
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # AGC digitized source uses '#' for standard line-level literature.
             "_line_anchor": re.compile(r"#"),
             # Inline comments are also triggered by the '#' token.
@@ -5414,7 +5414,7 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: AGC Assembly does not support multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES fatal alarms (bailout_hits).
             "branch": re.compile(
@@ -5474,7 +5474,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(TS|DXCH|LXCH|QXCH|XCH|INCR|AUG|DIM|WRSUB|AUGMENT|DIMINISH|STORE|STQ|STCALL|DAS)\b",
                 re.I,
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"(?i)#[ \t]*(?:TCF|CCS|INDEX|BZF|BZN|CA|CS)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(
@@ -5542,7 +5542,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(GSOP|LUMINARY|COMANCHE|COLOSSUS|SUNDISK|SUNBURST|PCR\s*\d+|PCN\s*\d+|SPEC\s*-\s*\d+|#\s*REF:)\b",
                 re.I,
             ),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
@@ -5566,19 +5566,19 @@ LANGUAGE_DEFINITIONS = {
             # 38. telemetry (Structured Logging / Telemetry)
             # Spacecraft downlink routines.
             "telemetry": re.compile(r"\b(DNTM|DOWNLINK|TELEM|TM|DUMPTEL|TM\s+WORD)\b", re.I),
-            # 39. print_hits
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs)
             "debug_prints": re.compile(r"\b(?:FLASH|PINBALL|OUT\d+)\b", re.I),
-            # 40. cast_hits
+            # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\bEXTEND\b", re.I),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(POODOO|BAILOUT|TC\s+ALARM|ABORT)\b", re.I),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(TC\s+JOBSLEEP|VARDELAY)\b", re.I),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"\b(MASK|AD|SU|MULT|DV)\b", re.I),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(INHINT|RELINT|LOCK|UNLOCK)\b", re.I),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\bFIXED\s+MEMORY\b", re.I),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(ENDOFJOB|RESUME|EXIT)\b", re.I),
@@ -5610,7 +5610,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Uses '--' for lines and '--[[ ... ]]' for blocks.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Lua uses '--' for standard line-level literature.
             "_line_anchor": re.compile(r"--"),
             # Inline comments are also triggered by the '--' token.
@@ -5620,7 +5620,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"--\[=*\["),
             # Block comment end: Catches standard ]] and long-bracket ]=] styles
             "_block_end": re.compile(r"\]=*\]"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes standard loops and Lua 5.2+ goto.
             "branch": re.compile(r"\b(if|then|elseif|else|for|in|while|do|repeat|until|break|goto|and|or|not)\b"),
             # 2. args: Parameters / Coupling. Captures parameters in named and anonymous function signatures.
@@ -5667,7 +5667,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b[a-zA-Z_]\w*(?:\[[^\]]+\]|\.[a-zA-Z_]\w*)?\s*(?<![=<>~])=(?![=])|\btable\.(?:insert|remove|move|sort|concat)\b"
             ),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural code trails.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural code trails.
             "dead_code": re.compile(
                 r"(?:--|--\[=*\[)[ \t]*(?:if|local|function|for|while|print|return)\b",
                 re.M,
@@ -5745,7 +5745,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
-            # 30. civil_war: Indentation Tracker. Tabs vs Spaces density.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs Spaces density.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon. Server-side rendering (Lapis/OpenResty).
             "ssr_boundaries": re.compile(
@@ -5772,29 +5772,29 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(r"\b(?:log\.(?:info|warn|error|debug|trace)|ngx\.log|ngx\.ERR|ngx\.INFO)\b"),
-            # 39. print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output.
             "debug_prints": re.compile(r"\b(print|warn|io\.write)\b"),
-            # 40. cast_hits: "Trust Me" Tax.
+            # 40. explicit_casts (Explicit Type Casting): "Trust Me" Tax.
             "explicit_casts": re.compile(r"\b(ffi\.cast|tonumber|tostring)\b"),
-            # 41. bailout_hits: Detonators.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(error|assert|os\.exit)\b"),
-            # 42. halt_hits: Temporal Duct Tape.
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r'\b(task\.wait|os\.execute\s*\(?[\'"]sleep)\b'),
-            # 43. bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|&|\||\^|~(?!=)"),
-            # 44. sync_locks: Barricades.
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(mutex|lock|semaphore|critical_section|uv\.mutex)\b", re.I),
-            # 45. freeze_hits: Data Cryogenics.
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"<\s*const\s*>"),
-            # 46. cleanup: The Janitor.
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(ffi\.C\.free|collectgarbage|io\.close|:[ \t]*close)\b|<\s*(?:close|toclose)\s*>"
             ),
-            # 47. encapsulation: The Vault.
+            # 47. encapsulation
             "encapsulation": re.compile(r"\b(local|_ENV)\b|---@private", re.M),
-            # 48. listeners: The Sinks.
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(on\s*\(|subscribe|Connect|addEventListener)\b"),
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(xdescribe|xit|skip)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Lua Specifics) ---
             "serialization_parsing": re.compile(r"\b(string\.dump|loadstring|load|cjson\.decode|cjson\.encode)\b"),
@@ -5832,7 +5832,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Perl’s interaction with POD documentation blocks (=head, =cut) and embedded regex makes it a true polyglot lexical engine.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Perl uses '#' for standard line-level literature.
             "_line_anchor": re.compile(r"#"),
             # Inline comments are also triggered by the '#' token.
@@ -5841,7 +5841,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"^=\w+", re.M),
             # Block comment end: POD blocks are explicitly closed by '=cut'.
             "_block_end": re.compile(r"^=cut", re.M),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: Decisions that split the flow. Includes modern try/catch/finally and defer.
             "branch": re.compile(
                 r"\b(if|unless|elsif|else|while|until|for|foreach|given|when|next|last|redo|try|catch|finally|defer|goto|continue|default)\b|&&|\|\||//|\?|:"
@@ -5906,7 +5906,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b(?:push|pop|shift|unshift|splice|delete)\b|[\$@%][a-zA-Z_]\w*(?:->|\[|\{){0,5}\s*(?:\+|-|\*|/|\||&|\^|%|x)?=(?!=)|(?:\+\+|--)|\bs/"
             ),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural logic.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural logic.
             "dead_code": re.compile(
                 r"^[ \t]*#\s*(?:my|our|state|sub|method|class|package|if|unless|while|print|say)\b",
                 re.M,
@@ -5978,7 +5978,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war: Indentation Tracker. Tabs vs 4-Spaces density markers.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs 4-Spaces density markers.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon. Server-Side Rendering computation boundaries.
             "ssr_boundaries": re.compile(
@@ -6010,29 +6010,29 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:Log::Log4perl|Log::Any|Mojo::Log|log_(?:info|debug|warn|error|fatal))\b|->(?:debug|info|warn|error|fatal|trace)\b",
                 re.I,
             ),
-            # 39. print_hits: The Amateur / Space Debris. Ad-hoc debug statements.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): The Amateur / Space Debris. Ad-hoc debug statements.
             "debug_prints": re.compile(r"\b(print|say|printf|sprintf|warn)\b"),
-            # 40. cast_hits: The "Trust Me" Tax. Explicitly bypassing the type-checker or manual blessing.
+            # 40. explicit_casts (Explicit Type Casting): The "Trust Me" Tax. Explicitly bypassing the type-checker or manual blessing.
             # UPDATED: Removed the pointer/reference overlap.
             "explicit_casts": re.compile(r"\b(int|oct|hex|vec|ref|bless)\b"),
-            # 41. bailout_hits: The Detonators. Forcefully destroying the current execution context.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts): The Detonators. Forcefully destroying the current execution context.
             "panics_and_aborts": re.compile(r"\b(die|confess|croak|exit|BAIL_OUT)\b"),
-            # 42. halt_hits: Temporal Duct Tape. Forcing a thread to sleep or blocking waits.
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) Forcing a thread to sleep or blocking waits.
             "thread_sleeps": re.compile(r"\bsleep\b"),
-            # 43. bitwise_hits: Sub-Atomic Math. Manipulating raw bytes and memory registers.
+            # 43. bitwise_ops (Bitwise Operations) Manipulating raw bytes and memory registers.
             # UPDATED: Added negative lookbehinds '(?<![=!])~' to ignore Perl regex operators.
             "bitwise_ops": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|(?<![=!])~"),
-            # 44. sync_locks: The Barricades. Coordinating threaded logic to prevent race conditions.
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(lock|threads::shared|Thread::Semaphore)\b"),
-            # 45. freeze_hits: Data Cryogenics. Explicitly locking data so it cannot be mutated.
+            # 45. immutability_locks (Immutability Constraints) Explicitly locking data so it cannot be mutated.
             "immutability_locks": re.compile(r"\b(Readonly|Const::Fast|Internals::SvREADONLY)\b"),
-            # 46. cleanup: The Janitor. Explicitly destroying state or releasing resources.
+            # 46. cleanup (Resource Cleanup / Teardown) Explicitly destroying state or releasing resources.
             "cleanup": re.compile(r"\b(DESTROY|undef|close|closedir|finish)\b|^[ \t]*END[ \t]*\{", re.M),
-            # 47. encapsulation: The Vault. Explicitly hiding logic from the rest of the application.
+            # 47. encapsulation Explicitly hiding logic from the rest of the application.
             "encapsulation": re.compile(r"\b(my|state|local)\b|:private\b"),
-            # 48. listeners: The Sinks. Waiting to receive state from an external broadcast.
+            # 48. listeners (Event Listeners / Observers) Waiting to receive state from an external broadcast.
             "listeners": re.compile(r"\b(on\s*\(|subscribe\s*\(|add_listener)\b"),
-            # 49. test_skip: Safety Theater. Code that bypasses test verification.
+            # 49. test_skip (Bypassed Tests / Ignored Specs) Code that bypasses test verification.
             "test_skip": re.compile(r"\b(skip|todo_skip)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Perl Specifics) ---
             "serialization_parsing": re.compile(
@@ -6066,7 +6066,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Uses '--' for lines and '{- -}' for blocks, which strictly supports recursive nesting.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Haskell uses '--' for line-level Commented / Non-Executable Text.
             # CRITICAL GUARDRAIL: Negative lookahead ensures we don't accidentally split on custom operators like '-->'
             "_line_anchor": re.compile(r"--+(?![!#$%&*+./<=>?@\\^|~-])"),
@@ -6076,7 +6076,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"\{-"),
             # Block comment end: -}
             "_block_end": re.compile(r"-\}"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # branch: decisions that split flow. Includes guards (|) and modern \cases.
             "branch": re.compile(r"\b(if|then|else|case|of|MultiWayIf)\b|\\cases?|^[ \t]*\|", re.M),
             # args: Parameters / Coupling. Captures type signatures, lambda bindings, and explicit @type apps.
@@ -6128,7 +6128,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\b(IORef|STRef|TVar|MVar|TMVar|modifyIORef\'?|writeIORef|putMVar|modify|put|StateT)\b|<-"
             ),
-            # graveyard: Dead / Commented-out Code. Commented out structural code trails.
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(
                 r"--\s*(?:data|type|newtype|class|instance|let|where|import|putStrLn)\b",
                 re.M,
@@ -6194,31 +6194,31 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # telemetry: Professional structured logging.
             "telemetry": re.compile(r"\b(?:logDebug|logInfo|logWarn|logError|logOther|katip|MonadLogger|LoggerT)\b"),
-            # print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs)
             "debug_prints": re.compile(r"\b(putStr|putStrLn|print|putChar)\b"),
-            # cast_hits: "Trust Me" Tax.
+            # # # 40. explicit_casts (Explicit Type Casting) "Trust Me" Tax.
             "explicit_casts": re.compile(r"\b(unsafeCoerce|coerce|fromIntegral|realToFrac|floor|ceiling|truncate|round)\b"),
-            # bailout_hits: The Detonators.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|throwIO|panic|error)\b"),
-            # halt_hits: Temporal Duct Tape.
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(threadDelay)\b"),
-            # bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(
                 r"\b(?:shift[LR]?|rotate[LR]?|xor|complement|testBit|setBit|clearBit|complementBit)\b|\.&&\.|\|\.\|\|\."
             ),
             # sync_locks: Barricades preventing races.
             "sync_locks": re.compile(r"\b(takeMVar|putMVar|readMVar|swapMVar|atomically|STM|Mutex|lock|unlock)\b"),
-            # freeze_hits: Data Cryogenics. Implicit in pure Haskell, but explicit in mutable contexts.
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(pure|return|frozen|immutable|const)\b"),
-            # cleanup: The Janitor.
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(hClose|close|free|bracket|finally|onException)\b"),
-            # encapsulation: The Vault.
+            # 47. encapsulation (Encapsulation / Access Modifiers)
             "encapsulation": re.compile(
                 r"^[ \t]*module\s+[A-Z][a-zA-Z0-9_.]*\s*\([^)]*\)\s*where", re.M
-            ),  # Explicit export list = Encapsulated
-            # listeners: The Sinks.
+            ),
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(subscribe|onEvent|addEventListener|watch)\b"),
-            # test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs) Safety Theater.
             "test_skip": re.compile(r"\b(ignore|pending|skip|xit|xdescribe)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Haskell Specifics) ---
             "serialization_parsing": re.compile(
@@ -6256,7 +6256,7 @@ LANGUAGE_DEFINITIONS = {
         # (docstrings) is handled by the Section 2.3.C.3 Heuristic Pass.
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # MicroPython uses '#' for line-level Commented / Non-Executable Text.
             "_line_anchor": re.compile(r"#"),
             # Inline comments are also triggered by the '#' token.
@@ -6265,7 +6265,7 @@ LANGUAGE_DEFINITIONS = {
             # (Note: Multi-line strings used as docs are handled by the 2.3.C Python Heuristic).
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Decisions and logical jumps. EXCLUDES raise (bailout_hits).
             "branch": re.compile(r"\b(if|elif|else|for|while|with|try|finally|match|case|and|or)\b"),
@@ -6324,7 +6324,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"\bglobal\b|\bnonlocal\b|\b(?:self|cls)\.\w+[ \t]*=|:=|(?:\.\w+)?\.(?:append|extend|update|pop|remove|insert|clear)\s*\(|\.(?:value|on|off|high|low|toggle)\s*\("
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"#[ \t]*(?:def|class|import|if|for|while|try|print|machine\.Pin)\b"),
             # 13. doc (Structured Documentation)
             "doc": re.compile(r'"""|\'\'\'|:param|:return|:raises|:type|#\s*Pin[ \t]*=|#\s*GPIO'),
@@ -6362,7 +6362,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(math|cmath|ulab|numpy|ndarray|struct\.pack|struct\.unpack|bin|hex|oct|abs|sin|cos|tan)\b"
             ),
             # 23. heat_triggers (Metaprogramming & Reflection)
-            # Extreme "Logic Heat": Dunder methods and Viper/Native emitters.
+            # High Cognitive Load: Dunder methods and Viper/Native emitters.
             "reflection_metaprogramming": re.compile(
                 r"__(?:getattr|setattr|new|call|dict|dir|import)__|@(?:staticmethod|classmethod|property)|@micropython\.(?:viper|native)\b|\b(?:getattr|setattr|hasattr)\b"
             ),
@@ -6378,7 +6378,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             # Lightweight web servers (Microdot, Picoweb).
@@ -6409,19 +6409,19 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(logging|logger|ulogging|syslog)\.(?:info|error|warn|warning|debug|trace|critical|exception)\b"
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\b(print|input)\s*\("),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\b(int|str|float|list|dict|set|tuple|bool|bytes|cast)\b\s*\("),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(raise|quit|exit|sys\.exit|abort)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(time\.sleep|asyncio\.sleep|Thread\.join)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"<<|>>|(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(Lock|RLock|Semaphore|Event|Condition|allocate_lock)\b"),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(Final|frozenset|mappingproxy|immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|__exit__|del|gc\.collect|cleanup)\b\s*\("),
@@ -6461,7 +6461,7 @@ LANGUAGE_DEFINITIONS = {
         # or slash '/' to identify line-level Commented / Non-Executable Text.
         "lexical_family": "positional_anchored",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Fixed Format Logic: Column 7 is the 'Indicator Area'.
             # An asterisk '*' or forward-slash '/' in Col 7 marks the line as Literature (Commented / Non-Executable Text).
             # Regex translates to: Start of line, skip 6 chars, match indicator.
@@ -6471,7 +6471,7 @@ LANGUAGE_DEFINITIONS = {
             # EXPLICIT: COBOL does not support multi-line block comment delimiters.
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: Entscheidungslogik. Control flow that splits execution paths.
             "branch": re.compile(
                 r"\b(IF|ELSE|EVALUATE|WHEN|PERFORM|UNTIL|VARYING|TIMES|DEPENDING\s+ON|ON\s+EXCEPTION|AT\s+END|INVALID\s+KEY|ON\s+SIZE\s+ERROR|ON\s+OVERFLOW)\b",
@@ -6483,7 +6483,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 3. linear: Sequential I/O & Network Boundaries. Structural boundaries defining straight-line execution flow.
-            # EXCLUDES access modifiers (GLOBAL, EXTERNAL) to prevent Geometry Inflation.
+            # EXCLUDES access modifiers (GLOBAL, EXTERNAL) to prevent Structural Complexity Inflation.
             "structural_boundaries": re.compile(
                 r"\b(DIVISION|SECTION|EXIT|CONTINUE|GOBACK|ACCEPT|XML\s+PARSE|JSON\s+GENERATE|DISPLAY|STOP\s+RUN)\b",
                 re.I,
@@ -6527,7 +6527,7 @@ LANGUAGE_DEFINITIONS = {
                 r"(?!(?:01|02|03|04|05|10|15|20|66|77|88)\s+)"
                 # 3. THE RESERVED VERB & SCOPE TERMINATOR SHIELD
                 # Explicitly bans standard COBOL execution verbs, divisions, and scope terminators (`END-*`).
-                # Prevents rogue commands like "PERFORM." from spawning ghost satellites.
+                # Prevents rogue commands like "PERFORM." from spawning false positive logic anchors.
                 r"(?!(?:WORKING-STORAGE|DATA|ENVIRONMENT|IDENTIFICATION|ID|LINKAGE|FILE|DECLARATIVES|"
                 r"AUTHOR|DATE-WRITTEN|DATE-COMPILED|INSTALLATION|REMARKS|SECURITY|"
                 r"INPUT-OUTPUT|CONFIGURATION|DISPLAY|CALL|MOVE|COMPUTE|PERFORM|ADD|SUBTRACT|MULTIPLY|"
@@ -6578,7 +6578,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(MOVE|COMPUTE|ADD|SUBTRACT|MULTIPLY|DIVIDE|SET|INITIALIZE|REPLACE|STRING|UNSTRING)\b",
                 re.I,
             ),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural logic (Column 7 indicator).
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural logic (Column 7 indicator).
             "dead_code": re.compile(
                 r"^(?:.{6}\*|[ \t]*\*>)[ \t]*(?:MOVE|COMPUTE|IF|PERFORM|CALL|EXEC)\b",
                 re.I | re.M,
@@ -6634,7 +6634,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
-            # 30. civil_war: Indentation Tracker. Tabs vs spaces conflict.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs spaces conflict.
             "tabs_vs_spaces": None,  # COBOL fixed format strictly forbids Tabs.
             # 31. ssr_boundaries: View Horizon. CICS web endpoints.
             "ssr_boundaries": re.compile(r"\bEXEC\s+CICS\s+(?:WEB\s+SEND|DOCUMENT|WEB\s+READ)\b", re.I),
@@ -6662,27 +6662,27 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(r"\b(?:EXEC\s+CICS\s+WRITEQ\s+TD|CEE3DMP|CEEMOUT|CEEDUMP)\b", re.I),
-            # 39. print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output.
             "debug_prints": re.compile(r"\b(DISPLAY)\b", re.I),
-            # 40. cast_hits: Trust Me Tax. REDEFINES is the implicit COBOL cast.
+            # 40. explicit_casts (Explicit Type Casting): Explicit type coercion/casting.
             "explicit_casts": re.compile(r"\b(REDEFINES)\b", re.I),
-            # 41. bailout_hits: Detonators. Aborting execution.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts) Aborting execution.
             "panics_and_aborts": re.compile(r"\b(STOP\s+RUN|EXIT\s+PROGRAM|GOBACK)\b", re.I),
-            # 42. halt_hits: Temporal Duct Tape. (Forced waits).
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) (Forced waits).
             "thread_sleeps": re.compile(r"\bEXEC\s+CICS\s+DELAY\b", re.I),
-            # 43. bitwise_hits: Sub-Atomic Math. (Modern intrinsic bitwise).
+            # 43. bitwise_ops (Bitwise Operations) (Modern intrinsic bitwise).
             "bitwise_ops": re.compile(r"\bFUNCTION\s+(?:BIT-AND|BIT-OR|BIT-XOR|BIT-NOT)\b", re.I),
-            # 44. sync_locks: Barricades.
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\bEXEC\s+CICS\s+ENQ\b", re.I),
-            # 45. freeze_hits: Data Cryogenics. Immutability.
+            # 45. immutability_locks (Immutability Constraints) Immutability.
             "immutability_locks": re.compile(r"\b(CONSTANT)\b", re.I),
-            # 46. cleanup: The Janitor. Resource release.
+            # 46. cleanup (Resource Cleanup / Teardown) Resource release.
             "cleanup": re.compile(r"\b(CLOSE|FREE|END-DECLARATIVES)\b", re.I),
-            # 47. encapsulation: The Vault. Scope hiding.
+            # 47. encapsulation (Encapsulation / Access Modifiers)
             "encapsulation": re.compile(r"\b(LOCAL-STORAGE\s+SECTION|PRIVATE)\b", re.I),
-            # 48. listeners: The Sinks.
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(?:MQGET|EXEC\s+CICS\s+RECEIVE)\b", re.I),
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(IGNORE)\b", re.I),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (COBOL Specifics) ---
             "serialization_parsing": re.compile(
@@ -6716,12 +6716,12 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Zig intentionally omits multi-line block comments to keep parsing simple, exclusively using '//'.
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes unique 'orelse' and 'catch' patterns.
             "branch": re.compile(r"\b(if|else|switch|while|for|try|catch|orelse|break|continue|return)\b|&&|\|\|"),
             # 2. args: Parameters / Coupling. Captures parameters in function signatures.
@@ -6755,7 +6755,7 @@ LANGUAGE_DEFINITIONS = {
             "api": re.compile(r"\b(pub|export)\b"),
             # 11. flux: State Mutation. State mutation (var) and pointer dereference assignments (.* =).
             "state_mutation": re.compile(r"\bvar\b|\.\*[ \t]*=[^=]"),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural code.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural code.
             "dead_code": re.compile(r"//[ \t]*(?:fn|const|var|pub|if|for|while|try|catch)\b"),
             # 13. doc: Structured Documentation. Structured documentation (/// and //!).
             "doc": re.compile(r"///|//!"),
@@ -6804,7 +6804,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
-            # 30. civil_war: Indentation Tracker. Tabs vs 4-space standardization.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs 4-space standardization.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon. Zap/httpz response handlers.
             "ssr_boundaries": re.compile(r"\b(zap\.Endpoint|zap\.Request|httpz\.Request|std\.http\.Server\.Request)\b"),
@@ -6827,27 +6827,27 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(r"\b(?:std\.log\.(?:info|err|warn|debug)|std\.log\.scoped)\b"),
-            # 39. print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output.
             "debug_prints": re.compile(r"\b(std\.debug\.print)\b"),
-            # 40. cast_hits: "Trust Me" Tax. Explicit casting.
+            # 40. explicit_casts (Explicit Type Casting): "Trust Me" Tax. Explicit casting.
             "explicit_casts": re.compile(r"\b(@ptrCast|@intCast|@alignCast|@bitCast|@as)\b"),
-            # 41. bailout_hits: Detonators. Aborting context.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts) Aborting context.
             "panics_and_aborts": re.compile(r"\b(@panic|unreachable|return)\b"),
-            # 42. halt_hits: Temporal Duct Tape. (Forced waits/sleep).
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) (Forced waits/sleep).
             "thread_sleeps": re.compile(r"\b(std\.time\.sleep)\b"),
-            # 43. bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|~"),
-            # 44. sync_locks: Barricades. Coordinated threading.
+            # 44. sync_locks (Resource Management & Stability) Coordinated threading.
             "sync_locks": re.compile(r"\b(Mutex|RwLock|Semaphore|lock|unlock)\b"),
-            # 45. freeze_hits: Data Cryogenics. Immutability.
+            # 45. immutability_locks (Immutability Constraints) Immutability.
             "immutability_locks": re.compile(r"\bconst\b"),
-            # 46. cleanup: The Janitor. Resource release.
+            # 46. cleanup (Resource Cleanup / Teardown) Resource release.
             "cleanup": re.compile(r"\b(deinit|free|destroy|allocator\.free)\b"),
-            # 47. encapsulation: The Vault. Scope hiding (Lack of pub).
+            # 47. encapsulation Scope hiding (Lack of pub).
             "encapsulation": re.compile(r"^[ \t]*(?!(?:pub|export|extern)\b)(?:const|var|fn)\s+", re.M),
-            # 48. listeners: The Sinks.
+            # 48. listeners (Event Listeners / Observers)
             "listeners": None,
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(std\.testing\.expect|assume|expectError)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Zig Specifics) ---
             "serialization_parsing": re.compile(
@@ -6885,12 +6885,12 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Uses standard '//' for lines and '/*' '*/' for block-level Commented / Non-Executable Text.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes switch on/when and DML try-catch.
             "branch": re.compile(
                 r"\b(if|else|switch\s+on|when|for|while|do|try|catch|finally|break|continue|return)\b|&&|\|\||\?|\?\?",
@@ -6954,7 +6954,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(insert|update|upsert|delete|merge)\b|^[ \t]*(?:this\.)?[a-z_]\w*\s*[-+*/%]?=|\.(?:add|addAll|remove|put|clear|set)\s*\(",
                 re.I | re.M,
             ),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural code or queries.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural code or queries.
             "dead_code": re.compile(
                 r"//[ \t]*(?:class|trigger|public|private|if|for|while|System\.debug|\[\s*SELECT|insert|update)\b|/\*[ \t]*(?:class|trigger|\[\s*SELECT)",
                 re.I | re.M,
@@ -7026,7 +7026,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]|\b(?:WorldWideWeb|RFC|W3C|CERN|TBL|ENQUIRE)\b",
                 re.I,
             ),
-            # 30. civil_war: Indentation Tracker. Tabs vs 4-space standardization.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs 4-space standardization.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon. REST and Visualforce response handlers.
             "ssr_boundaries": re.compile(
@@ -7060,29 +7060,29 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(Logger|Log|AppLog|NebulaLogger)\.(?:info|error|warn|debug|trace)\b|\binsert\s+new\s+Log__c\b",
                 re.I,
             ),
-            # 39. print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output.
             "debug_prints": re.compile(r"\b(System\.debug)\b", re.I),
-            # 40. cast_hits: "Trust Me" Tax. Explicit type coercion.
+            # 40. explicit_casts (Explicit Type Casting): "Trust Me" Tax. Explicit type coercion.
             "explicit_casts": re.compile(
                 r"\(\s*(?:[A-Z]\w*|int|Id|String|Decimal|Boolean|Double|Long|Blob|Date|Datetime|Time)\s*\)\s*[a-zA-Z_$]"
             ),
-            # 41. bailout_hits: Detonators. Aborting execution or rollback.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts) Aborting execution or rollback.
             "panics_and_aborts": re.compile(r"\b(throw|Database\.rollback|purgeOldAsyncJobs)\b", re.I),
-            # 42. halt_hits: Temporal Duct Tape. (Apex has no native sleep/delay).
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) (Apex has no native sleep/delay).
             "thread_sleeps": None,
-            # 43. bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|~"),
-            # 44. sync_locks: Barricades. Row-level SOQL locking.
+            # 44. sync_locks (Resource Management & Stability) Row-level SOQL locking.
             "sync_locks": re.compile(r"\bFOR\s+UPDATE\b", re.I),
-            # 45. freeze_hits: Data Cryogenics. Immutability (constants).
+            # 45. immutability_locks (Immutability Constraints) Immutability (constants).
             "immutability_locks": re.compile(r"\b(static\s+final|final|const)\b", re.I),
-            # 46. cleanup: The Janitor. Recycle bin management.
+            # 46. cleanup (Resource Cleanup / Teardown) Recycle bin management.
             "cleanup": re.compile(r"\b(emptyRecycleBin|Database\.rollback|clear)\s*\(", re.I),
-            # 47. encapsulation: The Vault. Scope hiding.
+            # 47. encapsulation (Encapsulation / Access Modifiers)
             "encapsulation": re.compile(r"\b(private|protected)\b", re.I),
-            # 48. listeners: The Sinks. Triggers listening for events.
+            # 48. listeners (Event Listeners / Observers) Triggers listening for events.
             "listeners": re.compile(r"^[ \t]*trigger\s+[a-z_]\w*\s+on\b", re.I | re.M),
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(StubProvider|Test\.setMock|@SuppressWarnings)\b", re.I),
         },
     },
@@ -7116,7 +7116,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": re.compile(r"\*/"),
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes modern pattern guards (when) and null-coalescing.
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|try|catch|finally|break|continue|when)\b|&&|\|\||\?|\?\?",
@@ -7192,7 +7192,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(setState|notifyListeners|markNeedsBuild|StreamController\.add)\b|[^!=<>\+\-\*\/%&\|\s]=\s*[^=]|(?:\+\+|--)|\.(?:add|addAll|remove|insert|clear|update)\s*\(",
                 re.I,
             ),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural code or dead widgets.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural code or dead widgets.
             "dead_code": re.compile(
                 r"//[ \t]*(?:class|mixin|void|if|for|while|print|Widget|return)\b|/\*[ \t]*(?:class|mixin|void|Widget|if|for)"
             ),
@@ -7256,7 +7256,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit|RFC|W3C|CERN|TBL|ENQUIRE)[^\]]*\]|\b(?:Tim\s+Berners-Lee|WorldWideWeb|HyperText\s+Proposal)\b",
                 re.I,
             ),
-            # 30. civil_war: Indentation Tracker. Tabs vs 2-space standardization.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs 2-space standardization.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon. shelf/Serverpod response handlers.
             "ssr_boundaries": re.compile(
@@ -7296,27 +7296,27 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(developer\.log|Logger|log|FirebaseCrashlytics|Sentry)\.(?:info|error|warn|severe|debug|trace|recordError)\b|\bdart:developer\b",
                 re.I,
             ),
-            # 39. print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output.
             "debug_prints": re.compile(r"\b(print|debugPrint)\s*\(", re.I),
-            # 40. cast_hits: "Trust Me" Tax. Explicit casting.
+            # 40. explicit_casts (Explicit Type Casting): "Trust Me" Tax. Explicit casting.
             "explicit_casts": re.compile(r"\bas\s+[A-Z]\w*|\(\s*[A-Z]\w*\s*\)\s*[a-zA-Z_$]"),
-            # 41. bailout_hits: Detonators. Aborting context.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts) Aborting context.
             "panics_and_aborts": re.compile(r"\b(throw|rethrow|exit|exitCode|Process\.killPid)\b", re.I),
-            # 42. halt_hits: Temporal Duct Tape. (Forced waits/delays).
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) (Forced waits/delays).
             "thread_sleeps": re.compile(r"\b(sleep|delay|setTimeout|setInterval)\s*\(", re.I),
-            # 43. bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|~(?!=|/)"),
-            # 44. sync_locks: Barricades. Coordinated threading.
+            # 44. sync_locks (Resource Management & Stability) Coordinated threading.
             "sync_locks": re.compile(r"\b(Mutex|Lock|synchronized|Semaphore|Completer)\b", re.I),
-            # 45. freeze_hits: Data Cryogenics. Immutability.
+            # 45. immutability_locks (Immutability Constraints) Immutability.
             "immutability_locks": re.compile(r"\b(const|final|readonly|@immutable)\b", re.I),
-            # 46. cleanup: The Janitor. Resource release.
+            # 46. cleanup (Resource Cleanup / Teardown) Resource release.
             "cleanup": re.compile(r"\b(dispose|close|cleanup|cancel|drop|free)\s*\(", re.I),
-            # 47. encapsulation: The Vault. Scope hiding (Underscore prefix).
+            # 47. encapsulation Scope hiding (Underscore prefix).
             "encapsulation": re.compile(r"\b(_[a-zA-Z0-9_$]+)\b|@protected|@private"),
-            # 48. listeners: The Sinks. Waiting for state broadcasts.
+            # 48. listeners (Event Listeners / Observers) Waiting for state broadcasts.
             "listeners": re.compile(r"\b(on\(|addEventListener|subscribe|watch|useEffect|listen)\b", re.I),
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(@Ignore|test\.skip|t\.Skip|xit|mock)\b", re.I),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Dart Specifics) ---
             "serialization_parsing": re.compile(
@@ -7360,7 +7360,7 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes Scala 3 if-then and match-case.
             "branch": re.compile(
                 r"\b(if|then|else|match|case|try|catch|finally|for|while|do|throw|yield)\b|&&|\|\|",
@@ -7419,7 +7419,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(var|scala\.collection\.mutable|AtomicReference|AtomicInteger)\b|^[ \t]*[a-zA-Z_]\w*[ \t]*=",
                 re.M,
             ),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural code or logic trails.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural code or logic trails.
             "dead_code": re.compile(
                 r"//[ \t]*(?:def|val|var|class|object|trait|if|match|println|import)\b|/\*[ \t]*(?:def|val|class|object)"
             ),
@@ -7498,7 +7498,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]|\b(?:WorldWideWeb|HyperText\s+Proposal|NeXTSTEP)\b",
                 re.I,
             ),
-            # 30. civil_war: Indentation Tracker. Tabs vs 2-space standardization.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs 2-space standardization.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon. Play Framework and twirl template endpoints.
             "ssr_boundaries": re.compile(
@@ -7527,27 +7527,27 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(?:logger|log|ZIO\.log|LoggerFactory|log4cats|slf4j)\.(?:info|error|warn|debug|trace)\b|@Slf4j"
             ),
-            # 39. print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output.
             "debug_prints": re.compile(r"\b(println|print|Console\.println)\b"),
-            # 40. cast_hits: "Trust Me" Tax. Explicit type coercion.
+            # 40. explicit_casts (Explicit Type Casting): "Trust Me" Tax. Explicit type coercion.
             "explicit_casts": re.compile(r"\basInstanceOf\[[^\]]*\]|\.(?:toInt|toLong|toFloat|toDouble|toByte|toShort)\b"),
-            # 41. bailout_hits: Detonators. Aborting context.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts) Aborting context.
             "panics_and_aborts": re.compile(r"\b(throw|panic|abort|sys\.error|exit)\b"),
-            # 42. halt_hits: Temporal Duct Tape. (Forced waits/sleep).
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) (Forced waits/sleep).
             "thread_sleeps": re.compile(r"\b(Thread\.sleep|delay|setTimeout|setInterval)\s*\("),
-            # 43. bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|~"),
-            # 44. sync_locks: Barricades. Coordinated threading.
+            # 44. sync_locks (Resource Management & Stability) Coordinated threading.
             "sync_locks": re.compile(r"\b(synchronized|volatile|Semaphore|Mutex|lock|unlock)\b"),
-            # 45. freeze_hits: Data Cryogenics. Immutability.
+            # 45. immutability_locks (Immutability Constraints) Immutability.
             "immutability_locks": re.compile(r"\b(val|final|sealed|readonly|Object\.freeze|immutable)\b"),
-            # 46. cleanup: The Janitor. Resource release.
+            # 46. cleanup (Resource Cleanup / Teardown) Resource release.
             "cleanup": re.compile(r"\b(dispose|close|cleanup|cancel|free|bracket|finally|onException)\b"),
-            # 47. encapsulation: The Vault. Scope hiding.
+            # 47. encapsulation (Encapsulation / Access Modifiers)
             "encapsulation": re.compile(r"\b(private|protected)\b|private\[[^\]]+\]"),
-            # 48. listeners: The Sinks. Waiting for state broadcasts.
+            # 48. listeners (Event Listeners / Observers) Waiting for state broadcasts.
             "listeners": re.compile(r"\b(on\(|addEventListener|subscribe|watch|useEffect|listen)\b"),
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(ignore|pending|skip|xit|xdescribe)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Scala Specifics) ---
             "serialization_parsing": re.compile(
@@ -7579,7 +7579,7 @@ LANGUAGE_DEFINITIONS = {
             "Dockerfile.test",
             "Dockerfile.local",
         ],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Compose files and ignore manifests acting as massive gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Compose files and ignore manifests acting as contextual baselines.
         "discriminators": [
             "docker-compose.yml",
             "docker-compose.yaml",
@@ -7596,7 +7596,7 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"#"),
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Control flow executing inside RUN shell blocks. High density indicates complex embedded shell scripts.
             "branch": re.compile(
@@ -7653,7 +7653,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*ENV[ \t]+[a-zA-Z0-9_]+|export[ \t]+[a-zA-Z0-9_]+[ \t]*=",
                 re.M | re.I,
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented-out logic, commented-out structural Dockerfile commands.
             "dead_code": re.compile(
                 r"^[ \t]*#[ \t]*(?:RUN|COPY|ADD|ENV|EXPOSE|FROM|CMD|ENTRYPOINT|WORKDIR)\b",
@@ -7698,7 +7698,7 @@ LANGUAGE_DEFINITIONS = {
                 re.I,
             ),
             # 23. heat_triggers (Metaprogramming & Reflection)
-            # Extreme "Logic Heat": Advanced BuildKit logic. Mounting caches, secrets, cross-platform builds, or `ONBUILD` (which defers execution to downstream images).
+            # High Cognitive Load: Advanced BuildKit logic. Mounting caches, secrets, cross-platform builds, or `ONBUILD` (which defers execution to downstream images).
             "reflection_metaprogramming": re.compile(
                 r"^[ \t]*ONBUILD\b|--mount=type=(?:cache|secret|bind|ssh)|--platform=|<<EOF",
                 re.M | re.I,
@@ -7726,7 +7726,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit|CVE-\d{4}-\d+)[^\]]*\]",
                 re.I,
             ),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             # Dockerfiles strictly use spaces for formatting continuations. Tabs indicate formatter disruption.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
@@ -7757,23 +7757,23 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:LOG_LEVEL|--log-level[ \t]+(?:debug|info|warn|error)|ln[ \t]+-sf[ \t]+/dev/stdout)\b",
                 re.I,
             ),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             # Shell echos used for ad-hoc debugging in the build output log.
             "debug_prints": re.compile(r"\b(?:echo|printf)\b", re.I),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": None,
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             # Hard execution aborts forcing the build to fail dynamically.
             "panics_and_aborts": re.compile(r"\b(?:exit[ \t]+[1-9]|kill[ \t]+-[0-9]+)\b", re.I),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             # Forcing the build thread to sleep (often a hack to wait for a daemon/network).
             "thread_sleeps": re.compile(r"\bsleep[ \t]+[0-9]+\b", re.I),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": None,
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             # Utilizing file locking to prevent parallel build collisions.
             "sync_locks": re.compile(r"\bflock\b", re.I),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             # Pinning dependencies to immutable SHAs rather than mutable tags. .
             "immutability_locks": re.compile(r"@[a-f0-9]{64}\b|--read-only|:ro\b", re.I),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -7832,7 +7832,7 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"%"),
             "_block_start": re.compile(r"^[ \t]*%\{", re.M),
             "_block_end": re.compile(r"^[ \t]*%\}", re.M),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # branch: MATLAB control flow. EXCLUDES 'error' and 'rethrow' (bailout_hits).
             "branch": re.compile(r"\b(?:if|elseif|else|switch|case|otherwise|for|while|try|catch)\b|&&|\|\||~="),
             # args: Captures standard function inputs and return signatures `function [out1, out2] = myFun(in1, in2)`.
@@ -7846,7 +7846,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:classdef|properties|methods|events|enumeration|return|global|persistent|continue|break|end)\b"
             ),
             # func_start: Anchors logic blocks. Exactly anchors executable blocks.
-            # Negative lookahead explicitly prevents control flow or OOP structures from generating ghost satellites.
+            # Negative lookahead explicitly prevents control flow or OOP structures from generating false positive logic anchors.
             "func_start": re.compile(
                 # =====================================================================
                 # [ THE VERTICAL OUTPUT ARRAY SHIELD (MATLAB) ]
@@ -7894,7 +7894,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*[a-zA-Z_]\w*(?:\([^)]*\)|\{[^}]*\}|\.[a-zA-Z_]\w*){0,5}[ \t]*=[ \t]*[^=]|\b(?:clear|clearvars)\b",
                 re.M,
             ),
-            # graveyard: Commented-out logic, commented-out structural MATLAB code.
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             "dead_code": re.compile(r"^[ \t]*%[ \t]*(?:if|for|while|function|classdef)\b", re.M),
             # doc: Standard MATLAB Help text (`%%` sections) or typed annotations.
             "doc": re.compile(
@@ -7966,29 +7966,29 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:log4m|logger\.(?:info|debug|warn|error)|logDebug|logInfo|logWarn|logError)\b",
                 re.I,
             ),
-            # print_hits: Ad-hoc console dumps. Excludes fprintf addressing file IDs `fprintf(fid, ...)`.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs)
             "debug_prints": re.compile(r"\b(?:disp|warning|fprintf(?![ \t]*\([ \t]*[a-zA-Z_]))\b"),
-            # cast_hits: Changing data types (vital for memory size control in big matrices).
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(
                 r"\b(?:cast|typecast|int8|uint8|int16|uint16|int32|uint32|int64|uint64|single|double|logical)\s*\("
             ),
-            # bailout_hits: Hard execution aborts.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(?:error|throw|rethrow|MException|throwAsCaller)\b"),
-            # halt_hits: Forcing the thread to pause.
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\bpause[ \t]*\("),
-            # bitwise_hits: Sub-atomic manipulations.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"\b(?:bitand|bitor|bitxor|bitcmp|bitshift|bitset|bitget)\b"),
             # sync_locks: Managing parallel data queues and thread pooling barriers.
             "sync_locks": re.compile(r"\b(?:labBarrier|labSend|labReceive|labBroadcast)\b"),
-            # freeze_hits: Constant property assignments locking data.
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\bConstant\b"),
             # cleanup: Garbage collection and explicit file/handle destruction.
             "cleanup": re.compile(r"\b(?:clear|clearvars|delete|close|fclose|onCleanup)\b"),
-            # encapsulation: Explicit scoping modifiers hiding logic.
+            # 47. encapsulation (Encapsulation / Access Modifiers)
             "encapsulation": re.compile(r"Access[ \t]*=[ \t]*(?:private|protected)"),
-            # listeners: Event sinks waiting for state.
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\b(?:addlistener|event\.listener|event\.proplistener)\b"),
-            # test_skip: Safety Theater bypasses.
+            # 49. test_skip (Bypassed Tests / Ignored Specs) Safety Theater bypasses.
             "test_skip": re.compile(r"\b(?:assume|assumeFail|assumeTrue|assumeFalse)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (MATLAB Specifics) ---
             "serialization_parsing": re.compile(r"\b(jsondecode|jsonencode|xmlread|xmlwrite|load|save|readtable)\b"),
@@ -8018,7 +8018,7 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Accepts '--', '//', '#', and '/* */' to support both its legacy HyperTalk roots and modern C-style syntax.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Handles all three line-comment styles found in the xTalk family.
             "_line_anchor": re.compile(r"--|//|#"),
             # Inline comments follow the same tri-token logic.
@@ -8027,7 +8027,7 @@ LANGUAGE_DEFINITIONS = {
             "_block_start": re.compile(r"/\*"),
             # Block comment end: */
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes English-like loops and try-catch.
             "branch": re.compile(
                 r"\b(if|then|else|switch|case|default|repeat|while|until|times|try|catch|finally|throw|next\s+repeat|and|or|not)\b",
@@ -8084,7 +8084,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(?:put\s+[^ \t\n]+?\s+(?:into|after|before)|set\s+(?:the[ \t]+)?[a-zA-Z0-9_.]+\s+to|add\s+[^ \t\n]+?\s+to|subtract\s+[^ \t\n]+?\s+from)\b",
                 re.I,
             ),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural code.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural code.
             "dead_code": re.compile(
                 r"^[ \t]*(?:--|#|//)[ \t]*(?:on|command|function|put|get|set|if|repeat|try|end)\b",
                 re.I | re.M,
@@ -8154,7 +8154,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure: Map vs. Territory. Audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]", re.I),
-            # 30. civil_war: Indentation Tracker. Tabs vs Spaces density.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs Spaces density.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon. Server-side rendering.
             "ssr_boundaries": re.compile(
@@ -8185,30 +8185,30 @@ LANGUAGE_DEFINITIONS = {
                 r"\b(revLog|syslog|logError|logInfo|logWarn|logDebug|mergLog|rreLog|lcLog)\b",
                 re.I,
             ),
-            # 39. print_hits: Raw terminal output (puts to message box without target).
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Raw terminal output (puts to message box without target).
             "debug_prints": re.compile(r'^[ \t]*put\s+(?:"[^"]*"|[a-zA-Z0-9_]+)[ \t]*$', re.I | re.M),
-            # 40. cast_hits: English-style type checking.
+            # 40. explicit_casts (Explicit Type Casting): English-style type checking.
             "explicit_casts": re.compile(r"\bis\s+(?:not\s+)?a\b|\bis\s+strictly\b", re.I),
-            # 41. bailout_hits: Hard detonations.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts): Hard detonations.
             "panics_and_aborts": re.compile(r"\b(exit\s+to\s+top|quit|throw|abort)\b", re.I),
-            # 42. halt_hits: Temporal Duct Tape (Blocking wait).
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses): Temporal Duct Tape (Blocking wait).
             "thread_sleeps": re.compile(r"\bwait\s+(?:for[ \t]+)?\d+\s+[^ \t\n]+?(?!\s+with\s+messages)\b", re.I),
-            # 43. bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"\b(bitAnd|bitOr|bitXor|bitNot|bitShiftLeft|bitShiftRight)\b", re.I),
-            # 44. sync_locks: Barricades.
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(lock\s+screen|lock\s+messages|lock\s+errordialogs)\b", re.I),
-            # 45. freeze_hits: Data Cryogenics.
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(constant\s+)\b", re.I),
-            # 46. cleanup: The Janitor.
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(
                 r"\b(delete\s+variable|close\s+file|stop\s+using|remove\s+script)\b",
                 re.I,
             ),
-            # 47. encapsulation: The Vault.
+            # 47. encapsulation
             "encapsulation": re.compile(r"\b(private\s+)\b", re.I),
-            # 48. listeners: The Sinks.
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"^[ \t]*on\s+[a-zA-Z0-9_-]+", re.I | re.M),
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(skip\s+test)\b", re.I),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (LiveCode Specifics) ---
             "serialization_parsing": re.compile(
@@ -8248,12 +8248,12 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Solidity strictly adheres to C-style line (//) and block (/* */) comments.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: Decisions that split flow. Includes Solidity 0.6+ try/catch.
             "branch": re.compile(r"\b(if|else|for|while|do|break|continue|return|try|catch)\b|\?|:"),
             # 2. args: Parameters / Coupling. Captures parameters for functions, errors, events, and modifiers.
@@ -8289,7 +8289,7 @@ LANGUAGE_DEFINITIONS = {
             "api": re.compile(r"\b(external|public)\b"),
             # 11. flux: State Mutation. State mutation. Captures array mutators, payable states, and explicit assignment.
             "state_mutation": re.compile(r"\b(payable|push|pop)\b|(?<![=<>!])=(?![=])|\+\+|--|\+=|-=|\*=|/="),
-            # 12. graveyard: Dead / Commented-out Code. Commented out execution flow or structural definitions.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out execution flow or structural definitions.
             "dead_code": re.compile(r"//[ \t]*(?:function|contract|if|require|uint|address)\b"),
             # 13. doc: Structured Documentation. NatSpec (Ethereum Natural Specification Format).
             "doc": re.compile(r"///|/\*\*|@(?:param|return|dev|notice|custom|title|author)"),
@@ -8336,7 +8336,7 @@ LANGUAGE_DEFINITIONS = {
             "hardcoded_secrets": re.compile(r"\b(private_key|secret|mnemonic|api_key)\b[ \t]*[:=]", re.I),
             # 29. spec_exposure: Map vs. Territory. ERC/EIP standards and audit tags.
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|audit)[^\]]*\]|\b(ERC-\d+|EIP-\d+)\b", re.I),
-            # 30. civil_war: Indentation Tracker. Handled natively.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Handled natively.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon.
             "ssr_boundaries": None,
@@ -8355,27 +8355,27 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics. (Hardhat console logging).
             "telemetry": re.compile(r"\b(console\.log[a-zA-Z0-9_]*)\b"),
-            # 39. print_hits: Standard output. (Solidity lacks native printing outside Hardhat).
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output. (Solidity lacks native printing outside Hardhat).
             "debug_prints": None,
-            # 40. cast_hits: "Trust Me" Tax. Explicit type coercion (e.g., uint256(addr)).
+            # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\b(address|uint\d*|int\d*|bytes\d*|uint|int|bytes)\s*\("),
-            # 41. bailout_hits: Detonators. Aborting transaction state.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts) Aborting transaction state.
             "panics_and_aborts": re.compile(r"\b(revert)\b"),
-            # 42. halt_hits: Temporal Duct Tape. (EVM cannot sleep).
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) (EVM cannot sleep).
             "thread_sleeps": None,
-            # 43. bitwise_hits: Sub-Atomic Math. Bitwise operations for gas optimization.
+            # 43. bitwise_ops (Bitwise Operations) Bitwise operations for gas optimization.
             "bitwise_ops": re.compile(r"<<|>>|\^|~|(?<!&)&(?!&)|(?<!\|)\|(?!\|)"),
-            # 44. sync_locks: Barricades. Native Reentrancy guards.
+            # 44. sync_locks (Resource Management & Stability) Native Reentrancy guards.
             "sync_locks": re.compile(r"\b(nonReentrant)\b"),
-            # 45. freeze_hits: Data Cryogenics. Gas-saving immutability constraints.
+            # 45. immutability_locks (Immutability Constraints) Gas-saving immutability constraints.
             "immutability_locks": re.compile(r"\b(constant|immutable|view|pure)\b"),
-            # 46. cleanup: The Janitor. Deleting state variables to claim gas refunds.
+            # 46. cleanup (Resource Cleanup / Teardown) Deleting state variables to claim gas refunds.
             "cleanup": re.compile(r"\b(delete)\b"),
-            # 47. encapsulation: The Vault. Access limitation to prevent external calls.
+            # 47. encapsulation Access limitation to prevent external calls.
             "encapsulation": re.compile(r"\b(private|internal)\b"),
-            # 48. listeners: The Sinks. (Contracts cannot actively listen asynchronously).
+            # 48. listeners (Event Listeners / Observers) (Contracts cannot actively listen asynchronously).
             "listeners": None,
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": None,
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Solidity Specifics) ---
             "serialization_parsing": re.compile(r"\b(abi\.encode|abi\.encodePacked|abi\.decode)\b"),
@@ -8419,12 +8419,12 @@ LANGUAGE_DEFINITIONS = {
         # Rationale: Uses standard '//' for line-level literature and '/*' '*/' for blocks.
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: Decisions that split flow. Includes Obj-C specific @try/@catch blocks.
             "branch": re.compile(
                 r"\b(if|else|switch|case|default|for|while|do|break|continue|return|goto|@try|@catch|@finally)\b|&&|\|\||\?"
@@ -8484,7 +8484,7 @@ LANGUAGE_DEFINITIONS = {
             "api": re.compile(r"\b(FOUNDATION_EXPORT|UIKIT_EXTERN|OBJC_EXPORT|extern)\b|@property|IBOutlet|IBAction"),
             # 11. flux: State Mutation. State mutation (Property setters and raw assignments).
             "state_mutation": re.compile(r"\b(?:self\.)?[a-zA-Z_]\w*[ \t]*=|\[self\s+set[A-Z]\w*:|(?:\+\+|--)"),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural code.
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural code.
             "dead_code": re.compile(
                 r"//[ \t]*(?:@interface|@implementation|\[|if|NSLog|- \()|/\*[ \t]*(?:@interface|@implementation|\[|if|NSLog|- \()"
             ),
@@ -8560,29 +8560,29 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(r"\b(os_log|OSLog|DDLogInfo|DDLogError|DDLogWarn|DDLogDebug|syslog)\b"),
-            # 39. print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output.
             "debug_prints": re.compile(r"\b(printf|fprintf|NXPrintf|NSLog)\b"),
-            # 40. cast_hits: "Trust Me" Tax. Explicit type coercion.
+            # 40. explicit_casts (Explicit Type Casting): "Trust Me" Tax. Explicit type coercion.
             "explicit_casts": re.compile(r"\(\s*[A-Za-z_]\w*\s*\*?\s*\)\s*[a-zA-Z_$]|typeof\b"),
-            # 41. bailout_hits: Detonators. Aborting execution context.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts) Aborting execution context.
             "panics_and_aborts": re.compile(r"\b(@throw|abort|exit)\b"),
-            # 42. halt_hits: Temporal Duct Tape. Forcing threads to sleep.
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) Forcing threads to sleep.
             "thread_sleeps": re.compile(r"\b(sleep|usleep|nanosleep)\s*\("),
-            # 43. bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|<<|>>|\^|~"),
-            # 44. sync_locks: Barricades. Coordinated threading logic.
+            # 44. sync_locks (Resource Management & Stability) Coordinated threading logic.
             "sync_locks": re.compile(
                 r"\b(@synchronized|NSLock|NSRecursiveLock|NSConditionLock|dispatch_semaphore_wait)\b"
             ),
-            # 45. freeze_hits: Data Cryogenics. Immutability.
+            # 45. immutability_locks (Immutability Constraints) Immutability.
             "immutability_locks": re.compile(r"\b(const|readonly|immutable)\b"),
-            # 46. cleanup: The Janitor. Resource release (Crucial for MRC NeXT era).
+            # 46. cleanup (Resource Cleanup / Teardown) Resource release (Crucial for MRC NeXT era).
             "cleanup": re.compile(r"\b(dealloc|release|autorelease|free|NX_FREE)\b"),
-            # 47. encapsulation: The Vault. Hiding logic from the application.
+            # 47. encapsulation Hiding logic from the application.
             "encapsulation": re.compile(r"\b(@private|@protected|@package)\b"),
-            # 48. listeners: The Sinks. Waiting for state broadcasts.
+            # 48. listeners (Event Listeners / Observers) Waiting for state broadcasts.
             "listeners": re.compile(r"\b(addObserver:|observeValueForKeyPath:|subscribeNext:)\b"),
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(XCTSkip|xit|xdescribe)\b"),
             # --- PHASE 3: HYBRID DOMAIN SENSORS (Objective-C Specifics) ---
             "serialization_parsing": re.compile(
@@ -8615,7 +8615,7 @@ LANGUAGE_DEFINITIONS = {
             "Makeconf",
             "Makevars",
         ],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling configurations acting as gravity anchors to resolve ambiguous .mk includes.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling configurations acting as disambiguation anchors to resolve ambiguous .mk includes.
         "discriminators": ["Makefile", "makefile", "configure.ac", "CMakeLists.txt"],
         # EXECUTION SIGNATURES: Interpreters found on Line 1 for executable make scripts.
         "shebangs": ["make", "gmake"],
@@ -8739,7 +8739,7 @@ LANGUAGE_DEFINITIONS = {
             "memory_alloc": None,
             "inline_asm": None,
             # --------------------------------------------------------------------------
-            # 5. THERMODYNAMIC BALANCE (Yin & Yang Forces)
+            # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # --------------------------------------------------------------------------
             # Emitting pure, safe structural observability that does not risk halting or crashing the graph execution.
             "telemetry": re.compile(r"\$\(info[ \t]+[^)\n]*\)"),
@@ -8787,7 +8787,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".abap", ".asddls"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: ABAP is executed within the SAP environment; no extensionless exact configurations exist.
         "exact_matches": [],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: SAP deployment artifacts acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: SAP deployment artifacts acting as disambiguation anchors.
         "discriminators": [".abap", "package.devc.xml", ".apc"],
         # EXECUTION SIGNATURES: Executed exclusively within the SAP NetWeaver/ABAP platform; no shebangs exist.
         "shebangs": [],
@@ -8800,7 +8800,7 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"\""),
             "_block_start": None,  # ABAP has no standard multi-line block comments
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch: decisions that split flow. Includes modern COND/SWITCH expressions.
             "branch": re.compile(
                 r"^[ \t]*(IF|ELSE|ELSEIF|CASE|WHEN|WHILE|DO|LOOP\s+AT|TRY|CATCH|CLEANUP|CHECK|EXIT|CONTINUE|RETURN|COND|SWITCH)\b",
@@ -8857,7 +8857,7 @@ LANGUAGE_DEFINITIONS = {
                 r"^[ \t]*(MOVE|MOVE-CORRESPONDING|APPEND|MODIFY\s+TABLE|DELETE\s+TABLE)\b|^[ \t]*INSERT\s+[^\n;]+\s+INTO\s+TABLE",
                 re.I | re.M,
             ),
-            # 12. graveyard: Dead / Commented-out Code. Commented out structural logic (supports * and ").
+            # 12. dead_code (Commented Logic / Deprecated Trails) Commented out structural logic (supports * and ").
             "dead_code": re.compile(
                 r'^[ \t]*\*[ \t]*(?:DATA|METHOD|IF|SELECT|WRITE)\b|"[ \t]*(?:DATA|METHOD|IF|SELECT|WRITE)\b',
                 re.I | re.M,
@@ -8927,7 +8927,7 @@ LANGUAGE_DEFINITIONS = {
                 r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)\]|\b(?:WorldWideWeb|RFC|W3C|CERN|TBL|ENQUIRE)\b",
                 re.I,
             ),
-            # 30. civil_war: Indentation Tracker. Tabs vs 2-space standardization.
+            # 30. tabs_vs_spaces (Formatting Inconsistencies): Indentation Tracker. Tabs vs 2-space standardization.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries: View Horizon. ICF and BSP request handlers.
             "ssr_boundaries": re.compile(
@@ -8952,33 +8952,33 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry: Professional diagnostics.
             "telemetry": re.compile(r"\b(BAL_LOG_CREATE|BAL_DB_SAVE|CL_BALI_LOG|CL_BALI_MSG_SETTER)\b", re.I),
-            # 39. print_hits: Standard output.
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs): Standard output.
             "debug_prints": re.compile(r"^[ \t]*(WRITE)\b", re.I | re.M),
-            # 40. cast_hits: "Trust Me" Tax. Explicit casting and conversions.
+            # 40. explicit_casts (Explicit Type Casting): "Trust Me" Tax. Explicit casting and conversions.
             "explicit_casts": re.compile(
                 r"\b(?:CAST|CONV)\s*[a-zA-Z0-9_~-]*\s*#?\s*\(|ASSIGNING\s+<[^>]+>\s+CASTING",
                 re.I,
             ),
-            # 41. bailout_hits: Detonators. Aborting execution or error messages.
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts) Aborting execution or error messages.
             "panics_and_aborts": re.compile(
                 r'\b(RAISE\s+EXCEPTION|MESSAGE\s+[^\n;]+\s+TYPE\s+[\'"][EX][\'"]|LEAVE\s+PROGRAM)\b',
                 re.I,
             ),
-            # 42. halt_hits: Temporal Duct Tape. Thread sleep.
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses) Thread sleep.
             "thread_sleeps": re.compile(r"\bWAIT\s+UP\s+TO\b", re.I),
-            # 43. bitwise_hits: Sub-Atomic Math.
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"\b(BIT-AND|BIT-OR|BIT-XOR|BIT-NOT)\b", re.I),
-            # 44. sync_locks: Barricades.
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(ENQUEUE_|DEQUEUE_)\b", re.I),
-            # 45. freeze_hits: Data Cryogenics. Immutability (constants).
+            # 45. immutability_locks (Immutability Constraints) Immutability (constants).
             "immutability_locks": re.compile(r"\b(CONSTANTS|FINAL|READ-ONLY)\b", re.I),
-            # 46. cleanup: The Janitor.
+            # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"^[ \t]*(FREE|CLEAR|CLOSE\s+DATASET)\b", re.I | re.M),
-            # 47. encapsulation: The Vault. Scope hiding.
+            # 47. encapsulation (Encapsulation / Access Modifiers)
             "encapsulation": re.compile(r"\b(PRIVATE\s+SECTION|PROTECTED\s+SECTION)\b", re.I),
-            # 48. listeners: The Sinks.
+            # 48. listeners (Event Listeners / Observers)
             "listeners": re.compile(r"\bFOR\s+EVENT\s+[^\n;]+\s+OF\b", re.I),
-            # 49. test_skip: Safety Theater.
+            # 49. test_skip (Bypassed Tests / Ignored Specs)
             "test_skip": re.compile(r"\b(IGNORE)\b", re.I),
         },
     },
@@ -9030,7 +9030,7 @@ LANGUAGE_DEFINITIONS = {
         ],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: The universally recognized, extensionless repository documentation anchors.
         "exact_matches": ["README", "LICENSE", "CHANGELOG", "CONTRIBUTING", "SECURITY"],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Static site generators and documentation build configs acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Static site generators and documentation build configs acting as disambiguation anchors.
         "discriminators": [
             ".md",
             ".mdx",
@@ -9057,7 +9057,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".csv", ".tsv", ".psv"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Delimited data relies strictly on extensions.
         "exact_matches": [],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling datasets and data-science logic files acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Sibling datasets and data-science logic files acting as disambiguation anchors.
         "discriminators": [".csv", ".tsv", ".py", ".ipynb", ".R", ".m"],
         # EXECUTION SIGNATURES: CSV is purely static data; no shebangs exist.
         "shebangs": [],
@@ -9093,7 +9093,7 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"#"),
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             "branch": re.compile(r"\b(?:if|else|elif|fi|case|esac|for|while|do|done)\b|&&|\|\|", re.I),
             "args": re.compile(r"^[ \t]*with:[ \t]*\n(?:[ \t]+[a-zA-Z0-9_-]+:[ \t]*.*)+", re.M | re.I),
             "structural_boundaries": re.compile(r"^[ \t]*(?:env|needs|runs-on|steps|strategy|matrix):", re.M | re.I),
@@ -9219,7 +9219,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".pbtxt", ".textproto", ".textpb", ".pb"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: PBTXT strictly relies on its extensions.
         "exact_matches": [],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Standard .proto schema definitions and Bazel build files acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Standard .proto schema definitions and Bazel build files acting as disambiguation anchors.
         "discriminators": [".proto", "WORKSPACE", "BUILD.bazel", "BUILD"],
         # EXECUTION SIGNATURES: PBTXT is purely serialized message data; no shebangs exist.
         "shebangs": [],
@@ -9240,7 +9240,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".y", ".yy", ".ypp", ".l", ".ll", ".lpp"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: Parser generators rely strictly on extensions.
         "exact_matches": [],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: The generated C/C++ outputs and standard build systems acting as gravity anchors.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: The generated C/C++ outputs and standard build systems acting as disambiguation anchors.
         "discriminators": [
             ".c",
             ".cpp",
@@ -9260,7 +9260,7 @@ LANGUAGE_DEFINITIONS = {
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             "branch": re.compile(r"\b(if|else|switch|case|for|while|do)\b|\|"),
             "args": re.compile(r"\$\d+|\$\$"),
             "structural_boundaries": re.compile(r"\b(return|goto|break|continue|%token|%type|%left|%right|%nonassoc)\b"),
@@ -9330,7 +9330,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".m4", ".at", ".ac", ".in"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: The undeniable structural anchors of the GNU build system.
         "exact_matches": ["configure.ac", "configure.in"],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Automake configurations and standard Makefiles acting as massive gravity anchors for ambiguous .in templates.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: Automake configurations and standard Makefiles acting as contextual baselines for ambiguous .in templates.
         "discriminators": [
             ".m4",
             "Makefile.am",
@@ -9345,12 +9345,12 @@ LANGUAGE_DEFINITIONS = {
         # line-level Commented / Non-Executable Text.
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             "_line_anchor": re.compile(r"\bdnl\b"),
             "_inline_comment": re.compile(r"\bdnl\b"),
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # M4 branching logic and Autoconf shell-generation branches.
             "branch": re.compile(r"\b(?:ifelse|ifdef|AS_IF|AS_CASE|m4_if|m4_case|m4_cond|m4_ifval|m4_ifblank)\b"),
@@ -9389,7 +9389,7 @@ LANGUAGE_DEFINITIONS = {
             # 11. flux (State Mutation)
             # Stack-based macro overriding and list appending.
             "state_mutation": re.compile(r"\b(?:pushdef|popdef|m4_pushdef|m4_popdef|m4_append|m4_append_uniq|m4_combine)\b"),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented-out macro definitions.
             "dead_code": re.compile(r"^[ \t]*dnl[ \t]+(?:m4_define|define|AC_DEFUN|ifelse|AS_IF)\b", re.M),
             # 13. doc (Structured Documentation)
@@ -9438,7 +9438,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure
             "spec_exposure": re.compile(r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries
             "ssr_boundaries": None,
@@ -9460,22 +9460,22 @@ LANGUAGE_DEFINITIONS = {
             # 38. telemetry (Structured Logging / Telemetry)
             # Logging configure progress securely to stdout and config.log.
             "telemetry": re.compile(r"\b(?:AC_MSG_CHECKING|AC_MSG_RESULT|AC_MSG_WARN|AC_MSG_NOTICE)\b"),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             # Raw M4 error printing.
             "debug_prints": re.compile(r"\b(?:errprint|m4_errprint)\b"),
-            # 40. cast_hits
+            # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": None,
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             # Hard aborts.
             "panics_and_aborts": re.compile(r"\b(?:m4_fatal|AC_MSG_ERROR|AC_MSG_FAILURE|AS_EXIT)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             # Raw sleeps in generated scripts.
             "thread_sleeps": re.compile(r"\b(?:sleep)\b"),
-            # 43. bitwise_hits
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": None,
             # 44. sync_locks
             "sync_locks": None,
-            # 45. freeze_hits
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": None,  # M4 macros are mutable by design.
             # 46. cleanup (Resource Cleanup / Teardown)
             # Macro unloading and Autotest tear-downs.
@@ -9510,14 +9510,14 @@ LANGUAGE_DEFINITIONS = {
         # comments and `#| |#` for nested block-level Commented / Non-Executable Text.
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             # Scheme uses ';' for standard line-level literature.
             "_line_anchor": re.compile(r";"),
             "_inline_comment": re.compile(r";"),
             # Scheme block comments (SRFI 30) use #| and |#
             "_block_start": re.compile(r"#\|"),
             "_block_end": re.compile(r"\|#"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Lisp control flow branches. Uses custom S-expression boundaries.
             "branch": re.compile(r"(?<=[ \t(\[])(if|cond|case|and|or|when|unless)(?=[ \t)\]\n\r])"),
@@ -9583,7 +9583,7 @@ LANGUAGE_DEFINITIONS = {
             "state_mutation": re.compile(
                 r"(?<=[ \t(\[])(set!|vector-set!|string-set!|hash-table-set!|bytevector-u8-set!)(?=[ \t)\]\n\r])"
             ),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented out S-expressions.
             "dead_code": re.compile(
                 r"^[ \t]*;+[ \t]*\([ \t]*(?:define|let|if|cond|lambda)(?=[ \t)\]\n\r])",
@@ -9645,7 +9645,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war
+            # 30. tabs_vs_spaces (Formatting Inconsistencies)
             # Lisp/Scheme relies entirely on uniform space alignment. Tabs are highly destructive here.
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries
@@ -9669,24 +9669,24 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(r"(?<=[ \t(\[])(log-info|log-error|log-warn|log-debug|syslog)(?=[ \t)\]\n\r])"),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"(?<=[ \t(\[])(display|write|newline|format\s+#t)(?=[ \t)\]\n\r])"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             # Type coercions crossing memory boundaries.
             "explicit_casts": re.compile(
                 r"(?<=[ \t(\[])(number->string|string->number|symbol->string|string->symbol|list->vector|vector->list|char->integer|integer->char)(?=[ \t)\]\n\r])"
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"(?<=[ \t(\[])(error|abort|exit|emergency-exit)(?=[ \t)\]\n\r])"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"(?<=[ \t(\[])(sleep|usleep|thread-sleep!)(?=[ \t)\]\n\r])"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(
                 r"(?<=[ \t(\[])(bitwise-and|bitwise-ior|bitwise-xor|bitwise-not|arithmetic-shift|ash)(?=[ \t)\]\n\r])"
             ),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"(?<=[ \t(\[])(mutex-lock!|make-mutex)(?=[ \t)\]\n\r])"),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             # Immutable strings and explicit quotations (meaning the list cannot be mutated safely).
             "immutability_locks": re.compile(r"(?<=[ \t(\[])(quote|string->immutable-string)(?=[ \t)\]\n\r])|\'(?=\()"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -9769,7 +9769,7 @@ LANGUAGE_DEFINITIONS = {
         "extensions": [".hlo"],
         # ABSOLUTE IDENTITY & EXACT FILENAMES: IR text files strictly rely on their extensions.
         "exact_matches": [],
-        # ECOSYSTEM ANCHORS & DISAMBIGUATION: JAX, TensorFlow, and MLIR toolchain markers acting as gravity anchors for ML compilers.
+        # ECOSYSTEM ANCHORS & DISAMBIGUATION: JAX, TensorFlow, and MLIR toolchain markers acting as disambiguation anchors for ML compilers.
         "discriminators": [".hlo", ".mlir", ".pbtxt", ".py", "BUILD.bazel", "BUILD"],
         # EXECUTION SIGNATURES: HLO is compiler intermediate representation; no shebangs exist.
         "shebangs": [],
@@ -9915,12 +9915,12 @@ LANGUAGE_DEFINITIONS = {
         # have native block comments (developers sometimes hack `if 0 { ... }`, but `#` is the standard).
         "lexical_family": "line_exclusive",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             "_line_anchor": re.compile(r"#"),
             "_inline_comment": re.compile(r"#"),
             "_block_start": None,
             "_block_end": None,
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             # Tcl control flow keywords.
             "branch": re.compile(r"\b(?:if|elseif|else|switch|while|for|foreach|catch|try|trap|finally)\b"),
@@ -9968,7 +9968,7 @@ LANGUAGE_DEFINITIONS = {
             # 11. flux (State Mutation)
             # Variable state mutations.
             "state_mutation": re.compile(r"\b(?:set|lappend|dict[ \t]+set|array[ \t]+set|incr|append)\b[ \t]+[a-zA-Z0-9_:]+"),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Commented out structural code.
             "dead_code": re.compile(r"^[ \t]*#[ \t]*(?:proc|set|if|while|foreach|return)\b", re.M),
             # 13. doc (Structured Documentation)
@@ -10003,7 +10003,7 @@ LANGUAGE_DEFINITIONS = {
             # Explicit math invocations via expr.
             "scientific": re.compile(r"\b(?:expr|math::)\b|\b(?:sin|cos|tan|sqrt|exp|log|pow)\b"),
             # 23. heat_triggers (Metaprogramming & Reflection)
-            # Massive cognitive heat: Intercepting variables, tracking execution, and runtime aliasing.
+            # High Cognitive Load: Intercepting variables, tracking execution, and runtime aliasing.
             "reflection_metaprogramming": re.compile(r"\b(?:trace[ \t]+add|rename|interp[ \t]+create|interp[ \t]+alias)\b"),
             # 24. import (Dependency Inclusions)
             # Package and module loading.
@@ -10019,7 +10019,7 @@ LANGUAGE_DEFINITIONS = {
             # 27. fragile_debt (Acknowledged Hacks / FIXMEs)
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             "spec_exposure": re.compile(r"\[(?:[ \t]*SPEC[ \t]*-[ \t]*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             # Tcl standardizes on spaces. Tabs indicate formatter friction.
             "tabs_vs_spaces": None,
             "ssr_boundaries": None,
@@ -10034,19 +10034,19 @@ LANGUAGE_DEFINITIONS = {
             # --- PHASE 5: RESOURCE MANAGEMENT & STABILITY ---
             # 38. telemetry (Structured Logging / Telemetry)
             "telemetry": re.compile(r"\b(?:log::log|logger::|syslog)\b"),
-            # 39. print_hits (Standard Output / Debug Prints)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs) (Standard Output / Debug Prints)
             "debug_prints": re.compile(r"\bputs\b"),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(r"\bexpr[ \t]+(?:int|double|wide)\("),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(?:error|exit)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\bafter[ \t]+[0-9]+\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             "bitwise_ops": re.compile(r"(?<!&)&(?!&)|(?<!\|)\|(?!\|)|\^|~|<<|>>"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(?:thread::mutex|thread::rwmutex|thread::cond)\b"),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             # Tcl lacks `const`, but setting a trace to prevent writes is the Tcl idiom for freezing.
             "immutability_locks": re.compile(r"\btrace[ \t]+add[ \t]+variable[ \t]+[a-zA-Z0-9_:]+[ \t]+write\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
@@ -10085,12 +10085,12 @@ LANGUAGE_DEFINITIONS = {
         # LEXICAL FAMILY
         "lexical_family": "standard_block",
         "rules": {
-            # --- 2.3.C OPTICAL SPLIT CONTROLS ---
+            # --- LEXICAL DELIMITER CONTROLS ---
             "_line_anchor": re.compile(r"//"),
             "_inline_comment": re.compile(r"//"),
             "_block_start": re.compile(r"/\*"),
             "_block_end": re.compile(r"\*/"),
-            # --- PHASE 1: GEOMETRY & STRUCTURE ---
+            # --- PHASE 1: LOGIC TOPOLOGY & STRUCTURE ---
             # 1. branch (Control Flow / Branching)
             "branch": re.compile(r"\b(if|else|switch|case|default|for|while|in|try|catch|finally)\b|\?|:"),
             # 2. args (Parameters / Coupling)
@@ -10139,7 +10139,7 @@ LANGUAGE_DEFINITIONS = {
             ),
             # 11. flux (State Mutation)
             "state_mutation": re.compile(r"^[ \t]*\w+(?:\.\w+)*[ \t]*=|@(?:Setter|Data)\b", re.M),
-            # 12. graveyard (Dead / Commented-out Code)
+            # 12. dead_code (Commented Logic / Deprecated Trails)
             # Tuned to catch dead Gradle definitions and Groovy logic.
             "dead_code": re.compile(
                 r"//[ \t]*(?:def|class|void|if|for|while|import|implementation|compile|api|testImplementation)\b"
@@ -10189,7 +10189,7 @@ LANGUAGE_DEFINITIONS = {
             "fragile_debt": GLOBAL_FRAGILE_DEBT,
             # 29. spec_exposure (Spec / Audit Traceability)
             "spec_exposure": re.compile(r"\[(?:\s*SPEC\s*-\s*\d+|spec|audit)[^\]]*\]", re.I),
-            # 30. civil_war (Formatting Inconsistencies)
+            # 30. tabs_vs_spaces (Formatting Inconsistencies) 
             "tabs_vs_spaces": None,
             # 31. ssr_boundaries (Server-Side Rendering)
             "ssr_boundaries": re.compile(
@@ -10215,24 +10215,24 @@ LANGUAGE_DEFINITIONS = {
             "telemetry": re.compile(
                 r"\b(log|logger|LOGGER|LoggerFactory)\.(?:info|error|warn|warning|debug|trace)\b|@Slf4j|@Log4j2|@Log"
             ),
-            # 39. print_hits (The Amateur)
+            # 39. debug_prints (Debug Artifacts / Unstructured Outputs)
             "debug_prints": re.compile(
                 r"\b(println|print|printf|System\.out\.print|System\.err\.print|\.printStackTrace\(\))\b"
             ),
-            # 40. cast_hits (Explicit Type Casting)
+            # # 40. explicit_casts (Explicit Type Casting)
             "explicit_casts": re.compile(
                 r"\bas\s+[A-Z]\w*|\(\s*(?:int|long|short|byte|char|float|double|boolean|[A-Z][A-Za-z0-9_]*)\s*\)\s*[a-zA-Z_$]"
             ),
-            # 41. bailout_hits (Execution Halts / Panics)
+            # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(throw|System\.exit|GradleException)\b"),
-            # 42. halt_hits (Thread Blocking / Sleeps)
+            # 42. thread_sleeps (Thread Blocking / Synchronous Pauses)
             "thread_sleeps": re.compile(r"\b(Thread\.sleep|sleep)\b"),
-            # 43. bitwise_hits (Bitwise Operations)
+            # 43. bitwise_ops (Bitwise Operations)
             # EXCLUDES `<<` and `>>` because Groovy heavily overloads `<<` for list/stream appending.
             "bitwise_ops": re.compile(r"\^|~"),
-            # 44. sync_locks (Thread Synchronization / Locks)
+            # 44. sync_locks (Resource Management & Stability)
             "sync_locks": re.compile(r"\b(synchronized|ReentrantLock|ReadWriteLock|Semaphore|Lock|Mutex)\b"),
-            # 45. freeze_hits (Immutability Constraints)
+            # 45. immutability_locks (Immutability Constraints)
             "immutability_locks": re.compile(r"\b(final|@Immutable)\b"),
             # 46. cleanup (Resource Cleanup / Teardown)
             "cleanup": re.compile(r"\b(close|dispose|shutdown)\b\s*\("),

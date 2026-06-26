@@ -16,7 +16,7 @@ from gitgalaxy.standards import analysis_lens as config
 
 # ==============================================================================
 # GitGalaxy Phase 10: LLM Recorder (The AI Translation Layer)
-# Strategy v6.3.0 Protocol: Token Density, Distribution Physics & Context Graphs
+# Strategy v6.3.0 Protocol: Token Density, Distribution Topology & Context Graphs
 # ==============================================================================
 
 
@@ -25,7 +25,7 @@ class LLMRecorder:
     PURPOSE: Translates raw GitGalaxy telemetry into AI-optimized artifacts.
 
     FEATURES:
-    1. Statistical Physics: Calculates Min/Max/Mean/Median/Mode for all risks.
+    1. Statistical Topologies: Calculates Min/Max/Mean/Median/Mode for all risks.
     2. Syntactic Bottlenecks: Isolates I/O and Dependency choke points.
     3. High-Impact Functions: Ranks top 10 functions by structural magnitude.
     4. Relational Knowledge Graph: Builds a SQLite DB for autonomous agents.
@@ -150,7 +150,7 @@ class LLMRecorder:
         lines = []
         lines.append(f"# ARCHITECTURAL_BRIEF: {target}")
         lines.append(
-            "> INSTRUCTION: Deterministic Syntactic Analysis. Base architectural insights on Mass, Extracted Signatures, and Risk overlays.\n"
+            "> INSTRUCTION: Deterministic Syntactic Analysis. Base architectural insights on Structural Magnitude, Extracted Signatures, and Risk overlays.\n"
         )
 
         # --- 0. FORENSIC TRACEABILITY ---
@@ -225,8 +225,8 @@ class LLMRecorder:
             "> * **Defensive Guardrails:** `safety` (Error handling), `freeze_hits` (immutability), `cleanup` (state destruction)."
         )
 
-        # --- 2. 13-POINT RISK PHYSICS (THE EQUATIONS) ---
-        lines.append("## 2. THE 13-POINT RISK EXPOSURE PHYSICS (EQUATIONS & CONTEXT)")
+        # --- 2. 13-POINT RISK ANALYSIS (THE EQUATIONS) ---
+        lines.append("## 2. THE 13-POINT RISK EXPOSURE ANALYSIS (EQUATIONS & CONTEXT)")
         lines.append("> **How the SAST Engine Calculates Risk Exposure (Lower Risk 0 - Higher Risk Exposure 100%):**")
         lines.append(
             "> Most scores use a Sigmoid curve based on density (Hits / LOC) to prevent massive files from mathematically hiding their flaws."
@@ -254,7 +254,7 @@ class LLMRecorder:
             "> 7. **State Flux Risk Exposure:** Measures the frequency of data mutation and variable reassignment."
         )
         lines.append(
-            "> 8. **Graveyard (commented out code):** Measures the presence of abandoned, commented-out logic blocks."
+            "> 8. **Commented Logic (dead code):** Measures the presence of abandoned, commented-out logic blocks."
         )
         lines.append(
             "> 9. **Spec Match Risk Exposure:** Measures how closely code aligns with formal specifications or architectural requirements."
@@ -290,7 +290,7 @@ class LLMRecorder:
             "> **19. Function Magnitude (Impact Score):** Measures the physical footprint and 'heaviness' of a specific function. `((BranchHits + 1) * (Args + 1) + (0.05 * LOC)) * 10`. This is NOT a risk score."
         )
         lines.append(
-            "> **20. File Magnitude (Total Mass):** Measures the total gravitational pull of a file. `Sum(Function Impacts) + API + Concurrency + Flux + (LOC / 50)`. This is NOT a risk score."
+            "> **20. File Magnitude (Total Impact):** Measures the total structural impact of a file. `Sum(Function Impacts) + API + Concurrency + Flux + (LOC / 50)`. This is NOT a risk score."
         )
         lines.append("")
 
@@ -364,7 +364,7 @@ class LLMRecorder:
             )
         lines.append("")
 
-        lines.append("## 4.6 FILE ARCHETYPES & STATIC MASS")
+        lines.append("## 4.6 FILE ARCHETYPES & STATIC ASSETS")
         fingerprint = summary.get("ecosystem_fingerprint", {})
         ml_clusters = fingerprint.get("ml_clusters", {})
         static_mass = fingerprint.get("static_mass", {})
@@ -409,7 +409,7 @@ class LLMRecorder:
         lines.append("")
 
         # --- 6. RISK DISTRIBUTIONS ---
-        lines.append("## 6. RISK EXPOSURE PHYSICS (0-100%)")
+        lines.append("## 6. RISK EXPOSURE ANALYSIS (0-100%)")
         lines.append("| Risk Vector | Min | Max | Mean | Med | Mode |")
         lines.append("|---|---|---|---|---|---|")
 
@@ -557,7 +557,7 @@ class LLMRecorder:
         lines.append("## 9. DIRECTORY GROUPS (Top 10 Heaviest Modules)")
         dir_groups = summary.get("directory_groups", {})
         if dir_groups:
-            lines.append("| Folder Path | Files | Total Mass | Avg Cog Load | Avg Debt |")
+            lines.append("| Folder Path | Files | Total Impact | Avg Cog Load | Avg Debt |")
             lines.append("|---|---|---|---|---|")
 
             sorted_groups = sorted(
@@ -808,7 +808,7 @@ class LLMRecorder:
                 dist = tel.get("archetype_fingerprint", {}).get(arch, "N/A")
                 lines.append(f"- **Archetype:** `{arch}` (Distance: {dist} IQR)")
                 lines.append(
-                    f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%"
+                    f"- **Magnitude:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Authorship Centralization:** {round(tel.get('author_distribution', 0.0), 1)}%"
                 )
 
                 file_risks = []
@@ -839,7 +839,7 @@ class LLMRecorder:
         # ==============================================================================
         lines.append("## 12. SCANNED ARTIFACTS HITLIST (Top 25 Heaviest Files)")
         lines.append(
-            "> *Note: 'Mass' represents the file's total Structural Magnitude and gravitational pull within the system. It is independent of its Risk Profile. High mass implies high structural importance and centralization.*\n"
+            "> *Note: 'Magnitude' represents the file's total Structural Magnitude and impact within the system. It is independent of its Risk Profile. High magnitude implies high structural importance and centralization.*\n"
         )
 
         sorted_files = sorted(parsed_files, key=lambda x: x.get("file_impact", 0.0), reverse=True)[:25]
@@ -894,7 +894,7 @@ class LLMRecorder:
                 lines.append(f"- **Top Global Matches:** {', '.join(fp_strs)}")
 
             lines.append(
-                f"- **Mass:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Silo Risk:** {round(tel.get('author_distribution', 0.0), 1)}%"
+                f"- **Magnitude:** {m} | **LOC:** {loc} | **CtrlFlow:** {round(tel.get('control_flow_ratio', 0.0) * 100, 1)}% | **Authorship Centralization:** {round(tel.get('author_distribution', 0.0), 1)}%"
             )
             lines.append(
                 f"- **Algorithmic:** {tel.get('max_algorithmic_complexity', 'O(N)')} | **DB Complexity:** {tel.get('max_db_complexity', 0)}"
@@ -955,7 +955,7 @@ class LLMRecorder:
             out_names = ", ".join([Path(x).name for x in outbound[:8]]) + ("..." if len(outbound) > 8 else "")
 
             lines.append("* *Network Topology:*")
-            lines.append(f"  * `Ecosystem Role:` {eco_role} | `Blast Radius (PageRank):` {blast_rad}")
+            lines.append(f"  * `Ecosystem Role:` {eco_role} | `Dependency Blast Radius (PageRank):` {blast_rad}")
             lines.append(
                 f"  * `Choke Point (Betweenness):` {between_score} | `Ripple Effect (Closeness):` {close_score}"
             )
@@ -1047,7 +1047,7 @@ class LLMRecorder:
                     sec_a, sec_d = drift["secondary"]
 
                     lines.append(
-                        f"- `{p}` ({l}) | Mass: {m} | Delta: **{round(drift['delta'], 3)} IQR** | Secondary Pull: `{sec_a}`"
+                        f"- `{p}` ({l}) | Magnitude: {m} | Delta: **{round(drift['delta'], 3)} IQR** | Secondary Pull: `{sec_a}`"
                     )
 
                     struct_hits = [
@@ -1067,9 +1067,9 @@ class LLMRecorder:
         # ==============================================================================
         # --- 13.5 STRATEGIC REFACTORING TARGETS ---
         # ==============================================================================
-        lines.append("## 13.5 STRATEGIC REFACTORING TARGETS (Volatility & Silos)")
+        lines.append("## 13.5 STRATEGIC REFACTORING TARGETS (Volatility & Authorship Centralization)")
         lines.append(
-            "> **AI CONTEXT:** Use these intersections to recommend pragmatic next steps. Risk is exponentially worse when combined with high churn (frequent edits) or high silo risk (single points of failure).\n"
+            "> **AI CONTEXT:** Use these intersections to recommend pragmatic next steps. Risk is exponentially worse when combined with high churn (frequent edits) or high authorship centralization (single points of failure).\n"
         )
 
         churn_idx = self.RISK_SCHEMA.index("churn") if "churn" in self.RISK_SCHEMA else -1
@@ -1113,7 +1113,7 @@ class LLMRecorder:
                 owner = s.get("telemetry", {}).get("ownership", "Unknown")
                 silo_score = s.get("telemetry", {}).get("author_distribution", 0.0)
                 lines.append(
-                    f"- `{s.get('path')}` -> **{owner}** ({silo_score}% isolated ownership) | Mass: {s.get('file_impact')}"
+                    f"- `{s.get('path')}` -> **{owner}** ({silo_score}% isolated ownership) | Magnitude: {s.get('file_impact')}"
                 )
             lines.append("")
 
@@ -1122,14 +1122,14 @@ class LLMRecorder:
         # ==============================================================================
         sys_bots = forensic_report.get("systemic_bottlenecks", {})
         if any(v and v[0]["score"] > 0 for v in sys_bots.values()):
-            lines.append("## 13.8 SYSTEMIC NETWORK BOTTLENECKS (N-Dimensional Physics)")
+            lines.append("## 13.8 SYSTEMIC NETWORK BOTTLENECKS (N-Dimensional Topology)")
             lines.append(
                 "> **AI CONTEXT:** These metrics cross-multiply Network Graph Theory against Risk Exposure to identify the exact mechanisms of runtime failure.\n"
             )
 
-            cm = sys_bots.get("contagious_mutation", [])
+            cm = sys_bots.get("cascading_state_mutation", [])
             if cm and cm[0]["score"] > 0:
-                lines.append("### ☣️ Contagious Mutation (Betweenness * State Flux)")
+                lines.append("### ☣️ Cascading State Flux (Betweenness * State Flux)")
                 lines.append(
                     "These files act as structural bridges between components, but possess highly volatile, mutating state. They cause unpredictable side-effects for all downstream consumers.\n"
                 )
@@ -1153,9 +1153,9 @@ class LLMRecorder:
                         )
                 lines.append("")
 
-            bb = sys_bots.get("blind_bottleneck", [])
+            bb = sys_bots.get("undocumented_critical_path", [])
             if bb and bb[0]["score"] > 0:
-                lines.append("### 🙈 Blind Bottlenecks (Blast Radius * Doc Risk)")
+                lines.append("### 🙈 Opaque Critical Nodes (Dependency Blast Radius * Doc Risk)")
                 lines.append(
                     "These are 'Core Architecture Nodes' that the entire ecosystem relies upon, but they lack human intent, documentation, or ownership metadata. Modifying them is flying blind.\n"
                 )

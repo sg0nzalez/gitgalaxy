@@ -38,7 +38,7 @@ class NetworkRiskSensor:
 
         DEFENSIVE DESIGN: Traditional code coverage only checks if a line was executed.
         By mapping outbound AST calls from tests to production targets, we can calculate
-        the exact architectural "Blast Radius" of untested functions.
+        the exact architectural "Dependency Blast Radius" of untested functions.
         """
         coverage_map = {}
         resolution_map = {}
@@ -162,7 +162,7 @@ class NetworkRiskSensor:
                             G.add_edge(curr_path, target_path, weight=weight)
 
         # =========================================================================
-        # 3. NETWORK MATHEMATICS (Blast Radius & Centrality)
+        # 3. NETWORK MATHEMATICS (Dependency Blast Radius & Centrality)
         # DEFENSIVE DESIGN: Centrality algorithms (Betweenness/Closeness) scale non-linearly
         # at O(V^3). For massive monolithic repositories (>1500 nodes), we MUST implement
         # strict sampling or bypasses, otherwise the CI/CD pipeline will hit a timeout deadlock.
@@ -223,7 +223,7 @@ class NetworkRiskSensor:
 
             systemic_threat_vector = []
             for local_risk in local_risk_vector:
-                # Systemic Threat = Blast Radius * Local Vulnerability Severity
+                # Systemic Threat = Dependency Blast Radius * Local Vulnerability Severity
                 systemic_threat_vector.append(round(pr_normalized * (local_risk / 100.0), 3))
 
             # --- Algorithmic Network Bottleneck Detection ---
@@ -256,7 +256,7 @@ class NetworkRiskSensor:
             f["telemetry"]["popularity"] = in_d
 
         # =========================================================================
-        # 6. MACRO-ECOSYSTEM PHYSICS (Repo-Level Health & Resilience)
+        # 6. MACRO-ECOSYSTEM TOPOLOGY (Repo-Level Health & Resilience)
         # =========================================================================
         macro_metrics = {
             "modularity": 0.0,
@@ -293,7 +293,7 @@ class NetworkRiskSensor:
                 except Exception:
                     pass
 
-                # C. Cyclic Density (Static Friction / Dependency Loops)
+                # C. Cyclic Density (Circular Dependencies / Dependency Loops)
                 try:
                     sccs = list(nx.strongly_connected_components(G))
                     nodes_in_cycles = sum(len(c) for c in sccs if len(c) > 1)
@@ -313,7 +313,7 @@ class NetworkRiskSensor:
                 except Exception:
                     pass
 
-                # E. Articulation Points (Shatter Risk)
+                # E. Articulation Points (Fragmentation Risk)
                 try:
                     macro_metrics["articulation_points"] = len(list(nx.articulation_points(U)))
                 except Exception:

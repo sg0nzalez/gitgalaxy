@@ -85,9 +85,9 @@ def test_audit_recorder_generate_ml_threat_report(recorder, tmp_path):
     # Validate File Identity overrides
     artifact = payload["6. Parsed Files (Scanned Artifacts)"]["src/core"]["Files"]["src/core/auth.py"]
     assert artifact["1. Artifact Identity"]["System Purpose"] == "Handles JWT Validation"
-    
+
     # Validate Unparsable formatting
-    unparsable = payload["5. Unparsable Files (Excluded Artifacts Queue)"]
+    unparsable = payload["5. Unparsable Artifacts (Excluded Artifacts Queue)"]
     assert len(unparsable) == 2
     assert unparsable[1]["Forensic Category"] == "Parser Bypass"
 

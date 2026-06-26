@@ -636,16 +636,16 @@ def spatial_mapper():
     return SpatialMapper()
 
 
-def test_spatial_mapper_mass_extraction(spatial_mapper):
-    """Proves the engine extracts gravitational mass natively or via fallback telemetry."""
+def test_spatial_mapper_magnitude_extraction(spatial_mapper):
+    """Proves the engine extracts structural magnitude natively or via fallback telemetry."""
     # 1. Primary: Forensics Dictionary
-    assert spatial_mapper._get_mass({"forensics": {"structural_mass": 42.0}}) == 42.0
+    assert spatial_mapper._get_magnitude({"forensics": {"structural_mass": 42.0}}) == 42.0
 
     # 2. Secondary: Processed File Impact
-    assert spatial_mapper._get_mass({"file_impact": 15.5}) == 15.5
+    assert spatial_mapper._get_magnitude({"file_impact": 15.5}) == 15.5
 
     # 3. Fallback: Raw Function Impact
-    assert spatial_mapper._get_mass({"sum_fxn_impact": 7.0}) == 7.0
+    assert spatial_mapper._get_magnitude({"sum_fxn_impact": 7.0}) == 7.0
 
 
 def test_spatial_mapper_deterministic_jitter(spatial_mapper):
@@ -1215,7 +1215,7 @@ def test_detector_unregistered_rule_handling(caplog):
 # TEST 33: CARTOGRAPHY EMPTY STATES & FALLBACKS
 # ==============================================================================
 def test_spatial_mapper_empty_states_and_fallbacks():
-    """Proves the 3D geometry engine handles missing files and zero-mass states safely."""
+    """Proves the 3D geometry engine handles missing files and zero-magnitude states safely."""
     mapper = SpatialMapper()
     
     # Case 1: Empty Repository
@@ -1224,11 +1224,11 @@ def test_spatial_mapper_empty_states_and_fallbacks():
     # Case 2: Empty Hash Jitter
     assert mapper._hash_jitter("", 100.0) == 0.0, "Jitter failed to neutralize empty seeds!"
     
-    # Case 3: Zero Mass Fallback
-    assert mapper._get_mass({}) == 0.0, "Mass extraction crashed on an empty node dictionary!"
+    # Case 3: Zero Magnitude Fallback
+    assert mapper._get_magnitude({}) == 0.0, "Magnitude extraction crashed on an empty node dictionary!"
     
     # Case 4: Deep Fallback (Using total_control_flow_ratio as a mock fallback if needed)
-    assert mapper._get_mass({"sum_fxn_impact": 0.0}) == 0.0, "Mass extraction failed on zero-impact nodes!"
+    assert mapper._get_magnitude({"sum_fxn_impact": 0.0}) == 0.0, "Magnitude extraction failed on zero-impact nodes!"
 
 # ==============================================================================
 # TEST 34: UTILITY & EMPTY STATE FALLBACKS

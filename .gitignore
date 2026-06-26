@@ -87,3 +87,5 @@ gitgalaxy/tools/supply_chain_security/README supply_chain.md
 gitgalaxy/tools/terabyte_log_scanning/README terabyte.md
 *.sqlite
 *.db
+LM-Notebook files.md
+terminology_updates.md

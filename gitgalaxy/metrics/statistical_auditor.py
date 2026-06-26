@@ -14,7 +14,7 @@ import math
 
 # ==============================================================================
 # GitGalaxy Phase 7: Spectral Auditor (Quality Control)
-# Strategy v6.2.0 Protocol: Bayesian Accountability & Inert Dark Matter
+# Strategy v6.2.0 Protocol: Bayesian Accountability & Unparsable Artifacts
 # ==============================================================================
 
 
@@ -48,7 +48,7 @@ class StatisticalAuditor:
 
         self.logger.debug("Initializing Statistical Auditor (Data Quality Gating)...")
 
-        # Save the language definitions so we can check for execution geometry later
+        # Save the language definitions so we can check for execution topology later
         self.lang_defs = lang_defs or {}
 
         # SCHEMA CONSTANTS (32 Signal Keys representing pure active logic)
@@ -249,10 +249,10 @@ class StatisticalAuditor:
             else:
                 is_inert = True  # Unknown/Undefined languages are inert by default
 
-            # Immediately bypass inert matter from all statistical checks
+            # Immediately bypass static assets from all statistical checks
             if is_inert:
                 verified_files.extend(group)
-                self.logger.debug(f"[{lid}] Bypassed {len(group)} artifact(s) (Inert Data Format: 0 Active Signals).")
+                self.logger.debug(f"[{lid}] Bypassed {len(group)} artifact(s) (Static Asset: 0 Active Signals).")
                 continue
 
             # ==================================================================
@@ -274,10 +274,10 @@ class StatisticalAuditor:
                     self.logger.warning(f"[{lid}] {relegation_reason}")
 
                     for artifact in group:
-                        # Strip the hallucination, keep the mass visible in the 3D map
+                        # Strip the hallucination, keep the mass visible in the topological map
                         artifact["lang_id"] = "plaintext"
                         artifact["telemetry"]["identity_source_proof"] = "Low-Sample Guard Fallback"
-                        artifact["equations"] = {}  # Inert matter has no logic equations
+                        artifact["equations"] = {}  # Static assets have no logic equations
                         verified_files.append(artifact)
                     continue
 

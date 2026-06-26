@@ -477,7 +477,7 @@ class RecordKeeper:
             repo_z = tel.get("repo_z_score", 0.0)
             parent_ent = tel.get("domain_context", {}).get("parent_entity", "")
 
-            # --- AI GUARDRAILS & TOKEN PHYSICS ---
+            # --- AI GUARDRAILS & TOKEN DENSITY ---
             guardrails = tel.get("ai_guardrails", {})
             appsec = tel.get("ai_appsec", {})
 

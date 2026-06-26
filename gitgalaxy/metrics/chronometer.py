@@ -143,14 +143,14 @@ class Chronometer:
                 self.logger.warning(f"Git boundary survey failed, falling back to FS scan: {e}")
 
         # Fallback: OS Walk for boundaries utilizing global Aperture configs
-        black_holes = self.aperture_config.get("IGNORED_DIRECTORIES", set())
+        ignored_dirs = self.aperture_config.get("IGNORED_DIRECTORIES", set())
         scan_limit = self.chrono_config.get("FALLBACK_SCAN_LIMIT", 25000)
 
         min_t, max_t = float("inf"), 0.0
         count = 0
         for root, dirs, files in os.walk(self.root):
             # Skip noise sectors dynamically
-            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in black_holes]
+            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ignored_dirs]
             for f in files:
                 try:
                     m = os.path.getmtime(os.path.join(root, f))

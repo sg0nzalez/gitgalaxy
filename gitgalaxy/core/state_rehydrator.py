@@ -1,7 +1,13 @@
 # ==============================================================================
-# state_rehydrator.py
-# GitGalaxy: SQLite to RAM Memory Rehydration
+# GitGalaxy
+# Copyright (c) 2026 Joe Esquibel
+#
+# This source code is licensed under the PolyForm Noncommercial License 1.0.0.
+# You may not use this file except in compliance with the License.
+# A copy of the license can be found in the LICENSE file in the root directory
+# of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
 # ==============================================================================
+
 import sqlite3
 from pathlib import Path
 from typing import Dict, Any
@@ -15,7 +21,7 @@ class StateRehydrator:
     inefficient to re-parse 10,000 unchanged files just to figure out how 2 modified
     files impact them. This class rehydrates the previous architectural state directly
     into RAM, allowing the engine to instantly execute dependency resolution without
-    triggering the CPU-bound logic splicers.
+    triggering the CPU-bound structural signature extractors.
     """
 
     def __init__(self, db_path: str):
