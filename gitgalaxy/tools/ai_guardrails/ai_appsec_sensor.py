@@ -1,88 +1,84 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Tool: Autonomous Agent Firewall
+# GitGalaxy Tool: AI Application Security (AppSec) Sensor
 #
 # PURPOSE:
-# Evaluates the structural and topological constraints of the codebase to 
-# determine the safety boundaries for autonomous AI agents (e.g., Claude, Cursor).
+# Scans the repository for vulnerable AI architectures built by developers.
+# It flags dangerous intersections where LLMs (which are vulnerable to Prompt
+# Injection) are given access to OS commands, database writes, or unfiltered
+# network sockets.
 #
 # ARCHITECTURAL DECISION:
-# Autonomous coding agents excel in isolated, pure-function environments but 
-# struggle with highly coupled, poorly documented, or dynamically generated logic.
-# This firewall establishes Zero-Trust guardrails to prevent AI agents from 
-# executing unchecked modifications in volatile sectors, mitigating the risk 
-# of cascading failures, context window exhaustion, and silent state mutations.
+# AI agents with unconstrained execution boundaries represent a critical 
+# security risk. By analyzing the structural topology of the codebase, this 
+# sensor deterministically identifies Autonomous Execution Vectors and 
+# Over-Permissioned Agents before they reach production.
 # ==============================================================================
 import logging
 from typing import List, Dict, Any
 
 
-class DevAgentFirewall:
+class AIAppSecSensor:
     """
-    Autonomous Agent Guardrail Engine.
+    AI Application Security (AppSec) Threat Sensor.
     """
 
     def __init__(self, parent_logger=None):
-        self.logger = parent_logger.getChild("guardrails") if parent_logger else logging.getLogger("guardrails")
+        self.logger = parent_logger.getChild("appsec_sensor") if parent_logger else logging.getLogger("appsec_sensor")
 
-    def evaluate_ecosystem(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        self.logger.info("Executing Autonomous Agent Firewall & Token Density Validation...")
+    def hunt_threats(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        self.logger.info("AI AppSec Sensor: Scanning for Agentic Vulnerabilities...")
 
         for file_data in parsed_files:
-            token_mass = file_data.get("token_mass", 0)
-            network_metrics = file_data.get("telemetry", {}).get("network_metrics", {})
-            risk_vector = file_data.get("risk_vector", [])  # Assuming standard 0-100 risk scores
+            # Extract the raw structural signatures (assuming they are tallied in 'telemetry')
+            telemetry = file_data.get("telemetry", {})
 
-            # Extract relevant structural metrics, safely handling None values from Zero-Dependency Mode
-            pagerank = network_metrics.get("normalized_blast_radius") or 0.0
-            max_big_o = file_data.get("max_big_o") or 1
+            # Extract specific architectural signals
+            ai_orchestrator = telemetry.get("ai_orchestrator", 0) > 0
+            llm_api = telemetry.get("llm_api", 0) > 0
+            ai_tools = telemetry.get("ai_tools", 0) > 0
 
-            guardrails = {
-                "is_agentic_black_hole": False,
-                "requires_hitl": False,  # Human-in-the-Loop
-                "hallucination_zone": False,
-                "warnings": [],
+            arch_api = telemetry.get("arch_api", 0) > 0  # Publicly exposed
+            arch_io = telemetry.get("arch_io", 0) > 0  # Network/Disk I/O
+            db_complexity = file_data.get("max_db_complexity", 0)  # Data gravity
+
+            # Security Structural Signatures
+            sec_danger = telemetry.get("sec_high_risk_execution", 0) > 0  # eval, exec, subprocess
+            sec_secrets = telemetry.get("sec_secrets", 0) > 0  # Hardcoded keys/env access
+            safety_density = telemetry.get("safety_density", 1.0)  # Defensive programming (try/catch, regex)
+
+            appsec_report = {
+                "is_rce_funnel": False,
+                "over_permissioned_agent": False,
+                "agentic_exfiltration_risk": False,
+                "critical_warnings": [],
             }
 
-            # 1. Context Window Exhaustion (Agentic Black Hole)
-            # If a file exceeds token limits AND has severe algorithmic complexity, the AI will lose context.
-            if token_mass is not None and token_mass > 8000 and max_big_o >= 3:
-                guardrails["is_agentic_black_hole"] = True
-                guardrails["warnings"].append(
-                    f"CRITICAL [Context Window Exhaustion]: Token mass ({token_mass}) and O(N^{max_big_o}) complexity will exceed agent context capabilities and induce severe hallucination."
+            # 1. Autonomous Execution Vector (Weaponized Prompt Injection)
+            # LLM Logic + Public API Router + OS Command Execution
+            if (ai_orchestrator or llm_api) and arch_api and sec_danger:
+                appsec_report["is_rce_funnel"] = True
+                appsec_report["critical_warnings"].append(
+                    "CRITICAL [Autonomous Execution Vector]: AI logic is adjacent to OS-level execution (eval/subprocess) and exposed via API. Immediate Prompt Injection -> Autonomous Execution vulnerability."
                 )
 
-            # 2. The HITL Mandate (Downstream Exposure + Severe Risk Debt)
-            if pagerank > 1.0 and sum(risk_vector) > 200:
-                guardrails["requires_hitl"] = True
-                guardrails["warnings"].append(
-                    "WARNING [HITL Mandate]: High Downstream Exposure combined with severe risk debt. Human-in-the-Loop required for structural modifications."
+            # 2. Over-Permissioned Agent Binding (Autonomous Escalation)
+            # AI Agent Tools + State Mutation (DB or Disk) + Low Defensive Safety
+            if ai_tools and (db_complexity >= 2 or arch_io) and safety_density < 0.5:
+                appsec_report["over_permissioned_agent"] = True
+                appsec_report["critical_warnings"].append(
+                    "CRITICAL [Over-Permissioned Agent]: AI is bound to tools with raw Database/IO write access and < 50% safety density. High risk of autonomous data corruption."
                 )
 
-            # 3. Metaprogramming Hallucination Risk
-            meta_heavy = file_data.get("telemetry", {}).get("reflection_metaprogramming", 0) > 2
-            doc_density = file_data.get("telemetry", {}).get("doc_density", 1.0)
-
-            if meta_heavy and doc_density < 0.2:
-                guardrails["hallucination_zone"] = True
-                guardrails["warnings"].append(
-                    "DANGER [Hallucination Risk]: Dynamic metaprogramming detected combined with severe Documentation Risk Exposure (< 20% density). Autonomous agents are highly likely to hallucinate missing methods."
+            # 3. Agentic Exfiltration Vector (Unsandboxed Sockets)
+            # LLM Logic + Outbound Sockets/Fetch + Access to Secrets
+            if llm_api and arch_io and sec_secrets:
+                appsec_report["agentic_exfiltration_risk"] = True
+                appsec_report["critical_warnings"].append(
+                    "CRITICAL [Agentic Exfiltration Vector]: LLM logic has access to network sockets AND environment secrets. High risk of SSRF and key exfiltration via prompt injection."
                 )
 
-            # 4. Cascading State Flux (Silent Mutation Risk)
-            state_flux = file_data.get("telemetry", {}).get("state_flux", 0)
-            in_degree = network_metrics.get("in_degree", 0)
-            has_tests = file_data.get("telemetry", {}).get("has_tests", False)
-
-            if state_flux > 50 and in_degree > 5 and not has_tests:
-                guardrails["silent_mutation_risk"] = True
-                guardrails["warnings"].append(
-                    f"CRITICAL [Cascading State Flux]: High state mutation ({state_flux}) and dense downstream dependencies ({in_degree}), with zero verification coverage. Autonomous agents cannot mathematically verify their own structural modifications."
-                )
-
-            # Inject the firewall report back into the file's telemetry
-            if "telemetry" not in file_data:
-                file_data["telemetry"] = {}
-            file_data["telemetry"]["ai_guardrails"] = guardrails
+            # Inject the AppSec report back into the file's telemetry
+            file_data["telemetry"]["ai_appsec"] = appsec_report
 
         return parsed_files
