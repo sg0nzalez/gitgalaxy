@@ -120,7 +120,7 @@ class SecurityLens:
                 r"\bsys\.modules\[[^\]]+\][ \t]*=",
                 re.I,
             ),
-            # 6. Commented-out Executable Logic (Shadow Logic)
+            # 6. Commented-out Executable Logic (Deprecated Trails)
             "dead_code": re.compile(
                 r"(?://|#|--|\*>|^.{6}\*)[^\n]*?\b(?:http|bash|curl|wget|eval|base64|nc\s+-e|/dev/tcp|BPXBATCH)\b|"
                 r"/\*(?:(?!\*/).){0,500}?\b(?:http|bash|curl|wget|eval|base64|nc\s+-e|/dev/tcp)\b",
@@ -363,7 +363,7 @@ class SecurityLens:
     def evaluate_risk(self, aggregated_hits, total_loc, network_metrics=None):
         """
         Evaluates vulnerability risk with Network Centrality awareness.
-        Highly central files (e.g., God Nodes with massive blast radiuses) have a
+        Highly central files (e.g., God Nodes with massive Downstream Exposures) have a
         drastically lower tolerance for embedded threats, scaling their density multipliers.
         """
         loc_safe = total_loc if total_loc > 0 else 1
@@ -421,9 +421,9 @@ class SecurityLens:
         prompt_inj = aggregated_hits.get("prompt_injection", 0)
         agentic_rce = aggregated_hits.get("agentic_rce", 0)
         if agentic_rce > 0:
-            exposures["Agentic RCE Risk (Critical)"] = 100.0
+            exposures["Autonomous Execution Vector (Critical)"] = 100.0
         elif prompt_inj > 0:
-            exposures["Prompt Injection Risk"] = min((prompt_inj / loc_safe) * network_multiplier * 100.0, 100.0)
+            exposures["Prompt Injection Surface Risk"] = min((prompt_inj / loc_safe) * network_multiplier * 100.0, 100.0)
 
         return exposures
 

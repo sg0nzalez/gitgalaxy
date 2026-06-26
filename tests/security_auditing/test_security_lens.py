@@ -176,8 +176,8 @@ def test_evaluate_risk_prompt_injection_isolation(lens):
 
     risk = lens.evaluate_risk(hits, loc, network_metrics=None)
 
-    assert "Prompt Injection Risk" in risk
-    assert "Agentic RCE Risk (Critical)" not in risk
+    assert "Prompt Injection Surface Risk" in risk
+    assert "Autonomous Execution Vector (Critical)" not in risk
 
 
 # ==============================================================================
@@ -241,7 +241,7 @@ def test_comprehensive_risk_evaluation_coverage(lens):
     assert "Logic Bomb Risk" in doomsday_risk
     assert "Memory Corruption Risk" in doomsday_risk
     assert "Secrets Leak Risk" in doomsday_risk
-    assert "Agentic RCE Risk (Critical)" in doomsday_risk
+    assert "Autonomous Execution Vector (Critical)" in doomsday_risk
 
     # 4. Binary Scanner Exception Handler
     # We pass a valid byte array to survive the header scan, but mock the Counter

@@ -29,7 +29,7 @@ class SecurityAuditor:
     """
     Machine Learning Threat Inference Engine.
 
-    Calculates deep N-th degree dependency graphs to map the systemic blast radius
+    Calculates deep N-th degree dependency graphs to map the systemic Dependency Impact
     of every artifact. Passes the fused structural and topological context through
     a multi-class XGBoost classifier to identify behavioral signatures of malware
     (e.g., Trojans, Stealers, Droppers) that evade traditional static analysis.
@@ -185,7 +185,7 @@ class SecurityAuditor:
 
     def _resolve_dependency_graph(self, artifacts):
         """
-        Resolves transitive fragility and blast radius using C-optimized traversals (NetworkX)
+        Resolves transitive fragility and Downstream Exposure using C-optimized traversals (NetworkX)
         if available, falling back to a pure Python BFS deque if missing.
         """
         resolution_map = {}
