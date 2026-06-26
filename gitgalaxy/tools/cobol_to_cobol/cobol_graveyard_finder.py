@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: The Graveyard Reaper (v3 - Context & Copybook Aware)
-# Purpose: Static Analysis of COBOL AST to isolate orphaned data and dead code.
-#          Upgraded with an Inline Copybook Expander for cross-file memory tracking.
+# GitGalaxy Tool: Deprecated Trails Analyzer
+#
+# PURPOSE:
+# Static Analysis of COBOL structural signatures to isolate unused memory 
+# declarations and mathematically unreachable execution logic.
+#
+# ARCHITECTURAL DECISION:
+# Legacy COBOL architectures frequently suffer from "code rot" where memory 
+# addresses (Data Division) and execution blocks (Procedure Division) are 
+# abandoned but never removed by cautious developers. This analyzer prevents 
+# migrating this dead weight to the cloud by statically mapping actual execution 
+# usage against declarations, shedding unnecessary state flux and cognitive load.
 # ==============================================================================
 import argparse
 import sys
@@ -13,9 +22,17 @@ from pathlib import Path
 def resolve_copybooks(content: str, source_path: Path) -> str:
     """
     Recursively hunts for COBOL 'COPY' statements and injects the contents of the
-    target .cpy file directly into the memory string to ensure accurate AST scanning.
-    Handles dynamic variable swapping via the REPLACING clause.
+    target .cpy file directly into the memory string to ensure accurate structural scanning.
     """
+    # ==========================================================================
+    # DEFENSIVE DESIGN (INLINE COPYBOOK EXPANSION):
+    # A COBOL program's data declarations are often hidden inside external copybooks.
+    # Scanning the source file alone would result in massive false-positives for 
+    # undeclared variables. We recursively expand and inline copybooks directly 
+    # into the memory buffer before analysis to ensure mathematically accurate 
+    # dependency tracking.
+    # ==========================================================================
+    
     # Matches: COPY NAME. or COPY NAME REPLACING ==A== BY ==B==.
     copy_pattern = re.compile(
         r'^[ \t]*COPY\s+[\'"]?([A-Z0-9_\-]+)[\'"]?(?:\s+REPLACING\s+(.+?))?\.',
@@ -31,8 +48,12 @@ def resolve_copybooks(content: str, source_path: Path) -> str:
             if cpy_file.exists():
                 cpy_content = cpy_file.read_text(encoding="utf-8", errors="ignore").upper()
 
-                # --- THE SHAPESHIFTER FIX ---
-                # If a REPLACING clause exists, parse the ==OLD== BY ==NEW== pairs and apply them
+                # ==============================================================
+                # DEFENSIVE DESIGN (DYNAMIC ALIASING):
+                # COBOL's 'REPLACING' clause allows dynamic text substitution at 
+                # compile time. We must simulate this substitution in our in-memory 
+                # buffer to prevent missing usage references for aliased variables.
+                # ==============================================================
                 if replacing_clause:
                     # Extracts pairs, ignoring the optional == delimiters
                     pairs = re.findall(
@@ -68,8 +89,7 @@ def x_ray_dead_code(filepath: Path) -> dict:
     except Exception:
         return None
 
-    # --- SYNERGY: THE COPYBOOK EXPANDER ---
-    # Resolve all external memory layouts into the local string before AST math
+    # Resolve all external memory layouts into the local string before structural validation
     content = resolve_copybooks(raw_content, filepath)
 
     # COBOL is strictly divided. We need to split the data from the execution.
@@ -81,7 +101,7 @@ def x_ray_dead_code(filepath: Path) -> dict:
     proc_div = parts[1]
 
     # ==========================================
-    # 1. HUNTING ORPHANED DATA
+    # 1. ISOLATING UNUSED MEMORY ADDRESSES
     # ==========================================
     # Look for COBOL variable declarations (Levels 01-49, 77, 88)
     # Bypassing Area A sequence numbers by allowing up to 11 leading spaces/chars.
@@ -105,7 +125,7 @@ def x_ray_dead_code(filepath: Path) -> dict:
     orphaned_vars = declared_vars - used_vars
 
     # ==========================================
-    # 2. HUNTING PHANTOM PARAGRAPHS (Dead Code)
+    # 2. ISOLATING UNREACHABLE LOGIC BLOCKS
     # ==========================================
     # Paragraphs usually start near the margin and end with a period.
     para_pattern = re.compile(r"^[ \t]{0,11}([A-Z0-9\-]+)\.[ \t]*$", re.MULTILINE)
@@ -122,7 +142,7 @@ def x_ray_dead_code(filepath: Path) -> dict:
         reached_paragraphs = {entry_point}.union(called_targets)
         declared_paragraphs = set(paragraphs)
 
-        # The Math: Dead code is anything declared but never explicitly called
+        # The Math: Unreachable logic is anything declared but never explicitly called
         dead_paragraphs = declared_paragraphs - reached_paragraphs
 
     # Ignore system paragraphs and generic loop ends (like *-EXIT)
@@ -145,9 +165,9 @@ def x_ray_dead_code(filepath: Path) -> dict:
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("The Graveyard Reaper")
+    enforce_licensing_guard("Deprecated Trails Analyzer")
 
-    parser = argparse.ArgumentParser(description="GitGalaxy Graveyard Reaper v3")
+    parser = argparse.ArgumentParser(description="GitGalaxy Deprecated Trails Analyzer")
     parser.add_argument("target", help="Directory containing legacy COBOL payloads")
     args = parser.parse_args()
 
@@ -156,7 +176,7 @@ def main():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
 
-    print(f"🪦 GitGalaxy Reaper scanning {target_path.name} for dead code...\n")
+    print(f"🔍 GitGalaxy Deprecated Trails Analyzer scanning {target_path.name} for obsolete logic...\n")
 
     cobol_files = list(target_path.rglob("*.cbl")) + list(target_path.rglob("*.cob"))
 
@@ -178,23 +198,23 @@ def main():
             print(f" 🎯 TARGET: {metrics['program_id']}")
             if metrics["orphaned_vars"]:
                 print(
-                    f"    ↳ Orphaned Variables ({len(metrics['orphaned_vars'])}): {', '.join(list(metrics['orphaned_vars'])[:5])}"
+                    f"    ↳ Unused Memory Addresses ({len(metrics['orphaned_vars'])}): {', '.join(list(metrics['orphaned_vars'])[:5])}"
                     + ("..." if len(metrics["orphaned_vars"]) > 5 else "")
                 )
             if metrics["dead_paras"]:
                 print(
-                    f"    ↳ Phantom Paragraphs ({len(metrics['dead_paras'])}): {', '.join(list(metrics['dead_paras'])[:5])}"
+                    f"    ↳ Unreachable Logic Blocks ({len(metrics['dead_paras'])}): {', '.join(list(metrics['dead_paras'])[:5])}"
                     + ("..." if len(metrics["dead_paras"]) > 5 else "")
                 )
             print("-" * 60)
 
     # Presentation
     print("\n==========================================================")
-    print(" 📉 DEAD CODE ELIMINATION REPORT")
+    print(" 📉 DEPRECATED TRAILS REDUCTION REPORT")
     print("==========================================================")
     print(f" Files Flagged for Cleanup : {totals['files_with_dead_code']}")
-    print(f" Unused Memory Addresses   : {totals['orphaned_vars']} orphaned variables")
-    print(f" Unreachable Logic Blocks  : {totals['dead_paras']} phantom paragraphs")
+    print(f" Unused Memory Addresses   : {totals['orphaned_vars']} variables")
+    print(f" Unreachable Logic Blocks  : {totals['dead_paras']} paragraphs")
     print(f" ✂️ Estimated Bloat Removed : ~{totals['loc_saved']} Lines of Code")
     print("==========================================================\n")
 

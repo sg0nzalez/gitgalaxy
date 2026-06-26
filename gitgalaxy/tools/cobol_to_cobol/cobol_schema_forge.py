@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: The Cloud Schema Forge
-# Purpose: Translates legacy COBOL byte-maps (PIC / COMP-3) into
-#          modern PostgreSQL DDL and JSON schemas.
+# GitGalaxy Tool: Cloud Schema Generator
+#
+# PURPOSE:
+# Translates legacy COBOL byte-maps (PIC / COMP-3) into modern PostgreSQL DDL 
+# and JSON schemas.
+#
+# ARCHITECTURAL DECISION:
+# Mainframe data structures are defined by absolute byte boundaries and packed 
+# decimal (COMP-3) storage. Cloud databases operate on dynamic types (VARCHAR, 
+# DECIMAL, BIGINT). This generator maps the legacy PIC clauses to their exact 
+# modern equivalents. By utilizing the IR state from the Deprecated Trails 
+# Analyzer, it actively drops abandoned memory declarations, ensuring the new 
+# cloud schemas are free of legacy bloat.
 # ==============================================================================
 import argparse
 import sys
@@ -54,8 +64,8 @@ def parse_cobol_picture(pic_clause: str) -> dict:
 
 def forge_schemas(filepath: Path, ignore_vars: set = None, corporate_header: str = ""):
     """
-    X-Rays a COBOL/Copybook file and forges the modern schemas.
-    Upgraded to utilize shared IR context to drop dead memory addresses.
+    Analyzes a COBOL/Copybook file and generates modern schemas.
+    Upgraded to utilize shared IR context to drop unused memory addresses.
     """
     if ignore_vars is None:
         ignore_vars = set()
@@ -104,16 +114,21 @@ def forge_schemas(filepath: Path, ignore_vars: set = None, corporate_header: str
         if not pic:
             continue
 
-        # --- SYNERGY: THE BLOAT CUTTER ---
-        # Instantly drop the variable if the Graveyard Reaper proved it is dead memory.
+        # ======================================================================
+        # DEFENSIVE DESIGN (DEPRECATED TRAILS EXCLUSION):
+        # Instantly drop the variable if the Deprecated Trails Analyzer proved 
+        # it is dead memory, preventing cloud database bloat.
+        # ======================================================================
         if name in ignore_vars:
             continue
 
         safe_name = name.replace("-", "_")
         types = parse_cobol_picture(pic)
 
-        # --- HONESTY SENSOR: DYNAMIC MEMORY ARRAY ---
+        # ======================================================================
+        # ARCHITECTURAL ANOMALY (DYNAMIC MEMORY ARRAY):
         # match.group(0) grabs the full matched string from the regex
+        # ======================================================================
         warning = " -- ⚠️ WARNING: OCCURS DEPENDING ON detected. Use JSONB." if "DEPENDING ON" in match.group(0) else ""
 
         # Add notes if it's a legacy packed decimal
@@ -134,12 +149,12 @@ def forge_schemas(filepath: Path, ignore_vars: set = None, corporate_header: str
         lines = corporate_header.strip().split("\n")
         sql_header = "-- " + ("\n-- ".join(lines)) + "\n\n"
 
-    # Forge PostgreSQL DDL
+    # Generate PostgreSQL DDL
     sql_ddl = sql_header + f"CREATE TABLE {table_name} (\n"
     sql_ddl += ",\n".join(columns)
     sql_ddl += "\n);"
 
-    # Forge JSON Schema
+    # Generate JSON Schema
     json_schema = {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": table_name,
@@ -153,9 +168,9 @@ def forge_schemas(filepath: Path, ignore_vars: set = None, corporate_header: str
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("Cloud Schema Forge (The Legacy Forge)")
+    enforce_licensing_guard("Cloud Schema Generator")
 
-    parser = argparse.ArgumentParser(description="GitGalaxy Cloud Schema Forge")
+    parser = argparse.ArgumentParser(description="GitGalaxy Cloud Schema Generator")
     parser.add_argument("target", help="Path to a .cbl or .cpy file to translate")
     parser.add_argument(
         "--format",
@@ -169,7 +184,7 @@ def main():
     if not target_path.exists():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
-    print(f"🔨 GitGalaxy Schema Forge striking anvil for: {target_path.name}...\n")
+    print(f"🔨 GitGalaxy Cloud Schema Generator processing: {target_path.name}...\n")
 
     # In standalone CLI mode, IR context defaults to an empty set.
     schemas = forge_schemas(target_path)

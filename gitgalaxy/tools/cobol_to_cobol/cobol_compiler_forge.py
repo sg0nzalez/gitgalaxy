@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: MVS 3.8j COBOL Compiler Forge (v6 - Dialect Aware)
-# Purpose: Dynamically alters the mainframe build JCL based on the detected
-#          COBOL era (74 vs 85) to prevent catastrophic legacy compiler crashes.
+# GitGalaxy Tool: MVS 3.8j COBOL Compiler Scaffolding
+#
+# PURPOSE:
+# Dynamically generates the mainframe build JCL based on the detected COBOL 
+# dialect (74 vs 85) to ensure deterministic legacy compilation.
+#
+# ARCHITECTURAL DECISION:
+# Legacy compilers are highly sensitive to dialect constraints. Feeding modern 
+# COBOL-85 structural signatures (like EVALUATE or END-IF) into an OS/VS COBOL-74 
+# compiler will trigger catastrophic compilation failures. This module inspects 
+# the extracted source logic, detects the era-specific dialect, and automatically 
+# routes the build sequence to the correct enterprise compiler (COBUCL vs IGYWCL).
 # ==============================================================================
 import argparse
 import sys
 import re
 from pathlib import Path
 
-# Failsafe to prevent infinite RAM loops from cyclic legacy copybooks
+# Execution constraint to prevent resource starvation from cyclic copybooks
 MAX_RECURSION_DEPTH = 10
 
 
 def detect_cobol_dialect(content: str) -> str:
-    """Scans for post-1974 structural keywords to determine the compiler era."""
+    """Scans for post-1974 structural signatures to determine the compiler era."""
     modern_signatures = re.compile(
         r"\b(EVALUATE|INITIALIZE|END-IF|END-PERFORM|END-READ|END-EVALUATE|CONTINUE)\b|\*>",
         re.IGNORECASE,
@@ -25,10 +34,16 @@ def detect_cobol_dialect(content: str) -> str:
 
 
 def flatten_copybooks(source_text: str, base_dir: Path, current_depth: int = 0) -> str:
-    """Recursively inlines COPY statements to create a self-contained payload.
-    Includes a strict depth limit to prevent infinite loops from cyclic copybooks."""
-
-    # --- 🛡️ FAILSAFE BLOCK ---
+    """
+    Recursively inlines COPY statements to create a self-contained execution payload.
+    """
+    # ==========================================================================
+    # DEFENSIVE DESIGN (RECURSION LIMITER):
+    # Legacy architectures frequently contain cyclic dependencies (e.g., Copybook A
+    # imports Copybook B, which imports Copybook A). Without a strict recursion 
+    # depth limit, this resolution function will trap the CPU in an infinite loop, 
+    # triggering an Out-Of-Memory (OOM) pipeline collapse.
+    # ==========================================================================
     if current_depth > MAX_RECURSION_DEPTH:
         print(f"  [!] WARNING: Copybook recursion depth ({MAX_RECURSION_DEPTH}) exceeded. Aborting cyclic branch.")
         return source_text
@@ -50,7 +65,7 @@ def flatten_copybooks(source_text: str, base_dir: Path, current_depth: int = 0) 
                 if copy_file:
                     out_lines.append(f"      * --- INLINED COPYBOOK: {copy_name} ---")
 
-                    # ⚠️ CRITICAL: Pass current_depth + 1 into the recursive call!
+                    # Pass current_depth + 1 into the recursive call to advance the safety counter
                     inlined_text = flatten_copybooks(
                         copy_file.read_text(errors="ignore"),
                         base_dir,
@@ -61,7 +76,7 @@ def flatten_copybooks(source_text: str, base_dir: Path, current_depth: int = 0) 
                     out_lines.append(f"      * --- END COPYBOOK: {copy_name} ---")
                     continue
                 else:
-                    out_lines.append(f"      * [!] WARNING: COPYBOOK {copy_name} NOT FOUND LOCALLY")
+                    out_lines.append(f"      * [!] WARNING: COPYBOOK {copy_name} NOT LOCATED IN REPOSITORY BOUNDS")
 
         out_lines.append(line)
 
@@ -69,6 +84,7 @@ def flatten_copybooks(source_text: str, base_dir: Path, current_depth: int = 0) 
 
 
 def extract_intent(source_text: str) -> tuple:
+    """Extracts the program identity and file assignment boundaries."""
     prog_id = "UNKNOWN"
     id_match = re.search(r"PROGRAM-ID\.\s+([A-Z0-9\-]+)\.", source_text, re.IGNORECASE)
     if id_match:
@@ -84,6 +100,7 @@ def extract_intent(source_text: str) -> tuple:
 
 
 def generate_build_jcl(source_text: str, prog_name: str, files: set, dialect: str) -> str:
+    """Generates the JCL deployment configuration mapping program files to physical data sets."""
     jcl = []
     job_name = f"BLD{prog_name[:4].upper()}"
     jcl.append(f"//{job_name} JOB (12345),'GITGALAXY COMPILER',")
@@ -123,7 +140,7 @@ def generate_build_jcl(source_text: str, prog_name: str, files: set, dialect: st
     jcl.append("//* PHASE 2: IBM COMPILER & LINKAGE EDITOR")
     jcl.append("//* ==========================================================")
 
-    # --- THE DIALECT SWITCH ---
+    # --- DIALECT ROUTING ---
     if dialect == "COBOL-85":
         jcl.append("//* 🚨 DIALECT SENSOR: COBOL-85+ DETECTED 🚨")
         jcl.append("//* ROUTING TO MODERN ENTERPRISE COMPILER (IGYWCL)")
@@ -150,9 +167,9 @@ def generate_build_jcl(source_text: str, prog_name: str, files: set, dialect: st
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("MVS 3.8j COBOL Compiler Forge")
+    enforce_licensing_guard("MVS 3.8j COBOL Compiler Scaffolding")
 
-    parser = argparse.ArgumentParser(description="GitGalaxy COBOL Compiler Forge")
+    parser = argparse.ArgumentParser(description="GitGalaxy COBOL Compiler Scaffolding")
     parser.add_argument("source_dir", help="Path to the original COBOL source files")
     parser.add_argument("out_dir", help="Path to save the generated Compiler JCLs")
     args = parser.parse_args()
@@ -166,7 +183,7 @@ def main():
     cobol_files = [f for f in src_path.rglob("*.cbl") if "PROGRAM-ID" in f.read_text(errors="ignore").upper()]
 
     print("\n" + "=" * 70)
-    print(" 🏗️  GITGALAXY MAINFRAME COMPILER FORGE (PRE-COMPILER ACTIVE)")
+    print(" 🏗️  GITGALAXY MAINFRAME COMPILER GENERATOR (PRE-COMPILER ACTIVE)")
     print("=" * 70)
 
     for file_path in cobol_files:
@@ -174,19 +191,19 @@ def main():
             raw_text = file_path.read_text(encoding="utf-8", errors="ignore")
 
             # 1. Flatten the copybooks
-            monolith_text = flatten_copybooks(raw_text, src_path)
+            flattened_source = flatten_copybooks(raw_text, src_path)
 
-            # 2. Sense the dialect!
-            dialect = detect_cobol_dialect(monolith_text)
+            # 2. Detect the dialect
+            dialect = detect_cobol_dialect(flattened_source)
 
-            # 3. Forge the JCL based on the era
-            prog_name, expected_files = extract_intent(monolith_text)
-            jcl_payload = generate_build_jcl(monolith_text, prog_name, expected_files, dialect)
+            # 3. Generate the JCL based on the detected era
+            prog_name, expected_files = extract_intent(flattened_source)
+            jcl_payload = generate_build_jcl(flattened_source, prog_name, expected_files, dialect)
 
             output_file = out_path / f"BUILD_{prog_name}.jcl"
             output_file.write_text(jcl_payload, encoding="utf-8")
 
-            print(f"  [+] Forged {dialect} Pipeline : {output_file.name}")
+            print(f"  [+] Generated {dialect} Pipeline : {output_file.name}")
         except Exception as e:
             print(f"  [!] Failed to process {file_path.name}: {e}")
 

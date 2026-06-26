@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: The Microservice Slicer (v3 - IR Context Aware)
-# Purpose: Recursive taint-tracking and business rule extraction for legacy COBOL.
-#          Upgraded to utilize in-memory IR state (RAM) to bypass dead logic.
+# GitGalaxy Tool: Microservice Logic Extractor
+#
+# PURPOSE:
+# Recursive taint-tracking and business rule extraction for legacy COBOL.
+# Utilizes in-memory IR state (RAM) to bypass unreachable logic blocks.
+#
+# ARCHITECTURAL DECISION:
+# Legacy COBOL programs are typically monolithic, making it difficult to 
+# extract specific business rules for microservice decomposition. This 
+# extractor performs data flow taint-tracking starting from a target 
+# variable, mapping its aliases through MOVE, ADD, and COMPUTE statements. 
+# By integrating with the Deprecated Trails Analyzer's IR state, it 
+# guarantees that extracted logic only comes from mathematically reachable 
+# execution paths, eliminating false-positive business rules.
 # ==============================================================================
 import argparse
 import sys
@@ -13,7 +24,7 @@ from pathlib import Path
 def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = None, orphaned_vars: set = None):
     """
     Recursively tracks a variable and its aliases through the AST.
-    Utilizes shared IR context to prevent hallucinating logic inside dead code.
+    Utilizes shared IR context to prevent mapping logic inside unreachable code.
     """
     if dead_paras is None:
         dead_paras = set()
@@ -22,9 +33,12 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
 
     initial_var = initial_var.upper()
 
-    # --- SYNERGY 1: ORPHANED MEMORY ABORT ---
-    # If the target variable is already known to be dead memory from the Graveyard Reaper,
-    # we can abort the slice immediately. It has no business logic.
+    # ==========================================================================
+    # DEFENSIVE DESIGN (UNUSED MEMORY ABORT):
+    # If the target variable is already known to be dead memory from the 
+    # Deprecated Trails Analyzer, we can abort the slice immediately. It has 
+    # no active business logic associated with it.
+    # ==========================================================================
     if initial_var in orphaned_vars:
         return [], {initial_var: "ORPHANED_MEMORY"}
 
@@ -43,7 +57,7 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
     para_pattern = re.compile(r"^[ \t]{0,7}([A-Z0-9\-]+)\.[ \t]*$")
 
     # ==========================================================================
-    # PASS 1: Recursive Taint Mapping (The Alias Engine)
+    # PASS 1: Recursive Taint Mapping (Data Flow Engine)
     # ==========================================================================
     # We loop 3 times to catch chained aliases (e.g., A -> B -> C)
     for _ in range(3):
@@ -59,9 +73,11 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
                 current_paragraph = para_match.group(1)
                 continue
 
-            # --- SYNERGY 2: THE GHOST DEFLECTOR ---
+            # ==================================================================
+            # DEFENSIVE DESIGN (UNREACHABLE LOGIC MASKING):
             # If the orchestrator's IR state tells us this paragraph is unreachable,
-            # we skip it. This prevents dead code from creating false-positive taints.
+            # we skip it. This prevents deprecated code from creating false-positive taints.
+            # ==================================================================
             if current_paragraph in dead_paras:
                 continue
 
@@ -88,7 +104,7 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
                     tainted_vars.update(vars_in_eq)
 
     # ==========================================================================
-    # PASS 2: Extraction
+    # PASS 2: Logic Extraction
     # ==========================================================================
     extracted_logic = []
     current_paragraph = "MAIN-ENTRY"
@@ -103,8 +119,10 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
             current_paragraph = para_match.group(1)
             continue
 
-        # --- SYNERGY 3: EXTRACTION SHIELD ---
+        # ======================================================================
+        # DEFENSIVE DESIGN (EXTRACTION SHIELD):
         # Do not extract text from paragraphs that are mathematically unreachable.
+        # ======================================================================
         if current_paragraph in dead_paras:
             continue
 
@@ -124,9 +142,9 @@ def slice_business_logic(filepath: Path, initial_var: str, dead_paras: set = Non
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("Microservice Slicer (The Legacy Forge)")
+    enforce_licensing_guard("Microservice Logic Extractor")
 
-    parser = argparse.ArgumentParser(description="GitGalaxy Microservice Slicer v3")
+    parser = argparse.ArgumentParser(description="GitGalaxy Microservice Logic Extractor v3")
     parser.add_argument("target", help="Path to a .cbl file to slice")
     parser.add_argument("--var", required=True, help="The target variable to track")
     args = parser.parse_args()
@@ -136,7 +154,7 @@ def main():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
 
-    print(f"🔪 GitGalaxy Slicer hunting aliases for [{args.var.upper()}] in {target_path.name}...\n")
+    print(f"🔪 GitGalaxy Logic Extractor tracing dependencies for [{args.var.upper()}] in {target_path.name}...\n")
 
     # When run in standalone CLI mode, it won't have the IR RAM context,
     # but the function signature safely defaults to empty sets.
@@ -167,7 +185,7 @@ def main():
         print(f"  Line {item['line_num']:04d} | {item['statement']}")
 
     print("\n==========================================================")
-    print(f" 🎯 Sliced {len(logic_slice)} distinct business rules.")
+    print(f" 🎯 Extracted {len(logic_slice)} distinct business rules.")
     print("==========================================================\n")
 
 

@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Autonomous Agent Task Forge
-# Purpose: Converts architectural anomalies into structured JSON job tickets
-#          designed for automated LLM agent dispatchers.
+# GitGalaxy Tool: Autonomous Agent Task Generator
+#
+# PURPOSE:
+# Converts Architectural Anomalies and legacy structural dependencies into 
+# highly constrained, structured JSON task tickets designed for automated 
+# LLM agent dispatchers.
+#
+# ARCHITECTURAL DECISION:
+# Providing an autonomous AI agent with raw, unconstrained legacy code often 
+# leads to Context Window Exhaustion and severe hallucinations (e.g., hallucinating 
+# missing copybooks or external dependencies). By structuring the remediation 
+# tasks into strict JSON tickets with pre-resolved data lineage (inputs/outputs) 
+# and explicitly identified anomalies, we mathematically bound the agent's scope, 
+# ensuring deterministic and safe code modifications.
 # ==============================================================================
 import json
 from pathlib import Path
 
 
 def generate_agent_ticket(file_name: str, source_file: Path, anomalies: list, ir_state: dict) -> dict:
-    """Forges a structured JSON task ticket for an autonomous agent."""
+    """Generates a structured JSON task ticket for an autonomous agent."""
 
-    # Extract lineage to give the agent dependency context
+    # Extract Dependency Graph lineage to provide the agent with strict I/O context
     lineage = {}
     if ir_state:
         lineage = ir_state.get("analysis", {}).get("lineage", {})
@@ -31,7 +42,7 @@ def generate_agent_ticket(file_name: str, source_file: Path, anomalies: list, ir
         },
         "system_prompt": (
             "You are a deterministic legacy systems architect. Your task is to analyze the "
-            "provided 'target_file' and resolve the issues listed in 'detected_anomalies'. "
+            "provided 'target_file' and resolve the structural issues listed in 'detected_anomalies'. "
             "Do not alter the core business logic. Return your proposed solution as a valid JSON "
             "object containing a 'diagnosis' string and a 'patched_code' string."
         ),
@@ -40,31 +51,34 @@ def generate_agent_ticket(file_name: str, source_file: Path, anomalies: list, ir
     return ticket
 
 
-def forge_agent_jobs(clean_room_dir: Path, source_dir: Path, honesty_flags: list):
-    """Parses global flags and generates individual JSON job tickets per file."""
-    if not honesty_flags:
+def forge_agent_jobs(staging_dir: Path, source_dir: Path, architectural_anomalies: list):
+    """
+    Parses global architectural anomalies and generates individual JSON task tickets per file.
+    (Function name preserved for downstream pipeline compatibility).
+    """
+    if not architectural_anomalies:
         return 0
 
-    out_dir = clean_room_dir / "06_ai_agent_jobs"
+    out_dir = staging_dir / "06_ai_agent_jobs"
     out_dir.mkdir(parents=True, exist_ok=True)
-    ir_dir = clean_room_dir / "04_ir_state_dumps"
+    ir_dir = staging_dir / "04_ir_state_dumps"
 
-    # Group flags by file
-    file_flags = {}
-    for flag in honesty_flags:
-        if flag.startswith("[") and "]" in flag:
-            file_name = flag[1 : flag.index("]")]
-            if file_name not in file_flags:
-                file_flags[file_name] = []
-            file_flags[file_name].append(flag)
+    # Group anomalies by their target file
+    file_anomalies = {}
+    for anomaly in architectural_anomalies:
+        if anomaly.startswith("[") and "]" in anomaly:
+            file_name = anomaly[1 : anomaly.index("]")]
+            if file_name not in file_anomalies:
+                file_anomalies[file_name] = []
+            file_anomalies[file_name].append(anomaly)
 
     jobs_generated = 0
-    for file_name, anomalies in file_flags.items():
+    for file_name, anomalies in file_anomalies.items():
         source_file = next(source_dir.rglob(file_name), None)
         if not source_file:
             continue
 
-        # Grab the IR state for extra context if it exists
+        # Extract the Intermediate Representation (IR) state for dependency context
         prog_id = file_name.split(".")[0]
         ir_file = ir_dir / f"{prog_id}_ir.json"
         ir_state = json.loads(ir_file.read_text(encoding="utf-8")) if ir_file.exists() else None
