@@ -5,19 +5,20 @@ from gitgalaxy.licensing import _validate_offline_key, enforce_licensing_guard
 
 
 # ==============================================================================
-# TEST 1: THE PYTEST BYPASS
+# TEST 1: THE PYTEST BYPASS (REMOVED)
 # ==============================================================================
 def test_licensing_pytest_bypass(monkeypatch, capsys):
-    """Proves the guard instantly returns if PYTEST_CURRENT_TEST is present."""
+    """Proves the Pytest bypass was successfully removed and strict compliance is enforced."""
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "True")
+    monkeypatch.setenv("GITGALAXY_LICENSE_KEY", "COMMUNITY_FREE_TIER")
 
     with patch("gitgalaxy.licensing.time.sleep") as mock_sleep:
         enforce_licensing_guard()
 
-        # It should exit silently without sleeping or printing warnings
+        # It should NO LONGER exit silently. It must print the compliance tripwire.
         mock_sleep.assert_not_called()
         captured = capsys.readouterr()
-        assert captured.err == ""
+        assert "LEGAL AUDIT TRIPWIRE" in captured.err
 
 
 # ==============================================================================

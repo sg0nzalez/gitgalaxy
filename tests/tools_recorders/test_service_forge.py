@@ -32,11 +32,11 @@ public class PayrollProcessorService {
     private static final Logger log = LoggerFactory.getLogger(PayrollProcessorService.class);
 
     // ⚠️ UNRESOLVED EXTERNAL DEPENDENCIES (FROM DAG)
-    // TODO: AI AGENT - Implement or mock call to: CalcBenefitsService
-    // TODO: AI AGENT - Implement or mock call to: UpdateLedgerService
+    // TODO: AI AGENT - Implement or mock interface call to: CalcBenefitsService
+    // TODO: AI AGENT - Implement or mock interface call to: UpdateLedgerService
 
     public void executePayrollProcessor(/* Parameters mapped from Controller */) {
-        log.info("Executing legacy business logic for payroll-processor");
+        log.info("Executing modernized business logic for payroll-processor");
         // TODO: [AI AGENT] Implement extracted business rules here.
     }
 }"""
