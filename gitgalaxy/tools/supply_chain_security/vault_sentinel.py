@@ -130,10 +130,10 @@ def main():
                     leaks_allowed += 1
                 else:
                     print(f"[CONTENT BREACH] Hardcoded Credential: {rel_path_str}")
-                    for snip in sec_results["snippets"].get("hardcoded_secrets", []):
-                        # DEFENSIVE DESIGN: Prevent the scanner from leaking the secret into CI/CD logs
-                        masked_snip = snip[:15] + "********[REDACTED]********" if len(snip) > 15 else "********[REDACTED]********"
-                        print(f"   -> {masked_snip}")
+                    secret_hits = len(sec_results["snippets"].get("hardcoded_secrets", []))
+                    for _ in range(secret_hits):
+                        # Never log any portion of a detected secret snippet.
+                        print("   -> ********[REDACTED]********")
                     leaks_found += 1
         except Exception:
             pass
