@@ -1,361 +1,358 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Tool: Universal Zero-Trust SBOM Generator
+# GitGalaxy Tool: Full API Network Map
 #
-# PURPOSE: 
-# Generates a CycloneDX Software Bill of Materials (SBOM) with structural 
-# verification of dependencies across multiple language ecosystems (NPM, 
-# Composer, PyPI, Cargo, Go, Ruby, Maven).
+# PURPOSE:
+# Detects undocumented "Shadow APIs" and missing "Ghost APIs" by comparing
+# physical source code routing signatures against official OpenAPI/Swagger
+# documentation.
 #
 # ARCHITECTURAL DECISION:
-# Standard SBOM generators inherently trust manifest files (e.g., package.json).
-# This generator implements a Zero-Trust architecture by physically locating the
-# downloaded dependency on disk and verifying its structural signatures and 
-# entropy to detect namespace hijacking, spoofing, and supply chain poisoning.
+# API documentation frequently drifts from the compiled reality of the codebase.
+# This module performs AST-free structural signature identification to map 
+# actual, executable endpoints across multiple frameworks (Spring, Express, 
+# FastAPI) and enforces strict parity with declared specifications, exposing 
+# hidden attack surfaces.
 # ==============================================================================
 import argparse
 import sys
-import os
-import json
-import uuid
 import re
-from datetime import datetime, timezone
+import json
 from pathlib import Path
-from typing import Dict, Tuple
+from collections import defaultdict
 
-# Import exclusively from the GitGalaxy Hub
-from gitgalaxy.security.security_lens import SecurityLens
-from gitgalaxy.standards.analysis_lens import ThreatPolicy
-from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
-from gitgalaxy.standards.gitgalaxy_config import LEXICAL_FAMILY_HEURISTICS
-from gitgalaxy.standards.language_lens import LanguageDetector
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
+# ==============================================================================
+# 1. ROUTER STRUCTURAL SIGNATURES (EXPANDED FRAMEWORK REGEX PATTERNS)
+# ==============================================================================
+FRAMEWORK_SIGNATURES = {
+    "Python (FastAPI/Flask/Django)": {
+        "ext": [".py"],
+        "regex": re.compile(
+            r'@(?:app|router|bp)\.(get|post|put|delete|patch)\s*\(\s*["\'](.*?)["\']',
+            re.IGNORECASE,
+        ),
+    },
+    "Node.js (Express/Fastify/Koa)": {
+        "ext": [".js", ".ts"],
+        "regex": re.compile(
+            r'(?:app|router|server)\.(get|post|put|delete|patch)\s*\(\s*["\'](.*?)["\']',
+            re.IGNORECASE,
+        ),
+    },
+    "Java (Spring Boot)": {
+        "ext": [".java"],
+        "regex": re.compile(
+            r'@(Get|Post|Put|Delete|Patch)Mapping\s*\(\s*(?:value\s*=\s*)?["\'](.*?)["\']\)',
+            re.IGNORECASE,
+        ),
+    },
+    "Golang (Gorilla/Mux/Gin/Fiber)": {
+        "ext": [".go"],
+        "regex": re.compile(r'\.(GET|POST|PUT|DELETE|PATCH)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
+    },
+    "C# (.NET Controllers)": {
+        "ext": [".cs"],
+        "regex": re.compile(
+            r'\[Http(Get|Post|Put|Delete|Patch)\s*\(\s*["\'](.*?)["\']\s*\)\]',
+            re.IGNORECASE,
+        ),
+    },
+    "C# (.NET Minimal APIs)": {
+        "ext": [".cs"],
+        "regex": re.compile(r'\.Map(Get|Post|Put|Delete|Patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
+    },
+    "PHP (Laravel/Symfony)": {
+        "ext": [".php"],
+        "regex": re.compile(r'Route::(get|post|put|delete|patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
+    },
+    "Rust (Actix/Rocket)": {
+        "ext": [".rs"],
+        "regex": re.compile(
+            r'#\[(get|post|put|delete|patch)\s*\(\s*["\'](.*?)["\']\s*\)\]',
+            re.IGNORECASE,
+        ),
+    },
+    "Ruby (Rails/Sinatra)": {
+        "ext": [".rb"],
+        "regex": re.compile(
+            r'^\s*(get|post|put|delete|patch)\s+["\'](.*?)["\']',
+            re.IGNORECASE | re.MULTILINE,
+        ),
+    },
+}
 
 
-class UniversalManifestExtractor:
-    """Uses regex and standard parsing to extract dependencies from any ecosystem."""
+def auto_discover_swagger(target_dir: Path) -> list:
+    """Scans for OpenAPI/Swagger specifications via filename and internal structural signatures."""
+    candidates = set()
+    common_names = {
+        "swagger.json",
+        "swagger.yaml",
+        "swagger.yml",
+        "openapi.json",
+        "openapi.yaml",
+        "openapi.yml",
+    }
 
-    @staticmethod
-    def extract_manifest(manifest_path: Path) -> Tuple[str, Dict[str, str]]:
-        filename = manifest_path.name
-        deps = {}
-        ecosystem = "unknown"
+    for filepath in target_dir.rglob("*"):
+        if not filepath.is_file() or filepath.suffix not in [".json", ".yaml", ".yml"]:
+            continue
 
+        # 1. Check filename first (Fast Path)
+        if filepath.name.lower() in common_names:
+            candidates.add(filepath)
+            continue
+
+        # ==============================================================================
+        # DEFENSIVE DESIGN (I/O OPTIMIZATION & MEMORY SHIELD):
+        # Reading entire JSON/YAML files just to check if they are valid Swagger specs 
+        # can cause OOM crashes on massive declarative data blobs. We restrict the read 
+        # buffer to the first 1000 characters to achieve O(1) memory validation while 
+        # maintaining extreme pipeline velocity.
+        # ==============================================================================
         try:
-            if filename == "package.json":
-                ecosystem = "npm"
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    deps.update(data.get("dependencies", {}))
-                    deps.update(data.get("devDependencies", {}))
-
-            elif filename == "composer.json":
-                ecosystem = "packagist"  # PHP Composer
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    deps.update(data.get("require", {}))
-                    deps.update(data.get("require-dev", {}))
-                    # Remove the php version requirement
-                    deps.pop("php", None)
-
-            elif filename == "requirements.txt":
-                ecosystem = "pypi"
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith("#"):
-                            clean_name = re.split(r"[=><~]", line)[0].strip()
-                            # Get version if explicitly defined, else 'latest'
-                            version = line.split("==")[1].strip() if "==" in line else "latest"
-                            deps[clean_name] = version
-
-            elif filename == "Cargo.toml":
-                ecosystem = "cargo"
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-                    # Universal regex to grab [dependencies] blocks
-                    dep_blocks = re.findall(r"\[(?:dev-)?dependencies\](.*?)(\n\[|$)", content, re.DOTALL)
-                    for block, _ in dep_blocks:
-                        for line in block.splitlines():
-                            line = line.strip()
-                            if line and not line.startswith("#") and "=" in line:
-                                pkg_name = line.split("=")[0].strip()
-                                pkg_name = line.split("=")[0].strip()
-                                deps[pkg_name] = "latest"  # Simplified version extraction
-
-            elif filename == "go.mod":
-                ecosystem = "golang"
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    in_require_block = False
-                    for line in f:
-                        line = line.strip()
-                        if line.startswith("require ("):
-                            in_require_block = True
-                            continue
-                        if line == ")":
-                            in_require_block = False
-                            continue
-                        if in_require_block and line and not line.startswith("//"):
-                            parts = line.split()
-                            if len(parts) >= 2:
-                                deps[parts[0]] = parts[1]
-                        elif line.startswith("require ") and not in_require_block:
-                            parts = line.split()
-                            if len(parts) >= 3:
-                                deps[parts[1]] = parts[2]
-
-            elif filename == "Gemfile":
-                ecosystem = "rubygems"
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        # Extract: gem 'nokogiri', '~> 1.11'
-                        if line.startswith("gem "):
-                            parts = line.split(",")
-                            pkg_name = parts[0].replace("gem", "").strip(" '\"")
-                            version = parts[1].strip(" '\"") if len(parts) > 1 else "latest"
-                            deps[pkg_name] = version
-
-            elif filename == "pom.xml":
-                ecosystem = "maven"
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-                    # Extract artifactId and version from XML blocks
-                    deps_raw = re.findall(
-                        r"<dependency>.*?<artifactId>([^<]+)</artifactId>(?:.*?<version>([^<]+)</version>)?.*?</dependency>",
-                        content,
-                        re.DOTALL,
-                    )
-                    for artifact, version in deps_raw:
-                        deps[artifact] = version if version else "latest"
-
+            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                head = f.read(1000)
+                # Extra validation to ensure it's a real spec, not just a package.json mentioning swagger
+                if re.search(
+                    r'("swagger"\s*:\s*"2\.\d"|"openapi"\s*:\s*"3\.\d\.\d"|swagger\s*:\s*["\']?2\.\d|openapi\s*:\s*["\']?3\.\d\.\d)',
+                    head,
+                ):
+                    candidates.add(filepath)
         except Exception:
             pass
 
-        return ecosystem, deps
+    return list(candidates)
 
-    @staticmethod
-    def locate_physical_package(target_path: Path, pkg_name: str, ecosystem: str) -> Path:
-        """Resolves the structural location of a package within the repository bounds."""
-        if ecosystem == "npm":
-            target = target_path / "node_modules" / pkg_name
-            return target if target.exists() else None
 
-        elif ecosystem == "packagist":
-            # Composer packages are in vendor/vendor-name/package-name
-            target = target_path / "vendor" / pkg_name
-            return target if target.exists() else None
+def parse_official_swagger(swagger_path: Path) -> set:
+    """Parses the official security documentation to extract a baseline of approved APIs."""
+    approved_apis = set()
+    try:
+        with open(swagger_path, "r", encoding="utf-8") as f:
+            if swagger_path.suffix.lower() in [".yaml", ".yml"]:
+                if yaml is None:
+                    print(f" ❌ Error: PyYAML is required to parse .yaml Swagger files ({swagger_path.name}).")
+                    print("    Please run 'pip install pyyaml' or provide a .json specification.")
+                    sys.exit(1)
+                swagger_data = yaml.safe_load(f)
+            else:
+                swagger_data = json.load(f)
 
-        elif ecosystem == "pypi":
-            # Hunt through common local virtual environment folders
-            safe_pkg_name = pkg_name.replace("-", "_").lower()
-            for venv_dir in ["venv", ".venv", "env"]:
-                venv_path = target_path / venv_dir
-                if venv_path.exists():
-                    for root, dirs, _ in os.walk(venv_path):
-                        if "site-packages" in root:
-                            # Case-insensitive match for the package folder
-                            for d in dirs:
-                                if d.lower() == safe_pkg_name or d.lower().startswith(f"{safe_pkg_name}-"):
-                                    return Path(root) / d
+        paths = swagger_data.get("paths", {})
+        for api_path, methods in paths.items():
+            for method in methods.keys():
+                # Normalize to "METHOD /path" (e.g., "GET /api/users")
+                approved_apis.add(f"{method.upper()} {api_path}")
+    except Exception as e:
+        print(f" ❌ Error reading Swagger file: {e}")
+        sys.exit(1)
 
-        elif ecosystem == "golang":
-            # Go packages are often vendored in the project's root 'vendor/' directory
-            target = target_path / "vendor" / pkg_name
-            return target if target.exists() else None
+    return approved_apis
 
-        elif ecosystem == "rubygems":
-            # Ruby often vendors gems locally here
-            target = target_path / "vendor" / "bundle"
-            if target.exists():
-                for root, dirs, _ in os.walk(target):
-                    if pkg_name in dirs:
-                        return Path(root) / pkg_name
-            return None
 
-        elif ecosystem == "maven":
-            # Java local dependency pulls usually land here
-            target = target_path / "target" / "dependency"
-            if target.exists():
-                # Just verifying the jar/folder exists loosely
-                for file in target.iterdir():
-                    if pkg_name.lower() in file.name.lower():
-                        return file
-            return None
+def map_physical_codebase(target_dir: Path) -> tuple:
+    """
+    Analyzes the source code to extract every executable API endpoint.
+    
+    ARCHITECTURAL DECISION (REGEX OVER AST):
+    Relying on language-specific ASTs requires compiling the code and supporting 
+    dozens of parsers. By using bounded regex structural signatures, we can 
+    deterministically identify framework routing intents (e.g., @GetMapping, 
+    app.post) at high speed, regardless of language or compilation status.
+    """
+    physical_apis = defaultdict(list)
+    frameworks_detected = set()
 
-        return None
+    for filepath in target_dir.rglob("*"):
+        if not filepath.is_file():
+            continue
+
+        for framework, config in FRAMEWORK_SIGNATURES.items():
+            if filepath.suffix in config["ext"]:
+                try:
+                    content = filepath.read_text(encoding="utf-8", errors="ignore")
+                    hits = config["regex"].findall(content)
+                    if hits:
+                        frameworks_detected.add(framework)
+
+                    for method, api_path in hits:
+                        # Normalize to "METHOD /path"
+                        endpoint = f"{method.upper()} {api_path}"
+                        physical_apis[endpoint].append(filepath.name)
+                except Exception:
+                    pass
+
+    return physical_apis, frameworks_detected
 
 
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("Universal Zero-Trust SBOM Generator")
+    enforce_licensing_guard("Full API Network Map")
 
-    parser = argparse.ArgumentParser(description="Universal Zero-Trust SBOM Generator")
-    parser.add_argument("target", help="Root directory of the project")
+    parser = argparse.ArgumentParser(description="GitGalaxy Full API Network Map")
+    parser.add_argument("source", help="Directory containing the application source code")
     parser.add_argument(
-        "--out",
-        default="bom.json",
-        help="Output JSON filename (appended to target name)",
+        "--swagger",
+        required=False,
+        help="Optional: Path to a specific official swagger.json/yaml file",
+    )
+    parser.add_argument(
+        "--merge-all",
+        action="store_true",
+        help="Merge all discovered Swagger files together (useful for Microservice Monorepos)",
     )
     args = parser.parse_args()
 
-    target_path = Path(args.target).resolve()
-    if not target_path.exists():
-        print(f"Error: Target {target_path} does not exist.")
+    source_path = Path(args.source).resolve()
+
+    if not source_path.exists():
+        print(f"Error: Target source directory '{source_path}' does not exist.")
         sys.exit(1)
 
-    print(f"📦 Initializing GitGalaxy Universal SBOM Generator on {target_path.name}...")
+    print(f"🗺️  GitGalaxy API Network Mapper analyzing physical endpoints in: {source_path.name}...\n")
 
-    security = SecurityLens(policy=ThreatPolicy.get_policy("paranoid"))
-    detector = LanguageDetector(LANGUAGE_DEFINITIONS, LEXICAL_FAMILY_HEURISTICS)
-    extractor = UniversalManifestExtractor()
+    # ==============================================================================
+    # AUTO-DISCOVERY INITIALIZATION & AUDIT
+    # ==============================================================================
+    approved_apis = set()
 
-    components = []
-    total_anomalies = 0
-    total_missing = 0
-    total_verified = 0
+    if not args.swagger:
+        print(" 🔍 No --swagger file provided. Initiating auto-discovery...")
+        candidates = auto_discover_swagger(source_path)
 
-    # 1. Harvest Manifests Universally
-    manifest_targets = [
-        "package.json",
-        "composer.json",
-        "requirements.txt",
-        "Cargo.toml",
-        "go.mod",
-        "Gemfile",
-        "pom.xml",
-    ]
-    found_manifests = [target_path / m for m in manifest_targets if (target_path / m).exists()]
+        if not candidates:
+            print(" ❌ [ABORT] No OpenAPI/Swagger specifications found in the repository.")
+            print("    Please provide one manually using the --swagger flag.")
+            sys.exit(1)
 
-    if not found_manifests:
-        print("⚠️  No supported manifests found in the root directory.")
-        sys.exit(0)
-
-    # 2. The Zero-Trust Structural Audit
-    for manifest in found_manifests:
-        ecosystem, packages = extractor.extract_manifest(manifest)
-        if not packages:
-            continue
-
-        print(f"\n🔎 Auditing {len(packages)} {ecosystem.upper()} dependencies from {manifest.name}...")
-
-        for pkg_name, pkg_version in packages.items():
-            trust_status = "VERIFIED_SAFE"
-            anomaly_notes = []
-
-            pkg_path = extractor.locate_physical_package(target_path, pkg_name, ecosystem)
-
-            if not pkg_path:
-                trust_status = "UNVERIFIED_MISSING_ON_DISK"
-                anomaly_notes.append("Package declared in manifest but not found locally.")
-                total_missing += 1
+        # Segregate testing schemas from primary production schemas
+        primary_cands = []
+        test_cands = []
+        for c in candidates:
+            parts = [p.lower() for p in c.relative_to(source_path).parts]
+            if "test" in parts or "tests" in parts or "__tests__" in parts or "testing" in parts:
+                test_cands.append(c)
             else:
-                # ==============================================================================
-                # DEFENSIVE DESIGN (VELOCITY VS. DEPTH):
-                # Scanning every file in `node_modules` would grind the pipeline to a halt.
-                # We sample a maximum of 5 executable files per dependency. If a package has 
-                # been spoofed or poisoned, malicious entropy or structural anomalies will 
-                # almost always be detectable within the primary entry points.
-                # ==============================================================================
-                scanned_files = 0
-                for root, _, files in os.walk(pkg_path):
-                    if scanned_files > 5:
-                        break
+                primary_cands.append(c)
 
-                    for file in files:
-                        if not file.endswith((".js", ".py", ".ts", ".php", ".rs")):
-                            continue
+        if len(primary_cands) == 1 and not args.merge_all:
+            swagger_path = primary_cands[0]
+            print(f" [DISCOVERY] Primary Swagger specification identified: {swagger_path.relative_to(source_path)}")
+            if test_cands:
+                print(f" 🛡️  Safely excluded {len(test_cands)} schemas detected in test directories (Test-Schema Pollution Mitigation):")
+                for tc in test_cands:
+                    print(f"    - [Assumed Test] {tc.relative_to(source_path)}")
+            print("")
+            approved_apis = parse_official_swagger(swagger_path)
 
-                        file_path = Path(root) / file
-                        try:
-                            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                                content = f.read(8192)
+        elif len(candidates) > 1 and not args.merge_all:
+            print(f" ⚠️  [AMBIGUITY] Multiple OpenAPI/Swagger specifications found ({len(candidates)}).")
+            print("    To prevent test-schema pollution, automatic merging is disabled.")
+            print("\n    Discovered Files (By Endpoint Count):")
 
-                            sec_results = security.scan_content(content, 100)
-                            if sec_results["counts"].get("entropy", 0) > 0:
-                                trust_status = "SPOOF_DETECTED"
-                                anomaly_notes.append(f"High Entropy (>4.8) in {file}")
+            # Calculate telemetry (route counts) to help the user choose
+            preview_stats = []
+            for c in candidates:
+                try:
+                    routes = parse_official_swagger(c)
+                    preview_stats.append((c, len(routes), c in test_cands))
+                except Exception:
+                    preview_stats.append((c, 0, c in test_cands))
 
-                            id_result = detector.inspect(file_path, content)
-                            if id_result["anomaly_flags"]:
-                                trust_status = "SPOOF_DETECTED"
-                                anomaly_notes.extend(id_result["anomaly_flags"])
+            # Sort by largest endpoint count first
+            preview_stats.sort(key=lambda x: x[1], reverse=True)
 
-                            scanned_files += 1
-                        except Exception:
-                            pass
+            for c, count, is_test in preview_stats:
+                badge = "[TEST DIR]" if is_test else "[PRIMARY]"
+                print(f"    - {badge.ljust(11)} [{count} routes] {c.relative_to(source_path)}")
 
-                if trust_status == "SPOOF_DETECTED":
-                    total_anomalies += 1
-                    print(f"   🚨 [SPOOF DETECTED] {pkg_name}@{pkg_version}")
-                else:
-                    total_verified += 1
+            print("\n    Please specify the authoritative schema using the --swagger flag,")
+            print("    OR use the --merge-all flag to union all of them together.")
+            sys.exit(1)
 
-            if trust_status == "UNVERIFIED_MISSING_ON_DISK":
-                print(f"   ⚠️  [MISSING] {pkg_name}@{pkg_version}")
-
-            components.append(
-                {
-                    "type": "library",
-                    "name": pkg_name,
-                    "version": pkg_version,
-                    "purl": f"pkg:{ecosystem}/{pkg_name}@{pkg_version}",
-                    "properties": [
-                        {"name": "gitgalaxy:trust_status", "value": trust_status},
-                        {
-                            "name": "gitgalaxy:anomaly_notes",
-                            "value": (" | ".join(anomaly_notes) if anomaly_notes else "None"),
-                        },
-                    ],
-                }
-            )
-
-    # ==============================================================================
-    # CYCLONEDX JSON FORMATTING
-    # ==============================================================================
-    bom = {
-        "bomFormat": "CycloneDX",
-        "specVersion": "1.4",
-        "serialNumber": f"urn:uuid:{uuid.uuid4()}",
-        "version": 1,
-        "metadata": {
-            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "tools": [
-                {
-                    "vendor": "GitGalaxy",
-                    "name": "Universal Zero-Trust SBOM",
-                    "version": "6.3.0",
-                }
-            ],
-            "component": {"type": "application", "name": target_path.name},
-        },
-        "components": components,
-    }
-
-    # Output to the parent directory of the target
-    out_path = target_path.parent / f"{target_path.name}_{args.out}"
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(bom, f, indent=4)
-
-    # ==============================================================================
-    # AUDIT REPORT
-    # ==============================================================================
-    print("\n" + "=" * 75)
-    print(" 📦 SBOM GENERATOR: AUDIT REPORT")
-    print("=" * 75)
-    print(f" Dependencies Claimed : {len(components)}")
-    print(" Standard Export      : CycloneDX 1.4 JSON")
-    print(f" Output Location      : {out_path.resolve()}")
-    print("-" * 75)
-    print(f" Verified Safe        : {total_verified}")
-    print(f" Missing on Disk      : {total_missing}")
-    print(f" Spoofed / Infected   : {total_anomalies}")
-    print("-" * 75)
-    if total_anomalies > 0:
-        print(f" ❌ ALERT: {total_anomalies} dependencies failed structural verification.")
+        elif len(candidates) > 1 and args.merge_all:
+            print(f" [DISCOVERY] --merge-all active. Unioning {len(candidates)} discovered specifications...\n")
+            for c in candidates:
+                try:
+                    approved_apis.update(parse_official_swagger(c))
+                except Exception:
+                    pass
+        else:
+            swagger_path = candidates[0]
+            print(f" [DISCOVERY] Auto-discovered Swagger specification: {swagger_path.relative_to(source_path)}\n")
+            approved_apis = parse_official_swagger(swagger_path)
     else:
-        print(" ✅ SUCCESS: Structural verification complete. SBOM sealed.")
-    print("=" * 75 + "\n")
+        swagger_path = Path(args.swagger).resolve()
+        if not swagger_path.exists():
+            print(f" ❌ Error: Provided Swagger file '{swagger_path}' does not exist.")
+            sys.exit(1)
+        approved_apis = parse_official_swagger(swagger_path)
+        
+    physical_apis_map, frameworks_detected = map_physical_codebase(source_path)
+    physical_endpoints = set(physical_apis_map.keys())
+
+    shadow_apis = physical_endpoints - approved_apis
+    ghost_apis = approved_apis - physical_endpoints
+
+    # ==============================================================================
+    # PRESENTATION DASHBOARD
+    # ==============================================================================
+    print("==========================================================")
+    print(" 📡 SHADOW API SECURITY AUDIT")
+    print("==========================================================")
+    framework_str = ", ".join(frameworks_detected) if frameworks_detected else "None Detected"
+    print(f" Physical Frameworks Tracked    : {framework_str}")
+    print(f" Documented Endpoints (Swagger) : {len(approved_apis)}")
+    print(f" Physical Endpoints (Source)    : {len(physical_endpoints)}")
+    print("-" * 58)
+
+    if shadow_apis:
+        print(f" 🚨 SHADOW APIs DETECTED: {len(shadow_apis)} (Critical Risk)")
+        for api in sorted(shadow_apis):
+            files = ", ".join(set(physical_apis_map[api]))
+            print(f"    ↳ {api.ljust(25)} [Found in: {files}]")
+    else:
+        print(" ✅ No Shadow APIs detected. Codebase strictly matches documentation.")
+
+    print("\n----------------------------------------------------------")
+    if ghost_apis:
+        print(f" 👻 GHOST APIs DETECTED: {len(ghost_apis)} (Documentation Bloat)")
+        for api in sorted(ghost_apis):
+            print(f"    ↳ {api.ljust(25)} [Missing from executable source code]")
+    else:
+        print(" ✅ No Ghost APIs detected.")
+
+    print("==========================================================\n")
+
+
+def run_api_audit(source_path: Path) -> dict:
+    """Programmatic entry point for GalaxyScope."""
+    candidates = auto_discover_swagger(source_path)
+    if not candidates:
+        return {"status": "no_swagger", "shadow_count": 0, "ghost_count": 0}
+
+    primary_cands = [c for c in candidates if "test" not in [p.lower() for p in c.relative_to(source_path).parts]]
+    if len(primary_cands) != 1:
+        return {"status": "ambiguous", "shadow_count": 0, "ghost_count": 0}
+
+    approved_apis = parse_official_swagger(primary_cands[0])
+    physical_apis_map, frameworks = map_physical_codebase(source_path)
+    physical_endpoints = set(physical_apis_map.keys())
+
+    return {
+        "status": "success",
+        "frameworks": list(frameworks),
+        "shadow_count": len(physical_endpoints - approved_apis),
+        "ghost_count": len(approved_apis - physical_endpoints),
+        "shadow_apis": list(physical_endpoints - approved_apis),
+    }
 
 
 if __name__ == "__main__":
