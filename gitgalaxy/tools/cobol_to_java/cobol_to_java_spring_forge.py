@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Java Spring Entity Forge (v3 - Advanced Memory Mapping)
-# Purpose: Translates JSON schemas into Spring Boot JPA Entities.
-#          Handles strict financial precision (PIC), Arrays (OCCURS),
-#          and Memory Overlays (REDEFINES).
+# GitGalaxy Tool: Java Spring Entity Generator
+#
+# PURPOSE:
+# Translates JSON schemas into Spring Boot JPA Entities.
+# Handles strict financial precision (PIC), Arrays (OCCURS),
+# and Memory Overlays (REDEFINES).
+#
+# ARCHITECTURAL DECISION:
+# Relational databases and Java ORMs (Hibernate/JPA) allocate memory entirely 
+# differently than mainframe COBOL. COBOL utilizes absolute byte boundaries, 
+# arrays (OCCURS), and memory overlays (REDEFINES) where multiple variables 
+# point to the exact same physical byte block. This generator dynamically maps 
+# these legacy constraints into modern JPA annotations (e.g., @ElementCollection, 
+# @Transient) to ensure legacy data structures are safely persisted without 
+# duplicating columns or corrupting the modern relational schema.
 # ==============================================================================
 import argparse
 import sys
@@ -23,8 +34,8 @@ def map_type_to_java(json_type: str, description: str) -> str:
 
 def parse_pic_clause(description: str) -> dict:
     """
-    Hunts for COBOL PIC, OCCURS, and REDEFINES clauses in the description
-    and extracts exact memory boundaries and structural directives.
+    Analyzes COBOL PIC, OCCURS, and REDEFINES clauses in the description
+    to extract exact memory boundaries and structural directives.
     """
     constraints = {}
 
@@ -83,7 +94,7 @@ def parse_pic_clause(description: str) -> dict:
 
 
 def generate_java_entity(schema_json: dict, package_name: str) -> str:
-    """Forges a JPA Entity enforcing exact COBOL memory constraints & overlaps."""
+    """Generates a JPA Entity enforcing exact COBOL memory constraints & overlaps."""
     table_name = schema_json.get("title", "UnknownTable")
     class_name = "".join(word.capitalize() for word in table_name.split("_"))
 
@@ -138,49 +149,36 @@ def generate_java_entity(schema_json: dict, package_name: str) -> str:
         parts = clean_col.split("_")
         camel_name = parts[0] + "".join(word.title() for word in parts[1:])
 
+        # ======================================================================
+        # DEFENSIVE DESIGN (JAVA SYNTAX SANITIZATION):
+        # COBOL variables frequently use names that are protected keywords in Java 
+        # (e.g., CLASS, NEW, DEFAULT) or start with numeric characters. We strictly 
+        # sanitize the target variable names to guarantee the output is 100% compilable 
+        # before the AI agent touches it.
+        # ======================================================================
+        
         # Java variables cannot start with a number. Prefix with 'v'.
         if camel_name and camel_name[0].isdigit():
             camel_name = "v" + camel_name
 
-        # Sanitize Java reserved keywords (now including primitives)
         reserved_vars = {
-            "class",
-            "static",
-            "public",
-            "private",
-            "protected",
-            "return",
-            "new",
-            "system",
-            "default",
-            "enum",
-            "interface",
-            "void",
-            "try",
-            "catch",
-            "finally",
-            "import",
-            "package",
-            "super",
-            "this",
-            "const",
-            "goto",
-            "byte",
-            "int",
-            "char",
-            "short",
-            "long",
-            "float",
-            "double",
-            "boolean",
-            "null",
-            "true",
-            "false",
+            "class", "static", "public", "private", "protected", "return", 
+            "new", "system", "default", "enum", "interface", "void", "try", 
+            "catch", "finally", "import", "package", "super", "this", "const", 
+            "goto", "byte", "int", "char", "short", "long", "float", "double", 
+            "boolean", "null", "true", "false"
         }
         if camel_name in reserved_vars:
             camel_name += "Val"
 
-        # --- SCENARIO 1: MEMORY OVERLAY (REDEFINES) ---
+        # ======================================================================
+        # SCENARIO 1: MEMORY OVERLAY (REDEFINES)
+        # DEFENSIVE DESIGN: In COBOL, REDEFINES creates an alias pointing to the 
+        # same physical byte address. In JPA, mapping both variables as standard 
+        # columns would duplicate the data in the SQL table. We map the alias 
+        # as `@Transient` so it can be used in business logic without persisting 
+        # a duplicate column to the database.
+        # ======================================================================
         if "redefines" in constraints:
             target_camel = constraints["redefines"].lower().split("_")
             target_camel = target_camel[0] + "".join(w.title() for w in target_camel[1:])
@@ -227,9 +225,9 @@ def generate_java_entity(schema_json: dict, package_name: str) -> str:
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("Java Entity Forge (The Legacy Forge)")
+    enforce_licensing_guard("Java Entity Generator")
 
-    parser = argparse.ArgumentParser(description="GitGalaxy Java Entity Forge")
+    parser = argparse.ArgumentParser(description="GitGalaxy Java Entity Generator")
     parser.add_argument("schema_file", help="Path to the GitGalaxy _schema.json file")
     parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")
     args = parser.parse_args()
@@ -246,9 +244,9 @@ def main():
         out_path = schema_path.parent / f"{class_name}.java"
         out_path.write_text(java_code, encoding="utf-8")
 
-        print(f"☕ Spring Entity Forged: {out_path.name}")
+        print(f"☕ Spring Entity Generated: {out_path.name}")
     except Exception as e:
-        print(f"Error forging Java: {e}")
+        print(f"Error generating Java Entity: {e}")
 
 
 if __name__ == "__main__":

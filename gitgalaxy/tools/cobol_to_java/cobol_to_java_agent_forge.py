@@ -1,22 +1,32 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Java Spring AI Agent Task Forge
-# Purpose: Packages isolated COBOL slices into strict, hallucination-proof
-#          JSON task tickets for autonomous LLM agents.
+# GitGalaxy Tool: Java Agent Task Generator
+#
+# PURPOSE:
+# Packages isolated COBOL logic slices into strict, highly constrained JSON 
+# task tickets for autonomous LLM agents to translate into Java.
+#
+# ARCHITECTURAL DECISION:
+# Autonomous agents are highly susceptible to "hallucinating" external system 
+# calls or modifying core business logic when given an entire legacy file at once. 
+# By pre-slicing the business rules via static analysis and injecting unresolved 
+# dependencies as strict constraints, we force the LLM to generate pure, 
+# side-effect-free @Service classes that rely on Spring's Dependency Injection (DI) 
+# for external integration.
 # ==============================================================================
 
 
 def generate_java_agent_ticket(slice_json: dict, prog_id: str, ir_state: dict = None) -> dict:
-    """Forges a structured JSON task ticket for Java service generation."""
+    """Generates a structured JSON task ticket for Java service generation."""
     target_var = slice_json.get("target_var", "UNKNOWN")
     rules = slice_json.get("business_rules", [])
 
-    # Extract Honesty Protocol & Lineage Data
+    # Extract Architectural Anomalies & Data Lineage
     honesty_flags = []
     unresolved_calls = []
     if ir_state:
         analysis = ir_state.get("analysis", {})
-        honesty_flags = analysis.get("honesty_flags", [])
+        honesty_flags = analysis.get("honesty_flags", [])  # Preserved internal variable name
         lineage = analysis.get("lineage", {})
         unresolved_calls = lineage.get("unresolved_calls", [])
 

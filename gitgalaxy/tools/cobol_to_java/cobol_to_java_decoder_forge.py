@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Java Spring EBCDIC & COMP-3 Decoder Forge
-# Purpose: Auto-generates the utility class necessary to translate raw
-#          mainframe byte streams into modern Java data structures.
+# GitGalaxy Tool: EBCDIC & COMP-3 Decoder Generator
+#
+# PURPOSE:
+# Auto-generates the utility class necessary to translate raw mainframe byte 
+# streams into modern Java data structures (UTF-8 Strings and BigDecimals).
+#
+# ARCHITECTURAL DECISION:
+# Mainframe datasets do not natively map to modern ASCII/UTF-8 strings or IEEE 754 
+# floating-point numbers. IBM's Packed Decimal (COMP-3) and EBCDIC encodings 
+# require precise, bit-level translation. By auto-generating a dedicated, thoroughly 
+# tested decoding utility within the Spring Boot architecture, we prevent the AI 
+# agent from hallucinating flawed byte-shifting logic and ensure enterprise-grade 
+# data integrity during binary ingestion.
 # ==============================================================================
+
+
 def generate_decoder_util(package_name: str) -> str:
-    """Forges the EBCDIC and Packed Decimal (COMP-3) decoder utility with strict bounds validation."""
+    """Generates the EBCDIC and Packed Decimal (COMP-3) decoder utility with strict bounds validation."""
     java = f"""package {package_name}.util;
 
 import java.math.BigDecimal;
@@ -17,7 +29,7 @@ public class EbcdicDecoderUtil {{
 
     private static final Logger log = LoggerFactory.getLogger(EbcdicDecoderUtil.class);
     
-    // Cp1047 is the standard IBM EBCDIC character set
+    // Cp1047 is the standard IBM EBCDIC character set (US/Canada)
     private static final Charset EBCDIC_CHARSET = Charset.forName("Cp1047");
 
     /**
@@ -51,14 +63,15 @@ public class EbcdicDecoderUtil {{
                 int highNibble = b >>> 4;
                 int lowNibble = b & 0x0F;
 
-                // The high nibble MUST be a number (0-9)
+                // DEFENSIVE DESIGN: The high nibble MUST be a valid base-10 digit (0-9).
+                // Values above 9 indicate corrupted memory or shifted byte boundaries.
                 if (highNibble > 9) {{
                     log.warn("Corrupt COMP-3 high nibble '{{}}' at byte index {{}}. Defaulting to ZERO.", Integer.toHexString(highNibble), i);
                     return BigDecimal.ZERO;
                 }}
                 sb.append(highNibble);
 
-                // The low nibble is a number EXCEPT in the very last byte, where it's the sign
+                // The low nibble is a number EXCEPT in the very last byte, where it acts as the sign flag
                 if (i == packedBytes.length - 1) {{
                     boolean isNegative = (lowNibble == 0x0D || lowNibble == 0x0B);
                     if (isNegative) {{
