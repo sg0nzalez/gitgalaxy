@@ -69,7 +69,7 @@ class IRStateManager:
             self._init_sql_schema()
 
     def _init_sql_schema(self):
-        """Sets up the relational structure for the massive codebase."""
+        """Sets up the relational structure for the massive codebase. (Maintains legacy schema names for downstream compatibility)"""
         cursor = self.conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Graveyard (
@@ -166,7 +166,7 @@ def process_payload(filepath: Path, state_manager: IRStateManager, target_var: s
 
     # --- PHASE 1: RECONNAISSANCE & ANALYSIS ---
 
-    # A. Graveyard Reaper (Identifies Dead Memory & Phantom Logic)
+    # A. Deprecated Trails Analyzer (Identifies Dead Memory & Unreachable Logic)
     graveyard_data = x_ray_dead_code(filepath)
     ir["analysis"]["dead_code"] = graveyard_data
 
@@ -182,7 +182,7 @@ def process_payload(filepath: Path, state_manager: IRStateManager, target_var: s
     dead_paras = state_manager.get_dead_paras(program_id)
     orphans = state_manager.get_orphaned_vars(program_id)
 
-    # B. DAG Architect (Maps I/O Intent - Utilizing Graveyard RAM to deflect Ghost Dependencies!)
+    # B. DAG Architect (Maps I/O Intent - Utilizing Deprecated Trails RAM to deflect Hallucinated Dependencies!)
     ir["analysis"]["lineage"] = extract_lineage(filepath, dead_paras=dead_paras)
 
     # C. JCL Forge (Extracts Program ID and Subsystems)
@@ -192,7 +192,7 @@ def process_payload(filepath: Path, state_manager: IRStateManager, target_var: s
 
     # --- PHASE 2: CONTEXT-AWARE GENERATION ---
 
-    # A. Schema Forge (Injecting Graveyard RAM to prevent Cloud Schema Bloat)
+    # A. Schema Forge (Injecting Deprecated Trails RAM to prevent Schema Bloat)
     ir["generation"]["schemas"] = forge_schemas(
         filepath,
         ignore_vars=orphans,
@@ -210,7 +210,7 @@ def process_payload(filepath: Path, state_manager: IRStateManager, target_var: s
             corporate_header=ir["metadata"]["corporate_header"],
         )
 
-    # C. Microservice Slicer (Injecting Graveyard RAM to bypass dead execution blocks)
+    # C. Microservice Slicer (Injecting Deprecated Trails RAM to bypass dead execution blocks)
     if target_var:
         slice_result = slice_business_logic(
             filepath,
@@ -333,14 +333,14 @@ def main():
                 slice_output.write_text(json.dumps(slice_data, indent=2), encoding="utf-8")
                 master_scaffold_stats["slices_extracted"] += 1
 
-        # Aggregate Graveyard Stats
+        # Aggregate Deprecated Trails Stats
         gy = ir_state["analysis"].get("dead_code")
         if gy:
             master_graveyard_stats["loc_saved"] += gy.get("loc_saved", 0)
             master_graveyard_stats["orphaned_vars"] += len(gy.get("orphaned_vars", []))
             master_graveyard_stats["dead_paras"] += len(gy.get("dead_paras", []))
 
-        # Aggregate Honesty Protocol Flags
+        # Aggregate Architectural Anomalies
         lineage = ir_state["analysis"].get("lineage")
         if lineage and lineage.get("unresolved_calls"):
             for call in lineage["unresolved_calls"]:
@@ -366,12 +366,12 @@ def main():
         f.write(" GITGALAXY MODERNIZATION REPORT\n")
         f.write("==========================================================\n\n")
 
-        f.write("[1] EXECUTIVE METRICS & NECROSIS REDUCTION\n")
+        f.write("[1] EXECUTIVE METRICS & DEPRECATED TRAILS REDUCTION\n")
         f.write("----------------------------------------------------------\n")
         f.write(f"  • Files Scanned           : {len(cobol_files)}\n")
         f.write(f"  • State Manager Mode      : {ir_mode}\n")
         f.write(f"  • Unused Memory Addresses : {master_graveyard_stats['orphaned_vars']} orphaned variables\n")
-        f.write(f"  • Unreachable Logic Blocks: {master_graveyard_stats['dead_paras']} phantom paragraphs\n")
+        f.write(f"  • Unreachable Logic Blocks: {master_graveyard_stats['dead_paras']} unreachable blocks\n")
         f.write(f"  ✂️ Estimated Bloat Removed: ~{master_graveyard_stats['loc_saved']} Lines of Code\n\n")
 
         f.write("[2] ZERO-TRUST JCL ARCHITECTURE\n")
@@ -388,7 +388,7 @@ def main():
         f.write(f"  • Zero-Trust Emulator JCLs Generated    : {master_scaffold_stats['jcls_forged']}\n")
         f.write(f"  • Isolated Microservice Slices Extracted: {master_scaffold_stats['slices_extracted']}\n\n")
 
-        f.write("[4] ⚠️ MANUAL INTERVENTION AUDIT (HONESTY PROTOCOL)\n")
+        f.write("[4] ⚠️ MANUAL INTERVENTION AUDIT (ARCHITECTURAL ANOMALIES)\n")
         f.write("----------------------------------------------------------\n")
         f.write(f"  • AI Agent Job Tickets Generated : {agent_jobs_created}\n\n")
 

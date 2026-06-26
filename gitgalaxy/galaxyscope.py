@@ -76,14 +76,11 @@ logger = logging.getLogger("GalaxyScope")
 
 _worker_state = {}
 
-# ------START: Updated _init_worker to accept git_tracked files for intent caching
-
-
-def redos_guillotine(signum, frame):
+def execution_timeout_failsafe(signum, frame):
     """
     Hardware-level OS interrupt for Catastrophic Backtracking (ReDoS) protection.
 
-    Registered via the Unix 'signal' library, this guillotine forcibly halts the worker
+    Registered via the Unix 'signal' library, this failsafe forcibly halts the worker
     process if a malformed file traps the regex engine in an exponential evaluation loop
     for more than 15 seconds, preventing pipeline starvation.
     """
@@ -100,12 +97,13 @@ def _init_worker(
 ):
     """
     Initializes the CPU-bound optical modules within the worker process's isolated memory.
+    
+    ARCHITECTURAL DECISION (ISOLATED WORKER MEMORY):
     Python's Global Interpreter Lock (GIL) prevents true multi-threading for CPU-bound tasks.
     To map a massive repository at extreme velocity, GitGalaxy spawns entirely separate OS
-    processes. This function acts as the boot-loader for those child processes. It instantiates
-    the heavy regex matrices (The Splicer, Prism, etc.) entirely within the child's isolated
-    RAM. This prevents the OS from attempting to pickle/serialize massive compiled regex objects
-    across the IPC (Inter-Process Communication) boundary, which would instantly crash the pipeline.
+    processes. This boot-loader instantiates the heavy regex matrices entirely within the 
+    child's isolated RAM. This prevents the OS from attempting to pickle/serialize massive 
+    compiled regex objects across the IPC (Inter-Process Communication) boundary.
     """
     from gitgalaxy.core.detector import StructuralExtractor as OpticalDetector
 
@@ -225,7 +223,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             phase_times["1_Aperture_Filter"] = time.perf_counter() - t_aperture
 
         if not is_valid:
-            # ---> NEW: THE X-RAY BINARY SENSOR <---
+            # ---> NEW: THE BINARY ANALYSIS SENSOR <---
             # Intercept binary and blacklisted extensions for deep inspection
             if "Binary Format" in reason or "Blacklisted Extension" in reason or "Embedded Data Payload" in reason:
                 try:
@@ -237,9 +235,9 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                     binary_threats = security.scan_binary(head, ext)
 
                     if binary_threats:
-                        logger.critical(f"🚨 X-RAY TRIGGERED: Weaponized binary detected at '{rel_path}'!")
+                        logger.critical(f"🚨 BINARY ANALYSIS TRIGGERED: Weaponized binary detected at '{rel_path}'!")
 
-                        # Threat Escalation: Forge a synthetic star and force it into the visible galaxy
+                        # Threat Escalation: Forge a synthetic artifact and force it into the repository graph
                         from gitgalaxy.metrics.signal_processor import SignalProcessor
 
                         hit_vector = [0] * len(SignalProcessor.SIGNAL_SCHEMA)
@@ -256,7 +254,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                             "is_minified": False,
                             "lock_tier": 0,
                             "intensity": 1.0,
-                            "source_proof": "X-Ray Binary Sensor",
+                            "source_proof": "Binary Analysis Sensor",
                             "size_bytes": size_bytes,
                             "total_loc": 1,
                             "coding_loc": 1,
@@ -266,7 +264,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                             "equations": binary_threats,
                             "satellites": [],
                             "logic_density": 100.0,
-                            "sum_fxn_impact": 5000.0,  # Massive gravity!
+                            "sum_fxn_impact": 5000.0,  # Massive structural impact!
                             "total_control_flow_ratio": 0.0,
                             "threat_snippets": {
                                 "binary_xray": [binary_threats.get("threat_snippet", "Unknown Threat")]
@@ -279,9 +277,9 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                         observation["processing_time"] = time.time() - t_start
                         return observation
                 except Exception as e:
-                    logger.debug(f"X-Ray failed on '{rel_path}': {e}")
+                    logger.debug(f"Binary Analysis failed on '{rel_path}': {e}")
 
-            # If no threats found, or it wasn't a binary, dump to Excluded Artifacts as usual
+            # If no threats found, or it wasn't a binary, dump to Unparsable Artifacts as usual
             observation["status"] = "parser_bypass"
             observation["reason"] = reason
             observation["size_bytes"] = size_bytes
@@ -294,7 +292,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             with open(full_path_str, "r", encoding="utf-8", errors="ignore") as f:
                 content_buffer = f.read()
         except FileNotFoundError:
-            # Replaces the Phantom Check! Fast, zero-overhead disk failure routing.
+            # Fast, zero-overhead disk failure routing.
             observation["status"] = "phantom"
             observation["reason"] = "Phantom file (missing on disk)"
             observation["processing_time"] = time.time() - t_start
@@ -314,7 +312,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             return observation
 
         # =========================================================================
-        # THE HARDWARE GUILLOTINE (GLOBAL ReDoS Protection)
+        # THE EXECUTION TIMEOUT FAILSAFE (GLOBAL ReDoS Protection)
         # =========================================================================
         import signal
         import sys
@@ -323,7 +321,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
         is_posix = sys.platform != "win32"
 
         if is_posix:
-            signal.signal(signal.SIGALRM, redos_guillotine)
+            signal.signal(signal.SIGALRM, execution_timeout_failsafe)
             signal.alarm(15)  # 15-second fuse for POSIX systems
 
         try:
@@ -342,7 +340,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
 
             lang_id = detection_result["lang_id"]
 
-            # ---> NEW: INERT MATTER IDENTIFICATION <---
+            # ---> NEW: STATIC ASSET IDENTIFICATION <---
             is_inert = lang_id in ("plaintext", "markdown", "json", "yaml", "csv")
             is_supported = lang_id in lang_defs or is_inert
 
@@ -370,7 +368,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                 is_minified = True
 
             if is_minified:
-                logger.debug(f"[WORKER-TRACE] MINIFIED/VENDOR DETECTED: {rel_path}. Bypassing structural Splicer.")
+                logger.debug(f"[WORKER-TRACE] MINIFIED/VENDOR DETECTED: {rel_path}. Bypassing structural extraction.")
                 logic_data = {"equations": {}, "coding_loc": total_loc, "doc_loc": 0}
                 refraction = {
                     "coding_loc": total_loc,
@@ -416,7 +414,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                     logic_data["metadata"] = {}
                 logic_data["metadata"]["doc_umbrella"] = guidestar.documentation_coverage.get(dir_path, 0.0)
 
-                logger.debug(f"[WORKER-TRACE] <<< EXITING SPLICER: {rel_path}")
+                logger.debug(f"[WORKER-TRACE] <<< EXITING EXTRACTOR: {rel_path}")
 
             # --- Phase 5.5: Security Lens (Passive Observers) ---
             t_security = time.perf_counter()
@@ -494,8 +492,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
                 logic_data["regex_telemetry"][f"{lang_id}::Worker_Popularity_Tokens"] = t_end - t_token
 
         except TimeoutError:
-            # The bomb went off anywhere in Phase 3 through 7!
-            logger.warning(f"⏳ TIMEOUT GUILLOTINE: '{rel_path}' exceeded 15s. Banishing to Singularity.")
+            logger.warning(f"TIMEOUT FAILSAFE: '{rel_path}' exceeded 15s. Relegating to Unparsable Artifacts.")
             observation["status"] = "parser_bypass"
             observation["reason"] = "Unparsable (Structural Saturation / Global Regex Timeout)"
             observation["size_bytes"] = filter_res.get("size_bytes", 0)
@@ -503,7 +500,7 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
             observation["processing_time"] = time.time() - t_start
             return observation
         finally:
-            # IMPORTANT: Defuse the bomb immediately upon success!
+            # IMPORTANT: Clear the timeout failsafe immediately upon success!
             if is_posix:
                 signal.alarm(0)
         # =========================================================================
@@ -556,14 +553,14 @@ def _process_file_worker(rel_path: str) -> Dict[str, Any]:
 
 
 # ==============================================================================
-# GitGalaxy Phase 3: Pipeline Orchestrator (The GalaxyScope)
+# GitGalaxy Phase 3: Pipeline Orchestrator
 # Bayesian Optics & Parser Bypasses
 # ==============================================================================
 
 
 class Orchestrator:
     """
-    Mission Control: The GitGalaxy Central Processing Core.
+    Orchestrator Core: The GitGalaxy Central Processing Core.
     This class operates as the Hub in GitGalaxy's Hub-and-Spoke architecture. It is strictly
     a traffic cop—it delegates all heavy lifting to specialized computational engines.
 
@@ -571,13 +568,13 @@ class Orchestrator:
     1. Pre-Flight (Phase 0): The root path is scanned to build a 'Census' of tracked files,
        consulting Git/OS boundaries, .gitattributes, and dynamic micro-mass limits.
     2. Parallel Extraction (Phase 1): Bypasses the GIL by spawning isolated worker processes.
-       Workers perform the heavy regex DNA/token extraction and filter out inert data.
-    3. Structural Physics (Phases 2-4): Returns extracted features to the main thread. Maps out
+       Workers perform the heavy Structural Signature and token extraction and filter out Static Assets.
+    3. Structural Impact Analysis (Phases 2-4): Returns extracted features to the main thread. Maps out
        DAGs (Directed Acyclic Graphs) and converts token frequencies into actionable metrics. Note:
-       risk exposures are calculated metrics from the DNA/regex hits, not the hits themselves.
+       risk exposures are calculated metrics from the raw Structural Signatures, not the hits themselves.
     4. Threat Inference (Phases 5-10): Executes ML pipelines (XGBoost) and zero-trust policies
        (AppSec/Supply Chain Firewalls) to hunt behavioral anomalies.
-    5. Output Routing (Phases 11-12): Destructively pivots the global RAM state into columnar
+    5. Output Routing (Phases 11-12): Transforms the global RAM state into columnar
        JSON payloads, native SQLite bases, and LLM-ready markdown artifacts.
     """
 
@@ -609,13 +606,13 @@ class Orchestrator:
         self.chronometer = Chronometer(self.root, parent_logger=logger)
         self.spatial_mapper = SpatialMapper(parent_logger=logger)
 
-        # The primary heuristic math engine converting raw DNA hits to risk exposure vectors
+        # The primary heuristic math engine converting raw Structural Signatures to risk exposure vectors
         self.processor = SignalProcessor(aperture_config=config, parent_logger=logger)
 
         # Third-Gate gatekeeper identifying and dropping un-parseable data dumps
         self.auditor = StatisticalAuditor(parent_logger=logger)
 
-        # Constructs the physical import DAG and calculates PageRank/Blast Radius
+        # Constructs the physical import DAG and calculates PageRank/Downstream Exposure
         self.network_sensor = NetworkRiskSensor(parent_logger=logger)
 
         # ==============================================================================
@@ -628,7 +625,7 @@ class Orchestrator:
         # LLM Recorder: Generates token-compressed RAG context text for AI Agents
         self.llm_recorder = LLMRecorder(parent_logger=logger)
         # DB Recorder: Archives relational tables natively to SQLite3
-        self.db_recorder = RecordKeeper(parent_logger=logger)  # <--- Add this line
+        self.db_recorder = RecordKeeper(parent_logger=logger)
 
         # --- NEW: THE SMART THREAT SWITCH (MAIN THREAD) ---
         if self.config.get("PARANOID_MODE", False):
@@ -683,12 +680,12 @@ class Orchestrator:
         PIPELINE ONBOARDING (Execution Flow):
         The method enforces a strict chronological dependency chain. For example,
         Workers (Phase 1) must run before Relational Analysis (Phase 3) so that
-        we have exact code tokens in RAM before mapping the API Blast Radius.
+        we have exact code tokens in RAM before mapping the API Downstream Exposure.
         Likewise, Network Topology (Phase 4) is required before XGBoost Inference
         (Phase 9) since a file's centrality influences its logic bomb threat weighting.
         """
         start_time = time.time()
-        logger.info(f"--- MISSION_IGNITION: {self.root.name} (v{self.version}) ---")
+        logger.info(f"--- PIPELINE_START: {self.root.name} (v{self.version}) ---")
 
         if not HAS_NETWORKX or not HAS_TIKTOKEN or not ML_AVAILABLE or not HAS_PYYAML:
             missing_libs = []
@@ -709,7 +706,7 @@ class Orchestrator:
             logger.warning(" ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫")
             logger.warning(" ┃ Missing computational engines. Metrics will be safely set to NULL:      ┃")
             if not HAS_NETWORKX:
-                logger.warning(" ┃  - networkx (Network Topology, Blast Radius, Choke Points)              ┃")
+                logger.warning(" ┃  - networkx (Network Topology, Downstream Exposure, Choke Points)       ┃")
             if not HAS_TIKTOKEN:
                 logger.warning(" ┃  - tiktoken (Absolute Token Mass, Financial Read Cost)                  ┃")
             if not ML_AVAILABLE:
@@ -728,58 +725,58 @@ class Orchestrator:
             t_phase = time.time()
             self.guidestar.scan_project_config()
             self._build_file_census()
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 0 - Radar]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 0 - Radar]: {time.time() - t_phase:.2f}s")
 
             # PHASE 1: Workers & IPC Extraction
             # Bypasses the GIL, deploying CPU-heavy regex scanning into isolated Memory spaces.
             t_phase = time.time()
             self._extract_features_parallel()
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 1 - Workers & IPC]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 1 - Workers & IPC]: {time.time() - t_phase:.2f}s")
 
             # PHASE 2: Dependency Resolution (Import Graph)
             # Reconstructs inter-file linkages. Executes *before* Relational Analysis so we
             # can mathematically define a file's public exposure index.
             t_phase = time.time()
             self._resolve_dependency_graph()
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 2 - Dependency Resolution]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 2 - Dependency Resolution]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 3: Relational Analysis (Structural Physics)
+            # PHASE 3: Structural Impact Analysis
             # Fuses chronological Git telemetry with raw token counts to calculate multi-dimensional
             # risks (e.g., Tech Debt, Cognitive Load, State Flux).
             t_phase = time.time()
             self._calculate_risk_exposures()
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 3 - Relational Analysis]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 3 - Structural Impact Analysis]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 4: Network Topology & Blast Radius
+            # PHASE 4: Network Topology & Downstream Exposure
             # Computes PageRank and Betweenness Centrality on the assembled Dependency Graph.
             t_phase = time.time()
             self.parsed_files, network_macro = self.network_sensor.build_dependency_graph(self.parsed_files)
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 4 - Network Topology]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 4 - Network Topology]: {time.time() - t_phase:.2f}s")
 
             # PHASE 5: Zero-Trust Guardrails (AI & AppSec)
-            # Enforces explicit system rules identifying Prompt Injections or Context Window shredders.
+            # Enforces explicit system rules identifying Prompt Injections or Context Window Exhaustion.
             t_phase = time.time()
             dev_firewall = DevAgentFirewall(parent_logger=logger)
             self.parsed_files = dev_firewall.evaluate_ecosystem(self.parsed_files)
 
             appsec_sensor = AIAppSecSensor(parent_logger=logger)
             self.parsed_files = appsec_sensor.hunt_threats(self.parsed_files)
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 5 - Zero-Trust Guardrails]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 5 - Zero-Trust Guardrails]: {time.time() - t_phase:.2f}s")
 
             # PHASE 6: Spectral Audit & Verification
             # Uses standard deviations to identify and drop un-parseable data dumps or log files.
             t_phase = time.time()
             repository_graph, unparsable_audits = self.auditor.audit(self.parsed_files)
             total_unparsable = self.unparsable_files + unparsable_audits
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 6 - Spectral Audit]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 6 - Spectral Audit]: {time.time() - t_phase:.2f}s")
 
-            # PHASE 7: Cartography & 3D Mapping
+            # PHASE 7: Dependency Graphing & Visualization
             # Assigns coordinates based on topological hierarchies for WebGL.
             t_phase = time.time()
             if repository_graph:
                 repository_graph = self.spatial_mapper.map_repository(repository_graph)
             files_mapped_count = len(repository_graph) if repository_graph else 0
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 7 - 3D Cartography]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 7 - Dependency Graphing]: {time.time() - t_phase:.2f}s")
 
             # PHASE 8: Metrics Synthesis & Forensics
             # Aggregates raw outputs for the LLM payload generation.
@@ -787,7 +784,7 @@ class Orchestrator:
             summary = self.processor.summarize_galaxy_metrics(repository_graph, total_unparsable)
             summary["network_macro"] = network_macro
             report = self.processor.generate_forensic_report(repository_graph)
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 8 - Metrics Synthesis]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 8 - Metrics Synthesis]: {time.time() - t_phase:.2f}s")
 
             # PHASE 9: ML Threat Inference & Graph Resolution
             # Processes the fully formed context through XGBoost trees to isolate embedded Trojans/Stealers.
@@ -798,7 +795,7 @@ class Orchestrator:
                 repository_graph = self.model_auditor.audit_repository(
                     repository_graph, is_shadow_patch=is_shadow_patch
                 )
-            logger.info(f"⏱️ MACRO-CLOCK [Phase 9 - ML Threat Inference]: {time.time() - t_phase:.2f}s")
+            logger.info(f"⏱️ EXECUTION_TIME [Phase 9 - ML Threat Inference]: {time.time() - t_phase:.2f}s")
 
             # ==========================================================
             # PHASE 10: ECOSYSTEM SECURITY AUDITS
@@ -961,13 +958,13 @@ class Orchestrator:
                 payload["meta"]["session"] = session_meta
                 self.gpu_recorder.save_minified(payload, gpu_output)
 
-            logger.info(f"--- MISSION_SUCCESS: {files_mapped_count} files mapped in {duration}s ---")
+            logger.info(f"--- PIPELINE_SUCCESS: {files_mapped_count} files mapped in {duration}s ---")
             logger.info(f"--- ENGINE_TELEMETRY: Processed {total_loc:,} lines of code at {loc_per_sec:,} LOC/s ---")
             logger.info(f"--- ARCHIVES_SEALED: {gpu_output} & {audit_output} ---")
 
             if not HAS_NETWORKX or not HAS_TIKTOKEN:
                 logger.warning(
-                    " ⚠️  NOTE: Mission completed in Zero-Dependency Mode. Run `pip install networkx tiktoken` for full precision."
+                    " ⚠️  NOTE: Pipeline completed in Zero-Dependency Mode. Run `pip install networkx tiktoken` for full precision."
                 )
 
             if self.config.get("FILE_SPEED"):
@@ -1045,7 +1042,7 @@ class Orchestrator:
                     self.ext_tally[ext] = self.ext_tally.get(ext, 0) + 1
                     self.ext_tally[name] = self.ext_tally.get(name, 0) + 1
                 else:
-                    # Route directly to Dark Matter, bypassing the Multi-Processing pool
+                    # Route directly to Unparsable Artifacts, bypassing the Multi-Processing pool
                     self.unparsable_files.append(
                         {
                             "path": rel_path,
@@ -1066,15 +1063,9 @@ class Orchestrator:
     def _fallback_filesystem_walk(self):
         """
         Standard OS-level filesystem walk for non-Git projects or ZIP archives.
-        """
-        self.cleanup()
-
-    def _fallback_filesystem_walk(self):
-        """
-        Standard OS-level filesystem walk for non-Git projects or ZIP archives.
 
         Acts as the fallback mechanism if `git ls-files` fails. Evaluates every file against
-        the Aperture filter's Black Holes and dynamic micro-mass quotas, discarding ignored
+        the Aperture filter's Ignored Directories and dynamic micro-mass quotas, discarding ignored
         assets before they are added to the active Census.
         """
         for root, dirs, files in os.walk(self.root):
@@ -1121,13 +1112,13 @@ class Orchestrator:
 
     def _extract_features_parallel(self):
         """
-        Phase 1: Parallel Refraction & Matter Eviction via Multi-Core Map-Reduce.
+        Phase 1: Parallel Extraction & Asset Filtering via Multi-Core Map-Reduce.
 
         Dispatches the physical file paths to the isolated worker pool (bypassing the GIL).
         As the workers complete their high-speed regex extraction, this method consumes the
         futures dynamically to prevent O(N^2) polling wait states. It catches structural
-        saturations (ReDoS), logs processing telemetry, and aggregates the extracted DNA into
-        the global RAM cache.
+        saturations (ReDoS), logs processing telemetry, and aggregates the extracted 
+        Structural Signatures into the global RAM cache.
         """
         total_files = len(self.stem_map)
         logger.info(f"PASS_1: Optical sequence initiated for {total_files} artifacts via ProcessPoolExecutor.")
@@ -1214,7 +1205,7 @@ class Orchestrator:
 
                         elif status == "parser_bypass":
                             logger.debug(
-                                f"SINGULARITY_BYPASS: '{rel_path}' lacks structural integrity. Relegating to Excluded Artifacts."
+                                f"UNPARSABLE_BYPASS: '{rel_path}' lacks structural integrity. Relegating to Excluded Artifacts."
                             )
                             self.unparsable_files.append(
                                 {
@@ -1529,12 +1520,12 @@ class Orchestrator:
         """
         Phase 3: Universal Exposure Framework & Signal Processing.
 
-        Translates raw regex DNA hits into 18-point physical risk vectors (e.g., Tech Debt,
+        Translates raw Structural Signatures into 18-point physical risk vectors (e.g., Tech Debt,
         Cognitive Load, State Flux). This pass applies architectural dampeners (like testing
         umbrellas and documentation shields), resolves test coverage graphs, and routes
         extracted metadata to the SignalProcessor for final heuristic scoring.
         """
-        logger.info("PASS_2: Calculating structural physics and Tiered Normalization.")
+        logger.info("PASS_2: Calculating structural impact and Tiered Normalization.")
 
         # ==============================================================
         # NEW: CALCULATE FOLDER CONTEXTS (For Domain Ontologies)
@@ -1643,7 +1634,7 @@ class Orchestrator:
             # -----------------------------------------------------------------
 
             # =================================================================
-            # ---> THE NETWORK GRAVITY FIX <---
+            # ---> THE CONTEXTUAL BASELINE FIX <---
             # If the file is imported by the ecosystem, its "orphans" are actually its API.
             # =================================================================
             popularity = self.popularity_scores.get(rel_path, 0)
@@ -1682,7 +1673,7 @@ class Orchestrator:
             )
 
             # =========================================================
-            # THE GRAVITY SHIELD: APPLY STRUCTURAL MASS DAMPENERS
+            # THE BASELINE SHIELD: APPLY STRUCTURAL IMPACT DAMPENERS
             # SignalProcessor handles % Risks, but Orchestrator handles raw Mass.
             # =========================================================
             mass_modifiers = self.config.get("PATH_MODIFIERS", {}).get("Structural Mass", [])
@@ -1761,18 +1752,18 @@ class Orchestrator:
             rel_path = leak["path"]
             logger.critical(f"Threat Escalation: Forcing {rel_path} onto the 3D Map!")
 
-            synthetic_star = {
+            synthetic_artifact = {
                 "name": Path(rel_path).name,
                 "path": rel_path,
-                "lang_id": "plaintext",  # <-- Bypasses the Spectral Auditor as Inert Matter
+                "lang_id": "plaintext",  # <-- Bypasses the Spectral Auditor as Static Assets
                 "coding_loc": 1,
                 "total_loc": 1,
                 "classification": "critical_secret_leak",
                 # 18-point risk vector. Index 17 is secrets_risk. Peg it to 100%.
                 "risk_vector": [0.0] * 13 + [0.0, 0.0, 0.0, 0.0, 100.0],
                 "hit_vector": [0] * len(SignalProcessor.SIGNAL_SCHEMA),
-                # ---> CARTOGRAPHER GRAVITY <---
-                # This makes the radius massive and pushes all other files away
+                # ---> TOPOLOGY BASELINE <---
+                # This makes the structural impact score massive and pushes all other files away
                 "file_impact": 5000.0,
                 "telemetry": {
                     "ownership": "Secrets Radar",
@@ -1784,9 +1775,9 @@ class Orchestrator:
 
             if "sec_hardcoded_secrets" in SignalProcessor.SIGNAL_SCHEMA:
                 idx = SignalProcessor.SIGNAL_SCHEMA.index("sec_hardcoded_secrets")
-                synthetic_star["hit_vector"][idx] = 1
+                synthetic_artifact["hit_vector"][idx] = 1
 
-            self.parsed_files.append(synthetic_star)
+            self.parsed_files.append(synthetic_artifact)
 
         # ==================================================================
         # AI MODEL WEIGHTS: Binary Header Extraction
@@ -1814,11 +1805,11 @@ class Orchestrator:
                 # Perform the zero-RAM binary header audit
                 audit_results = tensor_scanner.audit_model(full_path_str)
 
-                # Model weights are incredibly dense. We give them a massive file_impact (Gravity).
-                # 1 GB = ~100.0 Gravity points, capped at 10,000 to prevent breaking the 3D renderer.
-                gravity_mass = min((size_bytes / (1024 * 1024 * 1024)) * 100.0, 10000.0)
+                # Model weights are incredibly dense. We give them a massive file_impact.
+                # 1 GB = ~100.0 impact points, capped at 10,000 to prevent breaking the 3D renderer.
+                structural_impact_score = min((size_bytes / (1024 * 1024 * 1024)) * 100.0, 10000.0)
 
-                synthetic_star = {
+                synthetic_artifact = {
                     "name": Path(rel_path).name,
                     "path": rel_path,
                     "lang_id": "binary_threat",  # Forces it to render uniquely in the UI
@@ -1827,7 +1818,7 @@ class Orchestrator:
                     "classification": "ai_model_weights",
                     "risk_vector": [0.0] * len(SignalProcessor.RISK_SCHEMA),
                     "hit_vector": [0] * len(SignalProcessor.SIGNAL_SCHEMA),
-                    "file_impact": max(gravity_mass, 500.0),  # Minimum massive gravity
+                    "file_impact": max(structural_impact_score, 500.0),  # Minimum massive structural impact
                     "telemetry": {
                         "ownership": "Tensor Scanner",
                         "domain_context": {
@@ -1845,16 +1836,16 @@ class Orchestrator:
                 # Force the hit_vector to register as local compute so the AI Topology catches it
                 if "llm_local_compute" in SignalProcessor.SIGNAL_SCHEMA:
                     idx = SignalProcessor.SIGNAL_SCHEMA.index("llm_local_compute")
-                    synthetic_star["hit_vector"][idx] = 100  # Massive hit spike
+                    synthetic_artifact["hit_vector"][idx] = 100  # Massive hit spike
 
-                self.parsed_files.append(synthetic_star)
+                self.parsed_files.append(synthetic_artifact)
 
     def _prepare_target(self, target_input: Union[str, Path]) -> Path:
         """
         Validates the user's target input and constructs an ephemeral extraction environment if necessary.
 
         If the target is a compressed archive (.zip), this method generates a secure, isolated temporary
-        directory in the host OS to unpack the contents. This ensures the physics engine can analyze
+        directory in the host OS to unpack the contents. This ensures the engine can analyze
         cloud-downloaded repositories without permanently polluting the user's local file system.
         """
         input_path = Path(target_input)
@@ -1894,7 +1885,7 @@ class Orchestrator:
         logger.debug(f"ANOMALY: {name} | {message}")
         self.anomalies.append({"star": name, "diagnostic": message})
 
-    def _summarize_anomalies(self, total_singularity: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _summarize_anomalies(self, total_unparsable: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Bridges isolated worker failures back to the main thread's forensic ledger.
 
@@ -1925,9 +1916,9 @@ class Orchestrator:
 
         # 2. Build the hierarchical composition_by_extension_and_reason
         composition = {}
-        for dark in total_singularity:
-            path = dark.get("path", "")
-            reason = dark.get("reason", "Unknown Reason")
+        for unparsable in total_unparsable:
+            path = unparsable.get("path", "")
+            reason = unparsable.get("reason", "Unknown Reason")
 
             # Extract and normalize the extension using the engine's REGEX SHIELD
             ext = Path(path).suffix.lower()
@@ -2087,7 +2078,7 @@ class Orchestrator:
         Instead of re-scanning a 10,000-file repository for a 2-file PR, this method ingests
         the previous structural state from RAM/SQLite, evicts the deleted/modified files,
         and only runs the heavy regex optics on the newly added or changed files. It then
-        triggers the 'Ripple Effect' to recalculate global blast radiuses and PageRank
+        triggers the 'Ripple Effect' to recalculate global Downstream Exposures and PageRank
         scores for the entire ecosystem before sealing the updated database.
         """
         start_time = time.time()
@@ -2127,7 +2118,7 @@ class Orchestrator:
             # 4. Execute the Surgical Scan (Only parses new files)
             self._extract_features_parallel()
 
-            # 5. The Ripple Effect (Recalculate Blast Radius for ALL files)
+            # 5. The Ripple Effect (Recalculate Downstream Exposure for ALL files)
             self.stem_map = {f: f for f in self.ram_cache.keys()}
             self._resolve_dependency_graph()
             self._calculate_risk_exposures()
@@ -2177,7 +2168,7 @@ class Orchestrator:
 
 
 # ==============================================================================
-# MISSION CONTROL: THE ENTRY POINT
+# ORCHESTRATOR CORE: THE ENTRY POINT
 # ==============================================================================
 
 
@@ -2286,7 +2277,7 @@ def main():
                             merged_aperture["IGNORED_DIRECTORIES"] = set()
                         merged_aperture["IGNORED_DIRECTORIES"].update(overrides["exclude_dirs"])
                         logging.debug(
-                            f"   -> Patched Aperture Shield (Added {len(overrides['exclude_dirs'])} Black Holes)."
+                            f"   -> Patched Aperture Shield (Added {len(overrides['exclude_dirs'])} Ignored Directories)."
                         )
 
                     if "exclude_paths" in overrides:
