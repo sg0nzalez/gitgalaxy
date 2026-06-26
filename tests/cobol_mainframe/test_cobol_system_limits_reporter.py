@@ -111,7 +111,7 @@ def test_system_limits_cli_directory_traversal(tmp_path, capsys):
     captured = capsys.readouterr()
 
     # Verify the results
-    assert "scanning 2 files" in captured.out, (
+    assert "executing architectural integrity scan on 2 files" in captured.out, (
         "Failed to properly filter .cbl and .cob files!"
     )
     assert "PGM1.cbl : Line 0001" in captured.out
