@@ -84,12 +84,6 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
     Evaluates runtime environment for PolyForm compliance.
     Injects operational friction or audit tripwires for unverified environments.
     """
-    # --- THE PYTEST BYPASS ---
-    # Keeps our CI/CD logs clean by instantly exiting during automated tests.
-    if "PYTEST_CURRENT_TEST" in os.environ or os.environ.get("GITGALAXY_ENV") == "development":
-        return
-    # -------------------------
-
     # --- ZERO-DEPENDENCY .ENV LOADER ---
     # Python doesn't read .env files natively. This parses it manually
     # so we don't force users to pip install python-dotenv.
