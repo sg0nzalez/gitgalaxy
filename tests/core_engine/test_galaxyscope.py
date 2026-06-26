@@ -43,7 +43,7 @@ def test_galaxyscope_python_fixture(tmp_path):
 
     # INVARIANT 1: CLI Exit Code & Billboard Output
     assert result.returncode == 0, f"GalaxyScope crashed! Stderr: {result.stderr}"
-    assert "MISSION_SUCCESS" in result.stdout, (
+    assert "PIPELINE_SUCCESS" in result.stdout, (
         "CLI did not print the success billboard."
     )
 
