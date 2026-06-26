@@ -6,34 +6,36 @@
 
 Welcome to the **GitGalaxy AI Guardrails Suite**.
 
-The adoption of Generative AI has created two massive security blind spots for modern enterprise teams. First, developers are building AI features that grant LLMs dangerous levels of system access (The AppSec Threat). Second, developers are utilizing autonomous coding agents that can silently introduce architectural degradation into complex codebases (The DevSec Threat).
+The rapid adoption of Generative AI has introduced two critical security and stability blind spots for modern enterprise teams. First, developers are deploying AI features that grant Large Language Models (LLMs) dangerous levels of system and execution access (The AppSec Threat). Second, developers are utilizing autonomous coding agents that can silently introduce architectural degradation into complex codebases (The DevSecOps Threat).
 
-Legacy security scanners ([like SonarQube or Checkmarx](https://squid-protocol.github.io/gitgalaxy/04-00-security_landscape/)) cannot fix this. They look for traditional SQL injection, not Prompt Injection. They rely on slow compilation cycles that fail to keep pace with AI development, leaving you completely blind to Agentic logic loops and context shredders.
+Legacy security scanners ([like SonarQube or Checkmarx](https://squid-protocol.github.io/gitgalaxy/04-00-security_landscape/)) cannot solve this. They are designed to detect traditional SQL injections, not Prompt Injections or Agentic context exhaustion. They rely on slow AST compilation cycles that fail to map the structural reality of AI-driven state mutation.
 
-GitGalaxy maps the architectural reality of your code in seconds. We use AST-free mathematical heuristics to generate deep, contextual reports, allowing you to block dangerous AI behavior before it ever hits production.
+GitGalaxy maps the architectural reality of your code in seconds. We use AST-free mathematical heuristics to generate deep, contextual telemetry, allowing you to block dangerous AI architectures and sandbox autonomous agents before they compromise production.
 
 ---
 
 ### 🛡️ Side 1: The AI AppSec Sensor (`AIAppSecSensor`)
-*Protects your application from the AI features you build.*
+*Protects your application from the AI features your developers build.*
 
-Standard AST scanners frequently miss "Weaponized AI Architectures." This sensor acts as a physical boundary, mapping the physical call-path distance between an LLM API execution and your critical system functions.
+**Why It Was Built:** AI agents with unconstrained execution boundaries represent a critical security risk. Traditional Static Analysis (SAST) misses the intersection of LLM logic and system APIs. By analyzing the structural topology of the codebase, this sensor deterministically identifies intersections where LLMs (which are inherently vulnerable to Prompt Injection) are dangerously close to OS commands or database writes.
 
-* **The RCE Funnel:** Detects LLMs wired directly to OS commands or shell executions. This allows you to aggressively [block Prompt-Injection-to-RCE attacks](https://squid-protocol.github.io/gitgalaxy/cookbook/prevent-agentic-rce/) in your CI/CD pipeline.
-* **The "God-Mode" Agent:** Flags autonomous tools with raw, unfiltered database access. Blocks autonomous data corruption before it can wipe a production table.
-* **The Exfiltration Vector:** Identifies LLMs accessing network sockets and cryptographic secrets, stopping SSRF and key exfiltration vulnerabilities cold.
+**What It Detects:**
+* **Autonomous Execution Vector:** Detects LLM logic that is adjacent to OS-level execution (`eval`, `subprocess`) and exposed via a public API router. This allows you to aggressively [block Prompt-Injection-to-RCE attacks](https://squid-protocol.github.io/gitgalaxy/cookbook/prevent-agentic-rce/) in your CI/CD pipeline.
+* **Over-Permissioned Agent Binding:** Flags autonomous tools bound to raw Database/IO write access with critically low defensive programming density (e.g., missing `try/catch` blocks). Blocks autonomous data corruption before it reaches production tables.
+* **Agentic Exfiltration Vector:** Identifies LLM logic with access to both unfiltered network sockets and hardcoded environment secrets, neutralizing SSRF and autonomous key exfiltration vectors.
 
 ---
 
 ### 🤖 Side 2: The Dev Agent Firewall (`DevAgentFirewall`)
-*Protects your codebase from the autonomous AI tools you use.*
+*Protects your codebase from the autonomous AI coding tools your developers use.*
 
-Not all legacy code is safe for an AI coding assistant (like Cursor, Copilot, or Claude) to modify. This firewall evaluates the structural complexity, cognitive load, and entropy of a file to determine if an AI agent will succeed, hallucinate, or silently destroy your system logic. By running this sensor, you can safely [sandbox autonomous agents](https://squid-protocol.github.io/gitgalaxy/cookbook/sandbox-autonomous-agents/) to only work on verified, low-complexity files.
+**Why It Was Built:** Autonomous coding agents (e.g., Claude, Cursor) excel in isolated, pure-function environments but struggle with highly coupled, poorly documented, or dynamically generated logic. This firewall establishes Zero-Trust guardrails. It prevents AI agents from executing unchecked modifications in volatile sectors, mitigating the risk of cascading failures, context window exhaustion, and silent state mutations.
 
-* **Context Window Shredders:** Identifies massive files with extreme algorithmic complexity. Prevents AI context collapse and logic truncation.
-* **The Hallucination Zone:** Highlights heavy metaprogramming with zero documentation, preventing AI method hallucination and fabricated syntax.
-* **Silent Mutation Risk:** Flags logic with a high blast radius and zero test coverage. Blocks unverifiable AI modifications.
-* **HITL Mandate:** Detects severe technical debt. Forces a strict Human-In-The-Loop (HITL) code review requirement for PRs generated by AI agents.
+**What It Detects:**
+* **Context Window Exhaustion:** Identifies files exceeding standard token limits combined with extreme algorithmic complexity (e.g., `O(N^3)`). Prevents the AI from losing context and inducing severe structural hallucinations.
+* **Hallucination Risk:** Highlights codebases with heavy dynamic metaprogramming and severe Documentation Risk Exposure (< 20% density). Flags zones where autonomous agents are mathematically highly likely to hallucinate missing methods.
+* **Cascading State Flux:** Flags logic with high state mutation and dense downstream dependencies, but zero test coverage. Blocks unverifiable AI modifications where the agent cannot mathematically verify its own structural changes.
+* **HITL Mandate:** Detects high downstream exposure (Blast Radius) combined with severe risk debt. Forces a strict Human-In-The-Loop (HITL) architectural review requirement for PRs generated by AI.
 
 ---
 
