@@ -205,6 +205,7 @@ def test_tier_4_heuristic_discovery(isolated_detector):
         )
 
     assert result["lang_id"] in ["c", "cpp", "objective-c", "javascript"]
+    
 # ==============================================================================
 # TEST 7: Hybrid Detection (Nested Languages)
 # ==============================================================================

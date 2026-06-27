@@ -436,4 +436,5 @@ if __name__ == "__main__":
 
     # Securely load debug state from environment variables
     is_debug = os.getenv("FLASK_ENV", "production").lower() == "development"
-    app.run(debug=is_debug, host="0.0.0.0", port=5000, threaded=True)
+    host = os.getenv("FLASK_HOST", "0.0.0.0" if is_debug else "127.0.0.1")
+    app.run(debug=is_debug, host=host, port=5000, threaded=True)

@@ -21,7 +21,7 @@ def test_sast_vulnerability_signatures(lens):
     """
     malicious_code = (
         "// 1. Hardcoded Secrets (Private Info)\n"
-        "api_key = 'A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6'\n"
+        "api_key = 'A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6'\n"  # gitleaks:allow
         "\n"
         "// 2. Dynamic Code Execution & Safety Bypasses (Danger & Safety Neg)\n"
         "ini_set('disable_functions', 0);\n"

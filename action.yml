@@ -32,22 +32,25 @@ runs:
   using: "composite"
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
       with:
         python-version: '3.10'
 
     - name: Install GitGalaxy
       shell: bash
+      env:
+        GG_VERSION: ${{ inputs.version }}
+        GG_FULL_PRECISION: ${{ inputs.full_precision }}
       run: |
-        if [ "${{ inputs.version }}" = "latest" ]; then
+        if [ "$GG_VERSION" = "latest" ]; then
           echo "Installing latest GitGalaxy from PyPI..."
           pip install gitgalaxy
         else
-          echo "Installing GitGalaxy version ${{ inputs.version }}..."
-          pip install gitgalaxy==${{ inputs.version }}
+          echo "Installing GitGalaxy version ${GG_VERSION}..."
+          pip install "gitgalaxy==${GG_VERSION}"
         fi
-        
-        if [ "${{ inputs.full_precision }}" = "true" ]; then
+
+        if [ "$GG_FULL_PRECISION" = "true" ]; then
           echo "Unlocking Full Precision Mode..."
           pip install networkx tiktoken xgboost pandas numpy
         else
@@ -56,6 +59,11 @@ runs:
 
     - name: Execute GitGalaxy Tool
       shell: bash
+      env:
+        GG_TOOL: ${{ inputs.tool }}
+        GG_TARGET: ${{ inputs.target }}
+        GG_ARGS: ${{ inputs.args }}
       run: |
-        echo "Running: ${{ inputs.tool }} ${{ inputs.target }} ${{ inputs.args }}"
-        ${{ inputs.tool }} ${{ inputs.target }} ${{ inputs.args }}
+        echo "Running: ${GG_TOOL} ${GG_TARGET} ${GG_ARGS}"
+        set -- ${GG_TOOL} ${GG_TARGET} ${GG_ARGS}
+        "$@"

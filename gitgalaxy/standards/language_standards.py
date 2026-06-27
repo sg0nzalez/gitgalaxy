@@ -1364,19 +1364,6 @@ LANGUAGE_DEFINITIONS = {
             # ONLY executable logic blocks. EXCLUDES types/classes.
             #
             # =====================================================================
-            # [ CONTEXT: C# "IRON WALL" FUNCTION EXTRACTOR & REDOS SHIELD]
-            # PURPOSE: Anchors executable logic blocks (methods) in C# up to C# 14.
-            # VULNERABILITY: C# allows massive return types (e.g., nested tuples),
-            #   generics, and explicit interface implementations. If spaces are allowed
-            #   freely inside unbounded quantifiers, massive Roslyn test strings cause
-            #   Catastrophic Backtracking, locking the Python GIL at the C-level.
-            # THE FIX: Strict character exclusion, numeric bounding, and mutual
-            #   exclusivity between word characters and spaces.
-            # =====================================================================
-            # 4. func_start (Executable Logic Anchors)
-            # ONLY executable logic blocks. EXCLUDES types/classes.
-            #
-            # =====================================================================
             # [ CONTEXT: C# "IRON WALL" FUNCTION EXTRACTOR & REDOS SHIELD ]
             # PURPOSE: Anchors executable logic blocks (methods) in C# up to C# 14.
             # VULNERABILITY: C# allows massive return types (e.g., nested tuples),
@@ -1419,7 +1406,9 @@ LANGUAGE_DEFINITIONS = {
                 # [REDOS ARMOR 1]: `(?![ \t]*#)` prevents the engine from crossing into a #region or #if block.
                 # [REDOS ARMOR 2]: The character class `[...]+` STRICTLY FORBIDS spaces/tabs. The `[ \t\n]+`
                 # follows it outside the group. This mutual exclusivity guarantees O(N) parsing.
-                r"(?:(?![ \t]*#)[a-zA-Z0-9_<>\[\]?,.()]+[ \t\n]+){0,10}"
+                # [REDOS ARMOR 3]: Explicitly prevents return types from eating modifiers during a backtrack,
+                # sealing the overlapping permutation leak that caused Catastrophic Backtracking.
+                r"(?:(?![ \t]*#)(?!(?:public|private|protected|internal|static|virtual|override|abstract|sealed|async|unsafe|partial|new|extern|file|ref|readonly)\b)[a-zA-Z0-9_<>\[\]?,.()]+[ \t\n]+){0,10}"
                 # 4. THE "NOT A FUNCTION" SHIELD
                 # Negative lookahead ensuring we don't accidentally capture control flow,
                 # primitive type keywords, or object instantiations as function names.
@@ -2143,9 +2132,9 @@ LANGUAGE_DEFINITIONS = {
                 r"(?:(?:__attribute__[ \t]*\([^)]*\)|\[\[[^\]]*\]\]|__declspec[ \t]*\([^)]*\))[ \t\n]*){0,5}"
                 # 4. THE RETURN TYPE (Pointers/references explicitly bound)
                 # [IRON WALL]: Prevents the engine from reading a `#define` on the next line as a return type.
-                # [POINTER AMBIGUITY FIX]: Forces strict O(1) alternation between spaces or asterisks.
+                # [POINTER AMBIGUITY FIX]: Strictly enforces sequential evaluation of pointers and spaces.
                 r"(?:(?:struct|union|enum)[ \t\n]+)?"
-                r"(?:(?![ \t]*#)[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?(?:[ \t\n]*[*&]+[ \t\n]*|[ \t\n]+)){0,5}"
+                r"(?:(?![ \t]*#)[a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*(?:<[^>]*>)?[*&]*[ \t\n]+){0,5}"
                 # 5. THE "NOT A FUNCTION" SHIELD
                 # Prevents control flow (if, while) and primitive types from being captured as function names.
                 r"(?!(?:if|for|while|switch|return|catch|else|elif|sizeof|new|delete|ARGS\d+|NOARGS|int|float|double|char|void|long|short|unsigned|signed|bool|INTEGER|LOGICAL|real|__attribute__|__declspec|__asm__)\b)"
@@ -2582,13 +2571,11 @@ LANGUAGE_DEFINITIONS = {
             "explicit_casts": re.compile(
                 # =====================================================================
                 # [ROADMAP: NESTED OPTIONAL SPACES (ReDoS TRAP)]
-                # Previously: `(?:\s*\*){0,5}\s*\)`
-                # The `\s*` inside the repeating group combined with the `\s*` before
-                # the closing parenthesis created overlapping optional paths. If an
-                # unmatched string hit this, it caused heavy backtracking.
-                # FIX: Flattened to `\s*[*]*\s*\)` - purely linear evaluation.
+                # FIX 2: `\s*[*]*\s*` is highly vulnerable to ReDoS if the payload 
+                # is spaced asterisks like `(int * * *)`. Flattened to strictly linear
+                # `[ \t\n]*(?:\*[ \t\n]*)*` to prevent any overlapping whitespace matching.
                 # =====================================================================
-                r"\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed|void)\s*[*]*\s*\)\s*[a-zA-Z_]"
+                r"\(\s*(?:int|float|double|char|bool|long|short|unsigned|signed|void)[ \t\n]*(?:\*[ \t\n]*)*\)\s*[a-zA-Z_]"
             ),
             # 41. panics_and_aborts (Execution Interrupts / Fatal Aborts)
             "panics_and_aborts": re.compile(r"\b(abort|exit|_Exit|quick_exit|return\s+-1)\b"),

@@ -1,0 +1,81 @@
+version: 1
+fail-on: info
+
+scanners:
+  gitleaks:
+    enabled: true
+  zizmor:
+    enabled: true
+  actionlint:
+    enabled: true
+  poutine:
+    enabled: true
+  semgrep:
+    enabled: true
+    rulesets:
+      - p/security-audit
+      - p/secrets
+  osv-scanner:
+    enabled: true
+  trivy:
+    enabled: true
+    ignore-unfixed: true
+  checkov:
+    enabled: true
+
+suppressions:
+  - id: tests/
+    reason: >
+      Unit tests and fixtures include intentional malicious samples for
+      security-scanner validation.
+    expires: ""
+  - id: tests/fixtures/
+    reason: >
+      Intentional frankenstein test corpus with synthetic vulnerabilities
+      for security-auditing tool validation.
+    expires: ""
+  - id: tests/core_engine/test_licensing.py
+    rule-id: generic-api-key
+    reason: Mock enterprise license keys in licensing unit tests.
+    expires: ""
+  - id: tests/security_auditing/test_security_lens.py
+    rule-id: generic-api-key
+    reason: Intentional malicious sample code for security lens tests.
+    expires: ""
+  - id: mkdocs.yml
+    rule-id: generic-api-key
+    reason: False positive on navigation label "API Exposure".
+    expires: ""
+  - id: .github/workflows/publish.yml
+    tool: zizmor
+    rule-id: zizmor/cache-poisoning
+    reason: >
+      setup-python caching is disabled by default; zizmor still flags tag-triggered
+      PyPI publish workflows (also ignored in zizmor.yml).
+    expires: ""
+  - id: muninn.json
+    reason: Muninn scan output artifact; not part of the repository.
+    expires: ""
+  - id: muninn.sarif
+    reason: Muninn scan output artifact; not part of the repository.
+    expires: ""
+  - id: .github/workflows/muninn.yml
+    rule-id: github_action_from_unverified_creator_used
+    reason: >
+      Skald Lab Muninn is this project's security scanner; Marketplace
+      publisher verification is pending.
+    expires: ""
+  - id: .github/workflows/gitgalaxy.yml
+    tool: zizmor
+    rule-id: zizmor/artipacked
+    reason: >
+      architectural-report job must persist checkout credentials to push
+      generated docs back to main.
+    expires: ""
+  - id: .github/workflows/
+    tool: poutine
+    rule-id: untrusted-checkout
+    reason: >
+      Repository architecture requires automated documentation and state 
+      rehydration. Workflows intentionally utilize elevated checkout credentials.
+    expires: ""
