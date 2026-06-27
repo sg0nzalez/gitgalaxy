@@ -26,20 +26,21 @@ Most tools analyze code line-by-line. GitGalaxy maps the entire architectural ec
 **Why we built a custom parsing engine:**
 Standard Abstract Syntax Trees (ASTs) are excellent for finding syntax errors, but they require fully compilable code and struggle to map massive-scale information flow efficiently. LLMs suffer from context window saturation and yield probabilistic, fluctuating answers.
 
-The **blAST (Bypassing LLMs and ASTs) engine** solves this. It reads code as raw structural text, scanning for semantic anchors to visualize the *functional intent* rather than rigid syntax. This enables the engine to build a deterministic 3D knowledge graph of your entire repository. It instantly calculates the ratio of test boundaries to core logic, maps network blast radiuses, and extracts the vital project structure data that rigid linters ignore. 
+The **blAST (Bypassing LLMs and ASTs) engine** solves this by adopting the search philosophy of computational biology. Just as genomic BLAST sequencing scans billions of DNA base pairs to identify protein domains without "executing" the organism, GitGalaxy blAST sequences raw source code to identify **Structural Signatures**. 
 
-*(Note: Raw regex/structural hits are simply data points. True risk exposures in GitGalaxy are calculated metrics derived from these hits combined with topological network gravity).*
+Instead of mapping gene starts and genetic mutations, the engine deterministically sequences coding intent, execution boundaries, and architectural risk exposures. This enables the engine to build a deterministic 3D knowledge graph of your entire repository in linear O(N) time without ever requiring the code to compile. It instantly calculates the ratio of test boundaries to core logic, maps network blast radiuses, and extracts the vital project structure data that rigid linters ignore. 
+
+*(Note: Raw structural signatures are simply data points. True risk exposures in GitGalaxy are calculated metrics derived from these structural alignments combined with topological network gravity).*
 
 Think of GitGalaxy as a highly calibrated macro-analyzer for codebase risk. Every assumption the system makes is abstracted into over 300 tunable variables. You can query active API nodes, isolate supply chain threats, or highlight functions exhibiting extreme cognitive load—all adjusted via custom thresholds to eliminate false-positive fatigue. Field-tested on over 1,000 repositories, the engine comes equipped with enterprise-grade defaults ready for immediate CI/CD deployment.
 
 **Core Repository Mapping Technology**
-* Bypasses LLMs and rigid ASTs.
-* Doesn't require code to compile (AST-free).
-* Produces full network mapping via imports with generalized function calls per file.
-* Deterministically maps code by 60+ keyword regex profiles (Structural markers, I/O intents, state mutations).
-* Regex keyword profiles allow us to classify functions, files, classes, folders, and repos.
-* Eliminates LLM architectural hallucinations and context window limits.
-* Scans 50+ languages, 250+ extensions, fully folder-aware. **([How to add a language in 1 minute and 1 prompt](https://github.com/squid-protocol/gitgalaxy/blob/main/gitgalaxy/standards/how_to_add_a_language.md))**
+* **Heuristic Structural Alignment:** Bypasses LLMs and rigid ASTs. Sequences code in raw text without requiring it to compile.
+* **Deterministic Sequencing:** Maps code using 60+ bounded structural signatures (I/O intents, state mutations, execution wrappers) exactly like sequencing genetic markers.
+* **Taxonomical Classification:** These structural profiles allow us to classify functions, files, classes, and entire repositories into distinct architectural archetypes.
+* **Topological Cartography:** Produces full network mapping via imports and dynamic execution markers.
+* **Zero-Hallucination:** Eliminates LLM architectural hallucinations and context window limits by relying strictly on mathematical constraints.
+* **Polyglot Sequencing:** Scans 50+ languages, 250+ extensions, fully folder-aware. **([How to add a language in 1 minute and 1 prompt](https://github.com/squid-protocol/gitgalaxy/blob/main/gitgalaxy/standards/how_to_add_a_language.md))**
 
 **Enterprise Scale & Performance Metrics**
 * **Active Pipeline Integration:** Over 11,000 PyPI downloads, driven heavily by automated CI/CD security sweeps and zero-trust DevSecOps workflows.
@@ -130,7 +131,7 @@ The central blAST engine. It bypasses rigid ASTs using mathematical heuristics t
 
 ## Enterprise Codebase Tools & Use Cases
 
-GitGalaxy operates on a modular Hub-and-Spoke architecture. While the core engine provides the overarching structural mechanics and cartography, our specialized toolsets leverage that deterministic graph to execute enterprise-grade operations. 
+GitGalaxy operates on a Decoupled Architecture. While the core engine provides the overarching structural mechanics and topological mapping, our specialized Decoupled Execution Controllers leverage that deterministic graph to execute enterprise-grade operations.
 
 ### [Automated Legacy Migration: COBOL to Java Spring Boot](https://github.com/squid-protocol/gitgalaxy/tree/main/gitgalaxy/tools/cobol_to_java/)
 A deterministic, high-fidelity translation pipeline. It converts legacy COBOL into fully compiling, modern Spring Boot architectures, mapping memory exactly and scaffolding JPA entities, REST controllers, and Maven builds before utilizing AI to translate isolated business logic.
@@ -168,9 +169,6 @@ Simply drag and drop your generated `your_repo_GPU_galaxy.json` file (or a `.zip
 ### 🔭 Watch GitGalaxy in Action
 
 **Mapping 3.2 Million Lines of C++ in 11 Seconds | OpenCV** [![OpenCV Demo](https://img.youtube.com/vi/3ScQCSUBdZw/maxresdefault.jpg)](https://youtu.be/3ScQCSUBdZw)
-
-**Visualizing Architectural Risk | Ruby on Rails** [![Ruby on Rails Demo](https://img.youtube.com/vi/3ScQCSUBdZw/maxresdefault.jpg)](https://youtu.be/3ScQCSUBdZw) 
-*(Note: Replace the video IDs in this link with your actual Rails video ID)*
 
 ![GitGalaxy Topological Visualizer 3D graph rendering complex software repository structures and K-means clustering archetypes in the browser](https://raw.githubusercontent.com/squid-protocol/gitgalaxy/main/docs/wiki/assets/metavisualizer.png)
 

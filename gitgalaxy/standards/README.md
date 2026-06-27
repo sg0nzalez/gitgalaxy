@@ -1,52 +1,75 @@
 # GitGalaxy Standards: Heuristics Registry & Calibration Layer
 
-This directory contains the immutable mathematical constants, structural regex dictionaries, security thresholds, and ingestion constraints that govern the GitGalaxy engine[cite: 51]. 
+[![Architecture](https://img.shields.io/badge/Architecture-AST--Free_Heuristics-8A2BE2.svg)](#)
+[![Security](https://img.shields.io/badge/Security-Zero--Trust_Baselines-FF4500.svg)](#)
+[![Performance](https://img.shields.io/badge/Performance-ReDoS_Immune-00BFFF.svg)](#)
 
-No active execution or file I/O occurs in this directory[cite: 51]. Instead, this is the **Central Calibration Matrix**[cite: 51]. It defines the universal rulesets consumed by the Orchestrator, the Prism, the Signal Processor, and the Security Lens[cite: 51]. 
+Welcome to **GitGalaxy Standards**. This directory contains the immutable mathematical constants, structural regex dictionaries, security thresholds, and ingestion constraints that govern the entire GitGalaxy engine. 
+
+No active execution, file I/O, or graph resolution occurs in this directory. Instead, this acts as the **Central Calibration Layer**. It defines the universal rulesets consumed by the Orchestrator, the Prism, the Signal Processor, and the Security Lens to guarantee deterministic analysis across polyglot ecosystems.
 
 ## Architectural Philosophy & Defensive Engineering
 
-Engineers accustomed to traditional AST (Abstract Syntax Tree) parsers often view regular expressions with skepticism, assuming they are too brittle or prone to Catastrophic Backtracking (ReDoS) to parse enterprise code[cite: 51]. 
+Engineers accustomed to traditional AST (Abstract Syntax Tree) parsers often view regular expressions with skepticism, assuming they are too brittle or prone to Catastrophic Backtracking (ReDoS) to parse enterprise code. 
 
-GitGalaxy explicitly bypasses ASTs to **visualize functional intent rather than rigid syntax**, allowing it to map severely fragmented, legacy, or un-compilable code[cite: 51]. To achieve 100,000+ LOC/sec parsing without crashing the Python GIL, the dictionaries in this directory are engineered with extreme defensive boundaries[cite: 51]:
+GitGalaxy explicitly bypasses ASTs to **visualize functional intent rather than rigid syntax**, allowing it to map severely fragmented, legacy, or un-compilable code. To achieve processing speeds exceeding 100,000 LOC/sec without crashing the Python GIL, the dictionaries in this directory are engineered with extreme defensive boundaries:
 
 ### 1. ReDoS Immunity & Strict Bounding
-The regex dictionaries defined in `language_standards.py` strictly prohibit unbounded quantifiers (like `.*` or `\s+`)[cite: 51]. To safely leap across multi-line function declarations and modern attribute stacking (e.g., C++23 `[[attributes]]` or Java `@Annotations`), the engine utilizes strict boundary limits[cite: 51]. It enforces rigid numeric clamps (e.g., `{0,5}`) and mutually exclusive character sets, guaranteeing O(1) or linear O(N) evaluation time per match[cite: 51].
+The regex dictionaries defined in `language_standards.py` strictly prohibit unbounded quantifiers (like `.*` or `\s+`) in high-risk zones. To safely leap across multi-line function declarations and modern attribute stacking (e.g., C++23 `[[attributes]]` or Java `@Annotations`), the engine utilizes strict boundary limits. It enforces rigid numeric clamps (e.g., `{0,5}`) and mutually exclusive character sets, guaranteeing O(1) or linear O(N) evaluation time per match.
 
 ### 2. Bayesian Confidence Hierarchy
-Inferring a file's language purely by its extension leads to catastrophic collisions (e.g., `.m` being Objective-C, MATLAB, or Mathematica)[cite: 51]. `language_lens.py` resolves these collisions natively without AST evaluation[cite: 51]. It builds a Bayesian confidence score by cross-referencing sibling files, structural neighborhood context, and package manifests, only falling back to an expensive lexical scan if the file's identity drops below a strict ambiguity threshold[cite: 51].
+Inferring a file's language purely by its extension leads to catastrophic collisions (e.g., `.m` being Objective-C, MATLAB, or Mathematica). `language_lens.py` resolves these collisions natively without AST evaluation. It builds a Bayesian confidence score by cross-referencing sibling files, structural neighborhood context, and package manifests, only falling back to an expensive lexical scan if the file's identity drops below a strict ambiguity threshold.
 
-### 3. Contextual Threat Calibration (The Anomaly Matrix)
-A vulnerability’s severity is dictated by its environment[cite: 51]. Standard OS shell execution is expected in a bash script but highly anomalous in a React frontend component[cite: 51]. `analysis_lens.py` defines an **Ecosystem Mismatch Matrix** that dynamically multiplies threat scores when an asset exhibits behaviors hostile to its native architecture (e.g., detecting C-style memory pointers inside a Node.js web layer), instantly flagging it as a high-risk anomaly or potential backdoor[cite: 51].
+### 3. Contextual Threat Calibration (Architectural Anomaly Detection)
+A vulnerability’s severity is dictated by its environment. Standard OS shell execution is expected in a bash script but highly anomalous in a React frontend component. `analysis_lens.py` defines an **Ecosystem Mismatch Matrix** that dynamically multiplies threat scores when an asset exhibits behaviors hostile to its native architecture (e.g., detecting C-style memory pointers inside a Node.js web layer), instantly flagging it as a high-risk anomaly or potential backdoor.
 
-### 4. Structural Weight Normalization
-AST parsers typically collapse when analyzing massive machine-generated files (e.g., Swagger JSONs, Webpack chunks, Protobuf definitions)[cite: 51]. `analysis_lens.py` deploys pre-calculated "Structural Normalizers" to programmatically reduce the calculated weight of generated code, ensuring human-written architecture remains the focal point of the analysis without risking Out-Of-Memory (OOM) exceptions or skewing repository metrics[cite: 51].
-
----
-
-## Core Configurations
-
-Each file in this directory serves a distinct calibration purpose for the downstream engines[cite: 51]:
-
-* **`gitgalaxy_config.py` (The Global Firewall):** Defines Zero-Trust ingestion boundaries[cite: 51]. It houses the Supply Chain Firewall configurations (approved vs. blacklisted imports), global file denylists, X-Ray binary scanner bypasses, and physical file-size clamps[cite: 51].
-* **`language_lens.py` (The Identity Classifier):** The Bayesian engine that assigns "Identity Locks" to files[cite: 51]. It defines the multi-tiered confidence hierarchy, resolving extension collisions by weighing exact filename matches against ecosystem anchors[cite: 51].
-* **`language_standards.py` (The Optical Dictionary):** The massive, highly optimized structural mapping registry for 50+ languages[cite: 51]. It defines exactly how to slice a language into Branch Logic, State Flux, High-Risk Execution, and Object Declarations using ReDoS-proof regular expressions[cite: 51].
-* **`analysis_lens.py` (The Mathematical Constants):** The repository of Threat Policies, Sigmoid Curves, and K-Means clustering medians[cite: 51]. It dictates how raw structural signals are mathematically converted into 0-100% risk exposure vectors (e.g., Technical Debt, Cognitive Load, Algorithmic DoS)[cite: 51]. 
-* **`how_to_add_a_language.md` (The Extension Guide):** Contains the strict prompt engineering protocols required to generate ReDoS-proof dictionaries via LLMs[cite: 51].
-
-## Extending the Engine
-
-Because GitGalaxy is AST-free, adding support for a new language does not require writing a complex, brittle parser[cite: 51]. You simply need to calibrate the structural heuristics of the target language by generating a new dictionary entry[cite: 51]. 
-
-For strict guidelines and the LLM Master Prompt required to generate ReDoS-proof structural definitions, review: **[Architecting a New Language](https://github.com/squid-protocol/gitgalaxy/blob/main/gitgalaxy/standards/how_to_add_a_language.md)**[cite: 51].
+### 4. Structural Impact Score Normalization
+AST parsers typically collapse when analyzing massive machine-generated files (e.g., Swagger JSONs, Webpack chunks, Protobuf definitions). `analysis_lens.py` deploys pre-calculated modifiers to programmatically reduce the calculated Structural Impact Score of generated code. This ensures human-written architecture remains the focal point of the analysis without risking Out-Of-Memory (OOM) exceptions or skewing repository metrics.
 
 ---
 
-## 🌌 Powered by the blAST Engine
+## Data-Driven Configuration: Decoupled Architecture & False-Positive Eradication
 
-This documentation is part of the [GitGalaxy Ecosystem](https://squid-protocol.github.io/gitgalaxy/), an AST-free, LLM-free heuristic knowledge graph engine.
+The true flexibility of GitGalaxy lies in its decoupled architecture. The core execution logic is entirely separated from the mathematical constants that govern it. This directory exposes over **175 discrete tuning variables**—from sigmoid curve slopes and anomaly thresholds to architectural mass dampeners.
 
-* 🪐 **[GitGalaxy Official Documentation](https://squid-protocol.github.io/gitgalaxy/)** - Deep dives into the mathematics and pipeline architecture.
-* 🔭 **[GitGalaxy Visualizer](http://gitgalaxy.io/)** - Render your codebase locally in 3D using WebGPU.
-* 📖 **[The blAST Paradigm Wiki](https://squid-protocol.github.io/gitgalaxy/docs/wiki/01-03-the-blast-paradigm/)** - The academic and structural thesis backing the engine.
-* ⚙️ **[Language Calibration Standards](https://github.com/squid-protocol/gitgalaxy/blob/main/gitgalaxy/standards/how_to_add_a_language.md)** - Guide to extending the comparative lexical taxonomy.
+* **Risk Equation Tuning (75+ Variables):** Highly specific parameters (sigmoid slopes, offsets, clamps, and threshold floors) for multiple risk dimensions. The math curves for `cognitive_load`, `concurrency`, or `logic_bomb` can be stretched or compressed independently.
+* **Path & Impact Modifiers (35+ Variables):** Regex-targeted multipliers that artificially increase or decrease Structural Impact Scores based on domain context (e.g., dampening UI framework cognitive load by 0.50x, or multiplying global state manipulation by 1.15x).
+* **Security & Ecosystem Matrices (50+ Variables):** Specific baseline weights for systems vs. web vs. infrastructure, cross-ecosystem mismatch penalties (e.g., `systems_in_web`), and the 10-cluster Archetype Violation Matrix.
+* **Hardware & Ingestion Limits (15+ Variables):** Hard operational ceilings like `MAX_FILE_SIZE_MB`, `MAX_LINE_LENGTH`, `HANDSHAKE_LOOKAHEAD_LIMIT`, and `NESTED_PEEL_LIMIT` to tune exactly how hard the engine pushes the CPU before backing off.
+
+While 175+ variables might sound intimidating, they are your primary weapon against alert fatigue. Every single dial can be surgically tuned to eradicate false positives for your specific environment—giving you a scanner that highlights genuine architectural threats without wasting engineering time on expected structural noise.
+
+Want to scan an untrusted package? Flip the engine to `paranoid` mode to instantly tighten the `ThreatPolicy` thresholds. Need to support a proprietary, in-house legacy language? Inject a new structural dictionary into `language_standards.py`. The engine dynamically adopts these new constraints at runtime without requiring a single modification to the core parsing algorithms.
+
+---
+
+## Core Configurations (Module Breakdown)
+
+Each file in this directory serves a distinct calibration purpose for the downstream engines:
+
+* **`gitgalaxy_config.py` (Global Ingestion Firewall):** Defines Zero-Trust ingestion boundaries. It houses the Supply Chain Firewall configurations (approved vs. blacklisted imports), global file denylists, X-Ray binary scanner bypasses, and physical file-size clamps.
+* **`language_lens.py` (Identity Classifier):** The Bayesian engine that assigns definitive "Identity Locks" to files. It defines the multi-tiered confidence hierarchy, resolving extension collisions by weighing exact filename matches against Contextual Baselines.
+* **`language_standards.py` (Structural Signature Registry):** The massive, highly optimized structural mapping registry for 50+ languages. It defines exactly how to slice a language into Branch Logic, State Flux, High-Risk Execution, and Object Declarations using ReDoS-proof regular expressions.
+* **`analysis_lens.py` (Mathematical Constants & Threat Policies):** The repository of Threat Policies, Sigmoid Curve tuning, and K-Means clustering medians. It dictates how raw structural signals are mathematically converted into normalized 0-100% risk exposure vectors.
+* **`how_to_add_a_language.md` (Extension Protocol):** Contains the strict prompt engineering protocols required to generate ReDoS-proof language dictionaries using advanced LLMs, bypassing the need for manual parser development.
+
+---
+
+## Extending the Engine (AST-Free Onboarding)
+
+Because GitGalaxy is AST-free, adding support for a new language does not require writing a complex, brittle parser. You simply need to calibrate the structural heuristics of the target language by generating a new dictionary entry for `language_standards.py`. 
+
+For strict guidelines and the LLM Master Prompt required to generate ReDoS-proof structural definitions, review: **[Architecting a New Language](how_to_add_a_language.md)**.
+
+---
+
+## 🌌 The GitGalaxy Ecosystem (Powered by the blAST Engine)
+
+GitGalaxy Standards is the calibration layer of the broader **GitGalaxy Ecosystem**—a high-velocity, AST-free, LLM-free heuristic knowledge graph engine designed for planetary-scale repositories.
+
+Explore the ecosystem:
+
+* 🪐 **[Official Documentation](https://squid-protocol.github.io/gitgalaxy/)** — Comprehensive deep dives into the engine's mathematics, pipeline architecture, and DevSecOps integration protocols.
+* 🔭 **[GitGalaxy Visualizer](http://gitgalaxy.io/)** — Render your codebase's topological network locally in interactive 3D using hardware-accelerated WebGPU.
+* 📖 **[The blAST Paradigm](https://squid-protocol.github.io/gitgalaxy/docs/wiki/01-03-the-blast-paradigm/)** — The architectural thesis, academic research, and structural math that makes AST-free parsing possible at scale.
+* ⚙️ **[Language Calibration Standards](https://github.com/squid-protocol/gitgalaxy/blob/main/gitgalaxy/standards/how_to_add_a_language.md)** — The definitive engineering guide to extending our comparative lexical taxonomy for custom enterprise dialects.

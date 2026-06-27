@@ -1,50 +1,77 @@
-# GitGalaxy Core: Lexical Parsing & Topology Engine
+# GitGalaxy Core: Ingestion, Standardization, and Structural Detection
 
-This directory contains the primary ingestion, lexical tokenization, and topological mapping layers for the GitGalaxy engine. 
+[![Pipeline](https://img.shields.io/badge/Pipeline-Phase_0_to_7-00BFFF.svg)](#)
+[![Architecture](https://img.shields.io/badge/Architecture-AST--Free_Heuristics-8A2BE2.svg)](#)
+[![Performance](https://img.shields.io/badge/Performance-Zero--Trust_Ingestion-FF4500.svg)](#)
 
-These core modules are responsible for reading raw source code from disk, filtering out irrelevant noise (such as minified files or infrastructure directories), slicing the code into measurable architectural components, and wiring the mathematical network graph.
+Welcome to **GitGalaxy Core**. This directory serves as the frontline of the entire analysis engine. 
 
-## Architectural Philosophy & Defensive Engineering
+Before any risk equations are calculated or machine learning models are applied in the `metrics/` or `security/` directories, raw source code must be safely ingested, sanitized, and structurally identified. The modules in this directory are responsible for exactly that: transforming a chaotic, multi-gigabyte repository on disk into a standardized, mathematical state in RAM.
 
-Traditional static analysis tools rely heavily on Abstract Syntax Trees (ASTs). While ASTs offer granular syntax precision, they are inherently brittle, language-specific, and require fully compilable, error-free code to function. 
+## The Why: Defensive Engineering & The AST-Free Paradigm
 
-GitGalaxy explicitly bypasses ASTs to **prioritize visualizing functional intent over rigid syntax parsing**. By utilizing highly bounded, ReDoS-proof regular expressions and fluid-state counters, the engine extracts the core structural signatures (DNA) of a codebase across 50+ languages, even if the code is legacy, fragmented, or currently broken. 
+Enterprise repositories are rarely pristine. They contain minified vendor blobs, undocumented legacy monoliths, embedded malware, and broken syntax that refuses to compile. Traditional static analysis tools attempt to build Abstract Syntax Trees (ASTs) for these files, resulting in Out-Of-Memory (OOM) crashes, infinite loops, and pipeline timeouts.
 
-To achieve this at scale without collapsing under the weight of massive enterprise repositories, the engine employs several layers of defensive engineering:
-
-### 1. O(1) Pre-I/O Path Evaluation
-Before the pipeline wastes CPU cycles or RAM opening a file, it evaluates OS-level metadata (size, extension, path). This immediately shunts oversized monoliths, binary masquerades (via null byte `\x00` detection), and machine-generated debris before triggering disk I/O, preventing OS-level locks and Out-Of-Memory (OOM) kills.
-
-### 2. Bayesian Intent Bypasses
-Rather than inferring the purpose of a file purely from its extension, the engine parses explicit project manifests (`package.json`, `Cargo.toml`, `.gitattributes`) first. If a file is defined as a roadmap anchor or explicitly typed by the developer, the engine assigns an "Intent Lock," bypassing expensive heuristic guessing downstream.
-
-### 3. O(1) Angular Spatial Hashing
-Standard physics engines crash on O(N^2) collision detection loops when attempting to place thousands of nodes in a 3D space. GitGalaxy neutralizes this computational bottleneck by bucketing the Cartesian coordinate map into 360 angular degrees. A placement ray only checks the exact degree bin it points at, securing O(1) collision avoidance and guaranteeing deterministic visual generation.
-
-### 4. Graph Centrality Deadlock Prevention
-Centrality algorithms (Betweenness/Closeness) scale non-linearly at roughly O(V^3). For monolithic repositories exceeding 1,500 nodes, attempting exact calculations will trigger CI/CD timeout deadlocks. GitGalaxy utilizes safe iterative convergence (PageRank) for primary blast radius calculations, while enforcing strict sampling limits or hard bypasses on secondary centrality metrics when node counts exceed safe thresholds.
+GitGalaxy operates on a different philosophy: **Visualizing functional intent over rigid syntax parsing.** We bypass ASTs entirely. Instead, this core utilizes high-velocity, ReDoS-proof regular expressions to extract **Structural Signatures**. To achieve processing speeds exceeding 90,000 lines of code per second, the pipeline relies on extreme defensive engineering to protect the CPU and RAM from saturation.
 
 ---
 
-## The Core Pipeline (Data Flow)
+## The What: The Information Flow (Module Breakdown)
 
-Each file in this core represents a discrete, highly optimized phase in the GitGalaxy ingestion pipeline:
+Data flows through these modules sequentially. If a file is unparsable by this engine, we deal with it gracefully, attempting to extract as much information while routing the file to the **Unparsable Artifacts** queue, preventing pipeline bottlenecks.
 
-* **`aperture.py` (Phase 0.1 - The Boundary Filter):** The primary perimeter gate enforcing Zero-Trust ingestion rules. It utilizes lexical monotony shields and strict array limits to block minified blobs, data-heavy payload files, and generated documentation before they enter the processing pool.
-* **`guidestar_lens.py` (Phase 0.5 - The Metadata Resolver):** The contextual intelligence module. It provides "Social Proof" by deep-inspecting package manifests and `.gitignore` files. Crucially, it intercepts hostile force-includes (e.g., `!payload.so`) used by attackers to sneak binaries into repositories.
-* **`prism.py` (Phase 2 - The Lexical Tokenizer):** The structural separator. It surgically decouples a unified file into mutually exclusive executable logic and documentation streams. It utilizes an O(1) atomic literal shield to temporarily mask strings, preventing the regex scanner from accidentally mutating URLs or string contents that mimic comment delimiters.
-* **`detector.py` (Phase 2.5 - The Structural Extractor):** The architectural slicer. It splices files into discrete functions and calculates Big-O algorithmic complexity. *Engineering Note: Instead of using heavy AST compilation to determine cyclomatic nesting depth, this module uses standard code indentation as a high-speed, 95% accurate proxy for O(N) complexity.*
-* **`network_risk_sensor.py` (Phase 4 - The Topology Mapper):** The mathematical routing layer. It wires the ingested files into a Directed Graph (DAG), executing PageRank mathematics to determine absolute Blast Radius, test coverage gaps, and ecosystem roles (Producer vs. Consumer).
-* **`spatial_mapper.py` (Phase 7.5 - The Positioning Engine):** Transforms the flat list of parsed files into a deterministic 3D Cartesian coordinate map. It groups files into directory clusters relative to high-impact central nodes while maintaining dynamic spatial clearance.
-* **`state_rehydrator.py` (The Cache Manager):** The incremental differential scanner. During CI/CD Delta Scans, it is highly inefficient to re-parse 10,000 unchanged files. This module extracts the previous temporal state from SQLite and rehydrates it directly into RAM, enabling instant graph recalculation for just the modified files.
+### 1. `aperture.py` (The Boundary Filter)
+**Role:** Zero-Trust Ingestion.
+Information hits this filter first. It evaluates OS-level metadata (file path, extension, byte size) *before* executing any disk I/O. It actively shunts massive data dumps, neural network weights (`.safetensors`), and binary payloads masking as text files (via null-byte detection). This protects the Python memory space from immediate exhaustion.
+
+### 2. `guidestar_lens.py` (Contextual Baselines)
+**Role:** Architectural Intelligence.
+Rather than guessing what a file does, this module parses explicit project manifests (`package.json`, `.gitattributes`, `Cargo.toml`). If a file is defined as a roadmap anchor or test suite by the developer, GuideStar assigns an **Intent Lock**. This provides a contextual baseline that bypasses expensive heuristic guessing downstream.
+
+### 3. `prism.py` (Payload & Surface Splitter)
+**Role:** Lexical Tokenization.
+This module takes the raw string data and surgically decouples it into mutually exclusive components: the **Executable Payload** (coding_stream) and the **Documentation Surface** (comment_stream). It utilizes an O(1) atomic literal shield to temporarily mask strings during the split, preventing the regex scanner from accidentally mutating URLs or string contents that mimic comment delimiters.
+
+### 4. `detector.py` (The Structural Extractor)
+**Role:** Structural Signature Identification.
+This file categorizes different keyword terms into structural signature counts. It evaluates the Executable Payload to slice the code into discrete functional blocks, map intra-file invocations, and detect critical security behaviors (e.g., I/O boundaries, state mutation, RCE triggers). 
+* **Fluid-State Language Switching:** Rather than failing on polyglot files, the engine dynamically swaps syntax registries mid-file. It uses scope-aware handshakes to seamlessly isolate and parse embedded languages (e.g., evaluating SQL execution inside a Python string, or extracting JavaScript logic nested within HTML blocks) without losing context.
+* **AST-Free Cyclomatic Complexity:** Instead of compiling an Abstract Syntax Tree to determine nesting depth, this module uses standard code indentation as a blazing-fast, highly accurate proxy for Big-O algorithmic complexity, allowing it to evaluate structural density at ~100,000 LOC/s.
+
+### 5. `network_risk_sensor.py` (The Topology Mapper)
+**Role:** Dependency Graphing.
+Once files are structurally parsed, this module wires them together into a Directed Acyclic Graph (DAG) using their raw import statements. It executes PageRank mathematics to determine each file's absolute **Dependency Blast Radius**, identifies **Architectural Choke Points**, and classifies their **Ecosystem Role** (Producer vs. Consumer).
+
+### 6. `spatial_mapper.py` (The Positioning Engine)
+**Role:** 3D Geometric Resolution.
+Transforms the mathematical DAG into a deterministic 3D Cartesian coordinate map for the WebGPU visualizer. It groups files into directory clusters relative to high-impact central nodes.
+
+### 7. `state_rehydrator.py` (The Cache Manager)
+**Role:** Incremental Delta Scanning.
+During CI/CD pipelines, it is highly inefficient to re-parse 10,000 unchanged files for a 2-file pull request. This module extracts the previous structural state from the SQLite database and rehydrates it directly into RAM, allowing the pipeline to skip the heavy regex extraction phases for unchanged artifacts.
 
 ---
 
-## 🌌 Powered by the blAST Engine
+## Engineering Highlights
 
-This documentation is part of the [GitGalaxy Ecosystem](https://squid-protocol.github.io/gitgalaxy/), an AST-free, LLM-free heuristic knowledge graph engine.
+If you are onboarding into the `core/` architecture, pay special attention to how we solve traditional static analysis scaling problems. By relying on high-velocity heuristics rather than heavy compilation steps, we achieve capabilities and speeds that standard tooling cannot match.
 
-* 🪐 **[GitGalaxy Official Documentation](https://squid-protocol.github.io/gitgalaxy/)** - Deep dives into the mathematics and pipeline architecture.
-* 🔭 **[GitGalaxy Visualizer](http://gitgalaxy.io/)** - Render your codebase locally in 3D using WebGPU.
-* 📖 **[The blAST Paradigm Wiki](https://squid-protocol.github.io/gitgalaxy/docs/wiki/01-03-the-blast-paradigm/)** - The academic and structural thesis backing the engine.
-* ⚙️ **[Language Calibration Standards](https://squid-protocol.github.io/gitgalaxy/gitgalaxy/standards/how_to_add_a_language.md)** - Guide to extending the comparative lexical taxonomy.
+* **Multi-Tiered ReDoS Defense Architecture (`detector.py` & `prism.py`):** Regular Expression Denial of Service (ReDoS) is a critical threat when scanning unknown or minified code. We do not rely on a single timeout guillotine. The engine utilizes a three-tiered defense:
+    1. **O(1) Atomic Literal Shielding:** Temporarily masks string literals to prevent the regex engine from catastrophically backtracking on overlapping quotes.
+    2. **Line-Length Limiters:** Identifies abnormally long lines (e.g., hex arrays or minified data blobs) and truncates them before regex evaluation, while perfectly preserving the mathematical Lines of Code (LOC) count.
+    3. **OS-Level Interrupts:** If a malformed file still traps the engine in an evaluation loop, a hardware-level OS interrupt fires after 15 seconds. It safely terminates the isolated worker process, downgrades the file to `plaintext`, and ensures the CI/CD pipeline never hangs.
+* **Dynamic Mid-File Language Switching (`detector.py`):** Standard parsers routinely fail or miscategorize polyglot files (e.g., SQL logic embedded within a Python string, or JavaScript nested inside HTML). Instead of failing, the engine dynamically swaps syntax registries mid-file. It uses scope-aware handshakes to isolate and correctly parse embedded languages, preserving perfect structural context across 50+ languages.
+* **AST-Free Algorithmic Complexity (`detector.py`):** Compiling an Abstract Syntax Tree to determine cyclomatic nesting depth requires massive overhead. GitGalaxy bypasses this by using standard code indentation as a blazing-fast, highly accurate proxy for Big-O complexity. This allows the engine to evaluate structural density and recursive depth at speeds exceeding 90,000 LOC/second.
+* **Topological Call Graphs & Architectural Test Coverage (`network_risk_sensor.py`):** Recreating a granular, cross-repository function call graph using Abstract Syntax Trees (ASTs) is computational overkill for DevSecOps. ASTs require perfectly compiling code, massive memory overhead, and brittle, language-specific parsers. We bypass this bottleneck by utilizing a high-velocity topological proxy. By mapping file-level `import` statements to establish ecosystem boundaries, and extracting targeted outbound function invocations via structural signatures, we achieve the necessary precision at a fraction of the compute cost. This allows us to calculate the systemic **Dependency Blast Radius** of specific logic purely in RAM. For example, by mapping outbound calls from test files directly to their production targets, we mathematically calculate the exact architectural vulnerability footprint of untested modules across polyglot microservices.
+* **The Repository Knowledge Graph (Core Vision):** All of these extractions culminate in a unified mathematical model of the codebase. By treating files as **Nodes** and import statements as **Edges**, we stitch together a cross-repository Knowledge Graph. We then overlay our extracted *Structural Signatures* (state mutations, I/O boundaries, RCE triggers) directly onto these nodes as properties. This provides deep, queryable clarity into how vulnerable information flows across polyglot microservices, surfacing systemic risks that isolated file scanners miss.
+
+## 🌌 The GitGalaxy Ecosystem (Powered by the blAST Engine)
+
+GitGalaxy Core is the foundational ingestion layer of the broader **GitGalaxy Ecosystem**—a high-velocity, AST-free, LLM-free heuristic knowledge graph engine designed to extract knowledge from any repository.
+
+Explore the ecosystem:
+
+* 🪐 **[Official Documentation](https://squid-protocol.github.io/gitgalaxy/)** — Comprehensive deep dives into the engine's mathematics, pipeline architecture, and DevSecOps integration protocols.
+* 🔭 **[GitGalaxy Visualizer](http://gitgalaxy.io/)** — Render your codebase's topological network locally in interactive 3D using hardware-accelerated WebGPU.
+* 📖 **[The blAST Paradigm](https://squid-protocol.github.io/gitgalaxy/docs/wiki/01-03-the-blast-paradigm/)** — The architectural thesis, academic research, and structural math that makes AST-free parsing possible at scale.
+* ⚙️ **[Language Calibration Standards](https://github.com/squid-protocol/gitgalaxy/blob/main/gitgalaxy/standards/how_to_add_a_language.md)** — The definitive engineering guide to extending our comparative lexical taxonomy for custom enterprise dialects.
