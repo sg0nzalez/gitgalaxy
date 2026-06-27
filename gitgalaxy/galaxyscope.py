@@ -984,7 +984,7 @@ class Orchestrator:
 
             print("=" * 75)
             print(" 1. Open your browser to: \033[94m\033[4m[https://gitgalaxy.io/](https://gitgalaxy.io/)\033[0m")
-            print(f" 2. Drag and drop '{output_file}'")
+            print(f" 2. Drag and drop '{gpu_output}'")
             print("\n * PRIVACY SECURED: Your data never leaves your machine.")
             print("   All architectural rendering executes locally in your browser.")
             print("=" * 75 + "\n")
