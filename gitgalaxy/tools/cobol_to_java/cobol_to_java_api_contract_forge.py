@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Spring Boot API Contract Forge (v3 - Dependency Injection)
-# Purpose: Translates DAG intent into modern REST Controller interfaces and
-#          auto-wires the corresponding @Service layer.
+# GitGalaxy Tool: Spring Boot API Contract Generator
+#
+# PURPOSE:
+# Translates structural DAG intent into modern REST Controller interfaces and
+# auto-wires the corresponding @Service layer via constructor injection.
+#
+# ARCHITECTURAL DECISION:
+# In an AI-assisted modernization pipeline, allowing an LLM to generate the 
+# REST API entry points often leads to hallucinated routing and broken Dependency 
+# Injection (DI) chains. This module deterministically generates the `@RestController` 
+# layer directly from the COBOL static analysis. It establishes a rigid API contract 
+# and auto-wires the `@Service` layer, forcing the AI agent to focus exclusively 
+# on internal business logic without altering the external system boundaries.
 # ==============================================================================
 import argparse
 import sys
@@ -11,7 +21,7 @@ from pathlib import Path
 
 
 def generate_rest_controller(ir_state: dict, package_name: str) -> str:
-    """Forges the API endpoints and auto-wires the Service layer."""
+    """Generates the API endpoints and auto-wires the Service layer."""
     prog_id = ir_state.get("metadata", {}).get("file_name", "Unknown").split(".")[0]
     camel_prog = "".join(word.capitalize() for word in prog_id.split("-"))
     service_var = camel_prog[0].lower() + camel_prog[1:] if camel_prog else "unknown"
@@ -48,13 +58,19 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
 
     if is_batch:
         # --- BATCH PARADIGM ---
-        java.append(
-            '    @PostMapping(value = "/execute-batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)'
-        )
+        java.append('    @PostMapping(value = "/execute-batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)')
         java.append(f"    public ResponseEntity<?> execute{camel_prog}Batch(")
 
         params = []
-        seen_vars = {}  # Dictionary to track and deduplicate collisions
+        # ======================================================================
+        # DEFENSIVE DESIGN (SPRING VARIABLE COLLISION PREVENTION):
+        # Legacy COBOL programs can assign multiple internal files to the same 
+        # external physical DD name. If mapped directly to Java, this causes 
+        # duplicate variable names in the method signature, breaking compilation.
+        # We track `seen_vars` and dynamically append numerical suffixes to 
+        # ensure perfectly compiling Spring `@RequestParam` annotations.
+        # ======================================================================
+        seen_vars = {}  
 
         for file_req in files_requested:
             dd_name_raw = file_req.get("dd_name", "UNKNOWN").lower()
@@ -74,9 +90,7 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
                 unique_var_name = base_var_name
                 unique_param_name = f"{dd_name_raw}File"
 
-            params.append(
-                f'@RequestParam("{unique_param_name}") MultipartFile {unique_var_name}'
-            )
+            params.append(f'@RequestParam("{unique_param_name}") MultipartFile {unique_var_name}')
 
         if params:
             java.append("        " + ",\n        ".join(params))
@@ -84,11 +98,9 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
             java.append('        @RequestParam("file") MultipartFile file')
 
         java.append("    ) {")
-        java.append("        // ⚠️ BATCH PARADIGM DETECTED")
+        java.append("        // BATCH PARADIGM DETECTED")
         java.append("        // Pass the InputStream directly to the Service layer.")
-        java.append(
-            f"        {service_var}Service.execute{camel_prog}(/* pass streams here */);\n"
-        )
+        java.append(f"        {service_var}Service.execute{camel_prog}(/* pass streams here */);\n")
 
     else:
         # --- TRANSACTIONAL PARADIGM ---
@@ -108,10 +120,8 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
             java.append("        /* No external data dependencies detected */")
 
         java.append("    ) {")
-        java.append("        // ⚡ TRANSACTIONAL PARADIGM DETECTED")
-        java.append(
-            f"        {service_var}Service.execute{camel_prog}(/* pass DTOs here */);\n"
-        )
+        java.append("        // TRANSACTIONAL PARADIGM DETECTED")
+        java.append(f"        {service_var}Service.execute{camel_prog}(/* pass DTOs here */);\n")
 
     if outputs:
         java.append(f"        // Expected Outputs: {', '.join(outputs)}")
@@ -126,13 +136,11 @@ def generate_rest_controller(ir_state: dict, package_name: str) -> str:
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("API Contract Forge (The Legacy Forge)")
+    enforce_licensing_guard("API Contract Generator")
 
-    parser = argparse.ArgumentParser(description="GitGalaxy API Contract Forge")
+    parser = argparse.ArgumentParser(description="GitGalaxy API Contract Generator")
     parser.add_argument("ir_file", help="Path to the GitGalaxy _ir.json state dump")
-    parser.add_argument(
-        "--pkg", default="com.gitgalaxy.modernized", help="Base Java package name"
-    )
+    parser.add_argument("--pkg", default="com.gitgalaxy.modernized", help="Base Java package name")
     args = parser.parse_args()
 
     ir_path = Path(args.ir_file).resolve()
@@ -142,17 +150,12 @@ def main():
     try:
         ir_state = json.loads(ir_path.read_text(encoding="utf-8"))
         java_code = generate_rest_controller(ir_state, args.pkg)
-        prog_id = (
-            ir_state.get("metadata", {})
-            .get("file_name", "Unknown")
-            .split(".")[0]
-            .capitalize()
-        )
+        prog_id = ir_state.get("metadata", {}).get("file_name", "Unknown").split(".")[0].capitalize()
         out_path = ir_path.parent / f"{prog_id}Controller.java"
         out_path.write_text(java_code, encoding="utf-8")
-        print(f"🌐 API Contract Forged: {out_path.name}")
+        print(f"🌐 API Contract Generated: {out_path.name}")
     except Exception as e:
-        print(f"Error forging Controller: {e}")
+        print(f"Error generating Controller: {e}")
 
 
 if __name__ == "__main__":

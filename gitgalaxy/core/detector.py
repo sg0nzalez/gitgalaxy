@@ -36,7 +36,7 @@ def get_token_mass(text: str, deep_scan: bool = False) -> Optional[int]:
 
 
 # ==============================================================================
-# GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Cartographer
+# GitGalaxy Phase 2.5 & 7.5: Logic Splicer & Topological Mapper
 # Strategy v6.3.0 Protocol: Fluid-State Counters, Language Sliding & Semantic Modes
 # ==============================================================================
 
@@ -97,18 +97,18 @@ class LogicData(TypedDict, total=False):
 
 
 # ==============================================================================
-# THE OPTICAL CONFIGURATION MATRIX
+# THE STRUCTURAL SIGNATURE CONFIGURATION MATRIX
 # ==============================================================================
 
 
 class ScopeParsingRegistry:
     """
-    The Optical Calibration Matrix for GalaxyScope's Primary Detector.
+    The Structural Signature Calibration Matrix for GalaxyScope's Primary Detector.
     Defines the structural heuristics required to slice non-brace languages.
 
     DEFENSIVE ARCHITECTURE:
-    By categorizing languages into integration modes, the engine avoids building 
-    heavy Abstract Syntax Trees (ASTs). It visualizes functional intent across 
+    By categorizing languages into integration modes, the engine avoids building
+    heavy Abstract Syntax Trees (ASTs). It visualizes functional intent across
     50+ languages natively without requiring the codebase to compile.
 
     - MODE D: Keyword Scope Tracking (Depth tracking via language-specific keywords)
@@ -228,7 +228,7 @@ class ScopeParsingRegistry:
 
     @classmethod
     def get_config(cls, lang_id: str) -> Optional[dict]:
-        """Resolves aliases and returns the optical physics config for the language."""
+        """Resolves aliases and returns the structural signature config for the language."""
         if not lang_id:
             return None
         normalized_id = lang_id.lower()
@@ -243,7 +243,7 @@ class ScopeParsingRegistry:
 
 
 # ------------------------------------------------------------------------------
-# THE DETECTOR (Optical Detector)
+# THE DETECTOR (Structural Detector)
 # ------------------------------------------------------------------------------
 
 
@@ -251,16 +251,16 @@ class StructuralExtractor:
     """
     GitGalaxy Structural Extractor (Primary Heuristic Logic & Function Mapper).
 
-    PURPOSE: Performs AST-less analysis of executable logic streams to extract 
+    PURPOSE: Performs AST-less analysis of executable logic streams to extract
     functional nodes, calculate complexity, and detect structural security signatures.
 
     DEFENSIVE ARCHITECTURE (Lexical Heuristics vs. AST Parsing):
-    AST parsers often fail when encountering non-standard syntax, legacy dialects, 
-    or partially-broken codebases. This extractor utilizes Fluid State Counters 
-    and O(1) lexical masking to achieve high-fidelity node extraction at 
-    ~100,000 LOC/sec, maintaining high performance without requiring 
+    AST parsers often fail when encountering non-standard syntax, legacy dialects,
+    or partially-broken codebases. This extractor utilizes Fluid State Counters
+    and O(1) lexical masking to achieve high-fidelity node extraction at
+    ~100,000 LOC/sec, maintaining high performance without requiring
     fully-compilable source code.
-    
+
     ARCHITECTURE:
     1. Fluid State Counter: Dynamically swaps regex registries mid-file for embedded languages.
     2. Bucket Continuation: Accumulates secondary language hits into the primary vector.
@@ -321,31 +321,26 @@ class StructuralExtractor:
             "branching": "branch",
             "io_ops": "io",
             "safety": "safety",
-            "danger": "danger",
+            "high_risk_execution": "high_risk_execution",
             "concurrency": "concurrency",
-            "logic_flux": "flux",
+            "logic_flux": "state_mutation",
         }
 
         self.MAX_SATELLITES = 250
         self.MAX_DEPTH = 50
         self.HANDSHAKE_LOOKAHEAD_LIMIT = 50000
 
-        if (
-            self.primary_lang_id not in self.languages
-            or "rules" not in self.languages.get(self.primary_lang_id, {})
-        ):
+        if self.primary_lang_id not in self.languages or "rules" not in self.languages.get(self.primary_lang_id, {}):
             try:
                 from gitgalaxy.standards.language_standards import LANGUAGE_DEFINITIONS
-                
+
                 # Apply the healed definitions to the instance state
                 self.languages = LANGUAGE_DEFINITIONS
                 lang_config = self.languages.get(self.primary_lang_id, {})
                 self.primary_rules = lang_config.get("rules", {})
                 self.primary_family = lang_config.get("lexical_family", "c_style_comment")
 
-                self.logger.warning(
-                    f"[AUTO-HEAL] Re-injected LANGUAGE_DEFINITIONS for '{self.primary_lang_id}'"
-                )
+                self.logger.warning(f"[AUTO-HEAL] Re-injected LANGUAGE_DEFINITIONS for '{self.primary_lang_id}'")
             except ImportError:
                 pass
 
@@ -361,18 +356,18 @@ class StructuralExtractor:
         self.raw_content_lines = raw_content.splitlines() if raw_content else []
         regex_telemetry = {}
 
-        # We always extract the metadata first, even for Dark Matter files
+        # We always extract the metadata first, even for Unparsable Artifacts
         ghost_meta = self._decode_comment_stream(comment_stream)
 
         # ---> THE ECOSYSTEM GRAVITY OVERRIDE <---
         # If the broader ecosystem safely locked a contested file (like a .h header)
         # into a C-family language, we trust the gravity and artificially boost the confidence.
-        # This prevents pure-macro headers from falling below the 0.42 floor and vanishing into Dark Matter.
+        # This prevents pure-macro headers from falling below the 0.42 floor and vanishing into Unparsable Artifacts.
         if self.primary_lang_id in ["c", "cpp", "objective-c"]:
             confidence = 1.0
 
-        # 1. The Custom Singularity Bypass & Prose Deflection
-        # Rejects unverified artifacts AND Inert Matter files before wasting compute
+        # 1. The Custom Unparsable Artifact Bypass & Prose Deflection
+        # Rejects unverified artifacts AND Static Assets before wasting compute
         if confidence < 0.42 or self.primary_lang_id in (
             "plaintext",
             "markdown",
@@ -381,7 +376,7 @@ class StructuralExtractor:
             "csv",
         ):
             self.logger.debug(
-                f"[DIAGNOSTIC] Bypass triggered (Conf: {confidence:.2f} | Lang: {self.primary_lang_id}). Relegating to Dark Matter/Ghost Mass."
+                f"[DIAGNOSTIC] Bypass triggered (Conf: {confidence:.2f} | Lang: {self.primary_lang_id}). Relegating to Unparsable Artifacts."
             )
             return {
                 "equations": {},
@@ -421,24 +416,18 @@ class StructuralExtractor:
         try:
             line_count = sum(1 for l in code_stream.splitlines() if l.strip())
 
-            # --- EXISTING OPTICAL PIPELINE ---
+            # --- EXISTING STRUCTURAL PIPELINE ---
             segments = self._partition_segments(code_stream, self.primary_lang_id)
 
-            equations, mitigation_telemetry, segment_spatial_maps, extracted_parents = (
-                self.coding_analysis(
-                    segments, regex_telemetry if profile_regex else None
-                )
+            equations, mitigation_telemetry, segment_spatial_maps, extracted_parents = self.coding_analysis(
+                segments, regex_telemetry if profile_regex else None
             )
 
             if extracted_parents:
                 # Store the top 3 parent entities to prevent massive string bloat on huge files
-                ghost_meta["parent_entity"] = ", ".join(
-                    list(dict.fromkeys(extracted_parents))[:3]
-                )
+                ghost_meta["parent_entity"] = ", ".join(list(dict.fromkeys(extracted_parents))[:3])
 
-            equations = self.comment_analysis(
-                comment_stream, self.primary_lang_id, equations
-            )
+            equations = self.comment_analysis(comment_stream, self.primary_lang_id, equations)
 
             functions, sum_fxn_impact = self._function_slice(
                 segments,
@@ -458,11 +447,7 @@ class StructuralExtractor:
             for i, match in enumerate(class_matches):
                 start_idx = match.start()
                 # Scope ends at the next class declaration, or the end of the file
-                end_idx = (
-                    class_matches[i + 1].start()
-                    if i + 1 < len(class_matches)
-                    else len(code_stream)
-                )
+                end_idx = class_matches[i + 1].start() if i + 1 < len(class_matches) else len(code_stream)
 
                 # Convert raw string indices to line numbers for spatial bounding
                 start_line = code_stream.count("\n", 0, start_idx) + 1
@@ -485,31 +470,21 @@ class StructuralExtractor:
                 class_methods = []
                 for func in functions:
                     # If the function falls within the spatial bounds of the class
-                    if (
-                        cls["_start_line"]
-                        <= func.get("start_line", 0)
-                        <= cls["_end_line"]
-                    ):
+                    if cls["_start_line"] <= func.get("start_line", 0) <= cls["_end_line"]:
                         func["parent_class_name"] = cls["name"]
                         class_methods.append(func)
 
                 cls["method_count"] = len(class_methods)
 
                 # State Entanglement: Density of state mutations (flux) inside the class methods
-                total_flux = sum(
-                    m.get("hit_vector", {}).get("flux", 0) for m in class_methods
-                )
-                cls["state_entanglement"] = round(
-                    (total_flux / max(cls["method_count"], 1)) * 5.0, 2
-                )
+                total_flux = sum(m.get("hit_vector", {}).get("state_mutation", 0) for m in class_methods)
+                cls["state_entanglement"] = round((total_flux / max(cls["method_count"], 1)) * 5.0, 2)
 
                 # LCOM (Lack of Cohesion of Methods): Approximation using arguments vs mutations
                 total_args = sum(m.get("args", 0) for m in class_methods)
                 if cls["method_count"] > 1:
                     cohesion_ratio = total_flux / max(total_args, 1)
-                    cls["lcom_score"] = round(
-                        max(0.0, min(100.0, 100.0 - (cohesion_ratio * 25.0))), 2
-                    )
+                    cls["lcom_score"] = round(max(0.0, min(100.0, 100.0 - (cohesion_ratio * 25.0))), 2)
                 else:
                     cls["lcom_score"] = 0.0
 
@@ -518,16 +493,12 @@ class StructuralExtractor:
                 del cls["_end_line"]
 
             branch_hits = equations.get("branch", 0)
-            linear_hits = equations.get("linear", 0)
-            total_control_flow_ratio = round(
-                branch_hits / max(branch_hits + linear_hits, 1), 3
-            )
+            linear_hits = equations.get("structural_boundaries", 0)
+            total_control_flow_ratio = round(branch_hits / max(branch_hits + linear_hits, 1), 3)
 
             # Use the newly standardized keys from the updated coding_analysis
             total_signals = sum(equations.values())
-            logic_density = (
-                round(total_signals / line_count, 3) if line_count > 0 else 0.0
-            )
+            logic_density = round(total_signals / line_count, 3) if line_count > 0 else 0.0
 
             # --- NEW: INTRA-FILE ORPHAN & DUPLICATE DETECTOR ---
             import collections
@@ -560,12 +531,10 @@ class StructuralExtractor:
                 func["usage_status"] = usage_status
 
             if orphan_count > 0:
-                equations["design_slop_orphans"] = orphan_count
+                equations["orphaned_logic"] = orphan_count
 
             # Calculate total file footprint, preferring the unshielded raw text if available
-            file_token_mass = get_token_mass(
-                raw_content if raw_content else code_stream
-            )
+            file_token_mass = get_token_mass(raw_content if raw_content else code_stream)
 
             result_payload = {
                 "equations": equations,
@@ -578,9 +547,7 @@ class StructuralExtractor:
                 "mitigation_telemetry": mitigation_telemetry,
                 "token_mass": file_token_mass,
                 "financial_read_cost": (
-                    round((file_token_mass / 1000000) * 3.00, 5)
-                    if file_token_mass is not None
-                    else None
+                    round((file_token_mass / 1000000) * 3.00, 5) if file_token_mass is not None else None
                 ),
             }
             if profile_regex:
@@ -591,9 +558,7 @@ class StructuralExtractor:
             # Let the Hardware Guillotine drop cleanly to the Worker thread!
             raise
         except Exception as e:
-            self.logger.error(
-                f"Catastrophic failure during structural splicing: {e}", exc_info=True
-            )
+            self.logger.error(f"Catastrophic failure during structural splicing: {e}", exc_info=True)
             return {
                 "equations": {},
                 "functions": [],
@@ -616,9 +581,7 @@ class StructuralExtractor:
                 m_owner = re_ownership.search(comment_stream)
                 if m_owner:
                     ownership_val = (
-                        m_owner.group(m_owner.lastindex).strip()
-                        if m_owner.lastindex
-                        else m_owner.group(0).strip()
+                        m_owner.group(m_owner.lastindex).strip() if m_owner.lastindex else m_owner.group(0).strip()
                     )
             except Exception:
                 pass
@@ -664,11 +627,7 @@ class StructuralExtractor:
                         break
                     else:
                         continue
-                if (
-                    re_boundary
-                    and hasattr(re_boundary, "match")
-                    and re_boundary.match(line_str)
-                ):
+                if re_boundary and hasattr(re_boundary, "match") and re_boundary.match(line_str):
                     break
                 purpose_buffer.append(line_str)
                 has_block_text = True
@@ -677,37 +636,21 @@ class StructuralExtractor:
             if active_capture == "line":
                 if (
                     not line_str
-                    or (
-                        re_boundary
-                        and hasattr(re_boundary, "match")
-                        and re_boundary.match(line_str)
-                    )
-                    or (
-                        re_purpose_block
-                        and hasattr(re_purpose_block, "match")
-                        and re_purpose_block.match(line_str)
-                    )
+                    or (re_boundary and hasattr(re_boundary, "match") and re_boundary.match(line_str))
+                    or (re_purpose_block and hasattr(re_purpose_block, "match") and re_purpose_block.match(line_str))
                 ):
                     active_capture = None
                 else:
                     fallback_buffer.append(line_str)
                     continue
 
-            if (
-                re_purpose_block
-                and hasattr(re_purpose_block, "match")
-                and re_purpose_block.match(line_str)
-            ):
+            if re_purpose_block and hasattr(re_purpose_block, "match") and re_purpose_block.match(line_str):
                 active_capture = "block"
                 purpose_buffer = []
                 has_block_text = False
                 continue
 
-            if (
-                re_purpose_line
-                and hasattr(re_purpose_line, "match")
-                and not purpose_buffer
-            ):
+            if re_purpose_line and hasattr(re_purpose_line, "match") and not purpose_buffer:
                 try:
                     m_purpose = re_purpose_line.match(line_str)
                     if m_purpose:
@@ -732,7 +675,7 @@ class StructuralExtractor:
 
         return meta
 
-    def _extract_ghost_tether(self, start_line: int, lang_id: str) -> str:
+    def _extract_documentation_tether(self, start_line: int, lang_id: str) -> str:
         """Surgically extracts the human intent (docstring/comments) using exact spatial coordinates."""
         if not hasattr(self, "raw_content_lines") or not self.raw_content_lines:
             return ""
@@ -749,15 +692,11 @@ class StructuralExtractor:
             prev = self.raw_content_lines[j].strip()
             if not prev:
                 continue
-            if prev.startswith(
-                ("#", "//", "/*", "*", "///", "--", "<!--", "dnl", ";", "%")
-            ):
+            if prev.startswith(("#", "//", "/*", "*", "///", "--", "<!--", "dnl", ";", "%")):
                 doc_buffer.insert(0, prev)
             elif prev.endswith("*/") or prev.endswith("#>"):
                 doc_buffer.insert(0, prev)
-            elif prev.startswith("@") or prev.startswith(
-                "["
-            ):  # Step over decorators safely
+            elif prev.startswith("@") or prev.startswith("["):  # Step over decorators safely
                 continue
             else:
                 break
@@ -781,9 +720,7 @@ class StructuralExtractor:
 
         return "\n".join(doc_buffer)[:2000]  # Cap at 2000 chars to prevent DB bloat
 
-    def _partition_segments(
-        self, content: str, primary_id: str
-    ) -> List[Tuple[str, str, int]]:
+    def _partition_segments(self, content: str, primary_id: str) -> List[Tuple[str, str, int]]:
         """Splits content into language segments based on handshake triggers."""
         segments = []
         last_idx = 0
@@ -815,16 +752,10 @@ class StructuralExtractor:
 
             if t["pair"]:
                 open_char, close_char = t["pair"]
-                end_idx = self._find_balanced_end(
-                    content, t["start"], open_char, close_char
-                )
+                end_idx = self._find_balanced_end(content, t["start"], open_char, close_char)
             else:
-                search_limit = min(
-                    t["trigger_end"] + self.HANDSHAKE_LOOKAHEAD_LIMIT, len(content)
-                )
-                end_match = t["end_pattern"].search(
-                    content, pos=t["trigger_end"], endpos=search_limit
-                )
+                search_limit = min(t["trigger_end"] + self.HANDSHAKE_LOOKAHEAD_LIMIT, len(content))
+                end_match = t["end_pattern"].search(content, pos=t["trigger_end"], endpos=search_limit)
                 end_idx = end_match.end() if end_match else len(content)
 
             chunk = content[t["start"] : end_idx]
@@ -838,9 +769,7 @@ class StructuralExtractor:
 
         return segments if segments else [(primary_id, content, 0)]
 
-    def _find_balanced_end(
-        self, safe_text: str, start_pos: int, opener: str, closer: str
-    ) -> int:
+    def _find_balanced_end(self, safe_text: str, start_pos: int, opener: str, closer: str) -> int:
         """
         C-Optimized jump-tracking algorithm.
         Expects 'safe_text' where string literals and comments have already been shielded.
@@ -877,9 +806,7 @@ class StructuralExtractor:
 
         return limit
 
-    def _correlate_signals(
-        self, targets: List[int], dampeners: List[int], max_distance: int = 500
-    ) -> Tuple[int, int]:
+    def _correlate_signals(self, targets: List[int], dampeners: List[int], max_distance: int = 500) -> Tuple[int, int]:
         """
         Sweeps two sorted lists of indices to find how many targets are within
         'max_distance' of a dampener. Runs in O(N) linear time.
@@ -954,12 +881,7 @@ class StructuralExtractor:
                     continue
 
                 raw_pat = getattr(pattern, "pattern", str(pattern))
-                clean_pat = (
-                    raw_pat.replace("(?i)", "")
-                    .replace("(?m)", "")
-                    .replace("(?s)", "")
-                    .strip()
-                )
+                clean_pat = raw_pat.replace("(?i)", "").replace("(?m)", "").replace("(?s)", "").strip()
                 if clean_pat in ("", "()", "(?:)", "^", "$"):
                     continue
 
@@ -978,9 +900,7 @@ class StructuralExtractor:
                                 if m.group(2):
                                     extracted_parents.append(m.group(2).strip())
                     else:
-                        hit_indices = [
-                            m.start() for m in re.finditer(str(pattern), seg_code)
-                        ]
+                        hit_indices = [m.start() for m in re.finditer(str(pattern), seg_code)]
 
                     c = len(hit_indices)
 
@@ -990,9 +910,7 @@ class StructuralExtractor:
                         key = f"{seg_lang}::{rule_name}"
                         regex_telemetry[key] = regex_telemetry.get(key, 0.0) + t_elapsed
                     if t_elapsed > 0.5:
-                        self.logger.debug(
-                            f"[REGEX-TRACE] ^-- SLOW RULE: '{rule_name}' took {t_elapsed:.4f}s"
-                        )
+                        self.logger.debug(f"[REGEX-TRACE] ^-- SLOW RULE: '{rule_name}' took {t_elapsed:.4f}s")
 
                     if c > seg_len and seg_len > 0:
                         c = 0
@@ -1012,19 +930,14 @@ class StructuralExtractor:
             # PHASE 4: AI APPSEC & ZERO-TRUST SENSORS (The Checkmarx/Bitwarden Defense)
             # ==============================================================================
             # 0a. The Exfiltration Distance Check
-            if (
-                "memory_scraping" in spatial_map
-                and "exfiltration_camouflage" in spatial_map
-            ):
+            if "memory_scraping" in spatial_map and "exfiltration_camouflage" in spatial_map:
                 # Measures the physical call-path distance between the memory read and the socket
                 unmitigated, confirmed_exfiltration = self._correlate_signals(
                     targets=spatial_map["memory_scraping"],
                     dampeners=spatial_map["exfiltration_camouflage"],
                     max_distance=200,  # If they happen within 200 chars of each other, it's a confirmed attack
                 )
-                counts["memory_scraping"] += (
-                    confirmed_exfiltration * 100
-                )  # Massive penalty multiplier
+                counts["memory_scraping"] += confirmed_exfiltration * 100  # Massive penalty multiplier
                 mitigations["amplified_leaks"] += confirmed_exfiltration
 
             # 0b. The RCE Funnel Amplifier
@@ -1034,14 +947,10 @@ class StructuralExtractor:
             # ==============================================================================
 
             # 1. Taint Tracking (RCE Weaponization)
-            if "sec_danger" in spatial_map and (
-                "sec_io" in spatial_map or "io" in spatial_map
-            ):
-                io_hits = sorted(
-                    spatial_map.get("sec_io", []) + spatial_map.get("io", [])
-                )
+            if "sec_high_risk_execution" in spatial_map and ("sec_io" in spatial_map or "io" in spatial_map):
+                io_hits = sorted(spatial_map.get("sec_io", []) + spatial_map.get("io", []))
                 _, corroborated_rce = self._correlate_signals(
-                    targets=spatial_map["sec_danger"],
+                    targets=spatial_map["sec_high_risk_execution"],
                     dampeners=io_hits,
                     max_distance=250,
                 )
@@ -1049,44 +958,40 @@ class StructuralExtractor:
                 mitigations["amplified_rce"] += corroborated_rce
 
             # 2. The Silencer Region (True Safety)
-            if "danger" in spatial_map and "safety" in spatial_map:
+            if "high_risk_execution" in spatial_map and "safety" in spatial_map:
                 unmitigated_danger, mitigated_danger = self._correlate_signals(
-                    targets=spatial_map["danger"],
+                    targets=spatial_map["high_risk_execution"],
                     dampeners=spatial_map["safety"],
                     max_distance=500,
                 )
-                counts["danger"] -= mitigated_danger
+                counts["high_risk_execution"] -= mitigated_danger
                 mitigations["mitigated_danger"] += mitigated_danger
 
             # 3. The Race Condition Radar
-            if "concurrency" in spatial_map and "flux" in spatial_map:
+            if "concurrency" in spatial_map and "state_mutation" in spatial_map:
                 unmitigated_flux, _ = self._correlate_signals(
-                    targets=spatial_map["flux"],
+                    targets=spatial_map["state_mutation"],
                     dampeners=spatial_map.get("sync_locks", []),
                     max_distance=300,
                 )
                 if unmitigated_flux > 0:
                     _, race_conditions = self._correlate_signals(
                         targets=spatial_map["concurrency"],
-                        dampeners=spatial_map["flux"],
+                        dampeners=spatial_map["state_mutation"],
                         max_distance=150,
                     )
                     counts["concurrency"] += race_conditions * 5
                     mitigations["amplified_race_conditions"] += race_conditions
 
             # 4. The Active Hemorrhage
-            if "sec_private_info" in spatial_map and (
-                "telemetry" in spatial_map or "print_hits" in spatial_map
-            ):
-                sinks = sorted(
-                    spatial_map.get("telemetry", []) + spatial_map.get("print_hits", [])
-                )
+            if "sec_hardcoded_secrets" in spatial_map and ("telemetry" in spatial_map or "debug_prints" in spatial_map):
+                sinks = sorted(spatial_map.get("telemetry", []) + spatial_map.get("debug_prints", []))
                 _, active_leaks = self._correlate_signals(
-                    targets=spatial_map["sec_private_info"],
+                    targets=spatial_map["sec_hardcoded_secrets"],
                     dampeners=sinks,
                     max_distance=150,
                 )
-                counts["sec_private_info"] += active_leaks * 50
+                counts["sec_hardcoded_secrets"] += active_leaks * 50
                 mitigations["amplified_leaks"] += active_leaks
 
             # 5. The Memory Leak / UAF Tracker
@@ -1103,19 +1008,13 @@ class StructuralExtractor:
                 mitigations["mitigated_memory_allocs"] += mitigated
 
             # Capture indentation signatures
-            counts["indent_tabs"] += len(
-                re.findall(r"^\t+(?=\S)", seg_code, flags=re.MULTILINE)
-            )
-            counts["indent_spaces"] += len(
-                re.findall(r"^[ ]{2,}(?=\S)", seg_code, flags=re.MULTILINE)
-            )
+            counts["indent_tabs"] += len(re.findall(r"^\t+(?=\S)", seg_code, flags=re.MULTILINE))
+            counts["indent_spaces"] += len(re.findall(r"^[ ]{2,}(?=\S)", seg_code, flags=re.MULTILINE))
             segment_spatial_maps.append(spatial_map)
 
         return counts, mitigations, segment_spatial_maps, extracted_parents
 
-    def comment_analysis(
-        self, comment_stream: str, lang_id: str, counts: Dict[str, int]
-    ) -> Dict[str, int]:
+    def comment_analysis(self, comment_stream: str, lang_id: str, counts: Dict[str, int]) -> Dict[str, int]:
         """
         Analyzes the comment stream for developer intent, technical debt, and traceability.
         Kept strictly separated from active coding analysis to maintain Separation of Concerns.
@@ -1127,7 +1026,7 @@ class StructuralExtractor:
 
         # The specific rules designed to extract telemetry from human-readable text
         comment_rules = [
-            "graveyard",
+            "dead_code",
             "doc",
             "ownership",
             "planned_debt",
@@ -1150,9 +1049,7 @@ class StructuralExtractor:
                     counts[mapped_key] += c
 
                 except Exception as e:
-                    self.logger.error(
-                        f"[DIAGNOSTIC] Comment stream regex failure in '{rule_name}': {e}"
-                    )
+                    self.logger.error(f"[DIAGNOSTIC] Comment stream regex failure in '{rule_name}': {e}")
 
         return counts
 
@@ -1166,9 +1063,7 @@ class StructuralExtractor:
         and safely isolates Heredocs to prevent Quote Desynchronization.
         """
         if len(text) > 500000:
-            self.logger.warning(
-                f"[DIAGNOSTIC-SHIELD] Extremely long block ({len(text)} chars). Shielding may be slow."
-            )
+            self.logger.warning(f"[DIAGNOSTIC-SHIELD] Extremely long block ({len(text)} chars). Shielding may be slow.")
 
         t_start = time.time()
 
@@ -1201,9 +1096,7 @@ class StructuralExtractor:
             active_heredoc_delimiter = None
 
             # In detector.py -> _apply_literal_shield
-            heredoc_opener_pattern = re.compile(
-                r'<<[-~]?\s*[\'"]?\\?([a-zA-Z_][a-zA-Z0-9_]*)[\'"]?'
-            )
+            heredoc_opener_pattern = re.compile(r'<<[-~]?\s*[\'"]?\\?([a-zA-Z_][a-zA-Z0-9_]*)[\'"]?')
 
             for line in lines:
                 if active_heredoc_delimiter:
@@ -1234,18 +1127,10 @@ class StructuralExtractor:
 
             # 3. Shield Ruby % Literals (Strictly gated to Ruby)
             if lang_id == "ruby":
-                text = re.sub(
-                    r"%[qQwWiIrxs]?\{.*?\}", preserve_newlines, text, flags=re.DOTALL
-                )
-                text = re.sub(
-                    r"%[qQwWiIrxs]?\[.*?\]", preserve_newlines, text, flags=re.DOTALL
-                )
-                text = re.sub(
-                    r"%[qQwWiIrxs]?\(.*?\)", preserve_newlines, text, flags=re.DOTALL
-                )
-                text = re.sub(
-                    r"%[qQwWiIrxs]?\|.*?\|", preserve_newlines, text, flags=re.DOTALL
-                )
+                text = re.sub(r"%[qQwWiIrxs]?\{.*?\}", preserve_newlines, text, flags=re.DOTALL)
+                text = re.sub(r"%[qQwWiIrxs]?\[.*?\]", preserve_newlines, text, flags=re.DOTALL)
+                text = re.sub(r"%[qQwWiIrxs]?\(.*?\)", preserve_newlines, text, flags=re.DOTALL)
+                text = re.sub(r"%[qQwWiIrxs]?\|.*?\|", preserve_newlines, text, flags=re.DOTALL)
                 t_pct = time.time()
 
         if (time.time() - t_start) > 0.5:
@@ -1298,7 +1183,7 @@ class StructuralExtractor:
         segment_spatial_maps: List[Dict[str, List[int]]],
         regex_telemetry: dict = None,
     ) -> Tuple[List[FunctionNode], float]:
-        """The Master Routing Dispatcher: Directs the optical signal into the correct integration mode."""
+        """The Master Routing Dispatcher: Directs the structural signal into the correct integration mode."""
         all_satellites = []
         global_impact = 0.0
 
@@ -1307,23 +1192,19 @@ class StructuralExtractor:
             rules = lang_config.get("rules", {})
             family = lang_config.get("lexical_family", "c_style_comment")
 
-            optical_mode = ScopeParsingRegistry.get_mode(lang_id)
+            integration_mode = ScopeParsingRegistry.get_mode(lang_id)
 
             t_mode_start = time.perf_counter()
             mode_name = "Unknown"
 
-            if optical_mode == "mode_d":
+            if integration_mode == "mode_d":
                 mode_name = "Mode_D_Keywords"
-                sats, impact = self._slice_by_keywords(
-                    code, lang_id, rules, offset, spatial_map
-                )
-            elif optical_mode == "mode_e":
+                sats, impact = self._slice_by_keywords(code, lang_id, rules, offset, spatial_map)
+            elif integration_mode == "mode_e":
                 mode_name = "Mode_E_Terminator"
-                sats, impact = self._slice_by_terminator(
-                    code, lang_id, rules, offset, spatial_map
-                )
+                sats, impact = self._slice_by_terminator(code, lang_id, rules, offset, spatial_map)
             else:
-                # Fallback to standard optical heuristics (Modes A, B, C)
+                # Fallback to standard structural heuristics (Modes A, B, C)
                 func_start = rules.get("func_start")
                 if not func_start:
                     continue
@@ -1336,29 +1217,21 @@ class StructuralExtractor:
                     "fortran",
                 ) or family in ("column_sensitive"):
                     mode_name = "Mode_A_Labels"
-                    sats, impact = self._slice_by_labels(
-                        code, rules, offset, spatial_map
-                    )
+                    sats, impact = self._slice_by_labels(code, rules, offset, spatial_map)
                 elif family in ("single_line_only", "multi_style_dash") or lang_id in (
                     "python",
                     "yaml",
                 ):
                     mode_name = "Mode_C_Indentation"
-                    sats, impact = self._slice_by_indentation(
-                        code, rules, offset, spatial_map
-                    )
+                    sats, impact = self._slice_by_indentation(code, rules, offset, spatial_map)
                 else:
                     mode_name = "Mode_B_Braces"
-                    sats, impact = self._slice_by_braces(
-                        code, lang_id, rules, offset, spatial_map, family=family
-                    )
+                    sats, impact = self._slice_by_braces(code, lang_id, rules, offset, spatial_map, family=family)
 
             # Record the telemetry if profiling is active
             if regex_telemetry is not None and mode_name != "Unknown":
                 key = f"{lang_id}::Cartography_{mode_name}"
-                regex_telemetry[key] = regex_telemetry.get(key, 0.0) + (
-                    time.perf_counter() - t_mode_start
-                )
+                regex_telemetry[key] = regex_telemetry.get(key, 0.0) + (time.perf_counter() - t_mode_start)
 
             all_satellites.extend(sats)
             global_impact += impact
@@ -1400,9 +1273,7 @@ class StructuralExtractor:
                 break
 
             start_idx = match.start()
-            greedy_end_idx = (
-                matches[i + 1].start() if i + 1 < len(matches) else len(code)
-            )
+            greedy_end_idx = matches[i + 1].start() if i + 1 < len(matches) else len(code)
 
             sandbox = code[start_idx:greedy_end_idx]
             end_offset = len(sandbox)
@@ -1416,9 +1287,7 @@ class StructuralExtractor:
             if not block or len(block.splitlines()) < 2:
                 continue
 
-            raw_name = (
-                match.group(match.lastindex) if match.lastindex else match.group(0)
-            )
+            raw_name = match.group(match.lastindex) if match.lastindex else match.group(0)
             if raw_name is None:
                 raw_name = match.group(0)
 
@@ -1490,7 +1359,7 @@ class StructuralExtractor:
         # 2. The Single-Pass Lexer (Massive I/O Reduction)
         # We use the generic shield pattern for all brace-style and c-style families
         combined_pattern = r'""".*?"""|@"[^"]*(?:""[^"]*)*"|R"([a-zA-Z0-9_]*)\(.*?\)\1"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`|//[^\n]*|/\*.*?\*/'
-            
+
         safe_code = re.sub(combined_pattern, fast_shield, code, flags=re.DOTALL)
 
         # 3. Macro Shields (Strictly Gated to C-Family)
@@ -1505,34 +1374,34 @@ class StructuralExtractor:
                 stripped = line.lstrip()
 
                 if in_multiline_macro:
-                    lines[i] = (" " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line))
+                    lines[i] = " " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line)
                     if not stripped.rstrip(" \t\r\n").endswith("\\"):
                         in_multiline_macro = False
                     continue
 
                 if stripped.startswith("#"):
                     if stripped.startswith("#if"):
-                        if in_dead_branch: 
+                        if in_dead_branch:
                             dead_nesting_depth += 1
                     elif stripped.startswith(("#else", "#elif")):
-                        if not in_dead_branch and dead_nesting_depth == 0: 
+                        if not in_dead_branch and dead_nesting_depth == 0:
                             in_dead_branch = True
                     elif stripped.startswith("#endif"):
                         if in_dead_branch:
-                            if dead_nesting_depth > 0: 
+                            if dead_nesting_depth > 0:
                                 dead_nesting_depth -= 1
-                            else: 
+                            else:
                                 in_dead_branch = False
 
                     if stripped.startswith("#define"):
-                        if stripped.rstrip(" \t\r\n").endswith("\\"): 
+                        if stripped.rstrip(" \t\r\n").endswith("\\"):
                             in_multiline_macro = True
 
-                    lines[i] = (" " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line))
+                    lines[i] = " " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line)
                     continue
 
                 if in_dead_branch:
-                    lines[i] = (" " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line))
+                    lines[i] = " " * (len(line) - 1) + "\n" if line.endswith("\n") else " " * len(line)
 
             safe_code = "".join(lines)
 
@@ -1541,23 +1410,23 @@ class StructuralExtractor:
         last_counted_idx = 0
 
         for match_idx, match in enumerate(matches):
-            if len(satellites) >= self.MAX_SATELLITES: 
+            if len(satellites) >= self.MAX_SATELLITES:
                 break
 
             start_idx = match.start()
-            if start_idx < last_end_idx: 
+            if start_idx < last_end_idx:
                 continue
 
             next_match_start = matches[match_idx + 1].start() if match_idx + 1 < len(matches) else len(code)
             search_limit = min(next_match_start, start_idx + 2000)
 
             brace_idx = safe_code.find(opener, start_idx, search_limit)
-            if brace_idx == -1: 
+            if brace_idx == -1:
                 continue
 
             end_idx = self._find_balanced_end(safe_code, brace_idx, opener, closer)
             block = code[start_idx:end_idx].strip()
-            if not block: 
+            if not block:
                 continue
 
             raw_name = match.group(match.lastindex) if match.lastindex else match.group(0)
@@ -1567,17 +1436,24 @@ class StructuralExtractor:
             name = self._extract_name(raw_name)
             current_line_count += code.count("\n", last_counted_idx, start_idx)
             last_counted_idx = start_idx
-            
+
             sat, mag = self._calculate_block_metrics(
-                name, block, block.count("\n") + 1, current_line_count,
-                current_line_count + block.count("\n"), rules, start_idx, end_idx, spatial_map,
+                name,
+                block,
+                block.count("\n") + 1,
+                current_line_count,
+                current_line_count + block.count("\n"),
+                rules,
+                start_idx,
+                end_idx,
+                spatial_map,
             )
             satellites.append(sat)
             sum_fxn_impact += mag
             last_end_idx = end_idx
 
         return satellites, sum_fxn_impact
-    
+
     def _slice_by_indentation(
         self,
         code: str,
@@ -1600,20 +1476,12 @@ class StructuralExtractor:
             return "".join("\n" if c == "\n" else " " for c in text)
 
         # Shield Python triple-quotes first to prevent inner-quote collisions
-        safe_code = re.sub(
-            r"\"\"\"(.*?)\"\"\"", index_aligned_shield, code, flags=re.DOTALL
-        )
-        safe_code = re.sub(
-            r"\'\'\'(.*?)\'\'\'", index_aligned_shield, safe_code, flags=re.DOTALL
-        )
+        safe_code = re.sub(r"\"\"\"(.*?)\"\"\"", index_aligned_shield, code, flags=re.DOTALL)
+        safe_code = re.sub(r"\'\'\'(.*?)\'\'\'", index_aligned_shield, safe_code, flags=re.DOTALL)
 
         # Shield standard strings
-        safe_code = re.sub(
-            r'"(?:\\.|[^"\\])*"', index_aligned_shield, safe_code, flags=re.DOTALL
-        )
-        safe_code = re.sub(
-            r"'(?:\\.|[^'\\])*'", index_aligned_shield, safe_code, flags=re.DOTALL
-        )
+        safe_code = re.sub(r'"(?:\\.|[^"\\])*"', index_aligned_shield, safe_code, flags=re.DOTALL)
+        safe_code = re.sub(r"'(?:\\.|[^'\\])*'", index_aligned_shield, safe_code, flags=re.DOTALL)
 
         # Shield comments (Python and YAML use #)
         safe_code = re.sub(r"#.*", lambda m: " " * len(m.group(0)), safe_code)
@@ -1638,9 +1506,7 @@ class StructuralExtractor:
             if start_idx < last_end_idx:
                 continue
 
-            raw_name = (
-                match.group(match.lastindex) if match.lastindex else match.group(0)
-            )
+            raw_name = match.group(match.lastindex) if match.lastindex else match.group(0)
             if raw_name is None:
                 raw_name = match.group(0)
             name = self._extract_name(raw_name)
@@ -1679,7 +1545,7 @@ class StructuralExtractor:
 
             last_end_idx = end_idx
 
-            # Extract the raw payload using the ORIGINAL code to retain the exact physics payload
+            # Extract the raw payload using the ORIGINAL code to retain the exact executable payload
             block = code[start_idx:end_idx].strip()
             if not block or len(block.splitlines()) < 2:
                 continue
@@ -1718,9 +1584,7 @@ class StructuralExtractor:
         spatial_map: Dict[str, List[int]],
     ) -> Tuple[List[FunctionNode], float]:
         """[INTEGRATION MODE D] - Semantic Handshake Stack (Shell, Ruby, Lua)."""
-        self.logger.debug(
-            f"[DIAGNOSTIC] Mode D: Initiating _slice_by_keywords for {lang_id}"
-        )
+        self.logger.debug(f"[DIAGNOSTIC] Mode D: Initiating _slice_by_keywords for {lang_id}")
         config = ScopeParsingRegistry.get_config(lang_id)
         if not config:
             return self._slice_by_braces(code, rules, offset)
@@ -1743,9 +1607,7 @@ class StructuralExtractor:
 
         # ---> FAST SINGLE-PASS COMMENT STRIP <---
         # Ensures #var or #foo are not erroneously treated as comments if they are not at the start of a word.
-        safe_code = re.sub(
-            r"(^|[ \t])(?:#|--|//).*$", r"\1", safe_code, flags=re.MULTILINE
-        )
+        safe_code = re.sub(r"(^|[ \t])(?:#|--|//).*$", r"\1", safe_code, flags=re.MULTILINE)
 
         # 2. Split both into parallel arrays
         original_lines = code.splitlines(keepends=True)
@@ -1769,9 +1631,7 @@ class StructuralExtractor:
             # The Ruby/Elixir Inline Modifier Guard
             if lang_key in ["ruby", "elixir"] and opens > 0:
                 # Find all valid condition keywords on the line
-                inline_mods = len(
-                    re.findall(r"(?<![:.])\b(if|unless|while|until)\b(?!:)", safe_line)
-                )
+                inline_mods = len(re.findall(r"(?<![:.])\b(if|unless|while|until)\b(?!:)", safe_line))
 
                 if inline_mods > 0:
                     # Check if one of them is the actual start of the statement
@@ -1835,9 +1695,7 @@ class StructuralExtractor:
             current_line_offset += 1
             current_char_offset += len(orig_line)
 
-        self.logger.debug(
-            "[DIAGNOSTIC] Mode D: Finished traversing. Processing remnants..."
-        )
+        self.logger.debug("[DIAGNOSTIC] Mode D: Finished traversing. Processing remnants...")
 
         if stack_depth > 0 and current_satellite:
             block = "\n".join(current_satellite).strip()
@@ -1872,9 +1730,7 @@ class StructuralExtractor:
                 satellites.append(sat)
                 sum_fxn_impact += mag
 
-        self.logger.debug(
-            f"[DIAGNOSTIC] Mode D: Extracted {len(satellites)} satellites."
-        )
+        self.logger.debug(f"[DIAGNOSTIC] Mode D: Extracted {len(satellites)} satellites.")
         return satellites, sum_fxn_impact
 
     def _slice_by_terminator(
@@ -1909,15 +1765,9 @@ class StructuralExtractor:
         def preserve_newlines(m):
             return '""' + "\n" * m.group(0).count("\n")
 
-        safe_code = re.sub(
-            r'"(?:\\.|[^"\\])*"', preserve_newlines, code, flags=re.DOTALL
-        )
-        safe_code = re.sub(
-            r"'(?:\\.|[^'\\])*'", preserve_newlines, safe_code, flags=re.DOTALL
-        )
-        safe_code = re.sub(
-            r"`(?:\\.|[^`\\])*`", preserve_newlines, safe_code, flags=re.DOTALL
-        )
+        safe_code = re.sub(r'"(?:\\.|[^"\\])*"', preserve_newlines, code, flags=re.DOTALL)
+        safe_code = re.sub(r"'(?:\\.|[^'\\])*'", preserve_newlines, safe_code, flags=re.DOTALL)
+        safe_code = re.sub(r"`(?:\\.|[^`\\])*`", preserve_newlines, safe_code, flags=re.DOTALL)
 
         # ---> FAST SINGLE-PASS COMMENT STRIP <---
         # Execute the regex once globally. Prevents 500,000+ regex calls on massive SQL dumps.
@@ -1943,13 +1793,9 @@ class StructuralExtractor:
                 sat_start_char = current_char_offset
                 match = igniter_pattern.search(safe_line)
                 if match:
-                    lang_key = ScopeParsingRegistry._ALIASES.get(
-                        lang_id.lower(), lang_id.lower()
-                    )
+                    lang_key = ScopeParsingRegistry._ALIASES.get(lang_id.lower(), lang_id.lower())
                     satellite_name = (
-                        f"{match.group(1).upper()}_Statement"
-                        if "sql" in lang_key
-                        else match.group(0).strip()
+                        f"{match.group(1).upper()}_Statement" if "sql" in lang_key else match.group(0).strip()
                     )
                     satellite_name = re.sub(r"[^a-zA-Z0-9_]", "", satellite_name)
 
@@ -2023,12 +1869,12 @@ class StructuralExtractor:
         spatial_map: Dict[str, List[int]] = None,
     ) -> Tuple[FunctionNode, float]:
         """
-        Calculates the structural weight, algorithmic complexity, and hit vector 
+        Calculates the structural weight, algorithmic complexity, and hit vector
         for an extracted functional block.
 
         DEFENSIVE ARCHITECTURE (Big-O without ASTs):
-        ASTs require intense compilation overhead to determine cyclomatic nesting depth. 
-        Because we prioritize functional intent, this engine uses standard indentation 
+        ASTs require intense compilation overhead to determine cyclomatic nesting depth.
+        Because we prioritize functional intent, this engine uses standard indentation
         as a 95% accurate proxy for O(N) complexity at a fraction of the compute cost.
         """
         args_pattern = rules.get("args")
@@ -2044,24 +1890,20 @@ class StructuralExtractor:
                     hit_vector[key] = count
 
             branch_hits = hit_vector.get("branch", 0)
-            linear_hits = hit_vector.get("linear", 0)
+            linear_hits = hit_vector.get("structural_boundaries", 0)
         else:
             # Fallback for untested manual calls
             branch_pattern = rules.get("branch")
-            linear_pattern = rules.get("linear")
+            linear_pattern = rules.get("structural_boundaries")
             branch_hits = (
                 len(branch_pattern.findall(block))
                 if hasattr(branch_pattern, "findall")
-                else (
-                    len(re.findall(str(branch_pattern), block)) if branch_pattern else 0
-                )
+                else (len(re.findall(str(branch_pattern), block)) if branch_pattern else 0)
             )
             linear_hits = (
                 len(linear_pattern.findall(block))
                 if hasattr(linear_pattern, "findall")
-                else (
-                    len(re.findall(str(linear_pattern), block)) if linear_pattern else 0
-                )
+                else (len(re.findall(str(linear_pattern), block)) if linear_pattern else 0)
             )
 
         total_hits = branch_hits + linear_hits
@@ -2073,11 +1915,7 @@ class StructuralExtractor:
         # --- FAST CODING LOC HEURISTIC (Syntax Fixed!) ---
         # Quickly strip out blank lines and standard single-line comments to find the true logic mass
         # THE FIX: Preserve leading whitespace to calculate Big-O nesting depth!
-        raw_lines = [
-            l
-            for l in block.splitlines()
-            if l.strip() and not l.lstrip().startswith(("#", "//", "/*", "*"))
-        ]
+        raw_lines = [l for l in block.splitlines() if l.strip() and not l.lstrip().startswith(("#", "//", "/*", "*"))]
         coding_loc = len(raw_lines)
 
         # --- NEW: BIG-O ALGORITHMIC COMPLEXITY TRACKER ---
@@ -2099,24 +1937,20 @@ class StructuralExtractor:
         # Check if the function's name appears followed by a parenthesis/space inside its own body.
         # We check for > 1 because the first hit is the function definition itself!
         is_recursive = False
-        if (
-            name
-            and len(name) > 2
-            and name not in {"Unknown_Sat", "Anonymous_Block", "Main"}
-        ):
+        if name and len(name) > 2 and name not in {"Unknown_Sat", "Anonymous_Block", "Main"}:
             # Fast heuristic: Count occurrences. If it appears more than once, it's highly likely recursive.
             occurrence_count = len(re.findall(r"\b" + re.escape(name) + r"\b", block))
             if occurrence_count > 1:
                 is_recursive = True
 
         # --- NEW: FUNCTION-LEVEL DATABASE COMPLEXITY (Data Gravity) ---
-        # Mapped to active v6 schemas: 'io' (DB connections/SQL), 'flux' (mutations), and 'serialization_parsing' (JSON/ORMs).
+        # Mapped to active v6 schemas: 'io' (DB connections/SQL), 'state_mutation' (mutations), and 'serialization_parsing' (JSON/ORMs).
         db_complexity = 0
         if hit_vector:
             db_complexity = (
                 (hit_vector.get("io", 0) * 3)
                 + (hit_vector.get("serialization_parsing", 0) * 2)
-                + (hit_vector.get("flux", 0) * 1)
+                + (hit_vector.get("state_mutation", 0) * 1)
             )
 
         # --- NEW: FUNCTION-LEVEL KEYWORD DENSITY (The Micro-Auditor) ---
@@ -2129,11 +1963,7 @@ class StructuralExtractor:
             try:
                 arg_match = args_pattern.search(block)
                 if arg_match:
-                    args_str = (
-                        arg_match.group(arg_match.lastindex)
-                        if arg_match.lastindex
-                        else arg_match.group(0)
-                    )
+                    args_str = arg_match.group(arg_match.lastindex) if arg_match.lastindex else arg_match.group(0)
                     if args_str and args_str.strip() != "()":
                         if "," in args_str:
                             args_count = args_str.count(",") + 1
@@ -2152,35 +1982,30 @@ class StructuralExtractor:
         effective_loc = min(loc, (total_signals + 1) * 10)
 
         # ---> THE FIX 2: SUB-LINEAR ARGUMENT DAMPENER & BIG-O SCALAR <---
-        # Apply a square root to the arguments to prevent combinatorial mass explosions
-        # on edge-case mega-functions, while preserving the core physics philosophy.
+        # Apply a square root to the arguments to prevent combinatorial magnitude explosions
+        # on edge-case mega-functions, while preserving the core structural philosophy.
         arg_multiplier = math.sqrt(args_count + 1)
 
         # Apply Big O Depth as an exponential gravity multiplier.
         # O(N)=1.0x, O(N^2)=1.5x, O(N^3)=2.0x, etc.
         complexity_multiplier = 1.0 + ((big_o_depth - 1) * 0.5)
 
-        # Recursive functions are dangerous and mathematically dense. Double their mass.
+        # Recursive functions are dangerous and mathematically dense. Double their magnitude.
         if is_recursive:
             complexity_multiplier *= 2.0
 
         # Calculate magnitude using the dampened arguments, Big-O depth, and logic-bounded length
-        magnitude = float(
-            (branch_hits + 1) * arg_multiplier * complexity_multiplier
-            + (0.05 * effective_loc)
-        )
+        magnitude = float((branch_hits + 1) * arg_multiplier * complexity_multiplier + (0.05 * effective_loc))
 
-        # ---> THE FIX: SPATIAL GEOMETRY MATH <---
+        # ---> THE FIX: LOGIC TOPOLOGY MATH <---
         # Calculate the Control Flow Ratio and the Fractal Fibonacci Angle (Theta)
         total_cf_signals = branch_hits + linear_hits
-        control_flow_ratio = (
-            (branch_hits / total_cf_signals) if total_cf_signals > 0 else 0.0
-        )
+        control_flow_ratio = (branch_hits / total_cf_signals) if total_cf_signals > 0 else 0.0
         angle = 22.5 + (1.0 - control_flow_ratio) * 67.5
 
-        # ---> NEW: THE GHOST TETHER <---
+        # ---> NEW: THE DOCUMENTATION TETHER <---
         # Re-attach the human intent using the exact starting line coordinate!
-        docstring = self._extract_ghost_tether(start_line, self.primary_lang_id)
+        docstring = self._extract_documentation_tether(start_line, self.primary_lang_id)
 
         # ---> NEW: LEVEL 3 WIRING (Function Call Chains) <---
         # We scan the block for any word followed by a parenthesis, minus common language keywords.
@@ -2255,9 +2080,7 @@ class StructuralExtractor:
             "Boolean",
         }
         # Deduplicate and filter (excluding the function calling itself recursively)
-        calls_out = list(
-            set([c for c in raw_calls if c not in ignore_keywords and c != name])
-        )[:20]
+        calls_out = list(set([c for c in raw_calls if c not in ignore_keywords and c != name]))[:20]
 
         sat: FunctionNode = {
             "name": name[:40],
@@ -2292,7 +2115,7 @@ class StructuralExtractor:
     def _extract_name(self, raw_match: str) -> str:
         """
         Heuristic Token Normalizer.
-        Safely extracts the functional identifier (function, class, or method name) from a raw 
+        Safely extracts the functional identifier (function, class, or method name) from a raw
         regex capture block by isolating the last valid alphanumeric token before parameter boundaries.
         """
         match_strip = raw_match.strip()
@@ -2301,9 +2124,7 @@ class StructuralExtractor:
         if match_strip.startswith("-") or match_strip.startswith("+"):
             clean_objc = re.sub(r"^[-+]\s*(?:\([^)]+\))?\s*", "", match_strip)
             clean_objc = clean_objc.split(":")[0].split("(")[0].split("{")[0].strip()
-            words = [
-                w for w in re.findall(r"[a-zA-Z0-9_.-]+", clean_objc) if w.strip("_-")
-            ]
+            words = [w for w in re.findall(r"[a-zA-Z0-9_.-]+", clean_objc) if w.strip("_-")]
             return words[0] if words else "Unknown_Block"
 
         # --- 1.5 Overloaded Operator Extraction (C++) ---
@@ -2341,42 +2162,33 @@ class StructuralExtractor:
             clean = clean.split(":")[0].strip()
         else:
             # ---> Namespace Resolution Preservation (C++/PHP) <---
-            # DEFENSIVE ARCHITECTURE: Rather than utilizing expensive regex lookaheads to ignore 
-            # double-colons (::) while splitting on single colons (:) for type hints, we utilize 
+            # DEFENSIVE ARCHITECTURE: Rather than utilizing expensive regex lookaheads to ignore
+            # double-colons (::) while splitting on single colons (:) for type hints, we utilize
             # a high-speed O(N) string replacement to temporarily mask the namespace operator.
             clean = clean.replace("::", "__NAMESPACE_SCOPE__")
-            
+
             # Truncate at parameter lists, body openings, or return type hints
             clean = clean.split("(")[0].split("{")[0].split(":")[0].strip()
-            
+
             # Restore the namespace operator
             clean = clean.replace("__NAMESPACE_SCOPE__", "::")
 
         # Allow standard characters, plus Makefiles ($/%), and Scopes (:)
-        words = [
-            w for w in re.findall(r"[a-zA-Z0-9_./%$():-]+", clean) if w.strip("_-:")
-        ]
+        words = [w for w in re.findall(r"[a-zA-Z0-9_./%$():-]+", clean) if w.strip("_-:")]
 
         return words[-1] if words else "Unknown_Block"
+
     def _classify_function(self, name: str, block: str, rules: Dict[str, Any]) -> str:
         tag_match = re.search(r"[\@](?:type|gal_type)[:\s]+(\w+)", block, re.IGNORECASE)
         if tag_match:
             return tag_match.group(1).lower()
 
         name_lower = name.lower()
-        if any(
-            v in name_lower for v in ["get", "fetch", "load", "read", "query", "select"]
-        ):
+        if any(v in name_lower for v in ["get", "fetch", "load", "read", "query", "select"]):
             return "io"
-        if any(
-            v in name_lower
-            for v in ["set", "write", "save", "update", "delete", "post", "send", "put"]
-        ):
+        if any(v in name_lower for v in ["set", "write", "save", "update", "delete", "post", "send", "put"]):
             return "mutation"
-        if any(
-            v in name_lower
-            for v in ["on", "handle", "click", "submit", "route", "rupt", "task"]
-        ):
+        if any(v in name_lower for v in ["on", "handle", "click", "submit", "route", "rupt", "task"]):
             return "event"
         if any(
             v in name_lower
@@ -2398,15 +2210,11 @@ class StructuralExtractor:
         if any(v in name_lower for v in ["test", "assert", "mock", "stub"]):
             return "verification"
 
-        danger_pattern = rules.get("danger")
+        danger_pattern = rules.get("high_risk_execution")
         io_pattern = rules.get("io")
 
-        if (
-            danger_pattern
-            and hasattr(danger_pattern, "search")
-            and danger_pattern.search(block)
-        ):
-            return "danger"
+        if danger_pattern and hasattr(danger_pattern, "search") and danger_pattern.search(block):
+            return "high_risk_execution"
         if io_pattern and hasattr(io_pattern, "search") and io_pattern.search(block):
             return "io"
 

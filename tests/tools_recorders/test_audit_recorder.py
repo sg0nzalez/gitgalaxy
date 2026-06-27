@@ -10,7 +10,7 @@ def recorder():
     # We patch the schema dynamically so our tests are immune to upstream schema changes
     mock_schemas = {
         "RISK_SCHEMA": ["secrets_risk", "indentation_faction", "logic_bomb"],
-        "SIGNAL_SCHEMA": ["sec_private_info", "sec_danger"],
+        "SIGNAL_SCHEMA": ["sec_hardcoded_secrets", "sec_high_risk_execution"],
         "EXPOSURE_LABELS": {
             "secrets_risk": "Secrets Risk Exposure",
             "indentation_faction": "Indentation Consistency",
@@ -85,9 +85,9 @@ def test_audit_recorder_generate_ml_threat_report(recorder, tmp_path):
     # Validate File Identity overrides
     artifact = payload["6. Parsed Files (Scanned Artifacts)"]["src/core"]["Files"]["src/core/auth.py"]
     assert artifact["1. Artifact Identity"]["System Purpose"] == "Handles JWT Validation"
-    
+
     # Validate Unparsable formatting
-    unparsable = payload["5. Unparsable Files (Excluded Artifacts Queue)"]
+    unparsable = payload["5. Unparsable Artifacts (Excluded Artifacts Queue)"]
     assert len(unparsable) == 2
     assert unparsable[1]["Forensic Category"] == "Parser Bypass"
 

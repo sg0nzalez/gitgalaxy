@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: PII Data Leak Hunter
-# Purpose: High-speed, single-pass log analyzer that hunts and masks
+# GitGalaxy Tool: PII Data Leak Hunter
+# Purpose: High-speed, single-pass log analyzer that detects and masks
 #          exposed Credit Cards, SSNs, and AWS API Keys.
 # ==============================================================================
 import argparse
@@ -12,21 +12,20 @@ from collections import defaultdict
 from pathlib import Path
 
 # ==============================================================================
-# 1. THE REGEX PHYSICS (MATHEMATICAL TRAPS)
+# 1. REGEX PATTERNS (PII SIGNATURES)
 # ==============================================================================
-# We compile these as binary (bytes) to maintain the insane speed of the original log parser
+# We compile these as binary (bytes) to maintain maximum execution speed
+# during large-scale log ingestion.
 PII_PATTERNS = {
     "VISA": re.compile(rb"\b4[0-9]{12}(?:[0-9]{3})?\b"),
-    "MASTERCARD": re.compile(
-        rb"\b(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}\b"
-    ),
+    "MASTERCARD": re.compile(rb"\b(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}\b"),
     "SSN": re.compile(rb"\b\d{3}-\d{2}-\d{4}\b"),
     "AWS_KEY": re.compile(rb"\b(?:AKIA|ASIA|AGPA|AIDA|AROA|AIPA)[A-Z0-9]{16}\b"),
 }
 
 
 def mask_pii(text: str) -> str:
-    """Masks out the middle of sensitive data so the evidence log is safe."""
+    """Masks out the middle of sensitive data so the evidence log is safe for retention."""
     # Mask Visa & Mastercard (Leave last 4)
     text = re.sub(
         r"\b(4[0-9]{12}(?:[0-9]{3})?)\b",
@@ -53,7 +52,7 @@ def mask_pii(text: str) -> str:
 
 
 def draw_ascii_histogram(time_buckets: dict, keyword: str):
-    """Draws a dynamically scaled ASCII histogram, showing only top spikes if massive."""
+    """Draws a dynamically scaled ASCII histogram to visualize exposure frequency over time."""
     if not time_buckets:
         return
 
@@ -66,9 +65,7 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
 
     if len(time_buckets) > 15:
         print(" (Filtering to Top 15 Highest Volume Spikes)")
-        top_offenders = sorted(time_buckets.items(), key=lambda x: x[1], reverse=True)[
-            :15
-        ]
+        top_offenders = sorted(time_buckets.items(), key=lambda x: x[1], reverse=True)[:15]
         display_buckets = dict(sorted(top_offenders))
     else:
         display_buckets = dict(sorted(time_buckets.items()))
@@ -77,11 +74,7 @@ def draw_ascii_histogram(time_buckets: dict, keyword: str):
         bar_len = int((hits / max_hits) * max_bar_width) if max_hits > 0 else 0
         bar = "█" * max(1, bar_len)
 
-        alert = (
-            "  <-- MASSIVE EXFILTRATION SPIKE"
-            if hits >= anomaly_threshold and hits > 10
-            else ""
-        )
+        alert = "  <-- HIGH VOLUME SPIKE DETECTED" if hits >= anomaly_threshold and hits > 10 else ""
         print(f" [{time_bucket}] {bar} ({hits:,} hits){alert}")
 
 
@@ -98,9 +91,9 @@ def main():
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="""
 ==============================================================================
-HUNTING CAPABILITIES:
+SCANNING CAPABILITIES:
 This engine bypasses standard indexing to stream raw binary logs or database 
-dumps. It currently hunts and actively masks the following patterns:
+dumps. It currently detects and actively masks the following patterns:
   - VISA Credit Cards
   - MASTERCARD Credit Cards
   - US Social Security Numbers (SSN)
@@ -114,7 +107,7 @@ Masked evidence logs are safely written to disk without exposing the full PII.
     parser.add_argument(
         "--out",
         type=str,
-        help="Optional: Custom directory to save the safe evidence log",
+        help="Optional: Custom directory to save the redacted evidence log",
     )
     args = parser.parse_args()
 
@@ -123,9 +116,7 @@ Masked evidence logs are safely written to disk without exposing the full PII.
     # -------------------------------------------------------------------------
     target_path = Path(args.target).resolve()
     if not target_path.exists() or not target_path.is_file():
-        print(
-            f"\n[!] ERROR: Target file does not exist or is not a file: {target_path}"
-        )
+        print(f"\n[ERROR] Target file does not exist or is not a file: {target_path}")
         sys.exit(1)
 
     if args.out:
@@ -136,7 +127,7 @@ Masked evidence logs are safely written to disk without exposing the full PII.
     try:
         out_dir.mkdir(parents=True, exist_ok=True)
     except PermissionError:
-        print(f"\n[!] ERROR: Permission denied to create output directory: {out_dir}")
+        print(f"\n[ERROR] Permission denied to create output directory: {out_dir}")
         sys.exit(1)
 
     results_path = out_dir / f"{target_path.stem}_pii_leak_evidence.log"
@@ -146,23 +137,19 @@ Masked evidence logs are safely written to disk without exposing the full PII.
         file_size_gb = file_size_bytes / (1024**3)
         file_size_mb = file_size_bytes / (1024**2)
     except OSError as e:
-        print(f"\n[!] ERROR: Could not read target file size: {e}")
+        print(f"\n[ERROR] Could not read target file size: {e}")
         sys.exit(1)
 
-    print(
-        f"🚨 Tapping into data stream: {target_path.name} ({file_size_gb:.2f} GB / {file_size_mb:.2f} MB)"
-    )
-    print(f"🛡️  Masking enabled. Streaming safe evidence to: {results_path.name}")
+    print(f"🔍 Initializing stream analysis: {target_path.name} ({file_size_gb:.2f} GB / {file_size_mb:.2f} MB)")
+    print(f"🛡️  Masking enabled. Writing redacted evidence to: {results_path.name}")
 
-    ts_pattern = re.compile(
-        rb"(\d{4}-\d{2}-\d{2}[T\s]\d{2}|\b[A-Z][a-z]{2}\s+\d{1,2}\s\d{2})"
-    )
+    ts_pattern = re.compile(rb"(\d{4}-\d{2}-\d{2}[T\s]\d{2}|\b[A-Z][a-z]{2}\s+\d{1,2}\s\d{2})")
     histograms = {kw: defaultdict(int) for kw in PII_PATTERNS.keys()}
 
     start_time = time.time()
 
     # -------------------------------------------------------------------------
-    # 3. HIGH-SPEED SCANNING (The Memory Shield)
+    # 3. HIGH-SPEED SCANNING
     # -------------------------------------------------------------------------
     try:
         with (
@@ -182,13 +169,11 @@ Masked evidence logs are safely written to disk without exposing the full PII.
 
                         ts_match = ts_pattern.search(line)
                         bucket = (
-                            ts_match.group(1).decode("utf-8", errors="ignore") + ":00"
-                            if ts_match
-                            else "Unknown Time"
+                            ts_match.group(1).decode("utf-8", errors="ignore") + ":00" if ts_match else "Unknown Time"
                         )
                         histograms[pii_type][bucket] += 1
     except IOError as e:
-        print(f"\n[!] FATAL I/O ERROR during streaming: {e}")
+        print(f"\n[FATAL ERROR] I/O failure during streaming: {e}")
         sys.exit(1)
 
     time_elapsed = time.time() - start_time
@@ -203,7 +188,7 @@ Masked evidence logs are safely written to disk without exposing the full PII.
     max_total = max(total_counts.values()) if total_counts.values() else 0
 
     print("\n" + "=" * 75)
-    print(" 🚨 PRIVACY INCIDENT SUMMARY (TOTAL EXPOSURE)")
+    print(" PII DATA LEAK HUNTER: SCAN SUMMARY")
     print("=" * 75)
 
     if max_total > 0:
@@ -212,7 +197,7 @@ Masked evidence logs are safely written to disk without exposing the full PII.
             bar = "█" * max(1, bar_len) if count > 0 else ""
             print(f" {kw.ljust(15)} | {bar} ({count:,} hits)")
     else:
-        print(" ✅ Clean scan. No Social Security, Credit Card, or AWS Keys detected.")
+        print(" [SUCCESS] Clean scan. No Social Security, Credit Card, or AWS Keys detected.")
 
     print("-" * 75)
 
@@ -227,11 +212,9 @@ Masked evidence logs are safely written to disk without exposing the full PII.
     else:
         speed_str = "Instant"
 
-    print(
-        f" ✅ Scan complete. Sliced through {target_path.name} in {time_elapsed:.2f} seconds."
-    )
-    print(f" ⚡ Processing Velocity: {speed_str}")
-    print(f" 📁 Safe Evidence Log: {results_path.resolve()}")
+    print(f" [COMPLETE] Processed {target_path.name} in {time_elapsed:.2f} seconds.")
+    print(f" Processing Velocity: {speed_str}")
+    print(f" Redacted Evidence Log: {results_path.resolve()}")
     print("=" * 75 + "\n")
 
 

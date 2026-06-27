@@ -18,11 +18,7 @@ class TensorScanner:
     """
 
     def __init__(self, parent_logger: logging.Logger = None):
-        self.logger = (
-            parent_logger.getChild("tensor_scanner")
-            if parent_logger
-            else logging.getLogger("tensor_scanner")
-        )
+        self.logger = parent_logger.getChild("tensor_scanner") if parent_logger else logging.getLogger("tensor_scanner")
 
     def audit_model(self, file_path: str) -> Dict[str, Any]:
         """Routes the binary to the correct header parser."""
@@ -56,9 +52,9 @@ class TensorScanner:
             # ==================================================================
             # DEFENSIVE ARCHITECTURE: O(1) Memory Footprint
             # We explicitly do NOT use `torch.load()` or `safetensors.safe_open()`.
-            # Loading a 70B parameter model into RAM would instantly trigger an 
-            # OOM (Out of Memory) kill in CI/CD pipelines. By only reading the 
-            # first 8 bytes to extract the JSON header size, we keep the memory 
+            # Loading a 70B parameter model into RAM would instantly trigger an
+            # OOM (Out of Memory) kill in CI/CD pipelines. By only reading the
+            # first 8 bytes to extract the JSON header size, we keep the memory
             # footprint microscopic.
             # ==================================================================
             header_size_bytes = f.read(8)
@@ -69,15 +65,13 @@ class TensorScanner:
 
             # ==================================================================
             # DEFENSIVE ARCHITECTURE: Denial of Service (DoS) / Memory Bomb Guard
-            # A malicious actor could craft a tiny safetensor file that claims its 
-            # JSON header is 500GB. When Python attempts to read those bytes, it 
-            # causes a catastrophic memory exhaustion attack. We hard-cap the read 
+            # A malicious actor could craft a tiny safetensor file that claims its
+            # JSON header is 500GB. When Python attempts to read those bytes, it
+            # causes a catastrophic memory exhaustion attack. We hard-cap the read
             # buffer at 100MB to mathematically guarantee pipeline survival.
             # ==================================================================
             if header_size > 100 * 1024 * 1024:
-                raise ValueError(
-                    f"Safetensors header is suspiciously large: {header_size} bytes"
-                )
+                raise ValueError(f"Safetensors header is suspiciously large: {header_size} bytes")
 
             # 2. Read the JSON header
             header_json_bytes = f.read(header_size)
@@ -85,9 +79,7 @@ class TensorScanner:
 
             # 3. Extract Metadata
             metadata = header.get("__metadata__", {})
-            architecture = metadata.get(
-                "architecture", metadata.get("format", "Unknown Transformer")
-            )
+            architecture = metadata.get("architecture", metadata.get("format", "Unknown Transformer"))
 
             # 4. Calculate Parameters (Sum of the product of all tensor shapes)
             total_params = 0
@@ -116,9 +108,9 @@ class TensorScanner:
             # ==================================================================
             # DEFENSIVE ARCHITECTURE: Algorithmic Complexity Guard
             # The GGUF format uses a deeply nested binary tree for KV pairs.
-            # Writing a pure Python binary tree walker introduces a massive risk of 
+            # Writing a pure Python binary tree walker introduces a massive risk of
             # infinite loops (ReDoS equivalents) if the parsed file is malformed.
-            # Instead, we read a flat 1MB chunk and extract known ASCII signatures. 
+            # Instead, we read a flat 1MB chunk and extract known ASCII signatures.
             # This guarantees an O(1) time complexity and O(1) space complexity.
             # ==================================================================
             chunk = f.read(1024 * 1024)

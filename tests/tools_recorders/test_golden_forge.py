@@ -48,12 +48,15 @@ public class ProcessPayrollController {
     private final ProcessPayrollService processPayrollService;
 
     @PostMapping("/execute")
-    public ResponseEntity<?> executeProcessPayroll(        @RequestBody EmployeeRecordDTO employeeRecordData,
-        @RequestBody TimecardDataDTO timecardDataData    ) {        // ⚡ TRANSACTIONAL PARADIGM DETECTED
+    public ResponseEntity<?> executeProcessPayroll(
+        @RequestBody EmployeeRecordDTO employeeRecordData,
+        @RequestBody TimecardDataDTO timecardDataData
+    ) {
+        // TRANSACTIONAL PARADIGM DETECTED
         processPayrollService.executeProcessPayroll(/* pass DTOs here */);
-
         // Expected Outputs: PAYROLL-RECEIPT
-        return ResponseEntity.ok().build();    }
+        return ResponseEntity.ok().build();
+    }
 }"""
 
 GOLDEN_ENTITY = """package com.gitgalaxy.modernized.entity;

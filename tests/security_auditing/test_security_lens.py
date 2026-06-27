@@ -37,13 +37,13 @@ def test_sast_vulnerability_signatures(lens):
     result = lens.scan_content(malicious_code, 15)
     counts = result["counts"]
 
-    assert counts.get("private_info", 0) > 0, "Failed to detect high-entropy API key!"
-    assert counts.get("safety_neg", 0) > 0, "Failed to detect safety bypass (ini_set)!"
-    assert counts.get("danger", 0) > 0, "Failed to detect dynamic execution payload (eval)!"
+    assert counts.get("hardcoded_secrets", 0) > 0, "Failed to detect high-entropy API key!"
+    assert counts.get("safety_bypasses", 0) > 0, "Failed to detect safety bypass (ini_set)!"
+    assert counts.get("high_risk_execution", 0) > 0, "Failed to detect dynamic execution payload (eval)!"
     assert counts.get("shadow_imports", 0) > 0, (
         "Failed to detect steganographic import!"
     )
-    assert counts.get("flux", 0) > 0, "Failed to detect prototype pollution!"
+    assert counts.get("state_mutation", 0) > 0, "Failed to detect prototype pollution!"
 
 
 # ==============================================================================
@@ -144,7 +144,7 @@ def test_evaluate_risk_network_centrality(lens):
     for highly central architecture nodes in the dependency graph.
     """
     hits = {
-        "danger": 50,
+        "high_risk_execution": 50,
         "io": 20,
     }  # 70 hits in 100 LOC = 0.70 density (breaches 0.65 threshold)
     loc = 100
@@ -176,8 +176,8 @@ def test_evaluate_risk_prompt_injection_isolation(lens):
 
     risk = lens.evaluate_risk(hits, loc, network_metrics=None)
 
-    assert "Prompt Injection Risk" in risk
-    assert "Agentic RCE Risk (Critical)" not in risk
+    assert "Prompt Injection Surface Risk" in risk
+    assert "Autonomous Execution Vector (Critical)" not in risk
 
 
 # ==============================================================================
@@ -195,7 +195,7 @@ def test_binary_magic_byte_scanner(lens):
     assert "sec_extension_mismatch" in result_mismatch, (
         "Failed to detect Magic Byte mismatch!"
     )
-    assert "sec_danger" in result_mismatch, (
+    assert "sec_high_risk_execution" in result_mismatch, (
         "Failed to detect embedded ELF execution header!"
     )
 
@@ -203,7 +203,7 @@ def test_binary_magic_byte_scanner(lens):
     random_bytes = os.urandom(50000)  # Large sample size guarantees entropy > 7.95
     result_entropy = lens.scan_binary(random_bytes, ".bin")
 
-    assert "sec_heat_triggers" in result_entropy, (
+    assert "sec_reflection_metaprogramming" in result_entropy, (
         "Failed to calculate extreme binary entropy!"
     )
 
@@ -220,18 +220,18 @@ def test_comprehensive_risk_evaluation_coverage(lens):
     assert lens._calculate_shannon_entropy("") == 0.0
 
     # 2. Safe Code Baseline (Zero False Positives)
-    safe_hits = {"branch": 5, "linear": 10}
+    safe_hits = {"branch": 5, "structural_boundaries": 10}
     safe_risk = lens.evaluate_risk(safe_hits, 100)
     assert not safe_risk, "Safe code generated false positive risk exposures!"
 
     # 3. Total Threshold Breach (Triggering every risk vector simultaneously)
     apocalyptic_hits = {
-        "heat_triggers": 500,  # Hidden Malware
-        "graveyard": 500,  # Logic Bomb
+        "reflection_metaprogramming": 500,  # Hidden Malware
+        "dead_code": 500,  # Logic Bomb
         "io": 500,
-        "danger": 500,  # Data Injection
+        "high_risk_execution": 500,  # Data Injection
         "memory_corruption": 500,  # Memory Corruption
-        "private_info": 500,  # Secrets Leak
+        "hardcoded_secrets": 500,  # Secrets Leak
         "agentic_rce": 1,  # Critical Agentic RCE Override
     }
 
@@ -241,7 +241,7 @@ def test_comprehensive_risk_evaluation_coverage(lens):
     assert "Logic Bomb Risk" in doomsday_risk
     assert "Memory Corruption Risk" in doomsday_risk
     assert "Secrets Leak Risk" in doomsday_risk
-    assert "Agentic RCE Risk (Critical)" in doomsday_risk
+    assert "Autonomous Execution Vector (Critical)" in doomsday_risk
 
     # 4. Binary Scanner Exception Handler
     # We pass a valid byte array to survive the header scan, but mock the Counter

@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Java Spring Build System Forge
-# Purpose: Auto-generates the Maven pom.xml and application.yml configuration
-#          to make the translated Spring Boot architecture instantly compilable.
+# GitGalaxy Tool: Java Spring Build System Generator
+#
+# PURPOSE:
+# Auto-generates the Maven pom.xml and application.yml configuration to ensure 
+# the translated Spring Boot architecture is immediately and perfectly compilable.
+#
+# ARCHITECTURAL DECISION:
+# Generative AI frequently hallucinates incompatible library versions, mixes Maven 
+# and Gradle paradigms randomly, or omits critical runtime drivers (like PostgreSQL).
+# By utilizing this static generation module to lay down the build infrastructure 
+# and properties, we establish a rigid, compilable sandbox. The autonomous agents 
+# are then restricted entirely to editing the business logic within the bounds 
+# of this pre-verified dependency graph.
 # ==============================================================================
 
 
 def generate_pom_xml(group_id: str, artifact_id: str) -> str:
-    """Forges a production-ready Maven pom.xml for the microservice."""
+    """Scaffolds a production-ready Maven pom.xml for the microservice."""
     pom = f"""<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" 
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -23,7 +33,7 @@ def generate_pom_xml(group_id: str, artifact_id: str) -> str:
     <artifactId>{artifact_id}</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>{artifact_id}</name>
-    <description>GitGalaxy Auto-Forged Microservice</description>
+    <description>GitGalaxy Auto-Generated Microservice</description>
     
     <properties>
         <java.version>17</java.version>
@@ -49,12 +59,6 @@ def generate_pom_xml(group_id: str, artifact_id: str) -> str:
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
         </dependency>
         
         <dependency>
@@ -103,7 +107,7 @@ def generate_pom_xml(group_id: str, artifact_id: str) -> str:
 
 
 def generate_application_yml(artifact_id: str) -> str:
-    """Forges the application.yml with standard Postgres and JPA configs."""
+    """Scaffolds the application.yml with standard Postgres and JPA configurations."""
     yml = f"""server:
   port: 8080
 
@@ -137,7 +141,7 @@ spring:
 
 
 def generate_main_class(package_name: str, class_name: str) -> str:
-    """Forges the Spring Boot Application entry point."""
+    """Scaffolds the Spring Boot Application entry point."""
     java = f"""package {package_name};
 
 import org.springframework.boot.SpringApplication;

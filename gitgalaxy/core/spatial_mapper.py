@@ -5,13 +5,12 @@
 # This source code is licensed under the PolyForm Noncommercial License 1.0.0.
 # You may not use this file except in compliance with the License.
 # A copy of the license can be found in the LICENSE file in the root directory
-# of this project, or at [https://polyformproject.org/licenses/noncommercial/1.0.0/](https://polyformproject.org/licenses/noncommercial/1.0.0/)
+# of this project, or at https://polyformproject.org/licenses/noncommercial/1.0.0/
 # ==============================================================================
 import math
 import hashlib
 import logging
 from typing import Dict, List, Any, Optional
-
 
 # ------------------------------------------------------------------------------
 # SPATIAL MAPPER (Phase 7.5: Spatial Positioning Engine)
@@ -19,15 +18,16 @@ from typing import Dict, List, Any, Optional
 
 class SpatialMapper:
     """
-    Transforms a flat list of files into a deterministic 3D Cartesian coordinate map.
+    Transforms a flat list of artifacts into a deterministic 3D Cartesian coordinate map.
 
-    Groups files into Directory Clusters (folders) and positions them relative to the 
-    highest-impact central node (God Object) of each sector while maintaining spatial clearance.
+    Groups files into Directory Clusters (folders) and positions them relative to the
+    highest-impact central node (Critical Node) of each sector while maintaining spatial clearance.
 
     DEFENSIVE ARCHITECTURE (Angular Spatial Hashing):
-    Standard physics engines crash on O(N^2) collision detection loops when placing thousands 
-    of nodes. This mapper neutralizes that by bucketing the map into 360 angular degrees. 
-    A placement ray only checks the exact degree it points at, securing O(1) collision avoidance.
+    Standard layout engines crash on O(N^2) collision detection loops when placing thousands
+    of nodes. This mapper neutralizes that bottleneck by bucketing the map into 360 angular degrees.
+    A placement ray only checks the exact degree it points at (and its immediate neighbors), 
+    securing O(1) collision avoidance. This guarantees extreme velocity even on massive enterprise monoliths.
     """
 
     def __init__(self, parent_logger: Optional[logging.Logger] = None):
@@ -40,10 +40,9 @@ class SpatialMapper:
             self.logger.setLevel(logging.INFO)
 
         # --- SPATIAL CONSTANTS ---
-        # Micro Angle: Nodes within folders follow the classic Golden Angle
-        self.MICRO_GOLDEN_ANGLE = math.pi * (
-            3.0 - math.sqrt(5.0)
-        )  # ~2.39996 rad (~137.5 deg)
+        # Micro Angle: Nodes within folders follow the classic mathematical Golden Angle
+        # for optimal, non-overlapping organic distribution.
+        self.MICRO_GOLDEN_ANGLE = math.pi * (3.0 - math.sqrt(5.0))  # ~2.39996 rad (~137.5 deg)
 
         # Macro Angle: Directory Clusters follow the user-tuned 92.4 degree step
         self.MACRO_GOLDEN_ANGLE = math.radians(92.4)
@@ -51,23 +50,22 @@ class SpatialMapper:
         # Base expansion multipliers
         self.MICRO_SPACING = 250.0  # Internal node-to-node density baseline
         self.MACRO_STEP_FACTOR = 1.5  # Inter-cluster step multiplier (Center-to-Center)
-        self.MAX_TILT_DEG = (
-            15.0  # Max degrees a cluster can tilt from horizontal plane
-        )
-        self.CORE_EXCLUSION_RADIUS = 600.0  # Clear center zone
+        self.MAX_TILT_DEG = 15.0  # Max degrees a cluster can tilt from the horizontal plane
+        self.CORE_EXCLUSION_RADIUS = 600.0  # Clear center zone to prevent origin overlapping
         self.JITTER_MAGNITUDE = 100
 
-    def _calculate_spatial_clearance(self, mass: float) -> float:
-        """Determines the required tight clearance radius for a node based on mass."""
-        visual_radius = 10 + (math.pow(max(mass, 1), 1 / 3) * 2)
-        clearance = 40 + (math.log2(max(mass, 2)) * 5)
+    def _calculate_spatial_clearance(self, magnitude: float) -> float:
+        """Determines the required tight clearance radius for a node based on its structural magnitude."""
+        visual_radius = 10 + (math.pow(max(magnitude, 1), 1 / 3) * 2)
+        clearance = 40 + (math.log2(max(magnitude, 2)) * 5)
 
         return visual_radius + clearance
 
     def _hash_jitter(self, seed: str, amplitude: float) -> float:
         """
         Applies a deterministic pseudo-random jitter based on a filename hash.
-        Ensures the same codebase generates the exact same geometry every time.
+        This ensures that running the analysis multiple times on the same codebase 
+        generates the exact same geometry every time, providing visual stability across audits.
         """
         if not seed:
             return 0.0
@@ -76,20 +74,16 @@ class SpatialMapper:
         normalized = (h / 0xFFFFFFFF) * 2.0 - 1.0
         return normalized * amplitude
 
-    def map_repository(
-        self, parsed_files: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def map_repository(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Injects 3D coordinates using a Ray-Casting Dynamic Mask.
-        Ensures ecosystem graphs wrap around previous turns of the spiral by measuring
+        Ensures ecosystem graphs wrap cleanly around previous turns of the spiral by measuring
         all previously placed obstruction circles.
         """
         if not parsed_files:
             return []
 
-        self.logger.info(
-            f"Spatial Mapper: Executing Ray-Casting Dynamic Mask packing for {len(parsed_files)} nodes..."
-        )
+        self.logger.info(f"Spatial Mapper: Executing Ray-Casting Dynamic Mask packing for {len(parsed_files)} nodes...")
 
         # 1. Sectorization (Directory Grouping)
         sectors: Dict[str, List[Dict[str, Any]]] = {}
@@ -105,9 +99,9 @@ class SpatialMapper:
         # 2. Hull Calculation
         sector_stats = []
         for name, items in sectors.items():
-            items.sort(key=self._get_mass, reverse=True)
-            central_node_mass = self._get_mass(items[0])
-            central_footprint = self._calculate_spatial_clearance(central_node_mass)
+            items.sort(key=self._get_magnitude, reverse=True)
+            central_node_magnitude = self._get_magnitude(items[0])
+            central_footprint = self._calculate_spatial_clearance(central_node_magnitude)
             hull_radius = central_footprint + (math.sqrt(len(items)) * self.MICRO_SPACING)
             sector_stats.append({"name": name, "nodes": items, "radius": hull_radius})
 
@@ -194,22 +188,18 @@ class SpatialMapper:
 
             # Jitter and Tilt logic
             sec_y = self._hash_jitter(s_name, 250.0)
-            tilt_mag = math.radians(
-                self._hash_jitter(s_name + "_tilt_mag", self.MAX_TILT_DEG)
-            )
-            tilt_dir = math.radians(
-                (self._hash_jitter(s_name + "_tilt_dir", 0.5) + 0.5) * 360.0
-            )
+            tilt_mag = math.radians(self._hash_jitter(s_name + "_tilt_mag", self.MAX_TILT_DEG))
+            tilt_dir = math.radians((self._hash_jitter(s_name + "_tilt_dir", 0.5) + 0.5) * 360.0)
 
-            central_node_mass = self._get_mass(s_nodes[0])
-            central_footprint = self._calculate_spatial_clearance(central_node_mass)
+            central_node_magnitude = self._get_magnitude(s_nodes[0])
+            central_footprint = self._calculate_spatial_clearance(central_node_magnitude)
 
             for j, node in enumerate(s_nodes):
                 f_name = node.get("name", node.get("filename", f"node_{j}"))
                 if j == 0:
                     lx, ly, lz = 0.0, 0.0, 0.0
                 else:
-                    p_foot = self._calculate_spatial_clearance(self._get_mass(node))
+                    p_foot = self._calculate_spatial_clearance(self._get_magnitude(node))
                     local_r = central_footprint + p_foot + (math.sqrt(j) * self.MICRO_SPACING)
                     local_th = j * self.MICRO_GOLDEN_ANGLE
 
@@ -235,8 +225,8 @@ class SpatialMapper:
 
         return parsed_files
 
-    def _get_mass(self, node: Dict[str, Any]) -> float:
-        """Safely extracts mass regardless of which JSON version the pipeline is using."""
+    def _get_magnitude(self, node: Dict[str, Any]) -> float:
+        """Safely extracts structural magnitude regardless of which JSON version the pipeline is using."""
         if "forensics" in node:
             return float(node["forensics"].get("structural_mass", 0.0))
         return float(node.get("file_impact", node.get("sum_fxn_impact", 0.0)))

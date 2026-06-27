@@ -11,11 +11,11 @@ import re
 
 """
 analysis_lens.py
-Phase 4+: The Laws of Physics, Threat Policies, and Mathematical Constants.
+Phase 4+: Structural Policies, Threat Policies, and Mathematical Constants.
 
 This file contains the immutable mathematical constants, security thresholds, 
 and spatial modifiers used by the Signal Processor to calculate risk exposures 
-and physical mass.
+and structural magnitude.
 """
 
 # ------------------------------------------------------------------------------
@@ -57,8 +57,8 @@ class ThreatPolicy:
 
 
 # ------------------------------------------------------------------------------
-# 2. CORE PHYSICS CONSTANTS
-# Consumed by: signal_processor.py
+# 2. CORE STRUCTURAL CONSTANTS
+# # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
 ENGINE_CONSTANTS = {
     "WEIGHT_RISK": 2.5,
@@ -133,9 +133,9 @@ ASSET_MASKS = {
     },
     # ==============================================================================
     # DEFENSIVE DESIGN: RECURSIVE TESTING TRAP PREVENTION
-    # SAST tools frequently generate false-positive "Lack of Coverage" alerts on 
-    # configuration files or the test artifacts themselves. This explicit exclusion 
-    # mask ensures the engine never demands unit tests for inert data, generated 
+    # SAST tools frequently generate false-positive "Lack of Coverage" alerts on
+    # configuration files or the test artifacts themselves. This explicit exclusion
+    # mask ensures the engine never demands unit tests for inert data, generated
     # scaffolding, or test snapshots, drastically reducing alert fatigue.
     # ==============================================================================
     "UNTESTABLE_EXTENSIONS": {
@@ -244,8 +244,8 @@ ASSET_MASKS = {
     },
 }
 # ------------------------------------------------------------------------------
-# 4. ENVIRONMENTAL PHYSICS (Path Modifiers)
-# Consumed by: signal_processor.py
+# 4. ENVIRONMENTAL MODIFIERS (Path Modifiers)
+# # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
 PATH_MODIFIERS = {
     "Cognitive Load Exposure": [
@@ -253,9 +253,7 @@ PATH_MODIFIERS = {
         # Translation files, constants, and enums have massive line counts but almost
         # zero logical complexity. Dampen them heavily so they don't look like giant risks.
         (
-            re.compile(
-                r"(?:^|/)(?:i18n|locales?|translations?|constants?|enums?)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:i18n|locales?|translations?|constants?|enums?)/", re.I),
             0.80,
         ),
         # 2. The Abstraction (Declarations & Headers)
@@ -299,9 +297,7 @@ PATH_MODIFIERS = {
         # Highly secure zones dedicated to authentication, authorization, and cryptography.
         # Massive reduction in risk exposure because this is explicit defensive mass.
         (
-            re.compile(
-                r"(?:^|/)(?:auth|security|policies|permissions|roles|crypto)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:auth|security|policies|permissions|roles|crypto)/", re.I),
             0.80,
         ),
         # 2. The Contract (Strong Typing, Models & Schemas)
@@ -327,7 +323,7 @@ PATH_MODIFIERS = {
         ),
         # 4. Unchecked Execution Zones (Raw & Unchecked Data)
         # Areas where memory management or input sanitization is deliberately turned off.
-        # Added 'danger' (e.g., dangerouslySetInnerHTML) and 'unverified'.
+        # Added 'high_risk_execution' (e.g., dangerouslySetInnerHTML) and 'unverified'.
         (re.compile(r"(?:^|/)(?:unsafe|raw|danger|escape|unverified)/", re.I), 1.25),
         # 5. The Override (Explicit Safety Bypasses)
         # Distinct from Tech Debt. These are files specifically named to bypass
@@ -384,9 +380,7 @@ PATH_MODIFIERS = {
         # 1. The Blueprint (Standard Directories)
         # Expanded to catch singular /doc/, /tutorials/, /guides/, and /wiki/
         (
-            re.compile(
-                r"(?:^|/)(?:docs?|examples?|tutorials?|guides?|wiki|man)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:docs?|examples?|tutorials?|guides?|wiki|man)/", re.I),
             0.0,
         ),
         # 2. The Glossary (Core Repository Literature)
@@ -404,9 +398,7 @@ PATH_MODIFIERS = {
         # 4. The Interactive Spec (API Docs & Notebooks)
         # Catches Swagger/OpenAPI schemas and Jupyter Notebooks (executable examples)
         (
-            re.compile(
-                r"(?:^|/)(?:swagger|openapi)\.(?:json|yaml|yml)$|\.ipynb$", re.I
-            ),
+            re.compile(r"(?:^|/)(?:swagger|openapi)\.(?:json|yaml|yml)$|\.ipynb$", re.I),
             0.90,
         ),
         # 5. The Story (UI Component Documentation)
@@ -429,9 +421,7 @@ PATH_MODIFIERS = {
         # Only drops to 0 if the file inside /spec/ belongs to a spec-heavy language,
         # OR if it explicitly has '.spec' or '_spec' in the filename.
         (
-            re.compile(
-                r"(?:^|/)specs?/.*\.(?:rb|js|jsx|ts|tsx|dart)$|\.spec\b|_spec\b", re.I
-            ),
+            re.compile(r"(?:^|/)specs?/.*\.(?:rb|js|jsx|ts|tsx|dart)$|\.spec\b|_spec\b", re.I),
             0.0,
         ),
         # 3. The Perl Sieve
@@ -465,9 +455,7 @@ PATH_MODIFIERS = {
         # Boilerplates, stubs, and generators intentionally contain commented-out
         # "example" code. Dampen this heavily so the engine doesn't penalize it.
         (
-            re.compile(
-                r"(?:^|/)(?:templates?|stubs?|scaffolds?|fixtures?|examples?)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:templates?|stubs?|scaffolds?|fixtures?|examples?)/", re.I),
             0.75,
         ),
         # 2. The Lab (Experimental Safe Zones)
@@ -484,9 +472,7 @@ PATH_MODIFIERS = {
         # Expanded to include /src/, /lib/, and /services/. Leaving dead code in
         # the main execution arteries creates structural friction and doubt.
         (
-            re.compile(
-                r"(?:^|/)(?:core|kernel|main|src|lib|services|providers)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:core|kernel|main|src|lib|services|providers)/", re.I),
             1.15,
         ),
         # 4. Application Entrypoints (Application Entrypoints)
@@ -524,9 +510,7 @@ PATH_MODIFIERS = {
         # interconnected data graphs to the client. A mistake here can cause
         # catastrophic N+1 database queries or data leaks.
         (
-            re.compile(
-                r"(?:^|/)(?:graphql|resolvers?|mutations?|queries|rpc|grpc|trpc)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:graphql|resolvers?|mutations?|queries|rpc|grpc|trpc)/", re.I),
             1.20,
         ),
         # 4. The Distribution Contract (SDKs & Public Exports)
@@ -600,9 +584,7 @@ PATH_MODIFIERS = {
         # constants, or configs should be completely static after boot. If the
         # engine detects state mutations here, the application is poisoning its own roots.
         (
-            re.compile(
-                r"(?:^|/)(?:configs?|envs?|globals?|constants?|settings?)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:configs?|envs?|globals?|constants?|settings?)/", re.I),
             1.25,
         ),
         # The Migration Exemption (Database State Changes)
@@ -621,19 +603,17 @@ PATH_MODIFIERS = {
     "Structural Mass": [
         # ==============================================================================
         # DEFENSIVE DESIGN: PARSER SATURATION & AST BLOAT PREVENTION
-        # Massive auto-generated files (e.g., Protobufs, Swagger, Webpack chunks) 
-        # will mathematically crush standard AST parsers and inflate a repository's 
-        # structural mass. These targeted dampeners artificially reduce the gravitational 
-        # weight of generated code, ensuring human-written architecture remains the 
+        # Massive auto-generated files (e.g., Protobufs, Swagger, Webpack chunks)
+        # will mathematically crush standard AST parsers and inflate a repository's
+        # structural mass. These targeted dampeners artificially reduce the gravitational
+        # weight of generated code, ensuring human-written architecture remains the
         # focal point of the analysis without risking OOM (Out of Memory) crashes.
         # ==============================================================================
         # The Cryptographic & Test Vector Dampener
         # Auto-generated data arrays explode parser argument math. Extreme reduction
         # prevents these static payloads from registering as massive logic hubs.
         (
-            re.compile(
-                r"(?:^|/)(?:wycheproof_tests|test_vectors|testdata|tests/data)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:wycheproof_tests|test_vectors|testdata|tests/data)/", re.I),
             0.001,
         ),
         # The Code-Generation Dampener
@@ -658,9 +638,7 @@ PATH_MODIFIERS = {
         # Neutralizes standard third-party ecosystem folders (vendor, node_modules)
         # to prevent external dependencies from eclipsing the core repository.
         (
-            re.compile(
-                r"(?:^|/)(?:resources/lib|vendor|node_modules|third_party)/", re.I
-            ),
+            re.compile(r"(?:^|/)(?:resources/lib|vendor|node_modules|third_party)/", re.I),
             0.02,
         ),
         # The Global Frontend Vendor Dampener
@@ -687,18 +665,14 @@ PATH_MODIFIERS = {
         # Dampens UI components that are purely exported SVG path data (e.g., Icon.jsx).
         # Prevents raw vector math from artificially inflating UI framework density.
         (
-            re.compile(
-                r"(?:^|/)(?:icons?|illustrations?|logos?|assets?)/.*\.jsx?|tsx?$", re.I
-            ),
+            re.compile(r"(?:^|/)(?:icons?|illustrations?|logos?|assets?)/.*\.jsx?|tsx?$", re.I),
             0.10,
         ),
         # ---> NEW: The Test Snapshot & Fixture Dampener <---
         # Neutralizes auto-generated UI snapshots and massive mock data payloads (like cryptographic keys)
         # so they do not artificially inflate the mass of the verification suite.
         (
-            re.compile(
-                r"(?:^|/)(?:__snapshots__|__mocks__|fixtures?)/|.*\.snap$", re.I
-            ),
+            re.compile(r"(?:^|/)(?:__snapshots__|__mocks__|fixtures?)/|.*\.snap$", re.I),
             0.001,
         ),
         # ---> NEW: The Academic Test Script Dampener <---
@@ -708,9 +682,7 @@ PATH_MODIFIERS = {
         # Reduces the structural weight of CI/CD shell scripts and automation tooling
         # so deployment pipelines don't mimic core application complexity.
         (
-            re.compile(
-                r"(?:^|/)(?:scripts?|ci|cd|docker|e2e)/.*\.(?:sh|bash|zsh)$", re.I
-            ),
+            re.compile(r"(?:^|/)(?:scripts?|ci|cd|docker|e2e)/.*\.(?:sh|bash|zsh)$", re.I),
             0.10,
         ),
         # The Declarative & Type Definition Dampener
@@ -818,7 +790,7 @@ RISK_EQUATION_TUNING = {
         "mass_penalty_max": 40.0,
         "risk_floor": 15.0,
     },
-    "graveyard": {
+    "dead_code": {
         "hit_mult": 3.0,
         "safe_mass_floor": 50.0,
         "threshold_base": 10.0,
@@ -882,7 +854,7 @@ RISK_EQUATION_TUNING = {
 }
 
 # ------------------------------------------------------------------------------
-# 6. DOMAIN ONTOLOGIES (Security Profiles & Alien Entity Rules)
+# 6. DOMAIN ONTOLOGIES (Security Profiles & Architectural Anomaly Rules)
 # Consumed by: signal_processor.py
 # ------------------------------------------------------------------------------
 LANGUAGE_SECURITY_PROFILES = {
@@ -949,34 +921,34 @@ LANGUAGE_SECURITY_PROFILES = {
         "systems": {
             "memory": 0.1,
             "logic_bomb": 0.2,
-            "flux": 1.0,
+            "state_mutation": 1.0,
             "injection": 1.0,
         },  # Pointer math is normal
         "web": {
             "memory": 1.0,
             "logic_bomb": 1.0,
-            "flux": 0.3,
+            "state_mutation": 0.3,
             "injection": 2.0,
         },  # DOM flux is normal, XSS is deadly
         "infra": {
             "memory": 1.0,
             "logic_bomb": 0.0,
-            "flux": 1.0,
+            "state_mutation": 1.0,
             "injection": 1.0,
         },  # OS commands are literally the point
         "backend": {
             "memory": 1.5,
             "logic_bomb": 1.0,
-            "flux": 1.5,
+            "state_mutation": 1.5,
             "injection": 1.5,
         },  # Standard aggressive baseline
     },
     # ==============================================================================
     # DEFENSIVE DESIGN: POLYGLOT CONTEXTUAL ANOMALY DETECTION
-    # A vulnerability's severity is dictated by its environment. Standard OS execution 
-    # is expected in a shell script, but highly anomalous in a frontend UI component. 
-    # This matrix multiplies threat scores when an asset exhibits behaviors hostile 
-    # to its native ecosystem (e.g., detecting C-style memory pointers inside a Node.js 
+    # A vulnerability's severity is dictated by its environment. Standard OS execution
+    # is expected in a shell script, but highly anomalous in a frontend UI component.
+    # This matrix multiplies threat scores when an asset exhibits behaviors hostile
+    # to its native ecosystem (e.g., detecting C-style memory pointers inside a Node.js
     # web layer), flagging potential Trojans or backdoors.
     # ==============================================================================
     "ECOSYSTEM_MISMATCH_WEIGHTS": {
@@ -984,12 +956,8 @@ LANGUAGE_SECURITY_PROFILES = {
             "memory": 5.0,
             "logic_bomb": 3.0,
         },  # C code hiding in a JS app = Trojan
-        "infra_in_web": {
-            "logic_bomb": 4.0
-        },  # Shell script hiding in a JS app = Backdoor
-        "web_in_systems": {
-            "flux": 3.0
-        },  # JS embedded in C firmware = Bizarre architecture
+        "infra_in_web": {"logic_bomb": 4.0},  # Shell script hiding in a JS app = Backdoor
+        "web_in_systems": {"state_mutation": 3.0},  # JS embedded in C firmware = Bizarre architecture
     },
     # ---> THE ARCHETYPE VIOLATION MATRIX (k=10 Edition) <---
     # Multiplies threat mass based on how anomalous the behavior is for the file's physical DNA.
@@ -1082,12 +1050,12 @@ RECORDING_SCHEMAS = {
         "api_exposure",
         "concurrency",
         "state_flux",
-        "graveyard",
+        "dead_code",
         "spec_match",
         "stability",
         "churn",
         "documentation",
-        "civil_war",
+        "tabs_vs_spaces",
         "algorithmic_dos",
         # --- THE SECURITY & VULNERABILITY LENSES ---
         "obscured_payload",
@@ -1098,17 +1066,17 @@ RECORDING_SCHEMAS = {
     ],
     "SIGNAL_SCHEMA": [
         "branch",
-        "linear",
+        "structural_boundaries",
         "args",
         "func_start",
         "class_start",
         "safety",
-        "safety_neg",
-        "danger",
+        "safety_bypasses",
+        "high_risk_execution",
         "io",
         "api",
-        "flux",
-        "graveyard",
+        "state_mutation",
+        "dead_code",
         "doc",
         "test",
         "concurrency",
@@ -1119,13 +1087,13 @@ RECORDING_SCHEMAS = {
         "generics",
         "comprehensions",
         "scientific",
-        "heat_triggers",
+        "reflection_metaprogramming",
         "import",
         "ownership",
         "planned_debt",
         "fragile_debt",
         "spec_exposure",
-        "civil_war",
+        "tabs_vs_spaces",
         "ssr_boundaries",
         "events",
         "dependency_injection",
@@ -1134,13 +1102,13 @@ RECORDING_SCHEMAS = {
         "memory_alloc",
         "inline_asm",
         "telemetry",
-        "print_hits",
-        "cast_hits",
-        "bailout_hits",
-        "halt_hits",
-        "bitwise_hits",
+        "debug_prints",
+        "explicit_casts",
+        "panics_and_aborts",
+        "thread_sleeps",
+        "bitwise_ops",
         "sync_locks",
-        "freeze_hits",
+        "immutability_locks",
         "cleanup",
         "encapsulation",
         "listeners",
@@ -1177,24 +1145,24 @@ RECORDING_SCHEMAS = {
         "design_upper_case",
         "design_short_vars",
         "design_long_vars",
-        "design_slop_duplicates",
-        "design_slop_orphans",
+        "duplicate_logic",
+        "orphaned_logic",
         # --- NEW: INSTRUCTIONAL PROOF SENSORS (LITERATURE) ---
         "lit_code_blocks",
         "lit_diagrams",
         "lit_headers",
         "lit_links",
         # --- NEW: PASSIVE SECURITY LENS OBSERVERS ---
-        "sec_heat_triggers",
-        "sec_safety_neg",
+        "sec_reflection_metaprogramming",
+        "sec_safety_bypasses",
         "sec_io",
-        "sec_danger",
-        "sec_flux",
-        "sec_graveyard",
-        "sec_bitwise_hits",
+        "sec_high_risk_execution",
+        "sec_state_mutation",
+        "sec_dead_code",
+        "sec_bitwise_ops",
         "sec_shadow_imports",
         "sec_homoglyphs",
-        "sec_private_info",
+        "sec_hardcoded_secrets",
         "sec_extension_mismatch",
         "sec_entropy",
         "sec_tainted_injection",
@@ -1227,14 +1195,14 @@ RECORDING_SCHEMAS = {
         "mutation",
         "event",
         "logic",
-        "danger",
+        "high_risk_execution",
     ],
     "FRIENDLY_MAP": {
         "m_locs": "Coding Lines of Code (LOC)",
         "locs": "Total Lines of Code (LOC)",
         "lang_ids": "Detected Languages",
         "lang_id": "Primary Language",
-        "mass": "Structural Complexity Mass",
+        "mass": "Structural Mass",
         "author_distribution": "Author Distribution",
         "control_flow_ratio": "Control Flow Ratio",
         "verification": "Testing & Verification Exposure",
@@ -1247,17 +1215,17 @@ RECORDING_SCHEMAS = {
         "api_exposure": "Public API Surface Area",
         "state_flux": "State Mutation Exposure",
         "branch": "Control Flow Branches",
-        "linear": "Sequential Logic Declarations",
+        "structural_boundaries": "Sequential Logic Declarations",
         "args": "Function Parameters",
         "func_start": "Function/Method Declarations",
         "class_start": "Class/Entity Declarations",
         "safety": "Defensive Programming Constructs",
-        "safety_neg": "Type/Safety Bypasses",
-        "danger": "High-Risk Execution Commands",
+        "safety_bypasses": "Type/Safety Bypasses",
+        "high_risk_execution": "High-Risk Execution Commands",
         "io": "I/O and Network Boundaries",
         "api": "Exposed API / Public Exports",
-        "flux": "State Mutations / Variable Reassignments",
-        "graveyard": "Commented-out Code (Dead Logic)",
+        "state_mutation": "State Mutations / Variable Reassignments",
+        "dead_code": "Commented-out Code (Dead Logic)",
         "doc": "Structured Documentation Blocks",
         "test": "Unit Test Assertions",
         "concurrency": "Asynchronous/Concurrent Execution",
@@ -1268,13 +1236,13 @@ RECORDING_SCHEMAS = {
         "generics": "Generic Type Abstractions",
         "comprehensions": "Collection Iterators / Comprehensions",
         "scientific": "Scientific & Mathematical Operations",
-        "heat_triggers": "Metaprogramming & Reflection",
+        "reflection_metaprogramming": "Metaprogramming & Reflection",
         "import": "Module Dependencies (Imports)",
         "ownership": "Authorship Metadata",
         "planned_debt": "Planned Work (TODOs)",
         "fragile_debt": "Acknowledged Tech Debt (FIXMEs)",
         "spec_exposure": "Specification Traceability Tags",
-        "civil_war": "Indentation Faction",
+        "tabs_vs_spaces": "Indentation Faction",
         "ssr_boundaries": "Server-Side Rendering Contexts",
         "events": "Event Publishers / Emitters",
         "dependency_injection": "Dependency Injection Constructs",
@@ -1283,13 +1251,13 @@ RECORDING_SCHEMAS = {
         "memory_alloc": "Manual Memory Allocation",
         "inline_asm": "Inline Assembly Blocks",
         "telemetry": "Structured Telemetry & Logging",
-        "print_hits": "Ad-hoc Print / Debug Statements",
-        "cast_hits": "Explicit Type Casts",
-        "bailout_hits": "Fatal Aborts & Exceptions",
-        "halt_hits": "Thread Sleeps & Blocking Waits",
-        "bitwise_hits": "Bitwise Operations",
+        "debug_prints": "Ad-hoc Print / Debug Statements",
+        "explicit_casts": "Explicit Type Casts",
+        "panics_and_aborts": "Fatal Aborts & Exceptions",
+        "thread_sleeps": "Thread Sleeps & Blocking Waits",
+        "bitwise_ops": "Bitwise Operations",
         "sync_locks": "Thread Synchronization Locks",
-        "freeze_hits": "Immutable Data Declarations",
+        "immutability_locks": "Immutable Data Declarations",
         "cleanup": "Resource Deallocation & Cleanup",
         "encapsulation": "Private / Encapsulated Scopes",
         "listeners": "Event Listeners & Subscribers",
@@ -1314,16 +1282,16 @@ RECORDING_SCHEMAS = {
         "lit_headers": "Structured Literature Headers",
         "lit_links": "Hyperlinked Literature References",
         # --- SECURITY LENS UI MAPPINGS (Plain English) ---
-        "sec_heat_triggers": "High-Entropy / Obfuscated Logic",
-        "sec_safety_neg": "Safety & Constraint Bypasses",
+        "sec_reflection_metaprogramming": "High-Entropy / Obfuscated Logic",
+        "sec_safety_bypasses": "Safety & Constraint Bypasses",
         "sec_io": "External Network & I/O Hooks",
-        "sec_danger": "Dynamic Code Execution (Eval/Exec)",
-        "sec_flux": "Global Environment Mutation",
-        "sec_graveyard": "Commented-Out Executable Logic",
-        "sec_bitwise_hits": "Low-Level Bitwise / Cryptographic Math",
+        "sec_high_risk_execution": "Dynamic Code Execution (Eval/Exec)",
+        "sec_state_mutation": "Global Environment Mutation",
+        "sec_dead_code": "Commented-Out Executable Logic",
+        "sec_bitwise_ops": "Low-Level Bitwise / Cryptographic Math",
         "sec_shadow_imports": "Non-Standard / Steganographic Imports",
         "sec_homoglyphs": "Non-Standard Unicode / Homoglyphs",
-        "sec_private_info": "Embedded Credentials & Keys",
+        "sec_hardcoded_secrets": "Embedded Credentials & Keys",
         # --- VULNERABILITY EXPOSURE MAPPINGS (Plain English) ---
         "obscured_payload": "Obfuscation & Evasion Surface",
         "logic_bomb": "Destructive Execution Surface",
@@ -1340,12 +1308,12 @@ RECORDING_SCHEMAS = {
         "api_exposure": "API Exposure",
         "concurrency": "Concurrency Exposure",
         "state_flux": "State Flux Exposure",
-        "graveyard": "Graveyard Exposure",
+        "dead_code": "Commented Logic Exposure",
         "spec_match": "Specification Exposure",
         "stability": "Instability Exposure",
         "churn": "Volatility Exposure",
         "documentation": "Documentation Exposure",
-        "civil_war": "Civil War Exposure",
+        "tabs_vs_spaces": "Civil War Exposure",
         "algorithmic_dos": "Algorithmic DoS Exposure",
         # --- SECURITY LENS UI LABELS (Plain English) ---
         "obscured_payload": "Obfuscation & Evasion Surface",

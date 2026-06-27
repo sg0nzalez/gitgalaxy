@@ -21,7 +21,7 @@ MOCK_LANG_DEFS = {
                 r"^[ \t]*def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", re.M
             ),
             "branch": re.compile(r"\b(if|elif|for|while)\b"),
-            "linear": re.compile(r"\b(print|return|assign)\b"),
+            "structural_boundaries": re.compile(r"\b(print|return|assign)\b"),
             "ownership": re.compile(r"#\s*Architect:\s*(.*)"),
             "_meta_purpose_line": re.compile(r"^Purpose:\s*(.*)"),
         },
@@ -31,7 +31,7 @@ MOCK_LANG_DEFS = {
         "rules": {
             "func_start": re.compile(r"^([a-zA-Z0-9_]+):", re.M),
             "branch": re.compile(r"\b(JNE|JEQ|CALL)\b"),
-            "linear": re.compile(r"\b(MOV|PUSH|POP)\b"),
+            "structural_boundaries": re.compile(r"\b(MOV|PUSH|POP)\b"),
         },
     },
     "c": {
@@ -42,12 +42,12 @@ MOCK_LANG_DEFS = {
             ),
             "memory_scraping": re.compile(r"\b(memcpy|VirtualRead)\b"),
             "exfiltration_camouflage": re.compile(r"\b(send|socket)\b"),
-            "danger": re.compile(r"\b(strcpy|gets)\b"),
+            "high_risk_execution": re.compile(r"\b(strcpy|gets)\b"),
             "safety": re.compile(r"\b(strncpy|fgets)\b"),
-            "sec_danger": re.compile(r"system"),
+            "sec_high_risk_execution": re.compile(r"system"),
             "sec_io": re.compile(r"request_get"),
             "concurrency": re.compile(r"std::thread"),
-            "flux": re.compile(r"shared_state"),
+            "state_mutation": re.compile(r"shared_state"),
             "sync_locks": re.compile(r"mutex_lock"),
             "memory_alloc": re.compile(r"malloc"),
             "cleanup": re.compile(r"free"),
@@ -61,14 +61,14 @@ MOCK_LANG_DEFS = {
         "lexical_family": "single_line_only",
         "rules": {
             "branch": re.compile(r"\b(if|case|for|while)\b"),
-            "linear": re.compile(r"\b(echo|export|source)\b"),
+            "structural_boundaries": re.compile(r"\b(echo|export|source)\b"),
         },
     },
     "ruby": {
         "lexical_family": "single_line_only",
         "rules": {
             "branch": re.compile(r"(?<![:.])\b(if|unless|case|while|until)\b(?!:)"),
-            "linear": re.compile(r"(?<![:.])\b(puts|require|include)\b(?!:)"),
+            "structural_boundaries": re.compile(r"(?<![:.])\b(puts|require|include)\b(?!:)"),
         },
     },
 }
@@ -147,7 +147,7 @@ def test_detector_silencer_region():
     result = opt_detector.splice(code, "")
     # The raw string "strcpy" is inside "strncpy", so both trigger in a naive regex.
     # The spatial math should subtract the danger hit.
-    assert result["equations"]["danger"] == 0, (
+    assert result["equations"]["high_risk_execution"] == 0, (
         "Silencer region failed to dampen the danger signal!"
     )
     assert result["mitigation_telemetry"]["mitigated_danger"] >= 1
@@ -223,14 +223,14 @@ def test_detector_class_extraction_and_lcom():
     code = (
         "class UserManager:\n"
         "    def __init__(self):\n"
-        "        self.users = []\n"  # Hits 'flux' (mutation)
+        "        self.users = []\n"  # Hits 'state_mutation' (mutation)
         "    def add_user(self, user, role):\n"  # 2 args
-        "        self.users.append(user)\n"  # Hits 'flux'
+        "        self.users.append(user)\n"  # Hits 'state_mutation'
         "        print(role)\n"
     )
 
     # Mocking a flux rule for testing state entanglement
-    MOCK_LANG_DEFS["python"]["rules"]["flux"] = re.compile(r"\b(append|users\s*=)\b")
+    MOCK_LANG_DEFS["python"]["rules"]["state_mutation"] = re.compile(r"\b(append|users\s*=)\b")
 
     result = opt_detector.splice(code, "")
 
@@ -323,9 +323,9 @@ def test_detector_c_macro_dead_branch_shield():
 
     result = opt_detector.splice(code, "")
 
-    # Because 'danger' is in the dead branch, it should be scrubbed by the preprocessor shield
+    # Because 'high_risk_execution' is in the dead branch, it should be scrubbed by the preprocessor shield
     # before the regex engine even sees it.
-    assert result["equations"]["danger"] == 0, (
+    assert result["equations"]["high_risk_execution"] == 0, (
         "Failed to scrub dead preprocessor branches!"
     )
 
@@ -636,16 +636,16 @@ def spatial_mapper():
     return SpatialMapper()
 
 
-def test_spatial_mapper_mass_extraction(spatial_mapper):
-    """Proves the engine extracts gravitational mass natively or via fallback telemetry."""
+def test_spatial_mapper_magnitude_extraction(spatial_mapper):
+    """Proves the engine extracts structural magnitude natively or via fallback telemetry."""
     # 1. Primary: Forensics Dictionary
-    assert spatial_mapper._get_mass({"forensics": {"structural_mass": 42.0}}) == 42.0
+    assert spatial_mapper._get_magnitude({"forensics": {"structural_mass": 42.0}}) == 42.0
 
     # 2. Secondary: Processed File Impact
-    assert spatial_mapper._get_mass({"file_impact": 15.5}) == 15.5
+    assert spatial_mapper._get_magnitude({"file_impact": 15.5}) == 15.5
 
     # 3. Fallback: Raw Function Impact
-    assert spatial_mapper._get_mass({"sum_fxn_impact": 7.0}) == 7.0
+    assert spatial_mapper._get_magnitude({"sum_fxn_impact": 7.0}) == 7.0
 
 
 def test_spatial_mapper_deterministic_jitter(spatial_mapper):
@@ -920,7 +920,7 @@ def test_detector_comment_analysis_math():
     
     # Inject comment rules
     opt_detector.primary_rules["planned_debt"] = re.compile(r"\bTODO\b")
-    opt_detector.primary_rules["graveyard"] = re.compile(r"^#\s*def\s", re.M)
+    opt_detector.primary_rules["dead_code"] = re.compile(r"^#\s*def\s", re.M)
 
     comment_stream = (
         "# TODO: Refactor this entire class\n"
@@ -929,11 +929,11 @@ def test_detector_comment_analysis_math():
     )
     
     # Pass an empty equations dict to simulate the handoff from coding_analysis
-    equations = {"planned_debt": 0, "graveyard": 0}
+    equations = {"planned_debt": 0, "dead_code": 0}
     result = opt_detector.comment_analysis(comment_stream, "python", equations)
 
     assert result["planned_debt"] == 1, "Failed to tally planned tech debt from comments!"
-    assert result["graveyard"] == 1, "Failed to tally graveyard (dead code) from comments!"
+    assert result["dead_code"] == 1, "Failed to tally graveyard (dead code) from comments!"
 
 
 # ==============================================================================
@@ -963,7 +963,7 @@ def test_detector_active_hemorrhage_leak():
     opt_detector = StructuralExtractor("c", MOCK_LANG_DEFS)
     
     # Inject rules for the hemorrhage sensor
-    opt_detector.primary_rules["sec_private_info"] = re.compile(r"password")
+    opt_detector.primary_rules["sec_hardcoded_secrets"] = re.compile(r"password")
     opt_detector.primary_rules["telemetry"] = re.compile(r"console\.log|printf")
 
     code = (
@@ -976,7 +976,7 @@ def test_detector_active_hemorrhage_leak():
     result = opt_detector.splice(code, "")
     
     # A single private_info hit is multiplied by 50 when correlated with a telemetry sink
-    assert result["equations"].get("sec_private_info", 0) >= 50, (
+    assert result["equations"].get("sec_hardcoded_secrets", 0) >= 50, (
         "AppSec Sensor failed to amplify the Active Hemorrhage penalty!"
     )
     assert result["mitigation_telemetry"].get("amplified_leaks", 0) >= 1, (
@@ -1215,7 +1215,7 @@ def test_detector_unregistered_rule_handling(caplog):
 # TEST 33: CARTOGRAPHY EMPTY STATES & FALLBACKS
 # ==============================================================================
 def test_spatial_mapper_empty_states_and_fallbacks():
-    """Proves the 3D geometry engine handles missing files and zero-mass states safely."""
+    """Proves the 3D geometry engine handles missing files and zero-magnitude states safely."""
     mapper = SpatialMapper()
     
     # Case 1: Empty Repository
@@ -1224,11 +1224,11 @@ def test_spatial_mapper_empty_states_and_fallbacks():
     # Case 2: Empty Hash Jitter
     assert mapper._hash_jitter("", 100.0) == 0.0, "Jitter failed to neutralize empty seeds!"
     
-    # Case 3: Zero Mass Fallback
-    assert mapper._get_mass({}) == 0.0, "Mass extraction crashed on an empty node dictionary!"
+    # Case 3: Zero Magnitude Fallback
+    assert mapper._get_magnitude({}) == 0.0, "Magnitude extraction crashed on an empty node dictionary!"
     
     # Case 4: Deep Fallback (Using total_control_flow_ratio as a mock fallback if needed)
-    assert mapper._get_mass({"sum_fxn_impact": 0.0}) == 0.0, "Mass extraction failed on zero-impact nodes!"
+    assert mapper._get_magnitude({"sum_fxn_impact": 0.0}) == 0.0, "Magnitude extraction failed on zero-impact nodes!"
 
 # ==============================================================================
 # TEST 34: UTILITY & EMPTY STATE FALLBACKS

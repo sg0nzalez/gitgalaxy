@@ -125,6 +125,6 @@ def test_graveyard_cli_e2e(tmp_path, capsys):
 
     # Assertions on the final CLI output calculations
     assert "Files Flagged for Cleanup : 2" in captured.out
-    assert "Unused Memory Addresses   : 2 orphaned variables" in captured.out
-    assert "Unreachable Logic Blocks  : 1 phantom paragraphs" in captured.out
+    assert "Unused Memory Addresses   : 2 variables" in captured.out
+    assert "Unreachable Logic Blocks  : 1 paragraphs" in captured.out
     assert "Estimated Bloat Removed : ~12 Lines of Code" in captured.out

@@ -345,9 +345,9 @@ def test_cli_presentation_dashboard_findings(tmp_path, capsys):
 
     captured = capsys.readouterr().out
     assert "SHADOW API SECURITY AUDIT" in captured
-    assert "SHADOW APIS DETECTED: 1" in captured
+    assert "SHADOW APIs DETECTED: 1" in captured
     assert "DELETE /api/shadow" in captured
-    assert "GHOST APIS DETECTED: 1" in captured
+    assert "GHOST APIs DETECTED: 1" in captured
     assert "GET /api/ghost" in captured
 
 

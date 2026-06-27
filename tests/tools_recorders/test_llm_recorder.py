@@ -10,7 +10,7 @@ def recorder():
     """Initializes the LLMRecorder with a controlled schema for deterministic testing."""
     mock_schemas = {
         "RISK_SCHEMA": ["tech_debt", "cognitive_load", "state_flux"],
-        "SIGNAL_SCHEMA": ["danger", "io", "prompt_injection"],
+        "SIGNAL_SCHEMA": ["high_risk_execution", "io", "prompt_injection"],
         "EXPOSURE_LABELS": {
             "tech_debt": "Tech Debt Exposure",
             "cognitive_load": "Cognitive Load Exposure"

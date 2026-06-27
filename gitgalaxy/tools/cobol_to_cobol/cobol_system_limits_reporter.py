@@ -1,15 +1,32 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: System Limit Reporter (The Honesty Protocol)
-# Purpose: Static Analysis sensor to detect structural anomalies, dynamic routing,
-#          and legacy "dragons" that compromise deterministic mathematical mapping.
+# GitGalaxy Tool: Architectural Anomaly Detector
+#
+# PURPOSE:
+# Static Analysis sensor to detect structural anomalies, dynamic routing, 
+# and legacy execution patterns that compromise deterministic mathematical mapping.
+#
+# ARCHITECTURAL DECISION:
+# Modern cloud architectures rely on deterministic, traceable data flows (DAGs). 
+# Certain legacy COBOL commands physically mutate the execution stack at runtime 
+# (e.g., dynamically rewriting the target of a GO TO). These anomalies make it 
+# mathematically impossible for standard parsers to guarantee an accurate 
+# translation. This sensor acts as an architectural safety net, aggressively 
+# flagging these files so they can be securely evaluated by an AI agent or a 
+# human architect.
 # ==============================================================================
 import argparse
 import sys
 import re
 from pathlib import Path
 
-# Define the "Ancient Dragons" (Structural limiters)
+# ==============================================================================
+# DEFENSIVE DESIGN (STRUCTURAL ANOMALY SIGNATURES):
+# These rules strictly target legacy commands that compromise static analysis.
+# For example, 'EXEC CICS HANDLE CONDITION' operates as an asynchronous interrupt,
+# meaning execution can violently jump outside the defined AST flow at any given 
+# millisecond, rendering static data lineage maps untrustworthy.
+# ==============================================================================
 SYSTEM_LIMIT_RULES = {
     "ALTER_STATEMENT": {
         "regex": re.compile(
@@ -20,9 +37,7 @@ SYSTEM_LIMIT_RULES = {
         "description": "Control flow mathematically compromised. The target of a GO TO is being dynamically rewritten.",
     },
     "COPY_REPLACING": {
-        "regex": re.compile(
-            r'\bCOPY\s+[\'"]?[A-Z0-9\-]+[\'"]?\s+REPLACING\b', re.IGNORECASE
-        ),
+        "regex": re.compile(r'\bCOPY\s+[\'"]?[A-Z0-9\-]+[\'"]?\s+REPLACING\b', re.IGNORECASE),
         "severity": "HIGH",
         "description": "Macro substitution detected. AST math may drift from actual compiled execution.",
     },
@@ -37,7 +52,7 @@ SYSTEM_LIMIT_RULES = {
 def scan_system_limits(filepath: Path) -> list:
     """
     Scans a COBOL file for structural anomalies that break deterministic mapping.
-    Returns a list of formatted warning strings.
+    Returns a list of formatted warning strings to be consumed by the Agent Task Forge.
     """
     anomalies = []
     try:
@@ -68,11 +83,9 @@ def scan_system_limits(filepath: Path) -> list:
 def main():
     from gitgalaxy.licensing import enforce_licensing_guard
 
-    enforce_licensing_guard("System Limit Reporter (The Legacy Forge)")
+    enforce_licensing_guard("Architectural Anomaly Detector")
 
-    parser = argparse.ArgumentParser(
-        description="GitGalaxy System Limit Reporter (Honesty Protocol)"
-    )
+    parser = argparse.ArgumentParser(description="GitGalaxy Architectural Anomaly Detector")
     parser.add_argument("target", help="Path to a .cbl file OR a directory to scan")
     args = parser.parse_args()
 
@@ -85,7 +98,7 @@ def main():
     if target_path.is_file():
         cobol_files.append(target_path)
     elif target_path.is_dir():
-        print(f"📠 Scanning directory for System Limits: {target_path.name}...")
+        print(f"📠 Scanning directory for Architectural Anomalies: {target_path.name}...")
         cobol_files.extend(target_path.rglob("*.cbl"))
         cobol_files.extend(target_path.rglob("*.cob"))
 
@@ -93,9 +106,7 @@ def main():
         print("⚠️ No .cbl or .cob files found in the target location.")
         sys.exit(0)
 
-    print(
-        f"\n🔎 GitGalaxy Honesty Protocol scanning {len(cobol_files)} files for structural dragons...\n"
-    )
+    print(f"\n🔎 GitGalaxy executing architectural integrity scan on {len(cobol_files)} files...\n")
     print("=" * 90)
 
     total_anomalies = 0
@@ -109,16 +120,10 @@ def main():
 
     print("=" * 90)
     if total_anomalies == 0:
-        print(
-            " ✅ No structural limits detected. DAG is 100% mathematically deterministic."
-        )
+        print(" ✅ No structural anomalies detected. DAG is 100% mathematically deterministic.")
     else:
-        print(
-            f" 🚨 WARNING: Found {total_anomalies} structural anomalies requiring human architectural review."
-        )
-    print(
-        "==========================================================================================\n"
-    )
+        print(f" 🚨 WARNING: Found {total_anomalies} structural anomalies requiring human architectural review.")
+    print("==========================================================================================\n")
 
 
 if __name__ == "__main__":

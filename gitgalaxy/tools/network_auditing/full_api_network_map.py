@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Full API Network Map (Extended Frameworks & Auto-Discovery)
-# Purpose: Hunts down undocumented "Shadow APIs" by comparing physical
-#          source code routers against official OpenAPI/Swagger documentation.
+# GitGalaxy Tool: Full API Network Map
+#
+# PURPOSE:
+# Detects undocumented "Shadow APIs" and missing "Ghost APIs" by comparing
+# physical source code routing signatures against official OpenAPI/Swagger
+# documentation.
+#
+# ARCHITECTURAL DECISION:
+# API documentation frequently drifts from the compiled reality of the codebase.
+# This module performs AST-free structural signature identification to map 
+# actual, executable endpoints across multiple frameworks (Spring, Express, 
+# FastAPI) and enforces strict parity with declared specifications, exposing 
+# hidden attack surfaces.
 # ==============================================================================
 import argparse
 import sys
@@ -17,9 +27,9 @@ except ImportError:
     yaml = None
 
 # ==============================================================================
-# 1. THE ROUTER PHYSICS (EXPANDED FRAMEWORK REGEX TRAPS)
+# 1. ROUTER STRUCTURAL SIGNATURES (EXPANDED FRAMEWORK REGEX PATTERNS)
 # ==============================================================================
-FRAMEWORK_TRAPS = {
+FRAMEWORK_SIGNATURES = {
     "Python (FastAPI/Flask/Django)": {
         "ext": [".py"],
         "regex": re.compile(
@@ -43,9 +53,7 @@ FRAMEWORK_TRAPS = {
     },
     "Golang (Gorilla/Mux/Gin/Fiber)": {
         "ext": [".go"],
-        "regex": re.compile(
-            r'\.(GET|POST|PUT|DELETE|PATCH)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE
-        ),
+        "regex": re.compile(r'\.(GET|POST|PUT|DELETE|PATCH)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
     },
     "C# (.NET Controllers)": {
         "ext": [".cs"],
@@ -56,15 +64,11 @@ FRAMEWORK_TRAPS = {
     },
     "C# (.NET Minimal APIs)": {
         "ext": [".cs"],
-        "regex": re.compile(
-            r'\.Map(Get|Post|Put|Delete|Patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE
-        ),
+        "regex": re.compile(r'\.Map(Get|Post|Put|Delete|Patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
     },
     "PHP (Laravel/Symfony)": {
         "ext": [".php"],
-        "regex": re.compile(
-            r'Route::(get|post|put|delete|patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE
-        ),
+        "regex": re.compile(r'Route::(get|post|put|delete|patch)\s*\(\s*["\'](.*?)["\']', re.IGNORECASE),
     },
     "Rust (Actix/Rocket)": {
         "ext": [".rs"],
@@ -84,7 +88,7 @@ FRAMEWORK_TRAPS = {
 
 
 def auto_discover_swagger(target_dir: Path) -> list:
-    """Hunts for OpenAPI/Swagger files by filename and internal content signatures."""
+    """Scans for OpenAPI/Swagger specifications via filename and internal structural signatures."""
     candidates = set()
     common_names = {
         "swagger.json",
@@ -104,7 +108,13 @@ def auto_discover_swagger(target_dir: Path) -> list:
             candidates.add(filepath)
             continue
 
-        # 2. Deep Content Grep (Read first 1000 characters for speed)
+        # ==============================================================================
+        # DEFENSIVE DESIGN (I/O OPTIMIZATION & MEMORY SHIELD):
+        # Reading entire JSON/YAML files just to check if they are valid Swagger specs 
+        # can cause OOM crashes on massive declarative data blobs. We restrict the read 
+        # buffer to the first 1000 characters to achieve O(1) memory validation while 
+        # maintaining extreme pipeline velocity.
+        # ==============================================================================
         try:
             with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
                 head = f.read(1000)
@@ -121,18 +131,14 @@ def auto_discover_swagger(target_dir: Path) -> list:
 
 
 def parse_official_swagger(swagger_path: Path) -> set:
-    """Parses the official security documentation to find 'Approved' APIs."""
+    """Parses the official security documentation to extract a baseline of approved APIs."""
     approved_apis = set()
     try:
         with open(swagger_path, "r", encoding="utf-8") as f:
             if swagger_path.suffix.lower() in [".yaml", ".yml"]:
                 if yaml is None:
-                    print(
-                        f" ❌ Error: PyYAML is required to parse .yaml Swagger files ({swagger_path.name})."
-                    )
-                    print(
-                        "    Please run 'pip install pyyaml' or provide a .json specification."
-                    )
+                    print(f" ❌ Error: PyYAML is required to parse .yaml Swagger files ({swagger_path.name}).")
+                    print("    Please run 'pip install pyyaml' or provide a .json specification.")
                     sys.exit(1)
                 swagger_data = yaml.safe_load(f)
             else:
@@ -151,7 +157,15 @@ def parse_official_swagger(swagger_path: Path) -> set:
 
 
 def map_physical_codebase(target_dir: Path) -> tuple:
-    """Rips through the source code to find every API endpoint actually compiled."""
+    """
+    Analyzes the source code to extract every executable API endpoint.
+    
+    ARCHITECTURAL DECISION (REGEX OVER AST):
+    Relying on language-specific ASTs requires compiling the code and supporting 
+    dozens of parsers. By using bounded regex structural signatures, we can 
+    deterministically identify framework routing intents (e.g., @GetMapping, 
+    app.post) at high speed, regardless of language or compilation status.
+    """
     physical_apis = defaultdict(list)
     frameworks_detected = set()
 
@@ -159,7 +173,7 @@ def map_physical_codebase(target_dir: Path) -> tuple:
         if not filepath.is_file():
             continue
 
-        for framework, config in FRAMEWORK_TRAPS.items():
+        for framework, config in FRAMEWORK_SIGNATURES.items():
             if filepath.suffix in config["ext"]:
                 try:
                     content = filepath.read_text(encoding="utf-8", errors="ignore")
@@ -183,9 +197,7 @@ def main():
     enforce_licensing_guard("Full API Network Map")
 
     parser = argparse.ArgumentParser(description="GitGalaxy Full API Network Map")
-    parser.add_argument(
-        "source", help="Directory containing the application source code"
-    )
+    parser.add_argument("source", help="Directory containing the application source code")
     parser.add_argument(
         "--swagger",
         required=False,
@@ -204,12 +216,10 @@ def main():
         print(f"Error: Target source directory '{source_path}' does not exist.")
         sys.exit(1)
 
-    print(
-        f"🗺️  GitGalaxy Network Mapper analyzing physical endpoints in: {source_path.name}...\n"
-    )
+    print(f"🗺️  GitGalaxy API Network Mapper analyzing physical endpoints in: {source_path.name}...\n")
 
     # ==============================================================================
-    # AUTO-DISCOVERY HANDSHAKE & THE AUDIT
+    # AUTO-DISCOVERY INITIALIZATION & AUDIT
     # ==============================================================================
     approved_apis = set()
 
@@ -218,9 +228,7 @@ def main():
         candidates = auto_discover_swagger(source_path)
 
         if not candidates:
-            print(
-                " ❌ [ABORT] No OpenAPI/Swagger specifications found in the repository."
-            )
+            print(" ❌ [ABORT] No OpenAPI/Swagger specifications found in the repository.")
             print("    Please provide one manually using the --swagger flag.")
             sys.exit(1)
 
@@ -229,35 +237,24 @@ def main():
         test_cands = []
         for c in candidates:
             parts = [p.lower() for p in c.relative_to(source_path).parts]
-            if (
-                "test" in parts
-                or "tests" in parts
-                or "__tests__" in parts
-                or "testing" in parts
-            ):
+            if "test" in parts or "tests" in parts or "__tests__" in parts or "testing" in parts:
                 test_cands.append(c)
             else:
                 primary_cands.append(c)
 
         if len(primary_cands) == 1 and not args.merge_all:
             swagger_path = primary_cands[0]
-            print(
-                f" 🎯 Auto-discovered Primary Swagger: {swagger_path.relative_to(source_path)}"
-            )
+            print(f" [DISCOVERY] Primary Swagger specification identified: {swagger_path.relative_to(source_path)}")
             if test_cands:
-                print(
-                    f" 🛡️  Safely bypassed {len(test_cands)} schemas detected in test directories:"
-                )
+                print(f" 🛡️  Safely excluded {len(test_cands)} schemas detected in test directories (Test-Schema Pollution Mitigation):")
                 for tc in test_cands:
                     print(f"    - [Assumed Test] {tc.relative_to(source_path)}")
             print("")
             approved_apis = parse_official_swagger(swagger_path)
 
         elif len(candidates) > 1 and not args.merge_all:
-            print(
-                f" ⚠️  [AMBIGUITY] Multiple OpenAPI/Swagger specifications found ({len(candidates)})."
-            )
-            print("    To prevent test-file pollution, automatic merging is disabled.")
+            print(f" ⚠️  [AMBIGUITY] Multiple OpenAPI/Swagger specifications found ({len(candidates)}).")
+            print("    To prevent test-schema pollution, automatic merging is disabled.")
             print("\n    Discovered Files (By Endpoint Count):")
 
             # Calculate telemetry (route counts) to help the user choose
@@ -274,18 +271,14 @@ def main():
 
             for c, count, is_test in preview_stats:
                 badge = "[TEST DIR]" if is_test else "[PRIMARY]"
-                print(
-                    f"    - {badge.ljust(11)} [{count} routes] {c.relative_to(source_path)}"
-                )
+                print(f"    - {badge.ljust(11)} [{count} routes] {c.relative_to(source_path)}")
 
-            print("\n    Please specify the correct schema using the --swagger flag,")
+            print("\n    Please specify the authoritative schema using the --swagger flag,")
             print("    OR use the --merge-all flag to union all of them together.")
             sys.exit(1)
 
         elif len(candidates) > 1 and args.merge_all:
-            print(
-                f" 🎯 --merge-all active. Unioning {len(candidates)} discovered specifications...\n"
-            )
+            print(f" [DISCOVERY] --merge-all active. Unioning {len(candidates)} discovered specifications...\n")
             for c in candidates:
                 try:
                     approved_apis.update(parse_official_swagger(c))
@@ -293,9 +286,7 @@ def main():
                     pass
         else:
             swagger_path = candidates[0]
-            print(
-                f" 🎯 Auto-discovered Swagger specification: {swagger_path.relative_to(source_path)}\n"
-            )
+            print(f" [DISCOVERY] Auto-discovered Swagger specification: {swagger_path.relative_to(source_path)}\n")
             approved_apis = parse_official_swagger(swagger_path)
     else:
         swagger_path = Path(args.swagger).resolve()
@@ -303,6 +294,7 @@ def main():
             print(f" ❌ Error: Provided Swagger file '{swagger_path}' does not exist.")
             sys.exit(1)
         approved_apis = parse_official_swagger(swagger_path)
+        
     physical_apis_map, frameworks_detected = map_physical_codebase(source_path)
     physical_endpoints = set(physical_apis_map.keys())
 
@@ -315,27 +307,25 @@ def main():
     print("==========================================================")
     print(" 📡 SHADOW API SECURITY AUDIT")
     print("==========================================================")
-    framework_str = (
-        ", ".join(frameworks_detected) if frameworks_detected else "None Detected"
-    )
+    framework_str = ", ".join(frameworks_detected) if frameworks_detected else "None Detected"
     print(f" Physical Frameworks Tracked    : {framework_str}")
     print(f" Documented Endpoints (Swagger) : {len(approved_apis)}")
     print(f" Physical Endpoints (Source)    : {len(physical_endpoints)}")
     print("-" * 58)
 
     if shadow_apis:
-        print(f" 🚨 SHADOW APIS DETECTED: {len(shadow_apis)} (Critical Risk)")
+        print(f" 🚨 SHADOW APIs DETECTED: {len(shadow_apis)} (Critical Risk)")
         for api in sorted(shadow_apis):
             files = ", ".join(set(physical_apis_map[api]))
             print(f"    ↳ {api.ljust(25)} [Found in: {files}]")
     else:
-        print(" ✅ No Shadow APIs detected. Codebase matches documentation.")
+        print(" ✅ No Shadow APIs detected. Codebase strictly matches documentation.")
 
     print("\n----------------------------------------------------------")
     if ghost_apis:
-        print(f" 👻 GHOST APIS DETECTED: {len(ghost_apis)} (Documentation Bloat)")
+        print(f" 👻 GHOST APIs DETECTED: {len(ghost_apis)} (Documentation Bloat)")
         for api in sorted(ghost_apis):
-            print(f"    ↳ {api.ljust(25)} [Missing from source code]")
+            print(f"    ↳ {api.ljust(25)} [Missing from executable source code]")
     else:
         print(" ✅ No Ghost APIs detected.")
 
@@ -348,11 +338,7 @@ def run_api_audit(source_path: Path) -> dict:
     if not candidates:
         return {"status": "no_swagger", "shadow_count": 0, "ghost_count": 0}
 
-    primary_cands = [
-        c
-        for c in candidates
-        if "test" not in [p.lower() for p in c.relative_to(source_path).parts]
-    ]
+    primary_cands = [c for c in candidates if "test" not in [p.lower() for p in c.relative_to(source_path).parts]]
     if len(primary_cands) != 1:
         return {"status": "ambiguous", "shadow_count": 0, "ghost_count": 0}
 

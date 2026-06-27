@@ -84,12 +84,6 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
     Evaluates runtime environment for PolyForm compliance.
     Injects operational friction or audit tripwires for unverified environments.
     """
-    # --- THE PYTEST BYPASS ---
-    # Keeps our CI/CD logs clean by instantly exiting during automated tests.
-    if "PYTEST_CURRENT_TEST" in os.environ or os.environ.get("GITGALAXY_ENV") == "development":
-        return
-    # -------------------------
-
     # --- ZERO-DEPENDENCY .ENV LOADER ---
     # Python doesn't read .env files natively. This parses it manually
     # so we don't force users to pip install python-dotenv.
@@ -103,7 +97,7 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
                     if line and not line.startswith("#") and "=" in line:
                         key, val = line.split("=", 1)
                         # Only inject if it's not already set in the system environment
-                        os.environ.setdefault(key.strip(), val.strip().strip('"\''))
+                        os.environ.setdefault(key.strip(), val.strip().strip("\"'"))
         except Exception:
             pass  # Fail gracefully if the .env file is locked by OS permissions
     # -----------------------------------
@@ -197,9 +191,7 @@ def enforce_licensing_guard(tool_name: str = "GitGalaxy Engine v2"):
         " Incident has been flagged. Executing under maximum compliance friction.",
         file=sys.stderr,
     )
-    print(
-        " Contact joe@gitgalaxy.io to acquire a valid commercial key.", file=sys.stderr
-    )
+    print(" Contact joe@gitgalaxy.io to acquire a valid commercial key.", file=sys.stderr)
     print(
         "\n >>> Enforcing 10-second synchronization delay for compliance visibility...",
         file=sys.stderr,

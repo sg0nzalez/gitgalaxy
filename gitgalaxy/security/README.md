@@ -1,32 +1,68 @@
-# GitGalaxy: Threat Detection & Security Validation Models
+# GitGalaxy Security: Threat Inference & Application Security Engine
 
-[![AppSec](https://img.shields.io/badge/AppSec-Dual--Sided_Guardrails-FF4500.svg)](#)
-[![Machine Learning](https://img.shields.io/badge/ML-XGBoost_Inference-8A2BE2.svg)](#)
-[![Threat Hunting](https://img.shields.io/badge/Threat_Hunting-Structural_Heuristics-00BFFF.svg)](#)
+[![Security](https://img.shields.io/badge/Security-Zero--Trust_Validation-FF4500.svg)](#)
+[![Machine Learning](https://img.shields.io/badge/Machine_Learning-XGBoost_Threat_Inference-00BFFF.svg)](#)
+[![Performance](https://img.shields.io/badge/Performance-O(H)_Taint_Tracking-8A2BE2.svg)](#)
 
-This directory houses the specialized security definitions, threat threshold policies, and pre-trained classification models used by the **blAST Engine** to hunt for vulnerabilities and malicious payloads.
+Welcome to **GitGalaxy Security**. This directory houses the Machine Learning models, Static Application Security Testing (SAST) engines, and Software Supply Chain Security (SSCS) auditors for the GitGalaxy ecosystem.
 
-Unlike traditional static analysis tools that look for specific CVEs or known vulnerable package versions, GitGalaxy looks for the structural intent of a threat. Risk exposures are calculated metrics derived from structural regex hits, rather than relying on static "threat DNA" or rigid signatures. It measures the physical distance between an I/O input node and a dangerous execution command to calculate the exact exploitable attack surface.
+Unlike traditional security tools that rely on matching specific CVEs or static, known-vulnerable package versions, this security engine evaluates the **structural signatures** of a codebase. It calculates risk exposures by combining raw heuristic signals with topological network graph data to accurately model a threat's true, exploitable attack surface.
 
-> **⚠️ Configuration Warning:** Do not modify the threshold numbers or dictionaries in these files directly. All security baseline thresholds (e.g., `Baseline` vs. `Paranoid` mode) have been abstracted to the **[Standards Registry](../standards/README.md)**.
+## The Why: Context-Aware Security & Defensive Engineering
 
-### 🗺️ The Architecture
+Modern malware, supply chain substitution attacks, and Agentic RCE (Remote Code Execution) vulnerabilities frequently evade traditional static analysis. Attackers utilize obfuscation, dynamically loaded strings, and distributed payload execution to bypass standard regex sweeps and AST (Abstract Syntax Tree) parsers. 
 
-* **`security_lens.py`:** The mathematical engine for threat detection. It houses the 13 raw Heuristic Sensors (e.g., `sec_heat_triggers`, `sec_shadow_imports`, `sec_homoglyphs`). It uses C-backed Shannon Entropy math to catch obfuscated malware and byte-level XOR decryption loops hidden inside massive string literals.
-  * 📖 **[Read the Security Lens Architecture Specs](https://squid-protocol.github.io/gitgalaxy/02-06-security-lens/)**
+To counter this without crushing CI/CD pipeline velocity, the GitGalaxy Security engine employs advanced, AST-free defensive paradigms:
 
-* **`security_auditor.py`:** The threat classification orchestrator. It evaluates the raw structural anomalies discovered by the `security_lens` against your chosen threat policies. It is responsible for blocking Logic Bombs, RCE funnels, and exposed secrets before they can be deployed.
-  * 📖 **[Read the Security Auditor Specs](https://squid-protocol.github.io/gitgalaxy/02-20-security-auditor/)**
+### 1. Network-Weighted Threat Scoring
+A vulnerability in a core utility file has a radically different systemic impact than a vulnerability in an isolated, unimported test script. The engine dynamically scales vulnerability thresholds based on a node's **Dependency Blast Radius**. It multiplies raw SAST hits by PageRank and Betweenness Centrality metrics, ensuring that highly centralized network choke points face strictly hardened security tolerances.
 
-* **`gitgalaxy_malware_xgb_multiclass.json`:** The serialized XGBoost Machine Learning model. During the scanning phase, GitGalaxy builds a 50-dimensional feature vector for every file based on its structural metrics (e.g., Control Flow Ratio, API Exposure, Ownership Entropy). This pre-trained model evaluates that vector locally to classify the exact strain of malicious payload present (e.g., *Botnet*, *Trojan*, *Dropper/Webshell*).
+### 2. O(H) Data Flow Taint Tracking
+Tracking execution paths—from an untrusted I/O input to a database sink—typically requires compiling a massive, memory-intensive AST. The security engine bypasses this bottleneck by utilizing an $O(H)$ Offset Mapper. It isolates the specific lines where threat signatures triggered, extracting variable assignments and executing downward flow scans in linear time without ever compiling the file.
 
-<br><br>
+### 3. Agentic AI Defenses (Zero-Trust Pipelines)
+As codebases integrate LLMs, new vectors emerge. The engine natively detects **Prompt Injection Surfaces** (where untrusted I/O flows directly into an LLM context) and **Autonomous Execution Vectors** (where LLM logic loops are adjacent to OS-level `eval` or subprocess execution), flagging these catastrophic architectural risks before deployment.
+
+### 4. C-Optimized Shannon Entropy
+To catch obfuscated payloads and custom decryption routines hidden inside massive string literals, the engine utilizes mathematically optimized Shannon Entropy calculations. By restructuring the standard entropy formula to execute division operations completely outside the evaluation loop, it processes thousands of massive strings in milliseconds, identifying hidden Trojans without computational drag.
+
+### 5. Shadow Patch & Evasion Detection
+Supply chain attackers frequently compromise upstream dependencies without bumping version numbers. The engine correlates runtime metrics with structural mass to detect **Shadow Patches**—files where the cryptographic hash has mutated without a corresponding version bump. It forcefully overrides standard logic to classify these unauthorized modifications as critical security threats.
 
 ---
 
-### 🌌 Powered by the blAST Engine
+## The What: The Information Flow (Module Breakdown)
 
-This documentation is part of the [GitGalaxy Ecosystem](https://github.com/squid-protocol/gitgalaxy), an AST-free, LLM-free heuristic knowledge graph engine.
+Each file in this directory represents a distinct phase of the security validation and threat hunting pipeline:
 
-* 🪐 **[Explore the GitHub Repository](https://github.com/squid-protocol/gitgalaxy)** for code, tools, and updates.
-* 🔭 **[Visualize your own repository at GitGalaxy.io](https://gitgalaxy.io/)** using our interactive 3D WebGPU dashboard.
+* **`manifest_parser.py` (The SSCS Auditor):** The dependency and configuration parser. It builds a deterministic, $O(1)$ global resolution map by auditing manifests like `package-lock.json` and `pip.conf`. It prevents Supply Chain Substitution attacks by identifying non-standard registries, untrusted VCS routing, and insecure tunneling protocols (like `ngrok` or plain `http`).
+* **`security_lens.py` (The SAST Engine):** The raw heuristic sensor. It applies highly optimized regular expressions to detect 13 distinct threat categories (e.g., Hardcoded Secrets, Memory Corruption, Prompt Injection). It executes multi-line Taint Tracking and memory-efficient binary header inspection to validate file extension integrity.
+* **`security_auditor.py` (The ML Orchestrator):** The threat classification engine. It resolves N-th degree transitive dependency graphs to calculate precise upstream/downstream ratios. It compiles a 50-dimensional feature matrix (evaluating Control Flow Ratio, API Exposure, Authorship Centralization, etc.) and executes it against the local XGBoost model.
+* **`gitgalaxy_malware_xgb_multiclass.json`:** The pre-trained, serialized XGBoost Machine Learning model. It evaluates the 50-dimensional feature matrix to classify the specific **Architectural Anomalies** present across 5 distinct taxonomies: Safe Code, Botnet / DDoS, Stealer / Trojan, Dropper / Webshell, and Native Infector.
+
+---
+
+## 🧠 Engineering Highlights (Architectural Feats & Defenses)
+
+If you are evaluating the `security/` architecture, pay special attention to how we bypass the computational bottlenecks of traditional Static Application Security Testing (SAST) and Software Composition Analysis (SCA). We utilize highly optimized algorithms to detect threats that standard tools miss due to scale or complexity.
+
+* **$O(H)$ Data Flow Taint Tracking (`security_lens.py`):** Tracing an untrusted input to a vulnerable execution sink typically requires compiling a massive, memory-exhaustive Abstract Syntax Tree (AST). We bypass this entirely using an $O(H)$ Offset Mapper. The engine isolates only the exact spatial lines where heuristic threats triggered. It extracts the Left-Hand Side (LHS) variable assignments on those specific lines and scans the downward flow in linear time. This achieves high-fidelity taint tracking (e.g., mapping I/O inputs to OS-level execution) without the massive CPU overhead of AST compilation.
+* **Network-Weighted Threat Scaling (`security_auditor.py`):** A vulnerability’s severity is dictated by its location. Standard scanners treat a hardcoded secret in an isolated test file with the same severity as a secret in a core routing configuration. GitGalaxy dynamically scales vulnerability thresholds based on a node's **Dependency Blast Radius**. By multiplying local SAST density scores by the file's PageRank and Betweenness Centrality metrics, the engine ensures that highly centralized **Architectural Choke Points** face strictly hardened security tolerances.
+* **Mathematical Obfuscation Detection (`security_lens.py`):** To catch zero-day Trojans, packed payloads, and base64-encoded malware hidden inside massive string literals, the engine utilizes Shannon Entropy. However, standard entropy calculations are computationally expensive inside loops. We implemented a mathematically optimized C-level counter that factors the division operation `(/ length)` completely outside the summation loop. This allows the engine to evaluate the cryptographic density of thousands of massive strings in milliseconds without stalling the CI/CD pipeline.
+* **Autonomous Execution & Agentic Defenses (`security_lens.py`):** As codebases integrate LLMs, traditional SAST falls behind. GitGalaxy natively maps and detects **Prompt Injection Surfaces** (where untrusted network I/O flows directly into an LLM context) and **Autonomous Execution Vectors** (where LLM state mutations flow downward into `eval` or `subprocess` commands). It mathematically flags these catastrophic, AI-specific architectural risks before deployment.
+* **$O(1)$ Dependency Graph Resolution (`security_auditor.py`):** Calculating exact **Downstream Exposure** on massive monolithic repositories often causes graph algorithms to stall on circular dependencies. When the C-optimized `NetworkX` backend is unavailable, our fallback engine utilizes a heavily optimized Breadth-First Search (BFS) using Python's `collections.deque`. By popping nodes in strict $O(1)$ time and capping traversal depth to 500 hops, it safely maps deep transitive dependencies without triggering Out-Of-Memory (OOM) deadlocks.
+* **Shadow Patch Overrides (`security_auditor.py`):** Supply chain attackers frequently compromise upstream dependencies without bumping version numbers to evade detection. The engine correlates runtime execution metrics with structural mass to detect **Shadow Patches**—files where the cryptographic hash has mutated without a corresponding version bump. When detected, the engine forcefully overrides the XGBoost ML model to classify the unauthorized modification as a critical threat.
+
+---
+
+## 🌌 The GitGalaxy Ecosystem (Powered by the blAST Engine)
+
+
+GitGalaxy Security is the threat inference layer of the broader **GitGalaxy Ecosystem**—a high-velocity, AST-free, LLM-free heuristic knowledge graph engine designed for planetary-scale repositories.
+
+Explore the ecosystem:
+
+* 🪐 **[Official Documentation](https://squid-protocol.github.io/gitgalaxy/)** — Comprehensive deep dives into the engine's mathematics, pipeline architecture, and DevSecOps integration protocols.
+* 🔭 **[GitGalaxy Visualizer](http://gitgalaxy.io/)** — Render your codebase's topological network locally in interactive 3D using hardware-accelerated WebGPU.
+* 📖 **[The blAST Paradigm](https://squid-protocol.github.io/gitgalaxy/docs/wiki/01-03-the-blast-paradigm/)** — The architectural thesis, academic research, and structural math that makes AST-free parsing possible at scale.
+* ⚙️ **[Language Calibration Standards](https://github.com/squid-protocol/gitgalaxy/blob/main/gitgalaxy/standards/how_to_add_a_language.md)** — The definitive engineering guide to extending our comparative lexical taxonomy for custom enterprise dialects.

@@ -27,7 +27,7 @@ def test_black_hole_detection():
     assert guardrails["is_agentic_black_hole"] is True, (
         "Failed to detect the Agentic Black Hole!"
     )
-    assert any("Black Hole detected" in warning for warning in guardrails["warnings"])
+    assert any("Context Window Exhaustion" in warning for warning in guardrails["warnings"])
 
 
 # ==============================================================================
@@ -73,7 +73,7 @@ def test_hallucination_zone_detection():
     mock_files = [
         {
             "telemetry": {
-                "heat_triggers": 3,  # ☢️ > 2 dynamic execution triggers
+                "reflection_metaprogramming": 3,  # ☢️ > 2 dynamic execution triggers
                 "doc_density": 0.15,  # ☢️ < 0.20 density
             }
         }
@@ -85,7 +85,7 @@ def test_hallucination_zone_detection():
     assert guardrails["hallucination_zone"] is True, (
         "Failed to detect the Hallucination Zone!"
     )
-    assert any("Hallucination Zone" in warning for warning in guardrails["warnings"])
+    assert any("Hallucination Risk" in warning for warning in guardrails["warnings"])
 
 
 # ==============================================================================
@@ -114,7 +114,7 @@ def test_silent_mutation_risk_detection():
     assert guardrails.get("silent_mutation_risk") is True, (
         "Failed to detect Silent Mutation Risk!"
     )
-    assert any("Silent Mutation Risk" in warning for warning in guardrails["warnings"])
+    assert any("Cascading State Flux" in warning for warning in guardrails["warnings"])
 
 
 # ==============================================================================
@@ -133,7 +133,7 @@ def test_safe_agentic_baseline():
             "max_big_o": 1,  # ✅ Simple O(N) logic
             "risk_vector": [10, 5],  # ✅ Low risk debt (15)
             "telemetry": {
-                "heat_triggers": 0,  # ✅ No dynamic execution
+                "reflection_metaprogramming": 0,  # ✅ No dynamic execution
                 "doc_density": 0.85,  # ✅ Highly documented
                 "state_flux": 10,  # ✅ Low flux
                 "has_tests": True,  # ✅ Safely tested

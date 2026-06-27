@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# GitGalaxy Spoke: Data Lineage DAG Architect (v3 - IR Context Aware)
-# Purpose: Parses COBOL structural intent to map INPUT/OUTPUT data flows
-#          and calculates the mathematically perfect topological execution order.
-#          Upgraded to utilize IR RAM to deflect Ghost Dependencies.
+# GitGalaxy Tool: Data Lineage DAG Architect
+#
+# PURPOSE:
+# Parses COBOL structural intent to map INPUT/OUTPUT data flows and calculates 
+# the deterministic topological execution order.
+#
+# ARCHITECTURAL DECISION:
+# In legacy mainframe environments, execution order is manually dictated by JCL. 
+# During cloud modernization, we must programmatically derive this order to 
+# generate modern orchestration pipelines (e.g., Spring Batch, Airflow). By 
+# statically analyzing SELECT/ASSIGN clauses and OPEN statements, we build a 
+# Directed Acyclic Graph (DAG) of data dependencies, ensuring programs execute 
+# in the exact order required by their physical dataset inputs and outputs.
 # ==============================================================================
 import argparse
 import sys
@@ -14,8 +23,8 @@ from collections import defaultdict, deque
 
 def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
     """
-    X-Rays a COBOL program to map internal variables to external physical files.
-    Utilizes shared IR context to mask out dead code and prevent hallucinated dependencies.
+    Analyzes a COBOL program to map internal variables to external physical files.
+    Utilizes shared IR state to mask out unreachable logic and prevent hallucinated dependencies.
     """
     if dead_paras is None:
         dead_paras = set()
@@ -33,9 +42,7 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
 
     # 2. Map internal file variables to physical external boundaries (DD Names)
     file_map = {}
-    for match in re.finditer(
-        r"SELECT\s+([A-Z0-9-]+)\s+ASSIGN\s+(?:TO\s+)?([A-Z0-9@#$\-]+)", content
-    ):
+    for match in re.finditer(r"SELECT\s+([A-Z0-9\-]+)\s+ASSIGN\s+(?:TO\s+)?([A-Z0-9@#$\-]+)", content):
         raw_dd = match.group(2)
         clean_dd = re.sub(r"^(?:UT|UR)-S-", "", raw_dd)
         file_map[match.group(1)] = clean_dd
@@ -43,9 +50,14 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
     inputs = set()
     outputs = set()
 
-    # --- SYNERGY: THE GHOST DEFLECTOR (Masking Dead Code) ---
-    # We split the file and blank out any paragraphs the orchestrator identified as dead.
-    # This prevents the regex engine from finding 'OPEN' statements that will never execute.
+    # ==========================================================================
+    # DEFENSIVE DESIGN (UNREACHABLE LOGIC MASKING):
+    # COBOL programs often contain legacy, unreachable paragraphs. If we allow 
+    # the regex engine to scan these abandoned blocks, it will extract 'OPEN' 
+    # statements for files that are never actually utilized at runtime, creating 
+    # false dependencies. We mask out known dead paragraphs with spaces to 
+    # preserve the exact logic topology without triggering regex false positives.
+    # ==========================================================================
     if "PROCEDURE DIVISION" in content:
         parts = content.split("PROCEDURE DIVISION")
         data_div = parts[0]
@@ -61,7 +73,6 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
                 current_paragraph = para_match.group(1)
 
             # If the paragraph is dead, we replace its characters with spaces
-            # to preserve exact string geometry without triggering the regex.
             if current_paragraph in dead_paras:
                 active_proc_lines.append(" " * len(line))
             else:
@@ -72,10 +83,8 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
         safe_content = content
 
     # 3. Extract exact Functional Intent (OPEN INPUT vs OPEN OUTPUT)
-    # We run this on the safe_content where dead code is invisible.
-    for match in re.finditer(
-        r"OPEN\s+(INPUT|OUTPUT|I-O|EXTEND)\s+([^.]+)\.", safe_content
-    ):
+    # We run this on the safe_content where unreachable logic is invisible.
+    for match in re.finditer(r"OPEN\s+(INPUT|OUTPUT|I-O|EXTEND)\s+([^.]+)\.", safe_content):
         mode = match.group(1)
         # Handle multiple files opened on the same line
         files_raw = re.sub(r"\s+", " ", match.group(2)).replace(",", " ").split()
@@ -89,9 +98,13 @@ def extract_lineage(filepath: Path, dead_paras: set = None) -> dict:
                 if mode in ("OUTPUT", "I-O", "EXTEND"):
                     outputs.add(physical_file)
 
-    # --- HONESTY SENSOR: DYNAMIC CALLS ---
+    # ==========================================================================
+    # ARCHITECTURAL ANOMALY DETECTION (DYNAMIC CALLS):
+    # A standard CALL followed by string quotes is a static, deterministic 
+    # dependency. A CALL utilizing a variable is dynamic, making the 
+    # compilation-time DAG incomplete. We flag these for architectural review.
+    # ==========================================================================
     dynamic_calls = set()
-    # A CALL followed by quotes is static. A CALL without quotes is a variable/dynamic jump.
     for match in re.finditer(r'CALL\s+(?![\'"])([A-Z0-9\-]+)', safe_content):
         dynamic_calls.add(match.group(1))
 
@@ -117,7 +130,7 @@ def main():
         print(f"Error: Target {target_path} does not exist.")
         sys.exit(1)
 
-    print(f"🕸️ GitGalaxy DAG Architect mapping data lineage in: {target_path.name}...\n")
+    print(f"🕸️ GitGalaxy Data Lineage Architect mapping execution topology in: {target_path.name}...\n")
 
     cobol_files = list(target_path.rglob("*.cbl")) + list(target_path.rglob("*.cob"))
 
@@ -168,7 +181,7 @@ def main():
 
     # --- Presentation ---
     print("==========================================================")
-    print(" ⚡ ZERO-TRUST EXECUTION PIPELINE (TOPOLOGICAL SORT)")
+    print(" ⚡ DETERMINISTIC EXECUTION PIPELINE (TOPOLOGICAL SORT)")
     print("==========================================================\n")
 
     if len(execution_order) != len(programs):
