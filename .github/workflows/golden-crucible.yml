@@ -25,8 +25,9 @@ jobs:
       - name: Install GitGalaxy Environment
         run: |
           cd gitgalaxy
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip setuptools wheel
+          # Explicitly install heavy engines so GitGalaxy doesn't run in Zero-Dependency Mode
+          pip install PyYAML networkx tiktoken pandas xgboost
           pip install -e .
 
       - name: Fetch Golden Test Repo (Language Crucible)
@@ -41,9 +42,12 @@ jobs:
           echo "Initiating GitGalaxy Golden Test Sequence..."
           mkdir -p telemetry_out
           
+          # language-crucible is in the runner's root directory
           timeout 45s galaxyscope ./language-crucible --output ./telemetry_out/ --file-speed --splicing-speed
           
       - name: Assert Structural Baseline
         run: |
           echo "Comparing live telemetry against Golden Master..."
-          python tests/golden_diff.py tests/golden_master_audit.json telemetry_out/all_language_repo_galaxy_audit.json
+          
+          # Target the diff script and the master file inside the 'gitgalaxy' subfolder!
+          python gitgalaxy/tests/golden_diff.py gitgalaxy/tests/golden_master_audit.json telemetry_out/all_language_repo_galaxy_audit.json
