@@ -94,14 +94,6 @@ tag_regex = '^v?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$'
 [tool.black]
 line-length = 120
 
-[tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
-markers = [
-    "smoke: quick core engine tests for CI/CD pipelines",
-]
-
 [tool.ruff]
 # Ignore legacy/messy fixture code so it doesn't pollute linting results
 exclude = [
@@ -111,3 +103,12 @@ line-length = 120
 
 [tool.ruff.lint]
 extend-ignore = ["E741"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+markers = [
+    "smoke: quick core engine tests for CI/CD pipelines",
+]
+norecursedirs = ["tests/fixtures"]
