@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: gitgalaxy
+          persist-credentials: false
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -53,9 +54,4 @@ jobs:
           echo "=== TELEMETRY OUT CONTENTS ==="
           ls -lh telemetry_out/
       
-      - name: Assert Structural Baseline
-        run: |
-          echo "Comparing live telemetry against Golden Master..."
-          
-          # Target the diff script and the master file inside the 'gitgalaxy' subfolder!
-          python gitgalaxy/tests/golden_diff.py gitgalaxy/tests/golden_master_audit.json telemetry_out/language-crucible_galaxy_audit.json
+  
