@@ -35,7 +35,7 @@ jobs:
         with:
           repository: squid-protocol/language-crucible
           path: language-crucible
-          ref: main
+          ref: v1.0.0
 
       - name: Execute Resilience Engine
         run: |
@@ -58,4 +58,4 @@ jobs:
           echo "Comparing live telemetry against Golden Master..."
           
           # Target the diff script and the master file inside the 'gitgalaxy' subfolder!
-          python gitgalaxy/tests/golden_diff.py gitgalaxy/tests/golden_master_audit.json telemetry_out/all_language_repo_galaxy_audit.json
+          python gitgalaxy/tests/golden_diff.py gitgalaxy/tests/golden_master_audit.json telemetry_out/language-crucible_galaxy_audit.json
