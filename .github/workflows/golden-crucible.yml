@@ -1,0 +1,49 @@
+name: Golden Crucible Resilience Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - v6-dev
+
+jobs:
+  crucible-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout GitGalaxy PR
+        uses: actions/checkout@v4
+        with:
+          path: gitgalaxy
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install GitGalaxy Environment
+        run: |
+          cd gitgalaxy
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Fetch Golden Test Repo (Language Crucible)
+        uses: actions/checkout@v4
+        with:
+          repository: squid-protocol/language-crucible
+          path: language-crucible
+          ref: main
+
+      - name: Execute Resilience Engine
+        run: |
+          echo "Initiating GitGalaxy Golden Test Sequence..."
+          mkdir -p telemetry_out
+          
+          timeout 45s galaxyscope ./language-crucible --output ./telemetry_out/ --file-speed --splicing-speed
+          
+      - name: Assert Structural Baseline
+        run: |
+          echo "Comparing live telemetry against Golden Master..."
+          python tests/golden_diff.py tests/golden_master_audit.json telemetry_out/all_language_repo_galaxy_audit.json
