@@ -33,9 +33,8 @@ jobs:
 
       - name: Fetch Golden Test Repo (Language Crucible)
         run: |
-          echo "Cloning public release v1.0.0 directly..."
-          git clone --depth 1 --branch v1.0.0 https://github.com/squid-protocol/language-crucible.git
-
+          echo "Cloning Language Crucible repository..."
+          git clone [https://github.com/squid-protocol/language-crucible.git](https://github.com/squid-protocol/language-crucible.git) language-crucible
       - name: Execute Resilience Engine
         run: |
           echo "Initiating GitGalaxy Golden Test Sequence..."
