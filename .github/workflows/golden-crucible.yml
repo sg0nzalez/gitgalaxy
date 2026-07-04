@@ -32,11 +32,9 @@ jobs:
           pip install -e .
 
       - name: Fetch Golden Test Repo (Language Crucible)
-        uses: actions/checkout@v4
-        with:
-          repository: squid-protocol/language-crucible
-          path: language-crucible
-          ref: v1.0.0
+        run: |
+          echo "Cloning public release v1.0.0 directly..."
+          git clone --depth 1 --branch v1.0.0 https://github.com/squid-protocol/language-crucible.git
 
       - name: Execute Resilience Engine
         run: |
