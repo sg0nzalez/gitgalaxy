@@ -10339,6 +10339,61 @@ LANGUAGE_DEFINITIONS = {
             "_block_end": None,
         },
     },
+    "jcl": {
+        "_meta": {
+            "target_version": "IBM z/OS JCL",
+            "status": "production",
+        },
+        "extensions": [".jcl", ".prc", ".bms"],
+        "exact_matches": [],
+        "discriminators": [".cbl", ".cob", ".cpy"],
+        "shebangs": [],
+        "lexical_family": "line_exclusive",
+        "rules": {
+            # JCL comments strictly start with //*
+            "_line_anchor": re.compile(r"^//\*"),
+            "_inline_comment": None,
+            "_block_start": None,
+            "_block_end": None,
+            
+            # Control flow in JCL (IF/THEN/ELSE/ENDIF)
+            "branch": re.compile(r"\b(IF|THEN|ELSE|ENDIF)\b", re.I),
+            "args": None,
+            
+            # Structural boundaries (Any line starting with // and a command)
+            "structural_boundaries": re.compile(r"^[ \t]*//[A-Za-z0-9_#$@]+\s+(?:DD|INCLUDE|SET|PROC|PEND)\b", re.M | re.I),
+            
+            # Functions (EXEC steps)
+            "func_start": re.compile(r"^[ \t]*//([A-Za-z0-9_#$@]+)\s+EXEC\b", re.M | re.I),
+            
+            # Classes/Entities (JOB cards)
+            "class_start": re.compile(r"^[ \t]*//([A-Za-z0-9_#$@]+)\s+JOB\b", re.M | re.I),
+            
+            # Danger (Execution of arbitrary programs)
+            "high_risk_execution": re.compile(r"\bPGM=[A-Za-z0-9_#$@]+\b", re.I),
+            
+            # I/O (Data Set Names and Sysouts)
+            "io": re.compile(r"\b(DSN|DSNAME|SYSOUT|SYSPRINT|DISP=)\b", re.I),
+            
+            # JCL doesn't have traditional code equivalents for these, keep them null to prevent crashes
+            "safety": None,
+            "api": None,
+            "state_mutation": re.compile(r"\bSET\s+[A-Za-z0-9_#$@]+=", re.I),
+            "concurrency": None,
+            "ui_framework": None,
+            "closures": None,
+            "globals": None,
+            "decorators": None,
+            "generics": None,
+            "comprehensions": None,
+            "scientific": None,
+            "reflection_metaprogramming": None,
+            "import": re.compile(r"^[ \t]*//[A-Za-z0-9_#$@]+\s+INCLUDE\b", re.M | re.I),
+            "ownership": re.compile(r"^//\*\s*(?:Author|Created by|Maintainer):\s+(.*)", re.I | re.M),
+            "telemetry": None,
+            "debug_prints": None,
+        },
+    },
 }
 
 # ------------------------------------------------------------------------------

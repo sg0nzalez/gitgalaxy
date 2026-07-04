@@ -91,3 +91,14 @@ gitgalaxy/tools/terabyte_log_scanning/README terabyte.md
 *.db
 LM-Notebook files.md
 terminology_updates.md
+
+# GitGalaxy Recorders Ephemeral Output
+telemetry_out/
+tests/telemetry_out/
+
+# GitGalaxy Recorders Ephemeral Output
+telemetry_out/
+tests/telemetry_out/
+
+# Force tracking of the Golden Master despite global *.json ignore
+!tests/golden_master_audit.json
