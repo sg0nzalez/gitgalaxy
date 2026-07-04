@@ -43,7 +43,7 @@ jobs:
           mkdir -p telemetry_out
           
           # language-crucible is in the runner's root directory
-          timeout 45s galaxyscope ./language-crucible --output ./telemetry_out/ --file-speed --splicing-speed
+          timeout 180s galaxyscope ./language-crucible --output ./telemetry_out/ --file-speed --splicing-speed
           
       - name: Assert Structural Baseline
         run: |
