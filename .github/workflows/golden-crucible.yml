@@ -44,7 +44,15 @@ jobs:
           
           # language-crucible is in the runner's root directory
           timeout 180s galaxyscope ./language-crucible --output ./telemetry_out/ --file-speed --splicing-speed
-          
+      
+      - name: Debug File System (Tree)
+        if: always()  # This ensures the tree prints even if the previous step fails
+        run: |
+          echo "=== ROOT DIRECTORY TREE ==="
+          tree -L 2
+          echo "=== TELEMETRY OUT CONTENTS ==="
+          ls -lh telemetry_out/
+      
       - name: Assert Structural Baseline
         run: |
           echo "Comparing live telemetry against Golden Master..."
