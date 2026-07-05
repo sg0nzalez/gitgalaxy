@@ -53,9 +53,11 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
 
     if not parsed_files:
         return {
+            "imports_whitelisted": imports_whitelisted,
             "imports_unknown": imports_unknown,
             "imports_blacklisted": imports_blacklisted,
             "threats_found": threats_found,
+            "threats_allowed": threats_allowed,
         }
 
     for file_node in parsed_files:
