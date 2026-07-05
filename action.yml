@@ -42,7 +42,10 @@ runs:
         GG_VERSION: ${{ inputs.version }}
         GG_FULL_PRECISION: ${{ inputs.full_precision }}
       run: |
-        if [ "$GG_VERSION" = "latest" ]; then
+        if [ "$GG_VERSION" = "local" ]; then
+          echo "Dogfooding local GitGalaxy source..."
+          pip install -e .
+        elif [ "$GG_VERSION" = "latest" ]; then
           echo "Installing latest GitGalaxy from PyPI..."
           pip install gitgalaxy
         else

@@ -46,6 +46,7 @@ jobs:
         with:
           tool: supply-chain-firewall
           target: .
+          version: local
 
   architectural-report:
     name: LLM Structural Brief
