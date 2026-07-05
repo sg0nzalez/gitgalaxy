@@ -199,7 +199,7 @@ def test_main_missing_target(capsys):
 
     assert exc_info.value.code == 1
     captured = capsys.readouterr()
-    assert "Error: RAM graph" in captured.out
+    assert "Error: Target" in captured.out
 
 # ==============================================================================
 # TEST 8: CLI Main - Corrupted JSON Handling
@@ -215,4 +215,4 @@ def test_main_corrupted_json(tmp_path, capsys):
 
     assert exc_info.value.code == 1
     captured = capsys.readouterr()
-    assert "Failed to parse RAM graph JSON" in captured.out
+    assert "Failed to parse RAM graph:" in captured.out

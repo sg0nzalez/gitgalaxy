@@ -53,9 +53,11 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
 
     if not parsed_files:
         return {
+            "imports_whitelisted": imports_whitelisted,
             "imports_unknown": imports_unknown,
             "imports_blacklisted": imports_blacklisted,
             "threats_found": threats_found,
+            "threats_allowed": threats_allowed,
         }
 
     for file_node in parsed_files:
@@ -187,18 +189,50 @@ def main():
 
     target_path = Path(args.target).resolve()
     if not target_path.exists():
-        print(f"Error: RAM graph '{target_path}' does not exist.")
+        print(f"Error: Target '{target_path}' does not exist.")
         sys.exit(1)
 
-    print(f"🧱 Initializing Supply Chain Firewall with RAM graph from {target_path.name}...")
+    print(f"🧱 Initializing Supply Chain Firewall against {target_path.name}...")
+
+    parsed_files = []
 
     try:
-        with open(target_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            # Support both legacy "stars" key and the modernized "artifacts" or "galaxy" output
-            parsed_files = data.get("artifacts", data.get("stars", []))
+        if target_path.is_dir():
+            print("   -> Directory detected. Orchestrating GalaxyScope RAM graph generation...")
+            import subprocess
+            import tempfile
+            
+            with tempfile.TemporaryDirectory() as tmpdir:
+                # Run the orchestrator to generate the JSON graph in a temp directory
+                result = subprocess.run(
+                    ["python", "-m", "gitgalaxy.galaxyscope", str(target_path), "--output", tmpdir],
+                    capture_output=True,
+                    text=True
+                )
+                
+                if result.returncode != 0:
+                    print(f"❌ GalaxyScope execution failed:\n{result.stderr}")
+                    sys.exit(1)
+                
+                # Dynamically locate the generated audit file to avoid naming convention bugs
+                tmp_path = Path(tmpdir)
+                audit_files = list(tmp_path.glob("*_galaxy_audit.json"))
+                
+                if not audit_files:
+                    print("❌ GalaxyScope did not produce an audit JSON in the temp directory.")
+                    sys.exit(1)
+                    
+                with open(audit_files[0], "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    parsed_files = data.get("artifacts", data.get("stars", []))
+        else:
+            # Standard file-based load
+            with open(target_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                parsed_files = data.get("artifacts", data.get("stars", []))
+                
     except Exception as e:
-        print(f"❌ Failed to parse RAM graph JSON: {e}")
+        print(f"❌ Failed to parse RAM graph: {e}")
         sys.exit(1)
 
     # In standalone CLI mode, we bypass the dynamic manifest parsing for speed,

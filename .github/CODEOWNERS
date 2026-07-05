@@ -1,0 +1,9 @@
+# Global Default Owner
+* @squid-protocol
+
+# Critical Infrastructure (CI/CD Workflows)
+/.github/workflows/ @squid-protocol
+
+# Core Parsers and Heavy Analysis Engines
+/gitgalaxy/galaxyscope.py @squid-protocol
+/gitgalaxy/tools/supply_chain_security/ @squid-protocol
