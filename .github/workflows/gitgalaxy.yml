@@ -16,7 +16,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: squid-protocol/gitgalaxy@c5ae49362540d53bb85809ff4547d2c6feb9deba # v2.2.6
+      - uses: ./
         with:
           tool: vault-sentinel
           target: .
@@ -29,7 +29,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: squid-protocol/gitgalaxy@c5ae49362540d53bb85809ff4547d2c6feb9deba # v2.2.6
+      - uses: ./
         with:
           tool: xray-inspector
           target: .
@@ -42,7 +42,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: squid-protocol/gitgalaxy@c5ae49362540d53bb85809ff4547d2c6feb9deba # v2.2.6
+      - uses: ./
         with:
           tool: supply-chain-firewall
           target: .
@@ -61,7 +61,7 @@ jobs:
           # zizmor: ignore[artipacked]
 
       - name: Generate GalaxyScope LLM Brief
-        uses: squid-protocol/gitgalaxy@c5ae49362540d53bb85809ff4547d2c6feb9deba # v2.2.6
+        uses: ./
         with:
           tool: galaxyscope
           target: .
