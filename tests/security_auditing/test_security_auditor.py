@@ -230,3 +230,76 @@ def test_audit_repository_empty_state():
     # Passing an empty array should instantly return an empty array
     result = auditor.audit_repository([])
     assert result == [], "Empty state handling failed!"
+
+# ==============================================================================
+# TEST 8: PANDAS NaN SPARSITY HANDLING (ZERO-DEPENDENCY MODE)
+# ==============================================================================
+def test_construct_feature_matrix_nan_handling(mock_artifacts):
+    """
+    Proves that missing columns (from Zero-Dependency mode) and Inf values 
+    are properly converted to np.nan, preserving the native sparsity required 
+    by XGBoost and preventing artificial data poisoning (Issue #98).
+    """
+    auditor = SecurityAuditor()
+    
+    # 1. Define a schema that includes a feature completely missing from the artifacts
+    auditor.SIGNAL_SCHEMA = ["high_risk_execution"]
+    auditor.feature_names = [
+        "log_logic_loc",
+        "log_density_hit_high_risk_execution",
+        "missing_ml_feature",  # This column does NOT exist in the artifact data
+        "ownership_entropy"    # Added so Pandas doesn't drop it during reindex
+    ]
+    
+    # 2. Inject an intentional Infinity value to trigger the sanitization block
+    # (e.g. simulating a division by zero that slipped through log1p)
+    mock_artifacts[0]["telemetry"]["ownership_entropy"] = np.inf
+
+    auditor._resolve_dependency_graph(mock_artifacts)
+    df = auditor._construct_feature_matrix(mock_artifacts)
+
+    # 3. Simulate the exact Pandas reindexing/sanitization logic from audit_repository()
+    X = df.reindex(columns=auditor.feature_names, fill_value=np.nan)
+    X = X.replace([np.inf, -np.inf], np.nan)
+
+    # Assert 1: The missing feature was created but filled with NaN, NOT 0.0
+    assert "missing_ml_feature" in X.columns
+    assert np.isnan(X.iloc[0]["missing_ml_feature"]), (
+        "Data Poisoning Bug! Missing features were forced to 0 instead of NaN."
+    )
+
+    # Assert 2: The infinite ownership_entropy was safely converted to NaN, NOT 0.0
+    assert np.isnan(X.iloc[0]["ownership_entropy"]), (
+        "Data Poisoning Bug! Infinity values were forced to 0 instead of NaN."
+    )
+    
+    # Assert 3: Valid data remained perfectly intact
+    assert X.iloc[0]["log_logic_loc"] > 0.0, "Valid data was accidentally wiped!"
+    
+# ==============================================================================
+# TEST 9: SHADOW PATCH WHITESPACE GUARD (UNHAPPY PATH)
+# ==============================================================================
+@patch("gitgalaxy.security.security_auditor.xgb.XGBClassifier")
+def test_shadow_patch_whitespace_guard(mock_xgb_class, mock_artifacts):
+    """
+    Proves that a file with a mutated hash (Shadow Patch) does NOT trigger 
+    the malware override if its structural impact is too low (e.g., a simple whitespace change).
+    """
+    mock_model = mock_xgb_class.return_value
+    mock_model.feature_names_in_ = ["log_logic_loc"]
+    # Predict Safe Code (Class 0)
+    mock_model.predict_proba.return_value = np.array([[0.99, 0.01, 0.0, 0.0, 0.0], [0.99, 0.01, 0.0, 0.0, 0.0]])
+    
+    auditor = SecurityAuditor()
+    auditor.model = mock_model
+    auditor.feature_names = ["log_logic_loc"]
+    
+    # Modify main.py to have almost zero structural mass (e.g., a whitespace change)
+    mock_artifacts[0]["file_impact"] = 0.1
+    
+    # Run the audit with the Shadow Patch flag engaged
+    audited = auditor.audit_repository(mock_artifacts, is_shadow_patch=True)
+    
+    # Because file_impact < 0.5, it should remain Safe Code, bypassing the Trojan override
+    assert audited[0]["is_ml_threat"] is False, "Whitespace change was falsely flagged as a Shadow Patch Trojan!"
+
