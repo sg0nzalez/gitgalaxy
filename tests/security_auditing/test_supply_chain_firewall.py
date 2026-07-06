@@ -292,3 +292,34 @@ def test_monorepo_contextual_alias_resolution(monkeypatch, capsys):
     # Verify specific log outputs to ensure traversal hit the correct targets
     assert "'lodash' -> 'rogue-ui'" in captured.out, "Failed to resolve exact directory alias (Frontend)!"
     assert "'lodash' -> 'malicious-core'" in captured.out, "Failed to traverse upwards to authoritative manifest (Backend)!"
+
+# ==============================================================================
+# TEST 10: THE ALLOWLIST LOOPHOLE GUARD (UNHAPPY PATH)
+# ==============================================================================
+def test_firewall_allowlist_loophole_guard(monkeypatch):
+    """
+    Proves that a file residing in an ALLOWLIST_PATH can bypass strict mode 
+    for unknown imports, but is STILL blocked if it imports a known BLACKLISTED package.
+    """
+    # Whitelist the 'experiments' folder
+    monkeypatch.setattr(firewall_module, "ALLOWLIST_PATHS", ["experiments/"])
+    monkeypatch.setattr(firewall_module, "BLACKLISTED_IMPORTS", ["known-malware"])
+    monkeypatch.setattr(firewall_module, "STRICT_IMPORT_MODE", True)
+
+    mock_ram_graph = [
+        {
+            "path": "experiments/test_script.js",
+            "raw_imports": ["unknown-package", "known-malware"],
+            "equations": {},
+            "coding_loc": 10,
+        }
+    ]
+
+    result = firewall_module.run_firewall_audit(mock_ram_graph)
+
+    # 'unknown-package' is safely ignored because the path is whitelisted.
+    assert result["imports_unknown"] == 1
+    
+    # 'known-malware' MUST trigger a block despite the whitelist.
+    assert result["imports_blacklisted"] == 1
+    assert result["threats_found"] == 1, "Blacklisted import bypassed the firewall via the Allowlist Loophole!"

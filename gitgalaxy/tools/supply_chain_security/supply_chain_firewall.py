@@ -119,17 +119,16 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                 imports_whitelisted += 1
             else:
                 imports_unknown += 1
-                if STRICT_IMPORT_MODE:
+                if STRICT_IMPORT_MODE and not is_whitelisted:
                     threats_found += 1
-                    if not is_whitelisted:
-                        if true_pkg != pkg:
-                            print(
-                                f"[POLICY VIOLATION] Spoofed alias '{pkg}' -> '{true_pkg}' blocked by Strict Mode in: {rel_path_str}"
-                            )
-                        else:
-                            print(
-                                f"[POLICY VIOLATION] Unknown package '{pkg}' blocked by Strict Mode in: {rel_path_str}"
-                            )
+                    if true_pkg != pkg:
+                        print(
+                            f"[POLICY VIOLATION] Spoofed alias '{pkg}' -> '{true_pkg}' blocked by Strict Mode in: {rel_path_str}"
+                        )
+                    else:
+                        print(
+                            f"[POLICY VIOLATION] Unknown package '{pkg}' blocked by Strict Mode in: {rel_path_str}"
+                        )
 
         # =====================================================================
         # 2. BEHAVIORAL POLICY ENFORCEMENT (Leveraging Phase 1 Measurements)
