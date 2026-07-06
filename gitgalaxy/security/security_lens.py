@@ -205,6 +205,24 @@ class SecurityLens:
         safe_lines = [line.strip() for line in content.splitlines() if len(line) < 250]
         safe_content = "\n".join(safe_lines)
 
+        # ---> MINIFICATION & OBFUSCATION FALLBACK SCREEN <---
+        # If the 250-character anti-ReDoS shield stripped out more than 90% of the file, 
+        # it is minified. We perform a blazing fast O(N) literal string search on the 
+        # raw buffer to catch blatant execution hooks without triggering regex timeouts.
+        if len(safe_content) < (len(content) * 0.1):
+            fast_screen = {
+                "high_risk_execution": ["eval(", "setTimeout(", "child_process", "shell_exec("],
+                "io": ["XMLHttpRequest", "fetch(", "http.request"],
+                "safety_bypasses": ["NODE_TLS_REJECT_UNAUTHORIZED", "disable_functions"]
+            }
+            for key, literals in fast_screen.items():
+                for lit in literals:
+                    # Use a fast word-boundary regex to prevent substring hallucination
+                    # e.g., prevents "fetch(" from matching inside "prefetch("
+                    if re.search(rf"\b{re.escape(lit)}", content):
+                        counts[key] = counts.get(key, 0) + 1
+                        snippets.setdefault(key, []).append(f"[Minified Literal Hit]: {lit}")
+
         is_auto_gen = bool(self.auto_gen_shield.search(content[:2000]))
 
         # PERFORMANCE OPTIMIZATION: O(1) Offset Map for Taint Analysis
@@ -214,29 +232,32 @@ class SecurityLens:
             line_starts = [0] + [m.end() for m in re.finditer(r"\n", safe_content)]
 
         for key, regex in self.THREAT_SIGNATURES.items():
-            if is_auto_gen and key == "homoglyphs":
-                counts[key] = 0
-                snippets[key] = []
-                continue
+                if is_auto_gen and key == "homoglyphs":
+                    counts.setdefault(key, 0)
+                    snippets.setdefault(key, [])
+                    continue
 
-            counts[key] = len(regex.findall(content))
-            snippets[key] = []
+                # Ensure we add to the fallback screen hits rather than overwriting them.
+                # (Applying the safe_content patch here to ensure ReDoS armor remains intact).
+                new_hits = regex.findall(safe_content)
+                counts[key] = counts.get(key, 0) + len(new_hits)
+                snippets.setdefault(key, [])
 
-            if counts[key] > 0:
-                for match in regex.finditer(safe_content):
-                    snip = match.group(0).strip()
-                    if len(snippets[key]) < 3 and snip not in snippets[key]:
-                        snippets[key].append(snip)
+                if len(new_hits) > 0:
+                    for match in regex.finditer(safe_content):
+                        snip = match.group(0).strip()
+                        if len(snippets[key]) < 3 and snip not in snippets[key]:
+                            snippets[key].append(snip)
 
-                    # Map the exact line indexes of critical threats for the Taint Tracker
-                    if not is_auto_gen and key in {
-                        "io",
-                        "high_risk_execution",
-                        "llm_hooks",
-                        "db_hooks",
-                    }:
-                        line_idx = bisect.bisect_right(line_starts, match.start()) - 1
-                        threat_lines[line_idx].add(key)
+                        # Map the exact line indexes of critical threats for the Taint Tracker
+                        if not is_auto_gen and key in {
+                            "io",
+                            "high_risk_execution",
+                            "llm_hooks",
+                            "db_hooks",
+                        }:
+                            line_idx = bisect.bisect_right(line_starts, match.start()) - 1
+                            threat_lines[line_idx].add(key)
 
         # ---> 3. SHANNON ENTROPY (Obfuscation Detection) <---
         entropy_hits = 0
