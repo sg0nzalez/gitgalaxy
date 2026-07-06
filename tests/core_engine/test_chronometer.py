@@ -158,3 +158,36 @@ def test_get_file_history_metrics(mock_getmtime, tmp_path):
         mock_getmtime.side_effect = OSError()
         sig3 = chrono.get_file_history_metrics("ghost.py")
         assert sig3["mtime"] == 500
+
+# ==============================================================================
+# TEST 6: TEMPORAL COLLAPSE (CI/CD SHALLOW CLONE GUARD)
+# ==============================================================================
+@patch("gitgalaxy.metrics.chronometer.subprocess.run")
+@patch("gitgalaxy.metrics.chronometer.os.walk")
+@patch("gitgalaxy.metrics.chronometer.os.path.getmtime")
+def test_chronometer_temporal_collapse_guard(mock_getmtime, mock_walk, mock_run, tmp_path):
+    """
+    Proves the engine detects a shallow CI/CD clone (where all files have identical
+    timestamps) and safely neutralizes the temporal boundaries to prevent data poisoning.
+    """
+    # 1. Simulate a restricted CI/CD runner without Git
+    mock_run.side_effect = FileNotFoundError()
+    
+    # 2. Simulate 4 files being cloned sequentially, taking exactly 2 seconds total
+    mock_walk.return_value = [(str(tmp_path), ["dir1"], ["file1.txt", "file2.txt", "file3.txt", "file4.txt"])]
+    # The chronometer walks the OS twice (once for boundaries, once for the cache).
+    # We multiply the mock array by 2 so it has 8 values to satisfy both passes.
+    mock_getmtime.side_effect = [1000.0, 1000.5, 1001.0, 1002.0] * 2
+    
+    # Initialize without a parent logger to trigger the root logger fallback
+    chrono = Chronometer(tmp_path)
+    
+    # The true delta is 2.0 seconds. The engine should have flagged a Temporal Collapse
+    # and artificially pushed the min_time exactly 1 year into the past (31536000 seconds).
+    assert not chrono.is_git_enabled, "Failed to degrade to non-git OS mode!"
+    assert chrono.repo_max_time == 1002.0, "Failed to set max boundary from OS walk!"
+    
+    expected_safe_min = 1002.0 - 31536000
+    assert chrono.repo_min_time == expected_safe_min, (
+        f"Temporal Collapse Guard Failed! Expected neutralized min_time {expected_safe_min}, got {chrono.repo_min_time}"
+    )

@@ -92,6 +92,19 @@ class Chronometer:
         else:
             self._survey_filesystem_mtimes()
 
+            # ---> NEW: THE TEMPORAL COLLAPSE SANITY CHECK <---
+            # If the OS walk returns a timeline spanning less than 5 minutes (300 seconds), 
+            # we are likely inside a shallow-clone CI/CD environment where every file 
+            # was just stamped with the exact same download time.
+            delta = self.repo_max_time - self.repo_min_time
+            if delta < 300.0:
+                self.logger.warning(
+                    f"⏱️ TEMPORAL COLLAPSE DETECTED: Filesystem timeline spans only {delta:.1f}s. "
+                    "This indicates a shallow CI/CD clone. Neutralizing temporal math to prevent false positives."
+                )
+                # Safely peg the boundaries to force a 100% stability ratio (0.0 churn) in the SignalProcessor
+                self.repo_min_time = self.repo_max_time - 31536000  # Artificially peg to 1 year ago
+
         duration = time.time() - t_start
         self.logger.info(
             f"Chronometer Calibration Complete ({duration:.2f}s) | "
