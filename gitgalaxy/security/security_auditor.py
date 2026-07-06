@@ -123,11 +123,12 @@ class SecurityAuditor:
                 return artifacts
 
             # 2. DEFENSIVE GUARD: Schema Alignment
-            # Reindex to guarantee columns match the exact training schema. Missing language one-hots are filled with 0.
-            X = df.reindex(columns=self.feature_names, fill_value=0)
+            # Reindex to guarantee columns match the exact training schema. 
+            # We use np.nan to explicitly preserve missing data for XGBoost decision trees.
+            X = df.reindex(columns=self.feature_names, fill_value=np.nan)
 
-            # 3. Ultimate Sanitization: Ensure no Inf or NaN values can choke XGBoost
-            X = X.replace([np.inf, -np.inf], 0).fillna(0)
+            # 3. Ultimate Sanitization: Ensure no Inf values choke XGBoost, but preserve NaN
+            X = X.replace([np.inf, -np.inf], np.nan)
 
             # 4. Predict MULTICLASS Probabilities
             probabilities = self.model.predict_proba(X)
