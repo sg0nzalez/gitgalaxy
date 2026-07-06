@@ -654,17 +654,8 @@ class SignalProcessor:
             # ------------------------------------------------------------------
             # 2. CORE RISK EXPOSURE CALCULATIONS
             # ------------------------------------------------------------------
-            # ---> HIGHER-ORDER SYNTHESIS: The OOM (Out of Memory) Bomb <---
-            # If O(N^3) or recursive, AND high flux, AND NO lazy_evaluation -> Massive Flux Multiplier
-            oom_multiplier = 1.0
-            if (max_big_o >= 3 or has_recursion) and raw_signals.get("state_mutation", 0) > 0:
-                if raw_signals.get("lazy_evaluation", 0) == 0:
-                    oom_multiplier = 3.0  # Ticking OOM bomb (Bloating RAM)
-                else:
-                    oom_multiplier = 0.5  # Safely streamed (O(1) memory)
-
-            mp_map["state_mutation"] = mp_map.get("state_mutation", 1.0) * oom_multiplier
-            # --------------------------------------------------------------
+            # The OOM Bomb heuristic has been phased out of the probabilistic model.
+            # Spatial correlation is now handled natively upstream in detector.py.
 
             cog_score, cog_raw = self._calc_cog_load(loc, raw_signals, irc, fc, mp_map.get("cog", 1.0), func_gini)
             saf_score = self._calc_safety(loc, raw_signals, irc, fc, mp_map.get("safety", 1.0))
@@ -1749,7 +1740,7 @@ class SignalProcessor:
         if net_concurrency == 0:
             return 0.0
 
-        density = (net_concurrency * starvation_multiplier) / max(loc + loc_padding, 1)
+        density = ((net_concurrency * starvation_multiplier) / max(loc + loc_padding, 1)) * 100.0
 
         threshold = tuning.get("threshold_base", 4.0)  # Matches your config!
         slope = tuning.get("sigmoid_slope", 0.4)
@@ -1775,9 +1766,8 @@ class SignalProcessor:
         if net_volatility == 0:
             return 0.0
 
-        density = net_volatility / max(loc + loc_padding, 1)
+        density = (net_volatility / max(loc + loc_padding, 1)) * 100.0
 
-        # THE FIX: Dropped threshold from 45.0 back to the original 15.0
         threshold = tuning.get("threshold_base", 15.0)
         slope = tuning.get("sigmoid_slope", 0.2)
 

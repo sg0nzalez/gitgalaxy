@@ -1423,3 +1423,89 @@ def test_spatial_mapper_missing_keys():
     
     assert len(mapped) == 1
     assert mapped[0]["directory_group"] == "__monolith__", "Failed to default missing paths to the monolith!"
+    
+
+# ==============================================================================
+# TEST 44: APPSEC OOM BOMB (SPATIAL CASCADING FLUX)
+# ==============================================================================
+def test_detector_spatial_oom_bomb_correlation():
+    """
+    Proves the Spatial Map correctly amplifies State Flux when mutations 
+    occur within the blast radius of heavy algorithmic branching (OOM Bomb).
+    """
+    from gitgalaxy.core.detector import StructuralExtractor
+    
+    # 1. Happy Path: Mutation trapped inside a loop (Should Amplify)
+    opt_oom = StructuralExtractor("python", MOCK_LANG_DEFS)
+    # Inject temporary mock rules
+    opt_oom.primary_rules["state_mutation"] = re.compile(r"global_list\.append")
+    opt_oom.primary_rules["branch"] = re.compile(r"\bwhile\b")
+    
+    code_oom = (
+        "def memory_leak():\n"
+        "    while True:              # Trigger: branch\n"
+        "        global_list.append(x) # Trigger: state_mutation (inside branch)\n"
+    )
+    res_oom = opt_oom.splice(code_oom, "")
+    
+    # A single state_mutation hit normally = 1.
+    # The AppSec multiplier adds (cascading_flux * 2). Total should be >= 3.
+    assert res_oom["equations"].get("state_mutation", 0) >= 3, (
+        "Spatial correlation failed to amplify the OOM Bomb (Cascading Flux)!"
+    )
+    assert res_oom["mitigation_telemetry"].get("amplified_cascading_flux", 0) >= 1, (
+        "Failed to log the OOM Bomb telemetry!"
+    )
+    
+    # 2. Unhappy Path: Mutation far away from the loop (Should NOT Amplify)
+    opt_safe = StructuralExtractor("python", MOCK_LANG_DEFS)
+    opt_safe.primary_rules["state_mutation"] = re.compile(r"global_list\.append")
+    opt_safe.primary_rules["branch"] = re.compile(r"\bwhile\b")
+    
+    # Put 200 lines of safe padding between them to exceed the 150-char blast radius
+    padding = "    pass\n" * 200
+    code_safe = (
+        "def safe_mutation():\n"
+        "    global_list.append(x) # Trigger: state_mutation\n"
+        f"{padding}"
+        "    while True:              # Trigger: branch (far away)\n"
+        "        pass\n"
+    )
+    res_safe = opt_safe.splice(code_safe, "")
+    
+    # Because they are spatially separated, no amplification should occur. Total = 1.
+    assert res_safe["equations"].get("state_mutation", 0) == 1, (
+        "Spatial correlation falsely amplified an isolated state mutation!"
+    )
+    assert res_safe["mitigation_telemetry"].get("amplified_cascading_flux", 0) == 0, (
+        "Falsely logged OOM Bomb telemetry on safe code!"
+    )
+
+# ==============================================================================
+# TEST 45: ZERO-BRANCH MASSIVE STATE (OOM BOMB BYPASS)
+# ==============================================================================
+def test_detector_zero_branch_massive_state():
+    """
+    Proves that a file with massive state mutations but ZERO algorithmic branches 
+    safely bypasses the spatial OOM Bomb radar without throwing KeyErrors.
+    """
+    from gitgalaxy.core.detector import StructuralExtractor
+    opt_detector = StructuralExtractor("python", MOCK_LANG_DEFS)
+    
+    # Inject mock rules
+    opt_detector.primary_rules["state_mutation"] = re.compile(r"global_list\.append")
+    opt_detector.primary_rules["branch"] = re.compile(r"\b(while|for)\b")
+    
+    # Generate 100 state mutations with no loops
+    mutations = "    global_list.append(x)\n" * 100
+    code = f"def init_massive_data():\n{mutations}"
+    
+    result = opt_detector.splice(code, "")
+    
+    # The raw mutations should be counted, but the OOM Bomb telemetry must be exactly 0
+    assert result["equations"].get("state_mutation", 0) == 100, (
+        "Detector failed to count the raw, unamplified state mutations!"
+    )
+    assert result["mitigation_telemetry"].get("amplified_cascading_flux", 0) == 0, (
+        "Detector falsely amplified an OOM Bomb in a file with no algorithmic loops!"
+    )
