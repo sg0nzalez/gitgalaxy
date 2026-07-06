@@ -32,9 +32,10 @@ class ManifestParser:
 
     def build_resolution_map(self, manifest_paths: list) -> dict:
         """
-        Accepts a list of exact file paths and builds a global O(1) dependency resolution
-        dictionary by parsing package.json, package-lock.json, and requirements.txt.
+        Accepts a list of exact file paths and builds a localized dependency resolution
+        dictionary, namespaced by directory to prevent monorepo alias clobbering.
         """
+        # Change to a nested structure: map[directory_path][package_alias]
         resolution_map = {}
 
         for path_str in manifest_paths:
@@ -43,16 +44,24 @@ class ManifestParser:
                 continue
 
             filename = manifest_path.name.lower()
+            dir_key = str(manifest_path.parent).replace("\\", "/")
+            
+            # Initialize the namespace if it doesn't exist
+            if dir_key not in resolution_map:
+                resolution_map[dir_key] = {}
+
+            # Point all parsers to the localized dictionary
+            local_map = resolution_map[dir_key]
 
             try:
                 if filename == "package.json":
-                    self._parse_package_json(manifest_path, resolution_map)
+                    self._parse_package_json(manifest_path, local_map)
                 elif filename == "package-lock.json":
-                    self._parse_package_lock(manifest_path, resolution_map)
+                    self._parse_package_lock(manifest_path, local_map)
                 elif filename == "requirements.txt":
-                    self._parse_requirements_txt(manifest_path, resolution_map)
+                    self._parse_requirements_txt(manifest_path, local_map)
                 elif filename in ["pip.conf", ".pypirc", "pip.ini"]:
-                    self._parse_pip_conf(manifest_path, resolution_map)
+                    self._parse_pip_conf(manifest_path, local_map)
             except Exception as e:
                 self.logger.warning(f"Manifest Parser: Failed to parse structural definition {filename} - {e}")
 

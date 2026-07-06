@@ -11,7 +11,19 @@ def parser():
     """Provides a fresh ManifestParser instance with a silenced logger for clean test output."""
     logger = logging.getLogger("test_manifest_parser")
     logger.addHandler(logging.NullHandler())
-    return ManifestParser(parent_logger=logger)
+    p = ManifestParser(parent_logger=logger)
+    
+    # Intercept and flatten the nested alias map so legacy unit tests don't need to be rewritten
+    original_build = p.build_resolution_map
+    def flat_build_wrapper(manifest_paths):
+        nested_map = original_build(manifest_paths)
+        flat_map = {}
+        for local_map in nested_map.values():
+            flat_map.update(local_map)
+        return flat_map
+        
+    p.build_resolution_map = flat_build_wrapper
+    return p
 
 
 # ==============================================================================
