@@ -82,9 +82,9 @@ class SecurityLens:
             "safety_bypasses": re.compile(
                 r"\b(?:atob|btoa|base64_decode|gzinflate|gzuncompress|str_rot13|urldecode)[ \t]*\([ \t]*(?:atob|btoa|base64_decode|gzinflate|gzuncompress|str_rot13|urldecode)\b|"
                 r"\b(?:auto_prepend_file|auto_append_file)\b|"
-                r'\b(?:ini_set|ini_restore|putenv)[ \t]*\([ \t]*["\'](?:disable_functions|safe_mode|open_basedir|allow_url_fopen)["\'][ \t]*,[ \t]*["\']?(?:0|off|false|)["\']?\)|'
+                r'\b(?:ini_set|ini_restore|putenv)[ \t]*\([ \t]*["\'](?:disable_functions|safe_mode|open_basedir|allow_url_fopen)["\'][ \t]*,[ \t]*["\']?(?:0|off|false|)["\']?[ \t]*\)|'
                 r'\b(?:disable_functions|safe_mode|open_basedir)\b[ \t]*=[ \t]*(?:off|0|false|""|\'\')|'
-                r'process\.env\.NODE_TLS_REJECT_UNAUTHORIZED[ \t]*=[ \t]*["\']?0["\']?|'
+                r'process[ \t]*\.[ \t]*env[ \t]*\.[ \t]*NODE_TLS_REJECT_UNAUTHORIZED[ \t]*=[ \t]*["\']?0["\']?|'
                 r"\b(?:verify|strictSSL|rejectUnauthorized|CURLOPT_SSL_VERIFYPEER)[ \t]*[=:,][ \t]*(?:False|false|0)\b",
                 re.I,
             ),
@@ -111,13 +111,13 @@ class SecurityLens:
             ),
             # 5. Prototype Pollution & Global State Flux
             "state_mutation": re.compile(
-                r"\b[A-Za-z0-9_]+\.prototype\.[A-Za-z0-9_]+[ \t]*=|"
-                r"\.__proto__[ \t]*=[ \t]*[{a-zA-Z]|"
-                r"\b(?:window|global|globalThis|document)\.(?:fetch|eval|setTimeout|setInterval|Promise|console|JSON)[ \t]*=|"
-                r"\$(?:GLOBALS|_(?:SERVER|GET|POST|COOKIE|REQUEST|ENV|SESSION))\[[^\]]+\][ \t]*=[ \t]*[^=]|"
+                r"\b[A-Za-z0-9_]+[ \t]*\.[ \t]*prototype[ \t]*\.[ \t]*[A-Za-z0-9_]+[ \t]*=|"
+                r"\.[ \t]*__proto__[ \t]*=[ \t]*[{a-zA-Z]|"
+                r"\b(?:window|global|globalThis|document)[ \t]*\.[ \t]*(?:fetch|eval|setTimeout|setInterval|Promise|console|JSON)[ \t]*=|"
+                r"\$(?:GLOBALS|_(?:SERVER|GET|POST|COOKIE|REQUEST|ENV|SESSION))[ \t]*\[[^\]]+\][ \t]*=[ \t]*[^=]|"
                 r"\bextract[ \t]*\([ \t]*\$(?:_(?:GET|POST|REQUEST|COOKIE)|GLOBALS)\b|"
-                r"\b__builtins__\[[^\]]+\][ \t]*=|"
-                r"\bsys\.modules\[[^\]]+\][ \t]*=",
+                r"\b__builtins__[ \t]*\[[^\]]+\][ \t]*=|"
+                r"\bsys[ \t]*\.[ \t]*modules[ \t]*\[[^\]]+\][ \t]*=",
                 re.I,
             ),
             # 6. Commented-out Executable Logic (Deprecated Trails)
@@ -342,7 +342,12 @@ class SecurityLens:
 
                 # Scenario B: Left-Hand Side (LHS) Assignment Extraction
                 if has_io or has_llm:
-                    assign_op = ":=" if ":=" in line else "=" if "=" in line else None
+                    # Prevent splitting on comparison operators (==, ===, !=, !==, <=, >=)
+                    if re.search(r"[=!<>]=", line):
+                        assign_op = None
+                    else:
+                        assign_op = ":=" if ":=" in line else "=" if "=" in line else None
+                        
                     if assign_op:
                         lhs = line.split(assign_op)[0]
                         possible_vars = re.findall(r"\b[a-zA-Z_]\w*\b", lhs)
