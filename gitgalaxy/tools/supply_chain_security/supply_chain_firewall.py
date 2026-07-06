@@ -65,6 +65,24 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
         is_whitelisted = any(approved in rel_path_str for approved in ALLOWLIST_PATHS)
 
         # =====================================================================
+        # NEW: CONTEXTUAL ALIAS RESOLUTION
+        # Traverse up the directory tree to find the nearest authoritative manifest
+        # =====================================================================
+        local_aliases = {}
+        current_dir = Path(rel_path_str).parent
+        
+        while current_dir:
+            dir_key = str(current_dir).replace("\\", "/")
+            if dir_key in safe_alias_map:
+                local_aliases = safe_alias_map[dir_key]
+                break
+                
+            if str(current_dir) == ".":
+                break
+                
+            current_dir = current_dir.parent
+
+        # =====================================================================
         # 1. ZERO-TRUST IMPORT VERIFICATION
         # =====================================================================
         for raw_pkg in file_node.get("raw_imports", []):
@@ -87,7 +105,7 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
             # DEFENSIVE DESIGN (IDENTITY TRANSLATION SHIELD):
             # Dereference manifest aliases to catch Dependency Confusion attacks 
             # where a malicious package masks itself behind a trusted internal alias.
-            true_pkg = safe_alias_map.get(pkg, pkg)
+            true_pkg = local_aliases.get(pkg, pkg)
 
             if true_pkg in BLACKLISTED_IMPORTS:
                 imports_blacklisted += 1
