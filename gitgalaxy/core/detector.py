@@ -1007,6 +1007,17 @@ class StructuralExtractor:
                 counts["memory_alloc"] = unmitigated_allocs
                 mitigations["mitigated_memory_allocs"] += mitigated
 
+            # 6. The OOM Bomb (Cascading State Flux)
+            if "state_mutation" in spatial_map and "branch" in spatial_map:
+                # Assuming 'branch' captures while/for loops
+                _, cascading_flux = self._correlate_signals(
+                    targets=spatial_map["state_mutation"],
+                    dampeners=spatial_map["branch"],
+                    max_distance=150,  # If state is mutated near heavy branching
+                )
+                counts["state_mutation"] += cascading_flux * 2  # Double the raw signal
+                mitigations["amplified_cascading_flux"] = mitigations.get("amplified_cascading_flux", 0) + cascading_flux
+
             # Capture indentation signatures
             counts["indent_tabs"] += len(re.findall(r"^\t+(?=\S)", seg_code, flags=re.MULTILINE))
             counts["indent_spaces"] += len(re.findall(r"^[ ]{2,}(?=\S)", seg_code, flags=re.MULTILINE))

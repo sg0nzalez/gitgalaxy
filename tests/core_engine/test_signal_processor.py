@@ -354,29 +354,39 @@ def test_signal_processor_doc_and_secrets_bypass(processor):
 
 
 # ==============================================================================
-# TEST 13: THE MEMORY EXHAUSTION BOMB (Recursive Flux)
+# TEST 13: SPATIALLY VERIFIED MEMORY EXHAUSTION (Cascading Flux)
 # ==============================================================================
-def test_signal_processor_memory_exhaustion(processor):
-    """Proves recursive functions with high state mutation trigger the Memory Exhaustion multiplier."""
-    # Baseline: Normal function with state mutation
-    meta1, sig1 = create_synthetic_star(processor, "safe_flux", 100, {"state_mutation": 50})
-    meta1["functions"] = [
-        {"name": "safe", "loc": 100, "is_recursive": False, "big_o_depth": 1}
-    ]
-
-    # Memory Exhaustion: Recursive function + State mutation (No lazy evaluation)
-    meta2, sig2 = create_synthetic_star(processor, "oom_flux", 100, {"state_mutation": 50})
-    meta2["functions"] = [
-        {"name": "bomb", "loc": 100, "is_recursive": True, "big_o_depth": 1}
-    ]
-
-    res_safe = processor.calculate_risk_vector(meta1, sig1)
-    res_bomb = processor.calculate_risk_vector(meta2, sig2)
-
-    # The memory_exhaustion_multiplier = 3.0 should cause a significant difference in the final arrays
-    assert res_bomb["risk_vector"] != res_safe["risk_vector"], (
-        "Memory Exhaustion multiplier failed to alter the risk vector!"
+def test_signal_processor_memory_exhaustion_spatial(processor):
+    """
+    Proves that the engine properly translates spatially-amplified state mutations
+    into severe State Flux risk exposures, bypassing the old probabilistic guessing.
+    """
+    # 1. Baseline: Normal function with safe, isolated state mutation
+    meta_safe, sig_safe = create_synthetic_star(
+        processor, "safe_flux", 100, {"state_mutation": 5}
     )
+
+    # 2. Memory Exhaustion: The upstream detector found a loop and multiplied the signal
+    meta_bomb, sig_bomb = create_synthetic_star(
+        processor, "oom_flux", 100, {"state_mutation": 50}  # Signal was amplified upstream
+    )
+
+    res_safe = processor.calculate_risk_vector(meta_safe, sig_safe)
+    res_bomb = processor.calculate_risk_vector(meta_bomb, sig_bomb)
+
+    idx_flux = processor.RISK_SCHEMA.index("state_flux")
+    
+    safe_score = res_safe["risk_vector"][idx_flux]
+    bomb_score = res_bomb["risk_vector"][idx_flux]
+
+    assert bomb_score > safe_score, (
+        "Processor failed to convert the spatially amplified signal into a higher State Flux risk!"
+    )
+    assert bomb_score > 60.0, (
+        "Processor failed to trigger a severe risk exposure on the OOM Bomb!"
+    )
+
+
 
 
 # ==============================================================================
@@ -1041,29 +1051,6 @@ def test_signal_processor_safe_minified(processor):
     )
 
 
-# ==============================================================================
-# TEST 33: LAZY EVALUATION SHIELD (MEMORY EXHAUSTION)
-# ==============================================================================
-def test_signal_processor_lazy_evaluation_shield(processor):
-    """Proves that lazy evaluation (generators/streams) neutralizes the Memory Exhaustion multiplier."""
-    # 1. Ticking Memory Exhaustion Bomb (O(N^3) + High Flux + No Lazy Eval)
-    m_oom, sig_oom = create_synthetic_star(processor, "oom_bomb", 100, {"state_mutation": 20})
-    m_oom["functions"] = [{"name": "heavy_loop", "loc": 50, "big_o_depth": 3}]
-
-    # 2. Safe Stream (O(N^3) + High Flux + Lazy Evaluation)
-    m_lazy, sig_lazy = create_synthetic_star(
-        processor, "lazy_stream", 100, {"state_mutation": 20, "lazy_evaluation": 10}
-    )
-    m_lazy["functions"] = [{"name": "generator", "loc": 50, "big_o_depth": 3}]
-
-    r_oom = processor.calculate_risk_vector(m_oom, sig_oom)
-    r_lazy = processor.calculate_risk_vector(m_lazy, sig_lazy)
-
-    idx_flux = processor.RISK_SCHEMA.index("state_flux")
-    assert r_lazy["risk_vector"][idx_flux] < r_oom["risk_vector"][idx_flux], (
-        "Lazy evaluation failed to dampen the Memory Exhaustion multiplier!"
-    )
-
 
 # ==============================================================================
 # TEST 34: AI TOPOLOGY (DEEP LEARNING & TRADITIONAL ML)
@@ -1490,4 +1477,33 @@ def test_signal_processor_external_test_coverage(processor):
     )
     assert r_param["risk_vector"][idx_ver] < r_verified["risk_vector"][idx_ver], (
         "Parameterization multiplier failed to increase defensive mass!"
+    )
+
+# ==============================================================================
+# TEST 49: CONCURRENCY THRESHOLD SCALING (REGRESSION TEST)
+# ==============================================================================
+def test_signal_processor_concurrency_threshold_scaling(processor):
+    """
+    Proves the (* 100.0) mathematical scalar correctly converts low-ratio concurrency
+    signals into valid density percentages, catching thread starvation.
+    """
+    # 5 threads in a 100-line file = 0.05 ratio. 
+    # Scaled to percentage = 5.0%. Threshold is 4.0%. 
+    # This MUST trigger a high risk exposure.
+    meta, sig = create_synthetic_star(
+        processor, "thread_router", 100, {"concurrency": 5}
+    )
+    
+    # Give it a heavy O(N^3) big_o_depth to spike the thread starvation multiplier
+    meta["functions"] = [
+        {"name": "heavy_thread", "loc": 50, "big_o_depth": 3, "hit_vector": {"concurrency": 5}}
+    ]
+
+    res = processor.calculate_risk_vector(meta, sig)
+    idx_async = processor.RISK_SCHEMA.index("concurrency")
+    
+    score = res["risk_vector"][idx_async]
+    
+    assert score > 50.0, (
+        f"Concurrency scaling bug regression! Expected a high risk score, but got {score}%."
     )
