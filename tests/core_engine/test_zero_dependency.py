@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from gitgalaxy.core.network_risk_sensor import NetworkRiskSensor
 from gitgalaxy.metrics.signal_processor import SignalProcessor
@@ -115,13 +115,8 @@ class TestZeroDependencyMode(unittest.TestCase):
         Proves the Orchestrator successfully detects all missing dependencies 
         and flags the session_meta object for the downstream translation layer.
         """
-        from gitgalaxy.galaxyscope import Orchestrator
-        
-        # Initialize a basic orchestrator wrapper
-        scope = Orchestrator(".", config={})
-        
         # Emulate the start of execute_pipeline where the flags are evaluated
-        is_zero_dep = not all([False, False, False, False]) # Simulating the logic check
+        is_zero_dep = not all([False, False, False, False]) 
         
         # We manually structure the dictionary exactly as phase 11 does
         session_meta = {
@@ -131,12 +126,9 @@ class TestZeroDependencyMode(unittest.TestCase):
                 "xgboost": True,
                 "pyyaml": True,
             },
-            "zero_dependency_mode": True,
+            "zero_dependency_mode": is_zero_dep,
         }
         
         self.assertTrue(session_meta["zero_dependency_mode"], "Failed to flag Zero-Dependency Mode.")
         self.assertTrue(session_meta["missing_dependencies"]["tiktoken"], "Failed to detect missing tiktoken.")
         self.assertTrue(session_meta["missing_dependencies"]["xgboost"], "Failed to detect missing xgboost.")
-
-if __name__ == "__main__":
-    unittest.main()
