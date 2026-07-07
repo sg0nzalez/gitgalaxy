@@ -195,3 +195,29 @@ def test_function_csr_flattening(recorder, mock_pipeline_state):
     # After models.py (0 funcs): [0, 0]
     # After router.py (1 func): [0, 0, 1]
     assert galaxy["satellite_offsets"] == [0, 0, 1]
+    
+# ==============================================================================
+# TEST 6: UNSCANNED ARTIFACT FALLBACK (ISSUE #100)
+# ==============================================================================
+def test_unscanned_risk_vector_fallback(recorder, mock_pipeline_state):
+    """
+    Proves that artifacts missing a risk_vector (due to parser bypass or 
+    Zero-Dependency mode) default to -1.0 (quantized to -10) rather than 0.0.
+    This prevents the WebGL engine from fabricating a 'Safe' visual state.
+    """
+    artifacts, excluded, summary, forensic = mock_pipeline_state
+
+    # Explicitly ensure the mock artifacts have NO risk vector
+    for artifact in artifacts:
+        artifact.pop("risk_vector", None)
+
+    result = recorder.record_mission(artifacts, excluded, summary, forensic, "test")
+    galaxy = result["galaxy"]
+
+    # Since both files lack a risk vector, EVERY entry in the flattened risk 
+    # array must be exactly -10 (which represents -1.0 in the WebGPU shader).
+    risks_flat = galaxy["risks_flat"]
+    
+    assert len(risks_flat) > 0, "Flat risk array should not be empty!"
+    assert all(val == -10 for val in risks_flat), \
+        "FATAL: Recorder injected 0.0 instead of -10 for missing risk vectors!"

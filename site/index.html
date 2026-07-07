@@ -566,24 +566,31 @@
                             
                             let labelText = leg.labels[leg.labels.length - 1]; 
                             let targetBinIndex = leg.labels.length - 1;
-
-                            for (let b = 0; b < leg.bins.length; b++) {
-                                if (score <= leg.bins[b]) {
-                                    labelText = leg.labels[b];
-                                    targetBinIndex = b;
-                                    break;
-                                }
-                            }
-
                             let segmentColor = "var(--accent)";
-                            if (leg.colors && leg.colors[targetBinIndex]) {
-                                segmentColor = leg.colors[targetBinIndex];
-                            } else if (leg.gradient) {
-                                try { segmentColor = leg.gradient.split('100%')[0].split(', ').pop().trim(); } catch(e){}
-                            }
+                            let minBound = 0;
+                            let maxBound = 100;
 
-                            let minBound = targetBinIndex === 0 ? 0 : leg.bins[targetBinIndex - 1];
-                            let maxBound = targetBinIndex === leg.bins.length ? 100 : leg.bins[targetBinIndex];
+                            if (score < 0) {
+                                labelText = "UNSCANNED";
+                                segmentColor = "#333333";
+                            } else {
+                                for (let b = 0; b < leg.bins.length; b++) {
+                                    if (score <= leg.bins[b]) {
+                                        labelText = leg.labels[b];
+                                        targetBinIndex = b;
+                                        break;
+                                    }
+                                }
+
+                                if (leg.colors && leg.colors[targetBinIndex]) {
+                                    segmentColor = leg.colors[targetBinIndex];
+                                } else if (leg.gradient) {
+                                    try { segmentColor = leg.gradient.split('100%')[0].split(', ').pop().trim(); } catch(e){}
+                                }
+                                
+                                minBound = targetBinIndex === 0 ? 0 : leg.bins[targetBinIndex - 1];
+                                maxBound = targetBinIndex === leg.bins.length ? 100 : leg.bins[targetBinIndex];
+                            }
 
                             let ticksHTML = '';
                             leg.bins.forEach(bound => {
@@ -901,10 +908,15 @@
                         };
                         
                         let catLabel = leg.labels[leg.labels.length - 1]; 
-                        for (let b = 0; b < leg.bins.length; b++) {
-                            if (score <= leg.bins[b]) {
-                                catLabel = leg.labels[b];
-                                break;
+                        
+                        if (score < 0) {
+                            catLabel = "[UNSCANNED - NO DATA]";
+                        } else {
+                            for (let b = 0; b < leg.bins.length; b++) {
+                                if (score <= leg.bins[b]) {
+                                    catLabel = leg.labels[b];
+                                    break;
+                                }
                             }
                         }
 
@@ -973,8 +985,13 @@
                         const score = Math.round(d.stats.avg_exposures[schemaKey] || 0);
                         const leg = (window.Colors && window.Colors.LEGENDS && window.Colors.LEGENDS[schemaKey]) || { title: schemaKey.replace(/_/g, ' '), bins: [20, 40, 60, 80], labels: ["VERY LOW", "LOW", "MODERATE", "HIGH", "EXTREME"] };
                         let labelText = leg.labels[leg.labels.length - 1]; 
-                        for (let b = 0; b < leg.bins.length; b++) { 
-                            if (score <= leg.bins[b]) { labelText = leg.labels[b]; break; } 
+                        
+                        if (score < 0) {
+                            labelText = "[UNSCANNED - NO DATA]";
+                        } else {
+                            for (let b = 0; b < leg.bins.length; b++) { 
+                                if (score <= leg.bins[b]) { labelText = leg.labels[b]; break; } 
+                            }
                         }
                         txt += `${leg.title}: ${labelText}\n`;
                     });
@@ -1291,14 +1308,21 @@
                     const leg = (window.Colors && window.Colors.LEGENDS && window.Colors.LEGENDS[schemaKey]) || { title: schemaKey.replace(/_/g, ' '), bins: [20, 40, 60, 80], labels: ["VERY LOW", "LOW", "MODERATE", "HIGH", "EXTREME"] };
                     let labelText = leg.labels[leg.labels.length - 1]; 
                     let targetBinIndex = leg.labels.length - 1;
+                    let segmentColor = "var(--accent)";
+                    let minBound = 0;
+                    let maxBound = 100;
                     
-                    for (let b = 0; b < leg.bins.length; b++) { 
-                        if (score <= leg.bins[b]) { labelText = leg.labels[b]; targetBinIndex = b; break; } 
+                    if (score < 0) {
+                        labelText = "UNSCANNED";
+                        segmentColor = "#333333";
+                    } else {
+                        for (let b = 0; b < leg.bins.length; b++) { 
+                            if (score <= leg.bins[b]) { labelText = leg.labels[b]; targetBinIndex = b; break; } 
+                        }
+                        segmentColor = leg.colors ? leg.colors[targetBinIndex] : "var(--accent)";
+                        minBound = targetBinIndex === 0 ? 0 : leg.bins[targetBinIndex - 1];
+                        maxBound = targetBinIndex === leg.bins.length ? 100 : leg.bins[targetBinIndex];
                     }
-                    
-                    let segmentColor = leg.colors ? leg.colors[targetBinIndex] : "var(--accent)";
-                    let minBound = targetBinIndex === 0 ? 0 : leg.bins[targetBinIndex - 1];
-                    let maxBound = targetBinIndex === leg.bins.length ? 100 : leg.bins[targetBinIndex];
                     let ticksHTML = leg.bins.map(bound => `<div style="position: absolute; left: ${bound}%; top: 0; bottom: 0; width: 2px; background: var(--bg-ui); transform: translateX(-50%); z-index: 2;"></div>`).join('');
                     
                     statsBody.insertAdjacentHTML('beforeend', `

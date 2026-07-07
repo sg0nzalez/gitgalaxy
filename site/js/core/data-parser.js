@@ -145,7 +145,7 @@ export class DataParser {
             visualType: type,
             logicRatio: logicRatio,
             pos: { x: galaxy.pos_x[i] / 10.0, y: galaxy.pos_y[i] / 10.0, z: galaxy.pos_z[i] / 10.0 },
-            risks: galaxy.risks[i] || Array(18).fill(0), // Increased from 13 to 18
+            risks: galaxy.risks[i] || Array(18).fill(-10), // Increased from 13 to 18
             satellites: galaxy.satellites ? galaxy.satellites[i] : [],
             popularity: realPopularity,    // <--- Store the real value
             importHits: realPopularity     // <--- Wire rings to actual popularity, not regex hits!

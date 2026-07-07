@@ -145,8 +145,10 @@ export const createPhase6Shaders = (engine) => {
     const cYellow = color(0xffff00);   
     const cOrange = color(0xff8800);   
     const cRed    = color(0xff0000);   
+    const cUnscanned = color(0x333333); // Neutral dark grey for missing data
     
-    let gradientColor = select(
+    // Base spectrum calculation (0.0 to 1.0)
+    let baseGradient = select(
         relevance.lessThan(0.25), mix(cBlue, cCyan, relevance.mul(4.0)), 
         select(
             relevance.lessThan(0.5), mix(cCyan, cYellow, relevance.sub(0.25).mul(4.0)), 
@@ -156,6 +158,9 @@ export const createPhase6Shaders = (engine) => {
             )
         )
     );
+    
+    // THE FIX: If the relevance score is strictly less than 0.0 (e.g. -1.0), force it to Unscanned Grey
+    let gradientColor = select(relevance.lessThan(0.0), cUnscanned, baseGradient);
 
     // EXCEPTION A: Civil War (Mode 13) gets a diverging Green -> Blue -> Yellow spectrum
     const civilBlue = color(0x0000ff);

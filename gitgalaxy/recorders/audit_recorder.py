@@ -146,33 +146,18 @@ class AuditRecorder:
             lang_raw = str(file_data.get("lang_id", "Unknown")).lower()
             d_name = file_data.get("directory_group", "__monolith__")
 
-            # DEFENSIVE GUARD: Synthesize default risk vectors for documentation
-            # Prevents matrix dimension desyncs if the pipeline bypassed static physics for pure text.
+            # DEFENSIVE GUARD: Synthesize default structural mass for documentation
+            # Prevents dimension desyncs if the pipeline bypassed static physics for pure text.
             doc_languages = {"markdown", "plaintext", "rst", "text", "md"}
-            if lang_raw in doc_languages and len(file_data.get("risk_vector", [])) < len(self.RISK_SCHEMA):
-                file_data["risk_vector"] = [
-                    0.0,
-                    100.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    100.0,
-                    100.0,
-                    0.0,
-                    100.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ]
-                telemetry["control_flow_ratio"] = 0.0
+            if lang_raw in doc_languages:
+                if "control_flow_ratio" not in telemetry:
+                    telemetry["control_flow_ratio"] = 0.0
                 if not file_data.get("file_impact"):
                     file_data["file_impact"] = round(max(file_data.get("total_loc", 1) / 50.0, 1.0), 2)
+                
+                # THE FIX: Explicitly pop the risk vector if it exists so text files are ALWAYS marked UNSCANNED
+                if "risk_vector" in file_data:
+                    file_data.pop("risk_vector")
 
             # --- DYNAMIC IDENTITY BLOCK ---
             identity_block = {
@@ -201,18 +186,25 @@ class AuditRecorder:
 
             # --- EXPOSURE FORMATTER ---
             exposures_dict = {}
-            for label, v in zip(risk_labels, file_data.get("risk_vector") or [0.0] * len(risk_labels)):
-                if label in ["Civil War Exposure", "Indentation Consistency"]:
-                    if v == 0.0:
-                        exposures_dict["Indentation Consistency"] = "Tabs"
-                    elif v == 100.0:
-                        exposures_dict["Indentation Consistency"] = "Spaces"
-                    elif v == 50.0:
-                        exposures_dict["Indentation Consistency"] = "Neutral / Deadlocked"
+            raw_risk = file_data.get("risk_vector")
+            
+            # THE FIX: Enforce strict data provenance. If missing, label it explicitly.
+            if not raw_risk:
+                for label in risk_labels:
+                    exposures_dict[label] = "[UNSCANNED - NO DATA]"
+            else:
+                for label, v in zip(risk_labels, raw_risk):
+                    if label in ["Civil War Exposure", "Indentation Consistency"]:
+                        if v == 0.0:
+                            exposures_dict["Indentation Consistency"] = "Tabs"
+                        elif v == 100.0:
+                            exposures_dict["Indentation Consistency"] = "Spaces"
+                        elif v == 50.0:
+                            exposures_dict["Indentation Consistency"] = "Neutral / Deadlocked"
+                        else:
+                            exposures_dict["Indentation Consistency"] = f"Mixed ({100 - v:.1f}% Tabs / {v:.1f}% Spaces)"
                     else:
-                        exposures_dict["Indentation Consistency"] = f"Mixed ({100 - v:.1f}% Tabs / {v:.1f}% Spaces)"
-                else:
-                    exposures_dict[label] = f"{round(v, 2)}%"
+                        exposures_dict[label] = f"{round(v, 2)}%"
 
             arch = telemetry.get("archetype", "Unknown Archetype")
             if d_name not in folder_archetype_counts:

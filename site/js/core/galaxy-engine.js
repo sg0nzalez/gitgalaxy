@@ -539,13 +539,45 @@ export class GalaxyEngine {
             
             if (cId !== -1) {
                 const cName = raw.meta.schemas.lookups.constellations[cId];
-                const stats = raw.global_summary.constellations[cName] || {};
+                // Clone stats to avoid mutating the original JSON object
+                const stats = JSON.parse(JSON.stringify(raw.global_summary.constellations[cName] || {}));
                 const files = [];
+                
+                // --- THE FIX: Dynamically recalculate averages, explicitly excluding unscanned (-10) files ---
+                const riskTotals = {};
+                const riskCounts = {};
+                const RISK_LENGTH = raw.meta?.schemas?.risk_vector_x1000?.length || 18;
+                const riskSchema = raw.meta?.schemas?.risk_vector_x1000 || [];
+
                 for (let i = 0; i < raw.galaxy.names.length; i++) {
                     if (raw.galaxy.c_ids[i] === cId) {
                         const langStr = raw.meta.schemas.lookups.languages[raw.galaxy.lang_ids[i]] || "UNKNOWN";
                         files.push({ name: raw.galaxy.names[i], lang: langStr });
+
+                        // Aggregate risks strictly for this constellation
+                        const rStart = i * RISK_LENGTH;
+                        const fileRisks = raw.galaxy.risks_flat ? raw.galaxy.risks_flat.slice(rStart, rStart + RISK_LENGTH) : [];
+                        
+                        for (let j = 0; j < fileRisks.length; j++) {
+                            const val = fileRisks[j];
+                            if (val >= 0) { // Exclude -10 (Unscanned) values
+                                const key = riskSchema[j];
+                                if (!riskTotals[key]) {
+                                    riskTotals[key] = 0;
+                                    riskCounts[key] = 0;
+                                }
+                                riskTotals[key] += (val / 10.0); // Convert back to 0-100 scale
+                                riskCounts[key]++;
+                            }
+                        }
                     }
+                }
+
+                // Apply the true averages
+                stats.avg_exposures = {};
+                for (let k = 0; k < riskSchema.length; k++) {
+                    const key = riskSchema[k];
+                    stats.avg_exposures[key] = riskCounts[key] > 0 ? (riskTotals[key] / riskCounts[key]) : -1.0;
                 }
                 
                 if (window.updateConstellationHUD) {
@@ -731,7 +763,7 @@ export class GalaxyEngine {
             
             // --- NEW: Slice the flattened risk array for this specific star ---
             const rStart = i * RISK_LENGTH;
-            const risks = raw.galaxy.risks_flat ? raw.galaxy.risks_flat.slice(rStart, rStart + RISK_LENGTH) : Array(RISK_LENGTH).fill(0);
+            const risks = raw.galaxy.risks_flat ? raw.galaxy.risks_flat.slice(rStart, rStart + RISK_LENGTH) : Array(RISK_LENGTH).fill(-10);
             
             const m_loc = raw.galaxy.m_locs ? raw.galaxy.m_locs[i] : 0;
             const logicRatio = (loc > 0) ? (m_loc / loc) : 0;
