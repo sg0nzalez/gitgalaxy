@@ -481,12 +481,16 @@ class AuditRecorder:
         ]
 
         # Tiered Status Routing (ML acts as the supreme authority)
+        is_zero_dep = session_meta.get("zero_dependency_mode", False)
+        
         if ml_threat_files:
             audit_status = "ML_CONFIRMED_THREAT_DETECTED"
         elif quarantined_files or has_malware or has_secrets or malicious_hits_total > 0:
             audit_status = "CRITICAL_THREATS_DETECTED (Rule-Based)"
         elif any(v["Artifacts Flagged"] > 0 for v in vuln_exposures.values()):
             audit_status = "ELEVATED_SURFACE_RISK"
+        elif is_zero_dep:
+            audit_status = "[BYPASSED - ZERO DEPENDENCY MODE]"
         else:
             audit_status = "SECURE_NO_THREATS_DETECTED"
 
