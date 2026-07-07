@@ -71,6 +71,7 @@ class GPURecorder:
         summary: Dict,
         forensic_report: Dict,
         repo_name: str,
+        session_meta: Dict = None,
         commit_hash: str = "untracked_local",
         branch_name: str = "unknown_branch",
     ) -> Dict:
@@ -203,11 +204,12 @@ class GPURecorder:
             repository_graph["pos_z"].append(int(round(file_data.get("pos_z", 0.0) * 10)))
 
             # 5. Flat Array Mapping (Structure of Arrays)
+            # THE FIX: If risk_vector is missing (unscanned), inject -10 to flag it as -1.0 in WebGPU
             repository_graph["risks_flat"].extend(
-                [int(v * 10) for v in file_data.get("risk_vector", [0] * len(self.RISK_SCHEMA))]
+                [int(v * 10) for v in file_data.get("risk_vector", [-1.0] * len(self.RISK_SCHEMA))]
             )
             repository_graph["hits_flat"].extend(
-                [int(v) for v in file_data.get("hit_vector", [0] * len(self.HIT_SCHEMA))]
+                [int(v) for v in file_data.get("hit_vector", [-1] * len(self.HIT_SCHEMA))]
             )
 
             # 6. Telemetry Interning
@@ -346,9 +348,15 @@ class GPURecorder:
             },
         )
 
-        # Return payload mirroring the exact schema expected by the WebGL Visualizer
+        # Extract dependencies if provided
+        missing_deps = session_meta.get("missing_dependencies", {}) if session_meta else {}
+        zero_dep_mode = session_meta.get("zero_dependency_mode", False) if session_meta else False
+
+        # Return payload mirroring the exact schema expected by the WebGPU Visualizer
         return {
             "meta": {
+                "zero_dependency_mode": zero_dep_mode,
+                "missing_dependencies": missing_deps,
                 "schemas": {
                     "galaxy_columns": list(repository_graph.keys()),
                     "singularity_columns": list(excluded_artifacts.keys()),

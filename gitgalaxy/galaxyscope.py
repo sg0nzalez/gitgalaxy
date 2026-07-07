@@ -953,6 +953,7 @@ class Orchestrator:
                     summary=summary,
                     forensic_report=report,
                     repo_name=self.root.name,
+                    session_meta=session_meta,
                 )
 
                 payload["meta"]["session"] = session_meta

@@ -166,9 +166,11 @@ def test_audit_recorder_formatting_edge_cases(recorder, tmp_path):
 
     files = payload["6. Parsed Files (Scanned Artifacts)"]["__monolith__"]["Files"]
     
-    # 1. Verify Markdown Padding
+    # 1. Verify Missing Vector Strict Labeling (Issue #100)
+    # Because README.md has no risk_vector, it MUST be explicitly labeled as unscanned
     readme = files["README.md"]["4. Vulnerability & Risk Exposures"]
-    assert len(readme) == 3, "Failed to pad the missing markdown risk vector!"
+    assert len(readme) == 3, "Failed to map the missing markdown risk vector!"
+    assert readme["Secrets Risk Exposure"] == "[UNSCANNED - NO DATA]", "Failed to flag missing risk as unscanned!"
     
     # 2. Verify Indentation String Translation
     assert files["src/tabs.py"]["4. Vulnerability & Risk Exposures"]["Indentation Consistency"] == "Tabs"
