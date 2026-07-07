@@ -1,21 +1,34 @@
-# IMPORTANT: Adjust this path to match exactly where your file is located
+import pytest
+from unittest.mock import patch
 from gitgalaxy.tools.ai_guardrails.dev_agent_firewall import DevAgentFirewall
+
+
+@pytest.fixture
+def firewall():
+    """
+    Initializes the firewall with a controlled schema patch.
+    This ensures tests don't break if upstream schema indices change.
+    """
+    mock_schemas = {
+        "RISK_SCHEMA": ["tech_debt", "state_flux", "cognitive_load"],
+        "SIGNAL_SCHEMA": ["io", "reflection_metaprogramming"]
+    }
+    with patch("gitgalaxy.tools.ai_guardrails.dev_agent_firewall.RECORDING_SCHEMAS", mock_schemas):
+        yield DevAgentFirewall()
 
 
 # ==============================================================================
 # TEST 1: The Context Window Shredder (Black Hole Detection)
 # ==============================================================================
-def test_black_hole_detection():
+def test_black_hole_detection(firewall):
     """
     Proves that files exceeding 8k tokens with O(N^3) or worse complexity
     are correctly flagged as Context Window Shredders.
     """
-    firewall = DevAgentFirewall()
-
     mock_files = [
         {
             "token_mass": 8500,  # ☢️ Exceeds 8k limit
-            "max_big_o": 3,  # ☢️ High algorithmic complexity
+            "max_big_o": 3,      # ☢️ High algorithmic complexity
             "telemetry": {},
             "risk_vector": [],
         }
@@ -24,30 +37,26 @@ def test_black_hole_detection():
     result = firewall.evaluate_ecosystem(mock_files)
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
-    assert guardrails["is_agentic_black_hole"] is True, (
-        "Failed to detect the Agentic Black Hole!"
-    )
+    assert guardrails["is_agentic_black_hole"] is True, "Failed to detect the Agentic Black Hole!"
     assert any("Context Window Exhaustion" in warning for warning in guardrails["warnings"])
 
 
 # ==============================================================================
 # TEST 2: The HITL Mandate (Blast Radius + Risk Debt)
 # ==============================================================================
-def test_hitl_mandate_detection():
+def test_hitl_mandate_detection(firewall):
     """
     Proves that high PageRank (blast radius) combined with severe risk debt
     mandates a Human-in-the-Loop constraint.
     """
-    firewall = DevAgentFirewall()
-
     mock_files = [
         {
             "token_mass": 1000,
             "max_big_o": 1,
             "risk_vector": [100, 50, 60],  # ☢️ Sum = 210 (> 200 threshold)
             "telemetry": {
-                "network_metrics": {"normalized_blast_radius": 1.5}
-            },  # ☢️ > 1.0 threshold
+                "network_metrics": {"normalized_blast_radius": 1.5} # ☢️ > 1.0 threshold
+            }
         }
     ]
 
@@ -55,25 +64,21 @@ def test_hitl_mandate_detection():
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
     assert guardrails["requires_hitl"] is True, "Failed to enforce the HITL Mandate!"
-    assert any(
-        "Human-in-the-Loop required" in warning for warning in guardrails["warnings"]
-    )
+    assert any("Human-in-the-Loop required" in warning for warning in guardrails["warnings"])
 
 
 # ==============================================================================
-# TEST 3: The Hallucination Zone (Metaprogramming + Low Docs)
+# TEST 3: The Hallucination Zone (Schema Drift Fix)
 # ==============================================================================
-def test_hallucination_zone_detection():
+def test_hallucination_zone_detection(firewall):
     """
-    Proves that high dynamic execution (heat triggers) and poor documentation
+    Proves that high dynamic execution (pulled from hit_vector) and poor documentation
     triggers the Hallucination Zone warning.
     """
-    firewall = DevAgentFirewall()
-
     mock_files = [
         {
+            "hit_vector": [0, 3],  # ☢️ Index 1 is reflection_metaprogramming (> 2 triggers)
             "telemetry": {
-                "reflection_metaprogramming": 3,  # ☢️ > 2 dynamic execution triggers
                 "doc_density": 0.15,  # ☢️ < 0.20 density
             }
         }
@@ -82,27 +87,23 @@ def test_hallucination_zone_detection():
     result = firewall.evaluate_ecosystem(mock_files)
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
-    assert guardrails["hallucination_zone"] is True, (
-        "Failed to detect the Hallucination Zone!"
-    )
+    assert guardrails["hallucination_zone"] is True, "Failed to detect the Hallucination Zone!"
     assert any("Hallucination Risk" in warning for warning in guardrails["warnings"])
 
 
 # ==============================================================================
-# TEST 4: The Silent Mutation Risk (Flux + Blast + No Tests)
+# TEST 4: The Silent Mutation Risk (Schema Drift Fix)
 # ==============================================================================
-def test_silent_mutation_risk_detection():
+def test_silent_mutation_risk_detection(firewall):
     """
-    Proves that files with high state flux, high inbound dependencies, and
-    zero test coverage are flagged as a Silent Mutation Risk.
+    Proves that files with high state flux (pulled from risk_vector), high inbound 
+    dependencies, and zero test coverage are flagged as a Silent Mutation Risk.
     """
-    firewall = DevAgentFirewall()
-
     mock_files = [
         {
+            "risk_vector": [10.0, 55.0, 20.0],  # ☢️ Index 1 is state_flux (> 50)
             "telemetry": {
-                "state_flux": 55,  # ☢️ > 50 flux
-                "has_tests": False,  # ☢️ Zero test coverage
+                "has_tests": False,                   # ☢️ Zero test coverage
                 "network_metrics": {"in_degree": 6},  # ☢️ > 5 dependencies rely on this
             }
         }
@@ -111,35 +112,30 @@ def test_silent_mutation_risk_detection():
     result = firewall.evaluate_ecosystem(mock_files)
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
-    assert guardrails.get("silent_mutation_risk") is True, (
-        "Failed to detect Silent Mutation Risk!"
-    )
+    assert guardrails.get("silent_mutation_risk") is True, "Failed to detect Silent Mutation Risk!"
     assert any("Cascading State Flux" in warning for warning in guardrails["warnings"])
 
 
 # ==============================================================================
 # TEST 5: The Clean Baseline (False-Positive Guard)
 # ==============================================================================
-def test_safe_agentic_baseline():
+def test_safe_agentic_baseline(firewall):
     """
     Proves that a well-documented, well-tested, simple file passes the firewall
     without triggering any agentic guardrails.
     """
-    firewall = DevAgentFirewall()
-
     mock_files = [
         {
-            "token_mass": 2000,  # ✅ Safe size
-            "max_big_o": 1,  # ✅ Simple O(N) logic
-            "risk_vector": [10, 5],  # ✅ Low risk debt (15)
+            "token_mass": 2000,
+            "max_big_o": 1,
+            "risk_vector": [10, 5, 0],  # ✅ Low risk debt
+            "hit_vector": [0, 0],       # ✅ No dynamic execution
             "telemetry": {
-                "reflection_metaprogramming": 0,  # ✅ No dynamic execution
-                "doc_density": 0.85,  # ✅ Highly documented
-                "state_flux": 10,  # ✅ Low flux
-                "has_tests": True,  # ✅ Safely tested
+                "doc_density": 0.85,
+                "has_tests": True,
                 "network_metrics": {
-                    "normalized_blast_radius": 0.5,  # ✅ Low blast radius
-                    "in_degree": 1,  # ✅ Low dependencies
+                    "normalized_blast_radius": 0.5,
+                    "in_degree": 1,
                 },
             },
         }
@@ -148,9 +144,64 @@ def test_safe_agentic_baseline():
     result = firewall.evaluate_ecosystem(mock_files)
     guardrails = result[0]["telemetry"]["ai_guardrails"]
 
-    # Assert absolutely NO flags were triggered
     assert guardrails["is_agentic_black_hole"] is False
     assert guardrails["requires_hitl"] is False
     assert guardrails["hallucination_zone"] is False
     assert guardrails.get("silent_mutation_risk", False) is False
-    assert len(guardrails["warnings"]) == 0, "False positive triggered on a safe file!"
+    assert len(guardrails["warnings"]) == 0
+
+
+# ==============================================================================
+# TEST 6: Unhappy Path - Missing Vectors (Zero-Dependency Mode)
+# ==============================================================================
+def test_survives_missing_vectors(firewall):
+    """
+    Proves the firewall does not crash with KeyErrors or TypeErrors if the 
+    artifact entirely lacks a risk_vector or hit_vector (e.g., bypassed assets).
+    """
+    mock_files = [
+        {
+            "token_mass": 100,
+            # No hit_vector
+            # No risk_vector
+            "telemetry": {}
+        }
+    ]
+
+    result = firewall.evaluate_ecosystem(mock_files)
+    guardrails = result[0]["telemetry"]["ai_guardrails"]
+
+    # Should default cleanly to safe
+    assert guardrails["silent_mutation_risk"] is False
+    assert guardrails["hallucination_zone"] is False
+
+
+# ==============================================================================
+# TEST 7: Unhappy Path - Short Vectors (Index Out Of Bounds Guard)
+# ==============================================================================
+def test_survives_short_vectors(firewall):
+    """
+    Proves the firewall avoids IndexError if an upstream bug truncates the 
+    arrays before they reach the expected schema indices.
+    """
+    mock_files = [
+        {
+            # Schema says state_flux is at index 1, but we only pass index 0
+            "risk_vector": [99.0], 
+            # Schema says metaprogramming is at index 1, but we only pass index 0
+            "hit_vector": [5],     
+            "telemetry": {
+                "has_tests": False,
+                "network_metrics": {"in_degree": 10},
+                "doc_density": 0.1
+            }
+        }
+    ]
+
+    result = firewall.evaluate_ecosystem(mock_files)
+    guardrails = result[0]["telemetry"]["ai_guardrails"]
+
+    # Even though conditions for flags were met in telemetry, the short arrays 
+    # should safely abort the checks rather than crash the engine.
+    assert guardrails["silent_mutation_risk"] is False
+    assert guardrails["hallucination_zone"] is False
