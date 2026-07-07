@@ -93,6 +93,8 @@ class AuditRecorder:
         forensic_trail = {
             "Analysis Context": {
                 "Engine Identity": session_meta.get("engine", "GitGalaxy Scope v6.2.0"),
+                "Zero-Dependency Mode Active": session_meta.get("zero_dependency_mode", False),
+                "Missing Dependencies": session_meta.get("missing_dependencies", {}),
                 "Target Root Name": session_meta.get("target", "Unknown"),
                 "Absolute Project Path": session_meta.get("target_directory", "Unknown"),
                 "Analysis ISO Timestamp": session_meta.get("timestamp"),
