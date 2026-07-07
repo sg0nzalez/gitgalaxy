@@ -490,10 +490,16 @@
                         // --- THE FIX: Handle the new 1D flat array with a stride ---
                         if (source.risks_flat) {
                             for (let i = sIdx; i < source.risks_flat.length; i += stride) {
-                                values.push(Math.max(0, Math.min(100, (source.risks_flat[i] || 0) / 10)));
+                                const rawVal = source.risks_flat[i];
+                                if (rawVal !== undefined && rawVal < 0) continue; // Exclude unscanned from histogram
+                                values.push(Math.max(0, Math.min(100, (rawVal || 0) / 10)));
                             }
                         } else {
-                            values = source.risks.map(r => Math.max(0, Math.min(100, (r[sIdx] || 0) / 10)));
+                            values = source.risks.reduce((acc, r) => {
+                                const rawVal = r[sIdx];
+                                if (rawVal === undefined || rawVal >= 0) acc.push(Math.max(0, Math.min(100, (rawVal || 0) / 10)));
+                                return acc;
+                            }, []);
                         }
                         
                         const s = getStats(values);
