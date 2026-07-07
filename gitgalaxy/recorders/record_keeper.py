@@ -177,6 +177,7 @@ class RecordKeeper:
                 audit_shadow_apis INTEGER DEFAULT 0,
                 audit_binary_anomalies INTEGER DEFAULT 0,
                 audit_unknown_packages INTEGER DEFAULT 0,
+                is_zero_dependency_mode INTEGER DEFAULT 0,
                 {", ".join(hit_cols)},
                 file_composition TEXT,
                 UNIQUE(repo_name, commit_hash)
@@ -463,12 +464,22 @@ class RecordKeeper:
 
             # --- NETWORK TOPOLOGY EXTRACTION ---
             net_mets = tel.get("network_metrics", {})
-            pagerank_score = net_mets.get("pagerank_score", 0.0)
-            blast_radius = net_mets.get("normalized_blast_radius", 0.0)
-            betweenness_score = net_mets.get("betweenness_score", 0.0)
-            closeness_score = net_mets.get("closeness_score", 0.0)
-            producer_ratio = net_mets.get("producer_ratio", 0.0)
-            ecosystem_role = net_mets.get("ecosystem_role", "Unknown")
+            
+            if session_meta.get("zero_dependency_mode"):
+                ai_score = None
+                pagerank_score = None
+                blast_radius = None
+                betweenness_score = None
+                closeness_score = None
+                producer_ratio = None
+                ecosystem_role = None
+            else:
+                pagerank_score = net_mets.get("pagerank_score", 0.0)
+                blast_radius = net_mets.get("normalized_blast_radius", 0.0)
+                betweenness_score = net_mets.get("betweenness_score", 0.0)
+                closeness_score = net_mets.get("closeness_score", 0.0)
+                producer_ratio = net_mets.get("producer_ratio", 0.0)
+                ecosystem_role = net_mets.get("ecosystem_role", "Unknown")
 
             class_idx = self.SIGNAL_SCHEMA.index("class_start") if "class_start" in self.SIGNAL_SCHEMA else -1
             class_count = hv[class_idx] if class_idx >= 0 and class_idx < len(hv) else 0
@@ -490,8 +501,8 @@ class RecordKeeper:
             god_mode = 1 if appsec.get("over_permissioned_agent") else 0
             exfiltration = 1 if appsec.get("agentic_exfiltration_risk") else 0
 
-            file_token_mass = file_data.get("token_mass", 0)
-            file_read_cost = file_data.get("financial_read_cost", 0.0)
+            file_token_mass = file_data.get("token_mass")
+            file_read_cost = file_data.get("financial_read_cost")
 
             row_data = [
                 repo_name,
@@ -671,6 +682,19 @@ class RecordKeeper:
         net_macro = summary.get("network_macro", {})
         audits = summary.get("ecosystem_audits", {})
 
+        if session_meta.get("zero_dependency_mode"):
+            net_modularity = None
+            net_assortativity = None
+            net_cyclic_density = None
+            net_avg_path_length = None
+            net_articulation_points = None
+        else:
+            net_modularity = net_macro.get("modularity", 0.0)
+            net_assortativity = net_macro.get("assortativity", 0.0)
+            net_cyclic_density = net_macro.get("cyclic_density", 0.0)
+            net_avg_path_length = net_macro.get("avg_path_length", 0.0)
+            net_articulation_points = net_macro.get("articulation_points", 0)
+
         repo_row_data = (
             [
                 repo_name,
@@ -691,14 +715,15 @@ class RecordKeeper:
                 float(macro_info.get("z_score", 0.0)),
                 round(avg_encapsulation, 3),
                 round(avg_imports, 3),
-                net_macro.get("modularity", 0.0),
-                net_macro.get("assortativity", 0.0),
-                net_macro.get("cyclic_density", 0.0),
-                net_macro.get("avg_path_length", 0.0),
-                net_macro.get("articulation_points", 0),
+                net_modularity,
+                net_assortativity,
+                net_cyclic_density,
+                net_avg_path_length,
+                net_articulation_points,
                 int(audits.get("api_mapper", {}).get("shadow_count", 0)),
                 int(audits.get("xray", {}).get("anomalies_found", 0)),
                 int(audits.get("firewall", {}).get("imports_unknown", 0)),
+                1 if session_meta.get("zero_dependency_mode") else 0,
             ]
             + agg_hits
             + [repo_composition_str]
@@ -713,7 +738,7 @@ class RecordKeeper:
                 typosquat_hits, ecosystem_baseline, z_score,
                 avg_encapsulation_ratio, avg_imports_per_file,
                 network_modularity, network_assortativity, network_cyclic_density, network_avg_path_length, network_articulation_points,
-                audit_shadow_apis, audit_binary_anomalies, audit_unknown_packages,
+                audit_shadow_apis, audit_binary_anomalies, audit_unknown_packages, is_zero_dependency_mode,
                 {", ".join([self.SHORT_KEY_MAP.get(h, h) for h in self.SIGNAL_SCHEMA])},
                 file_composition
             ) VALUES ({repo_placeholders})
