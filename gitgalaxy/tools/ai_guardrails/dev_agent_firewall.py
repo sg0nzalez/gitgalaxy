@@ -16,6 +16,7 @@
 import logging
 from typing import List, Dict, Any
 
+from gitgalaxy.standards.analysis_lens import RECORDING_SCHEMAS
 
 class DevAgentFirewall:
     """
@@ -28,10 +29,14 @@ class DevAgentFirewall:
     def evaluate_ecosystem(self, parsed_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info("Executing Autonomous Agent Firewall & Token Density Validation...")
 
+        risk_schema = RECORDING_SCHEMAS.get("RISK_SCHEMA", [])
+        signal_schema = RECORDING_SCHEMAS.get("SIGNAL_SCHEMA", [])
+
         for file_data in parsed_files:
             token_mass = file_data.get("token_mass", 0)
             network_metrics = file_data.get("telemetry", {}).get("network_metrics", {})
             risk_vector = file_data.get("risk_vector", [])  # Assuming standard 0-100 risk scores
+            hit_vector = file_data.get("hit_vector", [])
 
             # Extract relevant structural metrics, safely handling None values from Zero-Dependency Mode
             pagerank = network_metrics.get("normalized_blast_radius") or 0.0
@@ -41,8 +46,18 @@ class DevAgentFirewall:
                 "is_agentic_black_hole": False,
                 "requires_hitl": False,  # Human-in-the-Loop
                 "hallucination_zone": False,
+                "silent_mutation_risk": False,
                 "warnings": [],
             }
+
+            # ---> SAFE SCHEMA EXTRACTION <---
+            state_flux = 0
+            if "state_flux" in risk_schema and len(risk_vector) > risk_schema.index("state_flux"):
+                state_flux = risk_vector[risk_schema.index("state_flux")]
+
+            meta_count = 0
+            if "reflection_metaprogramming" in signal_schema and len(hit_vector) > signal_schema.index("reflection_metaprogramming"):
+                meta_count = hit_vector[signal_schema.index("reflection_metaprogramming")]
 
             # 1. Context Window Exhaustion (Agentic Black Hole)
             # If a file exceeds token limits AND has severe algorithmic complexity, the AI will lose context.
@@ -60,7 +75,7 @@ class DevAgentFirewall:
                 )
 
             # 3. Metaprogramming Hallucination Risk
-            meta_heavy = file_data.get("telemetry", {}).get("reflection_metaprogramming", 0) > 2
+            meta_heavy = meta_count > 2
             doc_density = file_data.get("telemetry", {}).get("doc_density", 1.0)
 
             if meta_heavy and doc_density < 0.2:
@@ -70,7 +85,6 @@ class DevAgentFirewall:
                 )
 
             # 4. Cascading State Flux (Silent Mutation Risk)
-            state_flux = file_data.get("telemetry", {}).get("state_flux", 0)
             in_degree = network_metrics.get("in_degree", 0)
             has_tests = file_data.get("telemetry", {}).get("has_tests", False)
 
