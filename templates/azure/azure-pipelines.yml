@@ -1,0 +1,49 @@
+# GitGalaxy Enterprise Security Scanner
+# Integration: Azure DevOps Pipelines
+
+trigger:
+  - main
+
+variables:
+  GITGALAXY_MAX_RISK: '80'
+  PIP_CACHE_DIR: '$(Pipeline.Workspace)/.pip-cache'
+
+stages:
+- stage: SecurityScan
+  displayName: 'GitGalaxy Zero-Trust Audit'
+  jobs:
+  - job: RunGalaxyScope
+    displayName: 'GalaxyScope Static Analysis'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.12'
+      displayName: 'Initialize Python Environment'
+
+    # Cache pip packages to optimize enterprise build speeds
+    - task: Cache@2
+      inputs:
+        key: 'pip | "$(Agent.OS)"'
+        path: $(PIP_CACHE_DIR)
+        cacheHitVar: PIP_CACHE_RESTORED
+      displayName: 'Configure Dependency Caching'
+
+    - script: |
+        python -m pip install --upgrade pip
+        pip install gitgalaxy>=2.4.0
+      displayName: 'Install GitGalaxy CLI Engine'
+
+    - script: |
+        galaxyscope . --max-risk-exposure $(GITGALAXY_MAX_RISK) --fail-on-secrets --fail-on-malware --sarif-only --output $(Build.ArtifactStagingDirectory)/gitgalaxy-results_sarif.json
+      displayName: 'Execute Zero-Trust Spectral Audit'
+
+    # Publish SARIF telemetry back to the Azure Pipeline runs
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/gitgalaxy-results_sarif.json'
+        artifact: 'GitGalaxySecurityLogs'
+        publishLocation: 'pipeline'
+      displayName: 'Upload SARIF Security Metrics'
+      condition: always()
