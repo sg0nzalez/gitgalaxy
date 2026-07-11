@@ -1,0 +1,24 @@
+# GitGalaxy Enterprise Security Scanner
+# Integration: Bitbucket Pipelines
+
+image: python:3.12-slim
+
+pipelines:
+  default:
+    - step:
+        name: 'GitGalaxy Zero-Trust Spectral Audit'
+        caches:
+          - pip
+        script:
+          # 1. Initialize Python Environment & Install GitGalaxy CLI Engine
+          - pip install --upgrade pip
+          - pip install gitgalaxy>=2.4.0
+          
+          # 2. Execute Zero-Trust Spectral Audit with Enterprise Gates
+          # Enforces strict quality gating via the CLI vault. 
+          # Defaults to a Max Risk of 80 if the variable is not set in the UI.
+          - galaxyscope . --max-risk-exposure ${GITGALAXY_MAX_RISK:-80} --fail-on-secrets --fail-on-malware --sarif-only --output gitgalaxy-results_sarif.json
+          
+        artifacts:
+          # 3. Publish SARIF telemetry for Bitbucket Code Insights
+          - gitgalaxy-results_sarif.json
