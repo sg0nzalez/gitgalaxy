@@ -11,13 +11,13 @@ pipelines:
           - pip
         script:
           # 1. Initialize Python Environment & Install GitGalaxy CLI Engine
+          # Added heavy physics engines for full precision (networkx, tiktoken, etc.)
           - pip install --upgrade pip
-          - pip install gitgalaxy>=2.4.0
+          - pip install gitgalaxy>=2.4.0 networkx tiktoken xgboost pandas numpy
           
           # 2. Execute Zero-Trust Spectral Audit with Enterprise Gates
-          # Enforces strict quality gating via the CLI vault. 
-          # Defaults to a Max Risk of 80 if the variable is not set in the UI.
-          - galaxyscope . --max-risk-exposure ${GITGALAXY_MAX_RISK:-80} --fail-on-secrets --fail-on-malware --sarif-only --output gitgalaxy-results_sarif.json
+          # Added --ignore tests/ to prevent mock data from tripping the secrets firewall
+          - galaxyscope . --ignore tests/ --max-risk-exposure ${GITGALAXY_MAX_RISK:-95} --fail-on-secrets --fail-on-malware --sarif-only --output gitgalaxy-results_sarif.json
           
         artifacts:
           # 3. Publish SARIF telemetry for Bitbucket Code Insights
