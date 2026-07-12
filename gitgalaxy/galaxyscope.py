@@ -832,7 +832,7 @@ class Orchestrator:
 
             # Attach it to the summary payload
             summary["ecosystem_audits"] = ecosystem_audits
-
+            
             # ==========================================================
             # PHASE 10.5: CI/CD POLICY ENFORCEMENT GATE
             # ==========================================================
@@ -848,18 +848,35 @@ class Orchestrator:
                     # 1. Absolute Security Floor (Secrets)
                     if self.config.get("FAIL_ON_SECRETS"):
                         has_secrets = False
-                        if "secrets_risk" in SignalProcessor.RISK_SCHEMA:
-                            idx = SignalProcessor.RISK_SCHEMA.index("secrets_risk")
-                            if file_data.get("risk_vector", []) and len(file_data["risk_vector"]) > idx:
-                                if file_data["risk_vector"][idx] > 0.0:
-                                    has_secrets = True
                         
-                        threat_snippets = file_data.get("telemetry", {}).get("threat_snippets", {})
-                        if "hardcoded_secrets" in threat_snippets or "sec_hardcoded_secrets" in threat_snippets:
-                            has_secrets = True
-                        elif "CRITICAL CREDENTIAL LEAK DETECTED" in file_data.get("telemetry", {}).get("domain_context", {}).get("warning", ""):
-                            has_secrets = True
+                        # Extract mitigations safely
+                        mitigs = file_data.get("mitigations", [])
+                        if isinstance(mitigs, dict):
+                            mitigs = list(mitigs.keys())
+                        elif not isinstance(mitigs, list):
+                            mitigs = []
                             
+                        if "sec_hardcoded_secrets" not in mitigs and "secrets_risk" not in mitigs:
+                            # Check Risk Vector
+                            if "secrets_risk" in SignalProcessor.RISK_SCHEMA:
+                                idx = SignalProcessor.RISK_SCHEMA.index("secrets_risk")
+                                rv = file_data.get("risk_vector", [])
+                                if isinstance(rv, list) and len(rv) > idx and rv[idx] > 0.0:
+                                    has_secrets = True
+                            
+                            # THE FIX: Bulletproof Truthiness Check
+                            ts = file_data.get("telemetry", {}).get("threat_snippets", {})
+                            if isinstance(ts, dict):
+                                if ts.get("hardcoded_secrets") or ts.get("sec_hardcoded_secrets"):
+                                    has_secrets = True
+                                
+                            # Check Domain Context
+                            ctx = file_data.get("telemetry", {}).get("domain_context", {})
+                            if isinstance(ctx, dict):
+                                warning_msg = ctx.get("warning", "")
+                                if warning_msg and "CRITICAL CREDENTIAL LEAK DETECTED" in str(warning_msg):
+                                    has_secrets = True
+                                
                         if has_secrets:
                             logger.critical(f"BUILD FAILED: Hardcoded secret detected in {file_data.get('path', 'unknown')}")
                             self.policy_failed = True
@@ -873,7 +890,7 @@ class Orchestrator:
                     # 3. Maximum Risk Exposure Ratchet
                     if max_risk_allowed > 0.0:
                         risk_vec = file_data.get("risk_vector", [])
-                        highest_risk = max(risk_vec) if risk_vec else 0.0
+                        highest_risk = max(risk_vec) if isinstance(risk_vec, list) and risk_vec else 0.0
                         if highest_risk >= max_risk_allowed:
                             logger.critical(f"BUILD FAILED: {file_data.get('path', 'unknown')} exceeded maximum risk threshold ({highest_risk}% >= {max_risk_allowed}%)")
                             self.policy_failed = True
@@ -2394,6 +2411,7 @@ def main():
 
         if 'galaxyscope' in config_file_data and 'APERTURE_CONFIG' in config_file_data['galaxyscope']:
             yaml_aperture = config_file_data['galaxyscope']['APERTURE_CONFIG']
+            
             if 'IGNORED_DIRECTORIES' in yaml_aperture:
                 if "IGNORED_DIRECTORIES" not in merged_aperture:
                     merged_aperture["IGNORED_DIRECTORIES"] = set()
@@ -2403,6 +2421,16 @@ def main():
                 if "CONTRABAND_PATTERNS" not in merged_aperture:
                     merged_aperture["CONTRABAND_PATTERNS"] = []
                 merged_aperture["CONTRABAND_PATTERNS"].extend(yaml_aperture['CONTRABAND_PATTERNS'])
+
+            if 'VENDOR_MINIFICATION_PATHS' in yaml_aperture:
+                if "VENDOR_MINIFICATION_PATHS" not in merged_aperture:
+                    merged_aperture["VENDOR_MINIFICATION_PATHS"] = []
+                merged_aperture["VENDOR_MINIFICATION_PATHS"].extend(yaml_aperture['VENDOR_MINIFICATION_PATHS'])
+                
+            if 'SECRETS_EXACT' in yaml_aperture:
+                if "SECRETS_EXACT" not in merged_aperture:
+                    merged_aperture["SECRETS_EXACT"] = set()
+                merged_aperture["SECRETS_EXACT"].update(yaml_aperture['SECRETS_EXACT'])
 
         if project_name in project_overrides:
             logging.info(f"🌌 DIALECT DETECTED: Injecting Project Overrides for '{project_name}'")
