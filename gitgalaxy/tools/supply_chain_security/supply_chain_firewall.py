@@ -19,6 +19,7 @@
 import argparse
 import sys
 import json
+import logging
 from pathlib import Path
 
 # Import exclusively from the GitGalaxy Hub
@@ -46,6 +47,7 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
     Operates exclusively on the pre-tokenized, anomaly-checked RAM graph from Phase 1.
     """
     security = SecurityLens(policy=ThreatPolicy.get_policy("paranoid"))
+    logger = logging.getLogger("GalaxyScope.firewall")
     safe_alias_map = alias_map or {}
 
     imports_whitelisted = 0
@@ -118,9 +120,9 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                 threats_found += 1
                 # The Allowlist Loophole Fix: A blacklisted import is ALWAYS a threat. Never suppress it.
                 if true_pkg != pkg:
-                    print(f"[BLACKLISTED IMPORT] Spoofed alias blocked: '{pkg}' -> '{true_pkg}' in: {rel_path_str}")
+                    logger.critical(f"🚨 [BLACKLISTED IMPORT] Spoofed alias blocked: '{pkg}' -> '{true_pkg}' in: {rel_path_str}")
                 else:
-                    print(f"[BLACKLISTED IMPORT] Unauthorized package '{pkg}' blocked in: {rel_path_str}")
+                    logger.critical(f"🚨 [BLACKLISTED IMPORT] Unauthorized package '{pkg}' blocked in: {rel_path_str}")
             elif true_pkg in APPROVED_IMPORTS:
                 imports_whitelisted += 1
             else:
@@ -128,17 +130,31 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
                 if STRICT_IMPORT_MODE and not is_whitelisted:
                     threats_found += 1
                     if true_pkg != pkg:
-                        print(
-                            f"[POLICY VIOLATION] Spoofed alias '{pkg}' -> '{true_pkg}' blocked by Strict Mode in: {rel_path_str}"
+                        logger.warning(
+                            f"⚠️ [POLICY VIOLATION] Spoofed alias '{pkg}' -> '{true_pkg}' blocked by Strict Mode in: {rel_path_str}"
                         )
                     else:
-                        print(
-                            f"[POLICY VIOLATION] Unknown package '{pkg}' blocked by Strict Mode in: {rel_path_str}"
+                        logger.warning(
+                            f"⚠️ [POLICY VIOLATION] Unknown package '{pkg}' blocked by Strict Mode in: {rel_path_str}"
                         )
 
         # =====================================================================
         # 2. BEHAVIORAL POLICY ENFORCEMENT (Leveraging Phase 1 Measurements)
         # =====================================================================
+        # Shield inert static assets (SVGs, Templates, XMLs) from executing behavioral heuristics
+        safe_path_lower = rel_path_str.lower()
+        ext = Path(rel_path_str).suffix.lower()
+        
+        # .d.ts files are TypeScript declarations. They contain no executable logic.
+        if ext in {".svg", ".xml", ".jelly", ".html", ".css", ".md", ".json", ".yaml", ".yml", ".txt", ".properties"} or safe_path_lower.endswith(".d.ts"):
+            continue
+
+        # Shield test environments. Unit tests intentionally mock attacks, use hardcoded dummy data, 
+        # and contain high-entropy strings which trigger massive false positives in behavioral heuristics.
+        safe_path = rel_path_str.lower()
+        if "/test/" in safe_path or "/tests/" in safe_path or "test_" in Path(safe_path).name or "_test" in Path(safe_path).name:
+            continue
+
         # Extract the raw structural signatures calculated natively by the Structural Signature Analysis Engine in Phase 1
         equations = file_node.get("equations", {})
         loc = file_node.get("coding_loc", 1)
@@ -184,9 +200,10 @@ def run_firewall_audit(parsed_files: list, alias_map: dict = None) -> dict:
             if is_whitelisted:
                 threats_allowed += 1
             else:
-                print(f"\n[THREAT DETECTED] Density Threshold Breached in: {rel_path_str}")
+                logger.warning(f"🚨 [THREAT DETECTED] Density Threshold Breached in: {rel_path_str}")
                 for risk, density in exposures.items():
-                    print(f"   -> {risk}: {density * 100:.1f}%")
+                    capped_density = min(density * 100.0, 100.0)
+                    logger.warning(f"   -> {risk}: {capped_density:.1f}%")
                 threats_found += 1
 
     return {
