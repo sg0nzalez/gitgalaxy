@@ -280,7 +280,7 @@ def test_aperture_declarative_blob_shield(filter_engine, tmp_path):
 
     res1 = filter_engine.is_in_scope(json_file, content=content_1500, has_intent=False)
     assert res1["is_in_scope"] is False
-    assert "Declarative Data Blob without Intent" in res1["reason"]
+    assert "Static Asset Blob without Intent" in res1["reason"]
 
     # 2. Over 2500 LOC, WITH Intent -> Still Blocked (Absolute Cap)
     content_3000 = "{\n" + '  "key": "value",\n' * 3000 + "}"
@@ -288,7 +288,7 @@ def test_aperture_declarative_blob_shield(filter_engine, tmp_path):
 
     res2 = filter_engine.is_in_scope(json_file, content=content_3000, has_intent=True)
     assert res2["is_in_scope"] is False
-    assert "Massive Declarative/Vector Blob" in res2["reason"]
+    assert "Massive Static Asset Blob" in res2["reason"]
 
 
 # ==============================================================================

@@ -122,12 +122,13 @@ class ApertureFilter:
 
     def evaluate_path_integrity(self, file_path: Union[str, Path], has_intent: bool = False) -> Tuple[bool, int, str]:
         """
-        [PHASE 0 ENTRY POINT]
+        [GATE 1: Perimeter Gating (Zero-I/O Path Evaluation)]
         Performs high-speed path analysis to build the initial File Census.
 
         DEFENSIVE DESIGN: We determine if a file is physically valid based on OS metadata
-        *before* any disk I/O (file opening/reading) occurs. This prevents OS-level locks
-        and drastically reduces Memory/CPU overhead on large monolithic repositories.
+        *before* any disk I/O (file opening/reading) occurs. All operations here are fast 
+        string matching to prevent unnecessary disk reads and drastically reduce Memory/CPU 
+        overhead on large monolithic repositories.
         """
         path_obj = Path(file_path)
         normalized_path = path_obj.as_posix()
@@ -143,14 +144,14 @@ class ApertureFilter:
         except OSError:
             size_bytes = 0
 
-        # --- TIER 0.1: THE SECRETS RADAR ---
+        # --- Gate 1.1: Credential Exposure Radar ---
         if path_obj.name in self.config.get("SECRETS_EXACT", set()) or ext.lower() in self.config.get(
             "SECRETS_EXTENSIONS", set()
         ):
             reason = f"CRITICAL LEAK (Exposed Secret: '{path_obj.name}')"
             return False, size_bytes, reason
 
-        # --- TIER 0.2: THE NEURAL AUDITOR SHUNT (Model Weights) ---
+        # --- Gate 1.2: Model Weight Shunt ---
         AI_MODEL_EXTS = {
             ".safetensors",
             ".gguf",
@@ -167,7 +168,7 @@ class ApertureFilter:
             self.logger.info(f"NEURAL SHUNT: Routing {path_obj.name} away from standard regex engines.")
             return False, size_bytes, reason
 
-        # --- TIER 0.5: THE ABSOLUTE EXTENSION SHIELD ---
+        # --- Gate 1.3: Explicit Extension Firewall ---
         if ext.lower() in self.ignored_extensions and ext.lower() not in self.whitelisted_extensions:
             reason = f"Blocked (Explicitly Denied Extension: '{ext}')"
             return False, size_bytes, reason
@@ -177,12 +178,12 @@ class ApertureFilter:
         if active_intent:
             self._intent_cache.add(normalized_path)
 
-        # --- TIER 1: CHECK EXPLICIT IGNORE RULES (.gitignore, node_modules, etc) ---
+        # --- Gate 1.4: Ecosystem Ignore Resolver (.gitignore, node_modules, etc.) ---
         if not self._check_ignore_rules(relative_path, has_intent=active_intent):
             reason = "Blocked (System Exclusion, Hidden Directory, or Dynamic Ignored Dir)"
             return False, size_bytes, reason
 
-        # --- TIER 2: VALIDATE AGAINST SUPPORTED REGISTRY ---
+        # --- Gate 1.5: Language Registry Validation ---
         if active_intent:
             return True, size_bytes, "Passed (GuideStar Intent Lock)"
 
@@ -202,7 +203,7 @@ class ApertureFilter:
         has_intent: bool = False,
     ) -> FilterResult:
         """
-        [PHASE 1 ENTRY POINT]
+        [GATE 2: Physical Mass Gating (OS Metadata)]
         The final Content Gate. Validates the physical matter of the artifact
         to ensure it is not binary, minified, or auto-generated debris.
         """
@@ -227,9 +228,10 @@ class ApertureFilter:
             stats = path_obj.stat()
             result["size_bytes"] = stats.st_size
 
-            # --- TIER 0: RESOURCE GUARDING (Hard Limits) ---
-            # DEFENSIVE DESIGN: A hard 10MB limit prevents a single massive log or SQL dump
-            # from consuming all available RAM and triggering an OOM kill from the OS.
+            # --- Gate 2.1: Mass Saturation Limit ---
+            # DEFENSIVE DESIGN: Uses os.stat to check file size before allocating RAM. 
+            # A hard 10MB limit prevents a single massive log or SQL dump from consuming 
+            # all available RAM and triggering an OOM kill from the OS.
             max_mb = self.config.get("MAX_FILE_SIZE_MB", 10)
             if stats.st_size > (max_mb * 1024 * 1024):
                 result.update(
@@ -240,7 +242,7 @@ class ApertureFilter:
                 )
                 return result
 
-            # --- TIER 1 & 2: PATH VALIDATION ---
+            # --- Gate 1 & 2 Execution: PATH VALIDATION ---
             is_valid, size_bytes, reason = self.evaluate_path_integrity(path_obj, has_intent=active_intent)
 
             if not is_valid:
@@ -259,7 +261,7 @@ class ApertureFilter:
                 )
                 return result
 
-            # --- TIER 3 & 4: CONTENT VALIDATION ---
+            # --- CONTENT VALIDATION ---
             if content is None:
                 result["reason"] = "Protocol Violation: Missing content buffer"
                 return result
@@ -292,13 +294,20 @@ class ApertureFilter:
             "loc": 0,
         }
 
-        # Split lines early so we can use LOC for all heuristics
-        lines_list = content.splitlines()
-        report["loc"] = len(lines_list)
+        # ==============================================================================
+        # Gate 3: Raw Buffer Gating (C-Backed String Operations)
+        # DEFENSIVE DESIGN: Allocating a massive array of strings via splitlines() is an 
+        # O(N) memory operation that will crash the worker if the file is a 50MB compiled binary. 
+        # We delay line splitting and use highly optimized C-backed string methods first.
+        # ==============================================================================
+        
+        # Fast line count estimation using C-backed count
+        loc = content.count("\n") + 1
+        report["loc"] = loc
 
-        # --- TIER 3: OPAQUE BINARY DETECTION ---
+        # --- Gate 3.1: Opaque Binary Sensor ---
         # DEFENSIVE DESIGN: Checking for a null byte is the fastest, most reliable
-        # heuristic to identify compiled binaries or images masquerading as text files.
+        # heuristic to identify compiled binaries masquerading as text files.
         if "\x00" in content:
             report.update(
                 {
@@ -309,23 +318,99 @@ class ApertureFilter:
             )
             return report
 
-        # --- TIER 3.1: THE MONOLITH AMALGAMATION SHIELD ---
+        # --- Gate 3.2: Monolith Amalgamation Shield ---
         # DEFENSIVE DESIGN: 30,000+ lines in a single file is usually an amalgamation (e.g. sqlite3.c).
         # Standard Structural Signature extractors suffer from Catastrophic Backtracking on files of this magnitude.
-        if report["loc"] > 30000:
+        if loc > 30000:
             report.update(
                 {
                     "valid": False,
                     "classification": "oversized_minified",
-                    "reason": f"Blocked (Monolithic Amalgamation: {report['loc']} LOC exceeds safe regex boundaries)",
+                    "reason": f"Blocked (Monolithic Amalgamation: {loc} LOC exceeds safe regex boundaries)",
                 }
             )
             return report
 
-        # --- TIER 3.5: AUTO-GEN DOC SHIELD ---
         low_path = rel_path.lower()
+
+        # --- Gate 3.3: Static Asset Bloat Deflector ---
+        # DEFENSIVE DESIGN: Static Assets contain zero executable payload. If they exceed 
+        # a few thousand lines, they are data dumps, not configuration files.
+        if low_path.endswith((".yml", ".yaml", ".json", ".xml", ".svg", ".sql", ".csv", ".tsv")):
+            if loc > 2500:
+                report.update(
+                    {
+                        "valid": False,
+                        "classification": "generated_noise",
+                        "reason": f"Blocked (Massive Static Asset Blob: {loc} LOC)",
+                    }
+                )
+                return report
+            elif not has_intent and loc > 1000:
+                report.update(
+                    {
+                        "valid": False,
+                        "classification": "generated_noise",
+                        "reason": f"Blocked (Static Asset Blob without Intent: {loc} LOC)",
+                    }
+                )
+                return report
+
+        # --- Gate 3.4: Embedded Matrix Shield ---
+        # DEFENSIVE DESIGN: Massive comma-separated arrays or hex blobs (like embedded images
+        # inside C++ headers) contain 0 executable payload, but will completely stall a structural parser.
+        if loc > 500:
+            hex_count = content.count("0x") + content.count("0X")
+            if hex_count > loc:
+                report.update(
+                    {
+                        "valid": False,
+                        "classification": "binary_payload",
+                        "reason": f"Blocked (Embedded Hex Payload: {hex_count} hex tokens in {loc} LOC)",
+                    }
+                )
+                return report
+
+            comma_count = content.count(",")
+            if comma_count > (loc * 3):
+                report.update(
+                    {
+                        "valid": False,
+                        "classification": "binary_payload",
+                        "reason": f"Blocked (Embedded Array/Matrix Payload: {comma_count} commas in {loc} LOC)",
+                    }
+                )
+                return report
+
+        # ==============================================================================
+        # Gate 4: Header & Signature Gating (Shallow Regex)
+        # DEFENSIVE DESIGN: The file has survived the binary and mass structural checks.
+        # It is now safe to allocate memory for the line array. We slice the file into 
+        # lines, but limit expensive regex operations to the first 100 lines (the header).
+        # ==============================================================================
+        lines_list = content.splitlines()
+
+        # --- Gate 4.1: Minification & Saturation Gate ---
+        # DEFENSIVE DESIGN: Code minifiers remove newlines, creating ultra-long strings
+        # that cause regex engines to hang (ReDoS). We check the first 100 lines for length.
+        max_line = self.config.get("MAX_LINE_LENGTH", 500)
+        is_prose = low_path.endswith((".md", ".markdown", ".txt", ".json", ".csv", ".rst", ".sql", ".svg"))
+
+        for i, line in enumerate(lines_list[:100]):
+            if len(line) > max_line and not is_prose:
+                report.update(
+                    {
+                        "valid": False,
+                        "classification": "oversized_minified",
+                        "reason": f"Blocked (Saturation: Line {i + 1} exceeds {max_line} chars)",
+                    }
+                )
+                return report
+
+        head_sample = "\n".join(lines_list[:100])
+
+        # --- Gate 4.2: Auto-Generated Documentation Shield ---
         if low_path.endswith((".html", ".htm", ".xml")):
-            head_sample = "\n".join(lines_list[:100])
             if self.doc_generator_pattern.search(head_sample):
                 parent_dir = str(Path(rel_path).parent)
                 if parent_dir != ".":
@@ -341,21 +426,27 @@ class ApertureFilter:
                 )
                 return report
 
-        # --- TIER 3.6: MACHINE-GENERATED SOURCE SHIELD ---
-        head_sample = "\n".join(lines_list[:100])
+        # --- Gate 4.3: Machine-Generated Source Sensor ---
         if self.machine_gen_pattern.search(head_sample):
-            if not has_intent or report["loc"] > 1000:
+            if not has_intent or loc > 1000:
                 report.update(
                     {
                         "valid": False,
                         "classification": "generated_noise",
-                        "reason": f"Blocked (Machine-Generated Source Code Signature: {report['loc']} LOC)",
+                        "reason": f"Blocked (Machine-Generated Source Code Signature: {loc} LOC)",
                     }
                 )
                 return report
 
-        # --- TIER 3.7: LEXICAL MONOTONY SHIELD (Generated Code) ---
-        if report["loc"] > 2000 and not has_intent and not low_path.endswith((".cpy", ".cbl", ".cob")):
+        # ==============================================================================
+        # Gate 5: Deep Structural Gating (Python Iteration)
+        # DEFENSIVE DESIGN: This calculates indentation frequencies to detect highly repetitive,
+        # machine-generated code. Because it requires a Python `for` loop and string stripping, 
+        # it is the most computationally expensive check and sits at the absolute bottom of the funnel.
+        # ==============================================================================
+        
+        # --- Gate 5.1: Lexical Monotony Sensor ---
+        if loc > 2000 and not has_intent and not low_path.endswith((".cpy", ".cbl", ".cob")):
             sample_lines = lines_list[:500]
             meaningful_lines = [l for l in sample_lines if l.strip()]
 
@@ -371,72 +462,10 @@ class ApertureFilter:
                         {
                             "valid": False,
                             "classification": "generated_noise",
-                            "reason": f"Blocked (Lexical Monotony: High structural repetition detected in {report['loc']} LOC)",
+                            "reason": f"Blocked (Lexical Monotony: High structural repetition detected in {loc} LOC)",
                         }
                     )
                     return report
-
-        # --- TIER 3.8: DECLARATIVE & VECTOR DATA SHIELD ---
-        if low_path.endswith((".yml", ".yaml", ".json", ".xml", ".svg", ".sql", ".csv", ".tsv")):
-            if report["loc"] > 2500:
-                report.update(
-                    {
-                        "valid": False,
-                        "classification": "generated_noise",
-                        "reason": f"Blocked (Massive Declarative/Vector Blob: {report['loc']} LOC)",
-                    }
-                )
-                return report
-            elif not has_intent and report["loc"] > 1000:
-                report.update(
-                    {
-                        "valid": False,
-                        "classification": "generated_noise",
-                        "reason": f"Blocked (Declarative Data Blob without Intent: {report['loc']} LOC)",
-                    }
-                )
-                return report
-
-        # --- TIER 3.9: TEST DATA & ARRAY SHIELD ---
-        # DEFENSIVE DESIGN: Massive comma-separated arrays or hex blobs (like embedded images
-        # inside C++ headers) contain 0 executable payload, but will completely stall a structural parser.
-        if report["loc"] > 500:
-            hex_count = content.count("0x") + content.count("0X")
-            if hex_count > report["loc"]:
-                report.update(
-                    {
-                        "valid": False,
-                        "classification": "binary_payload",
-                        "reason": f"Blocked (Embedded Hex Payload: {hex_count} hex tokens in {report['loc']} LOC)",
-                    }
-                )
-                return report
-
-            comma_count = content.count(",")
-            if comma_count > (report["loc"] * 3):
-                report.update(
-                    {
-                        "valid": False,
-                        "classification": "binary_payload",
-                        "reason": f"Blocked (Embedded Array/Matrix Payload: {comma_count} commas in {report['loc']} LOC)",
-                    }
-                )
-                return report
-
-        # --- TIER 4: MINIFICATION & SATURATION GATE ---
-        max_line = self.config.get("MAX_LINE_LENGTH", 500)
-        is_prose = low_path.endswith((".md", ".markdown", ".txt", ".json", ".csv", ".rst", ".sql", ".svg"))
-
-        for i, line in enumerate(lines_list[:100]):
-            if len(line) > max_line and not is_prose:
-                report.update(
-                    {
-                        "valid": False,
-                        "classification": "oversized_minified",
-                        "reason": f"Blocked (Saturation: Line {i + 1} exceeds {max_line} chars)",
-                    }
-                )
-                return report
 
         return report
 
