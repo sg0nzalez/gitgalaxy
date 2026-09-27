@@ -52,8 +52,14 @@ def test_the_diff_names_what_moved():
     assert ug.diff_cell(want, {}) == ["x/a.py: missing file"]
 
 
-def test_the_oracle_is_sound_on_the_mainframe_seed(tmp_path):
-    """Every ASCII cell (the seed re-encoded, or CRLF) passes: the gauntlet does not fail itself."""
+def test_the_oracle_is_sound_on_the_mainframe_seed(tmp_path, monkeypatch):
+    """Every ASCII cell (the seed re-encoded, or CRLF) passes: the gauntlet does not fail itself.
+
+    Each cell is a full scan, so here the EBCDIC pages are one per family (US, German, Nordic, mixed
+    CJK) -- the full suite runs on every OS, where a scan costs minutes, not seconds. unicode-gauntlet.yml
+    runs every page."""
+    monkeypatch.setattr(ug, "EBCDIC", ["cp037", "cp273", "cp277", "cp930"])
+    monkeypatch.setattr(ug, "EBCDIC_SCRIPTS", {"nordic": ["cp277"], "german": ["cp273"]})
     results = ug.run(tmp_path / "no-corpus", {"mainframe"}, False, tmp_path / "work", jobs=2)
     ascii_cells = {cid: r["diffs"] for cid, r in results.items() if r["script"] == "ascii"
                    and r["encoding"] in ("utf-8", "utf-8-sig", "crlf")}  # fmt: skip
@@ -122,6 +128,13 @@ def test_a_line_or_a_letter_that_does_not_fit_is_refused():
     assert ug.fixed_block("X" * (ug.FB_LRECL + 1), "cp037") is None  # longer than a card
     assert ug.fixed_block("MOVE '\u20ac' TO A.\n", "cp037") is None  # the euro sign is not in cp037
     assert ug.fixed_block("X" * ug.FB_LRECL + "\n", "cp037") is not None  # a full card fits
+
+
+def test_a_kanji_line_is_padded_in_bytes_not_characters():
+    """#3816 part 3a: on a mixed CJK page a Kanji is two bytes plus its shifts -- the record is 80 bytes."""
+    data = ug.fixed_block("      * \u9867\u5ba2\u30de\u30b9\u30bf\n       PROGRAM-ID. PGMA.\n", "cp930")
+    assert len(data) == 2 * ug.FB_LRECL and data[8:9] == b"\x0e"
+    assert ug.fixed_block("*" + "\u540d" * 39 + "\n", "cp930") is None  # 1 + 1 + 78 + 1 = 81 bytes
 
 
 def test_the_mainframe_seed_fits_a_card_image():
