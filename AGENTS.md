@@ -36,3 +36,7 @@ For CI/CD triage and Dependabot management, do not attempt to guess pipeline fai
 
 **4. Zero-Tolerance Lossy Read Policy**
 GitGalaxy enforces a zero-tolerance policy against lossy reads (enforced by `tests/test_source_reads.py`). Never use `errors="ignore"` or `errors="replace"` in `.decode()` calls or file reads. Always use strict decoding wrapped in a `try...except UnicodeDecodeError` block to safely probe bytes.
+
+# Formatting Pipeline
+
+Before pushing code, you MUST always add `ruff format <files>` to your pre-commit pipeline to avoid failing the Ruff Audit CI checks. The strict zero-tolerance baseline will reject any code that `ruff` would reformat.
