@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any, Optional
 from collections.abc import Iterator
 
+import cobol_coverage as cov  # #4023
 import equivalence_common as common
 
 STUB = common.CASES / "cics"
@@ -730,6 +731,22 @@ def screen_fields(corpus: Path, case: dict[str, Any], map_name: str, side: str) 
     return common.layout_fields(corpus, scr["copybook"], scr[side])
 
 
+# #4023 follow-up: the conditions a scenario may inject, by name -> their DFHRESP numbers (IBM CICS "RESP values")
+CICS_RESP = {"NORMAL": 0, "FILENOTFOUND": 12, "NOTFND": 13, "DUPREC": 14, "INVREQ": 16, "IOERR": 17, "NOSPACE": 18,
+             "NOTOPEN": 19, "ILLOGIC": 21, "LENGERR": 22, "NOTAUTH": 70, "DISABLED": 84, "LOADING": 94}  # fmt: skip
+
+
+def fault_lines(sc: dict[str, Any]) -> list[str]:
+    """A scenario's `faults` as both sides read them: `CMD FILE NTH RESP RESP2` (faults.cfg, CicsTask.withFaults)."""
+    out = []
+    for f in sc.get("faults") or []:
+        if f.get("cmd", "READ") != "READ" or f.get("resp") not in CICS_RESP:
+            raise Unsupported(f"scenario {sc['name']}: fault {f} (READ with a CICS_RESP condition only)")
+        nth = "*" if f.get("nth", 1) == "*" else int(f.get("nth", 1))
+        out.append(f"READ {f['file']} {nth} {CICS_RESP[f['resp']]} {int(f.get('resp2', 0))}")
+    return out
+
+
 def run_cobol_cics(case: dict[str, Any], corpus: Path, work: Path, files: list[dict[str, Any]]) -> dict[str, Any]:
     """Translate, compile and run each scenario; {scenario: its outputs} (see `outputs`)."""
     work.mkdir(parents=True, exist_ok=True)
@@ -764,8 +781,8 @@ def run_cobol_cics(case: dict[str, Any], corpus: Path, work: Path, files: list[d
         )
     ca_fields = commarea_fields(corpus, case)
     compile_task = (
-        f"cobc -x -std=ibm -fsign=EBCDIC -fstatic-call {''.join(f + ' ' for f in option_flags)}-I /work/src "
-        "-o task src/EQCICSDR.cbl src/PROGRAM.cbl src/ggcics.c"
+        f"cobc -x -std=ibm -fsign=EBCDIC -fstatic-call {cov.TRACE_FLAG} {''.join(f + ' ' for f in option_flags)}"
+        "-I /work/src -o task src/EQCICSDR.cbl src/PROGRAM.cbl src/ggcics.c"
     )
     script = ["set -e", "cd /work", compile_task]
     date, _, time = case["clock"].partition(" ")
@@ -777,13 +794,15 @@ def run_cobol_cics(case: dict[str, Any], corpus: Path, work: Path, files: list[d
             (d / "commarea.in").write_bytes(encode_record(ca_fields, sc["commarea"], b"init", enc))
         for m, typed in (sc.get("receive") or {}).items():
             (d / f"receive_{m}.bin").write_bytes(map_input(screen_fields(corpus, case, m, "input"), typed, enc))
+        if sc.get("faults"):  # #4023 follow-up: the stub's injected conditions
+            (d / "faults.cfg").write_text("".join(x + "\n" for x in fault_lines(sc)), encoding="ascii")
         y, mo, dd = date.split("/")
         eib_date = f"{int(y) - 1900:03d}{_day_of_year(int(y), int(mo), int(dd)):03d}"[-7:].rjust(7, "0")
         eib_time = "0" + time.replace(":", "")[:6]
         (d / "eib.in").write_text(f"{case['transid']:<4} {sc.get('aid', 'DFHENTER'):<8} {eib_date} {eib_time}\n",
                                   encoding="ascii")  # fmt: skip
         rel = f"/work/scenarios/{sc['name']}"
-        script.append(f"set +e; GGCICS_DIR={rel} GGCICS_OUT={rel}/out EIBIN={rel}/eib.in "
+        script.append(f"set +e; {cov.trace_env(f'{rel}/{cov.TRACE_NAME}')}GGCICS_DIR={rel} GGCICS_OUT={rel}/out EIBIN={rel}/eib.in "
                       f"COB_CURRENT_DATE='{case['clock']}' ./task > {rel}/stdout.txt 2>&1; "
                       f"echo $? > {rel}/rc; set -e")  # fmt: skip
     (work / "run.sh").write_text("\n".join(script) + "\n", encoding="ascii")
@@ -793,6 +812,10 @@ def run_cobol_cics(case: dict[str, Any], corpus: Path, work: Path, files: list[d
     )  # fmt: skip
     if proc.returncode != 0:
         raise RuntimeError(f"COBOL side failed:\n{proc.stdout}\n{proc.stderr}")
+    # #4023: how much of the program the scenarios execute, together (work/coverage.json)
+    cov.write_run_coverage(work / "coverage.json", source=corpus / case["program_source"], original=program,
+                           compiled=text, traces=[work / "scenarios" / sc["name"] / cov.TRACE_NAME for sc in case["scenarios"]],
+                           compiled_name="PROGRAM.cbl", copybooks=corpus, encoding=staged)  # fmt: skip
     return {sc["name"]: outputs(work / "scenarios" / sc["name"] / "out", case, corpus, ca_fields)
             for sc in case["scenarios"]}  # fmt: skip
 
@@ -1003,6 +1026,11 @@ class EquivalenceRunTest {{
             JsonNode r = sc.get("receive");
 {chr(10).join(recv)}
             CicsTask task = new CicsTask("{case["transid"]}", sc.get("aid").asText(), commarea, received);
+            List<String> faults = new ArrayList<>();  // #4023 follow-up: the scenario's injected conditions
+            sc.path("faults").forEach(f -> faults.add(f.asText()));
+            if (!faults.isEmpty()) {{
+                task.withFaults(faults, out.resolve(sc.get("name").asText() + ".faults"));
+            }}
             try {{
                 {var}.runTask(task);
             }} catch (CicsAbendException e) {{
@@ -1067,7 +1095,7 @@ def run_java_cics(case: dict[str, Any], corpus: Path, work: Path, cobol_work: Pa
             m: {f.removesuffix("I"): v for f, v in typed.items()} for m, typed in (sc.get("receive") or {}).items()
         }
         scenarios.append({"name": sc["name"], "aid": sc.get("aid", "DFHENTER").removeprefix("DFH"),
-                          "commarea": ca, "receive": receive})  # fmt: skip
+                          "commarea": ca, "receive": receive, "faults": fault_lines(sc)})  # fmt: skip
     (inputs / "scenarios.json").write_text(json.dumps(scenarios, indent=1), encoding="utf-8")
     out = ej.run_maven(project, work, inputs)
     result = {}
@@ -1155,6 +1183,7 @@ def report_markdown(case: dict[str, Any], report: dict[str, Any]) -> str:
              "| scenario | events equal | total |", "|---|---|---|"]  # fmt: skip
     for name, d in report["outputs"].items():
         lines.append(f"| {name} | {d['equal']} | {d['records']} |")
+    lines += cov.report_lines(report.get("coverage"), len(report["outputs"]), report.get("proven", False), "scenario")
     for name, d in report["outputs"].items():
         if d["diffs"]:
             lines += ["", f"## {name}: differences", "", "| event | field | COBOL | Java |", "|---|---|---|---|"]
@@ -1164,6 +1193,10 @@ def report_markdown(case: dict[str, Any], report: dict[str, Any]) -> str:
                 for fd in x.get("fields", []):
                     lines.append(f"| {x['event']} ({x['kind']}) | {fd['field']} | `{fd['cobol']}` | `{fd['java']}` |")
     return "\n".join(lines) + "\n"
+
+
+def _fired(log: Path) -> list[str]:
+    return sorted(x for x in log.read_text(encoding="ascii").splitlines() if x.strip()) if log.is_file() else []
 
 
 def run_case(case: dict[str, Any], corpus: Path, work: Path, port: bool = True, port_dir: Path | None = None,
@@ -1189,10 +1222,25 @@ def run_case(case: dict[str, Any], corpus: Path, work: Path, port: bool = True, 
         report["outputs"][name] = {"equal": d["equal"], "records": d["events"], "diffs": d["diffs"],
                                    "cobol": cobol_events(res), "java": java.get(name, [])}  # fmt: skip
         ok &= d["equal"] == d["events"]
+        sc = next(x for x in case["scenarios"] if x["name"] == name)
+        if sc.get("faults"):  # #4023 follow-up: the same injected conditions fired on both sides, and at least one
+            fired = {"cobol": _fired(work / "cobol" / "scenarios" / name / "out" / "faults.txt"),
+                     "java": _fired(work / "java" / "out" / f"{name}.faults")}  # fmt: skip
+            report["outputs"][name]["fired"] = fired
+            if not fired["cobol"] or fired["cobol"] != fired["java"]:
+                ok = False
+                print(f"{case['program']} {name}: faults fired differ or none fired: {fired}")
         print(f"{case['program']} {name}: {d['equal']}/{d['events']} events equal")
         for x in d["diffs"][:6]:
             print(f"   event {x['event']}: {x.get('fields', [])[:3] or (x.get('cobol'), x.get('java'))}")
+    report["proven"] = ok
+    covered = work / "cobol" / "coverage.json"  # #4023
+    report["coverage"] = json.loads(covered.read_text(encoding="utf-8")) if covered.is_file() else None
+    if report["coverage"] and "error" in report["coverage"]:
+        report["coverage"] = None
     (work / "report.json").write_text(json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8")
     (work / "report.md").write_text(report_markdown(case, report), encoding="utf-8")
+    if report["coverage"]:
+        print(f"{case['program']} COBOL coverage: {cov.headline(report['coverage'], len(cobol), ok, 'scenario')}")
     print(f"report: {work / 'report.json'}")
     return 0 if ok else 1
