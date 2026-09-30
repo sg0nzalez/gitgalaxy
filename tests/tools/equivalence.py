@@ -91,6 +91,8 @@ from equivalence_common import (
     compile_options,
     data_encoding,
     decode_field,
+    diff_records,
+    java_failure_report,
     layout_fields,
     read_program,
     require_ascii_runtime,
@@ -280,99 +282,6 @@ def build_image() -> None:
     )  # fmt: skip
 
 
-# ---- the field-by-field diff ---------------------------------------------------------
-# #3815: the usages whose bytes are characters in the data's page (the rest -- COMP, COMP-3 -- are binary)
-_TEXT_USAGES = frozenset({"DISPLAY"})
-
-
-def _as_text(raw: bytes, enc: str) -> Any:
-    """#3815: bytes as text in `enc`, or the bytes themselves when they are not text there (never lost)."""
-    try:
-        return raw.decode(enc)
-    except UnicodeDecodeError:
-        return raw
-
-
-def diff_records(
-    left: bytes,
-    right: bytes,
-    reclen: int,
-    fields: list[dict[str, Any]],
-    code_page: str = "cp037",
-    data_encoding: str = DEFAULT_DATA_ENCODING,
-    right_encoding: Optional[str] = None,
-) -> dict[str, Any]:
-    """Pair records in order; per pair, every differing field (value left vs right). A field whose value is
-    equal but whose bytes are not (a C vs F sign nibble, -0 vs +0) is a difference too, marked `raw` and
-    shown as hex (#3830): the files differ, and a later program may test the sign. A FILLER is counted
-    apart (`filler_differs`), not as a difference: no program can name it, so what it holds after an
-    INITIALIZE or a new record is the runtime's leftover record area, not the program's logic.
-
-    #3820: the bytes no field covers are compared too, as `(bytes outside the layout)`. The layout is
-    read from the copybook, so a width it gets wrong (a currency string sized as one byte) leaves the
-    record's tail -- where the real later fields sit -- unread: comparing only the listed fields let
-    two different records pass as equal. `layout_bytes` reports the layout's own width beside `reclen`.
-
-    #3815: text and zoned fields are decoded in `data_encoding` (the case's page, default Latin-1), the right
-    side in `right_encoding` when it was written in another (a mainframe's cp277 unload against a run in
-    ISO-8859-1): then the same text in two pages is equal, and only a binary field's (COMP / COMP-3) bytes,
-    which no page changes, are compared as bytes; FILLER and the bytes outside the layout are compared as text.
-    Across pages, a record's layout must fit both (single-byte pages): offsets are bytes."""
-    renc = right_encoding or data_encoding
-    same_page = codecs.lookup(renc).name == codecs.lookup(data_encoding).name
-
-    def same_bytes(x: bytes, y: bytes, usage: Optional[str] = None) -> bool:
-        if same_page or (usage or "DISPLAY").upper() not in _TEXT_USAGES:
-            return x == y
-        return _as_text(x, data_encoding) == _as_text(y, renc)
-
-    covered = bytearray(reclen)
-    for f in fields:
-        for i in range(max(f["offset"], 0), min(f["offset"] + f["bytes"], reclen)):
-            covered[i] = 1
-    layout_bytes = max((f["offset"] + f["bytes"] for f in fields), default=0)
-    lrecs = [left[i : i + reclen] for i in range(0, len(left), reclen)]
-    rrecs = [right[i : i + reclen] for i in range(0, len(right), reclen)]
-    diffs, equal, filler = [], 0, 0
-    for n in range(max(len(lrecs), len(rrecs))):
-        a = lrecs[n] if n < len(lrecs) else None
-        b = rrecs[n] if n < len(rrecs) else None
-        if a is None or b is None:
-            diffs.append({"record": n + 1, "missing": "cobol" if a is None else "java"})
-            continue
-        bad, filler_bad = [], False
-        for f in fields:
-            sl = slice(f["offset"], f["offset"] + f["bytes"])
-            sep = f.get("sign_separate", False)
-            va, vb = (
-                decode_field(a[sl], f["pic"], f["usage"], code_page, sep, data_encoding),
-                decode_field(b[sl], f["pic"], f["usage"], code_page, sep, renc),
-            )
-            if not same_bytes(a[sl], b[sl], f["usage"]) and f["name"] == "FILLER":
-                filler_bad = True
-            elif va != vb:
-                bad.append({"field": f["name"], "cobol": str(va), "java": str(vb)})
-            elif not same_bytes(a[sl], b[sl], f["usage"]):  # #3830: same value, other bytes -- C vs F sign, -0 / +0
-                bad.append({"field": f["name"], "cobol": a[sl].hex(), "java": b[sl].hex(), "raw": True})
-        outside = [
-            i
-            for i in range(max(len(a), len(b)))
-            if (i >= reclen or not covered[i]) and not same_bytes(a[i : i + 1], b[i : i + 1])
-        ]
-        if outside:
-            lo, hi = outside[0], outside[-1] + 1
-            bad.append(
-                {"field": f"(bytes outside the layout @{lo}..{hi})", "cobol": repr(a[lo:hi]), "java": repr(b[lo:hi])}
-            )
-        filler += filler_bad
-        if bad:
-            diffs.append({"record": n + 1, "fields": bad})
-        else:
-            equal += 1
-    return {"records": max(len(lrecs), len(rrecs)), "equal": equal, "diffs": diffs, "filler_differs": filler,
-            "layout_bytes": layout_bytes}  # fmt: skip
-
-
 def report_markdown(case: dict[str, Any], report: dict[str, Any]) -> str:
     """The run as Markdown: per output, records equal / total and every differing field."""
     lines = [f"# {case['program']} -- COBOL vs Java ({report['java']})", "",
@@ -425,6 +334,53 @@ def _environments(arg: Optional[str], case: dict[str, Any]) -> list[dict[str, st
     names = (arg.split(",") if arg and arg != "all" else list(ej.ENVIRONMENTS) if arg == "all"
              else case.get("environments") or ["default"])  # fmt: skip
     return [ej.environment(n.strip()) for n in names if n.strip()]
+
+
+# ---- the porting loop's feedback (port_runner run --feedback) -------------------------------
+def _run_feedback(title: str, run: dict[str, Any], limit: int = 5) -> list[str]:
+    """What one run found, for the next porting attempt: its outcome, and per differing output the first
+    records that differ, field by field (COBOL value vs the port's)."""
+    out = [f"### {title}: {run.get('summary') or 'differs'}", ""]
+    for dd, d in (run.get("outputs") or {}).items():
+        if not d["diffs"]:
+            continue
+        out.append(f"{dd}: {d['equal']}/{d['records']} records equal. First differences:")
+        for x in d["diffs"][:limit]:
+            if x.get("missing"):
+                out.append(
+                    f"- record {x['record']}: missing on the {'COBOL' if x['missing'] == 'cobol' else 'Java'} side"
+                )
+            for fd in x.get("fields", [])[:8]:
+                out.append(f"- record {x['record']} {fd['field']}: COBOL `{fd['cobol']}`, Java `{fd['java']}`")
+        out.append("")
+    return out
+
+
+def feedback_md(report: dict[str, Any]) -> str:
+    """#4023 follow-up: the proof's findings as port_runner's `--feedback` hands them to the next attempt --
+    every run that is not equal (the normal run, each JVM environment, each fault run with its plan and why)."""
+    out: list[str] = []
+    first = {"summary": None, "outputs": report.get("outputs", {})}
+    rc, ab = report.get("return_code") or {}, report.get("abend") or {}
+    why = []
+    if ab.get("cobol") or ab.get("java"):
+        if ab.get("cobol") != ab.get("java"):
+            why.append(f"ABEND: COBOL {ab.get('cobol')}, Java {ab.get('java')}")
+    elif rc.get("cobol") != rc.get("java"):
+        why.append(f"RETURN-CODE: COBOL {rc.get('cobol')}, Java {rc.get('java')}")
+    why += [f"{dd}: {d['equal']}/{d['records']} records equal" for dd, d in first["outputs"].items() if d["diffs"]]
+    if why:
+        first["summary"] = "; ".join(why)
+        out += _run_feedback("The normal run (the case's own inputs)", first)
+    for e in report.get("environments", [])[1:]:
+        if not e.get("ok"):
+            out += [f"### JVM environment {e['name']} ({e['locale']}, {e['tz']}): differs from the COBOL", ""]
+    for f in report.get("faults", []):
+        if not f["ok"]:
+            out += [f"The fault run `{f['name']}` injects {'; '.join(f['plan'])} (DD OP NTH FILE-STATUS) on both "
+                    f"sides -- {f.get('why', '')}", ""]  # fmt: skip
+            out += _run_feedback(f"Fault run {f['name']}", f)
+    return "\n".join(out).strip()
 
 
 # ---- #4023 follow-up: fault runs ------------------------------------------------------
@@ -531,6 +487,11 @@ def main() -> int:
     corpus = mc.require_clone(corpus_entry)
     work = args.keep or Path(tempfile.mkdtemp(prefix=f"equiv_{args.case}_"))
     build_image()
+    if case.get("kind") == "call":  # #4023 follow-up: a CALLed subprogram, driven through its USING items
+        import equivalence_call as ecall
+
+        return ecall.run_case(case, corpus, work, port=not args.generated_only, port_dir=args.port,
+                              cobol_only=args.cobol_only)  # fmt: skip
     if case.get("kind") == "cics":  # #3754: an online program, run as tasks under the stub CICS runtime
         import equivalence_cics as ec
 
@@ -549,9 +510,15 @@ def main() -> int:
     import equivalence_java as ej
 
     envs = _environments(args.environments, case)
-    runs = ej.run_java_environments(case, corpus, work / "java", work / "cobol", envs, port=not args.generated_only,
-                                    port_dir=args.port,
-                                    faults=tuple((f["name"], fault_plan(f)) for f in faults))  # fmt: skip
+    try:
+        runs = ej.run_java_environments(case, corpus, work / "java", work / "cobol", envs,
+                                        port=not args.generated_only, port_dir=args.port,
+                                        faults=tuple((f["name"], fault_plan(f)) for f in faults))  # fmt: skip
+    except RuntimeError as e:  # the port does not compile, or its run fails: the loop's feedback, not a crash
+        failed = java_failure_report(case, work, str(e))
+        (work / "report.json").write_text(json.dumps(failed, indent=2) + "\n", encoding="utf-8")
+        print(f"{case['program']}: the Java side failed -- see {work / 'report.json'}")
+        return 1
     report: dict[str, Any] = {"case": args.case, "program": case["program"], "outputs": {},
                               "java": "generated" if args.generated_only else "ported", "collation": COLLATION,
                               "port": str(args.port) if args.port else f"tests/equivalence/{args.case}/port"}  # fmt: skip
@@ -575,6 +542,7 @@ def main() -> int:
     ]
     report["coverage"] = cobol_coverage(case, corpus, traces, work / "coverage.json")  # #4023, every run together
     report["runs"] = 1 + len(faults)
+    report["feedback"] = feedback_md(report) if not ok else ""
     (work / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     (work / "report.md").write_text(report_markdown(case, report), encoding="utf-8")
     if report["abend"]["cobol"] or report["abend"]["java"]:
