@@ -8,6 +8,7 @@
 Each pins a CICS semantic the crucible's cases lean on, as IBM documents it (cited per test).
 """
 
+import os
 import re
 import shutil
 import subprocess
@@ -48,13 +49,20 @@ def _stub(tmp_path: Path, main: str) -> Path:
     src = tmp_path / "main.c"
     src.write_text("#include <stdlib.h>\n" + main, encoding="ascii")
     exe = tmp_path / "stub"
-    subprocess.run([CC, "-o", str(exe), str(src), str(STUB)], check=True, capture_output=True)  # noqa: S603
+    built = subprocess.run([CC, "-o", str(exe), str(src), str(STUB)], check=False, capture_output=True, text=True)  # noqa: S603
+    assert built.returncode == 0, built.stderr  # the compiler's own words, on every OS
     return exe
 
 
 def _run_stub(exe: Path, work: Path, *args: str) -> list[str]:
     (work / "out").mkdir(parents=True, exist_ok=True)
-    env = {"GGCICS_DIR": str(work), "GGCICS_OUT": str(work / "out"), "PATH": "/usr/bin:/bin"}
+    # Windows needs its own PATH (the MinGW runtime) and SYSTEMROOT to start a process at all
+    base = (
+        {k: os.environ[k] for k in ("PATH", "SYSTEMROOT") if k in os.environ}
+        if os.name == "nt"
+        else {"PATH": "/usr/bin:/bin"}
+    )
+    env = {**base, "GGCICS_DIR": str(work), "GGCICS_OUT": str(work / "out")}
     proc = subprocess.run([str(exe), *args], env=env, capture_output=True, text=True, check=True)  # noqa: S603
     return proc.stdout.splitlines()
 
