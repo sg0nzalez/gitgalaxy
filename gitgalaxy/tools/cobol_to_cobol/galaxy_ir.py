@@ -1763,13 +1763,30 @@ class GalaxyIR:
         for it in ef.data_items:
             if member not in nfc(it.copy_members or "").split(","):
                 continue
-            group = it if not _is_elementary(it) else by_ordinal.get(it.parent_ordinal)
+            # The COPY is recorded on the entry just before it. A 66 / 88 there (COUSR02C: `88 USR-MODIFIED-NO`
+            # right above `COPY COCOM01Y`) has no PIC but is no group: the record continues after the data item
+            # the condition belongs to, so climb to that item first.
+            climbed = False
+            while it is not None and it.level in (66, 88):
+                it, climbed = by_ordinal.get(it.parent_ordinal), True
+            if it is None:
+                continue
+            group = it if not (climbed or _is_elementary(it)) else by_ordinal.get(it.parent_ordinal)
             if group is None or not all(r.level <= group.level for r in roots):
                 continue
             if group is it:
                 return [(ef, c) for c in it.children]
-            siblings = group.children
-            return [(ef, c) for c in siblings[siblings.index(it) + 1 :]] if it in siblings else []
+            # The entries after the COPY follow `it` -- or, when `it` closes its group (COTRN02C: `10
+            # CSUTLDTC-RESULT-MSG` is the last of `05 CSUTLDTC-RESULT`, then `COPY COCOM01Y` and its own `05
+            # CDEMO-CT02-INFO`), follow the nearest enclosing group that has entries after it.
+            node = it
+            while group is not None and all(r.level <= group.level for r in roots):
+                siblings = group.children
+                after = siblings[siblings.index(node) + 1 :] if node in siblings else []
+                if after:
+                    return [(ef, c) for c in after]
+                node, group = group, by_ordinal.get(group.parent_ordinal)
+            return []
         return []
 
     def _pli_fragment(self, ef: Optional[EngineFile], member: str) -> Optional[EngineFile]:

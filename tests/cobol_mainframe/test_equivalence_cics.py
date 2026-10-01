@@ -401,3 +401,19 @@ def test_a_tasks_files_are_compared_in_key_order():
         diff = compare(b"01AAAA02BBBB", b"01AAAA02BBBX", tmp)
         assert diff["ACCT"]["equal"] == 1 and diff["ACCT"]["records"] == 2
         assert compare(b"01AAAA02BBBB03CCCC", b"01AAAA02BBBB", tmp)["ACCT"]["equal"] == 2  # a WRITE the port missed
+
+
+def test_a_case_csd_defines_the_programs_and_no_csd_defines_all(tmp_path):
+    (tmp_path / "x.csd").write_text(" DEFINE PROGRAM(COMEN01C) GROUP(G)\n DEFINE  PROGRAM(COUSR00C)\n"
+                                    " DEFINE TRANSACTION(CM00) PROGRAM(COMEN01C)\n", encoding="ascii")  # fmt: skip
+    assert ec.csd_programs(tmp_path, {"csd": "x.csd"}) == ["COMEN01C", "COUSR00C"]
+    assert ec.csd_programs(tmp_path, {}) is None
+    # the Java side (CicsTask.withPrograms) is proven by carddemo-adminmenu: options 5 and 6 are PGMIDERR on both
+
+
+def test_an_alphanumeric_commarea_field_reaches_the_port_as_text():
+    """CardDemo's CDEMO-CT01-TRN-SELECTED (PIC X(16)) '0000000000683580' reached the port as the number 683580."""
+    fields = [{"name": "SEL", "pic": "X(16)"}, {"name": "PAGE", "pic": "9(08)"}, {"name": "AMT", "pic": "S9(5)V99"}]
+    shape = {"sel": "SEL", "page": "PAGE", "amt": "AMT"}
+    got = ec.to_java({"SEL": "0000000000683580", "PAGE": "00000002", "AMT": "12.50"}, shape, ec.alphanumeric(fields))
+    assert got == {"sel": "0000000000683580", "page": 2, "amt": 12.5}
