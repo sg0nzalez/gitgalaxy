@@ -1171,14 +1171,29 @@ def golden_changes_between_dirs(old: Path, new: Path) -> list[tuple[str, bytes |
     return out
 
 
+def _job_share(children: int) -> str:
+    """This process's cores (GG_JOB_CORES from heavy-run.sh, else every core) split over `children`."""
+    total = int(os.environ.get("GG_JOB_CORES") or os.cpu_count() or 1)
+    return str(max(1, total // children))
+
+
 def cmd_bless(kit: Kit, legs: list[str], verify: bool) -> bool:
     for leg in legs:
         kit.ensure_corpus(leg)
     kit.check_safe_paths()
     t0 = time.monotonic()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(legs)) as pool:
-        futs = {leg: pool.submit(_bless_leg, kit, leg, verify) for leg in legs}
-        results = {leg: f.result() for leg, f in futs.items()}
+    # the legs run at once: each gets an equal share of the cores for its scan pool (#4902)
+    prev = os.environ.get("GG_JOB_CORES")
+    os.environ["GG_JOB_CORES"] = _job_share(len(legs))
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(legs)) as pool:
+            futs = {leg: pool.submit(_bless_leg, kit, leg, verify) for leg in legs}
+            results = {leg: f.result() for leg, f in futs.items()}
+    finally:
+        if prev is None:
+            os.environ.pop("GG_JOB_CORES", None)
+        else:
+            os.environ["GG_JOB_CORES"] = prev
     kit.say(f"bless wall time {fmt_secs(time.monotonic() - t0)} ({' + '.join(legs)} in parallel)")
     ok = True
     for leg in legs:

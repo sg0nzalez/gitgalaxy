@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures as cf
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -120,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     langs = touched_languages()
+    # four legs at once: each gets an equal share of the cores for its scan pool (#4902)
+    os.environ["GG_JOB_CORES"] = str(max(1, int(os.environ.get("GG_JOB_CORES") or os.cpu_count() or 1) // 4))
     with cf.ThreadPoolExecutor(max_workers=4) as ex:
         futs = {
             "extraction": ex.submit(leg_extraction, langs),
