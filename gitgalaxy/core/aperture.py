@@ -497,6 +497,7 @@ class ApertureFilter:
                         "reason": f"Blocked (File size exceeds {soft_max_mb}MB limit without Intent Lock)",
                     }
                 )
+                self.logger.warning(f"Aperture excluded {relative_path}: {result['reason']}")
                 return result
 
             # --- Gate 1 & 2 Execution: PATH VALIDATION ---
@@ -504,6 +505,7 @@ class ApertureFilter:
 
             if not is_valid:
                 result.update({"classification": "generated_noise", "reason": reason})
+                self._log_exclusion(relative_path, result["reason"])
                 return result
 
             # --- THE SHUNT: SECRETS BYPASS ---
@@ -521,6 +523,7 @@ class ApertureFilter:
             # --- CONTENT VALIDATION ---
             if content is None:
                 result["reason"] = "Protocol Violation: Missing content buffer"
+                self.logger.warning(f"Aperture excluded {relative_path}: {result['reason']}")
                 return result
 
             integrity = self._check_artifact_integrity(
@@ -530,6 +533,7 @@ class ApertureFilter:
 
             if not integrity["valid"]:
                 result.update({"classification": integrity["classification"], "reason": integrity["reason"]})
+                self._log_exclusion(relative_path, result["reason"])
                 return result
 
             # --- MISSION SUCCESS ---
@@ -610,7 +614,10 @@ class ApertureFilter:
         # --- Gate 3.3: Static Asset Bloat Deflector ---
         # DEFENSIVE DESIGN: Static Assets contain zero executable payload. If they exceed
         # a few thousand lines, they are data dumps, not configuration files.
-        if low_path.endswith((".yml", ".yaml", ".json", ".xml", ".svg", ".sql", ".csv", ".tsv")):
+        # #4917: CI workflows and pipeline definitions are executable code, not static blobs.
+        if low_path.endswith(
+            (".yml", ".yaml", ".json", ".xml", ".svg", ".sql", ".csv", ".tsv")
+        ) and not self._is_pipeline_config(rel_path, content):
             if loc > 2500:
                 report.update(
                     {
@@ -797,6 +804,48 @@ class ApertureFilter:
         if hit is None:
             hit = self._virtualenv_cache[rel_dir] = looks_like_virtualenv(self.root.joinpath(*rel_dir.split("/")))
         return hit
+
+    def _log_exclusion(self, relative_path: str, reason: str | None) -> None:
+        """#4917: a heuristic exclusion that can hide real code (a "Static Asset Blob") is a WARNING, so it is never
+        silent; the bulk exclusions (binaries, minified / generated noise) stay at DEBUG, or a large repo floods the console."""
+        if reason and "Static Asset Blob" in reason:
+            self.logger.warning(f"Aperture excluded {relative_path}: {reason}")
+        else:
+            self.logger.debug(f"Aperture excluded {relative_path}: {reason}")
+
+    # #4917: CI workflows and pipeline definitions are executable code, not static blobs.
+    _PIPELINE_FILENAMES = frozenset(
+        {
+            "action.yml",
+            "action.yaml",
+            "bitbucket-pipelines.yml",
+            "bitbucket-pipelines.yaml",
+            ".gitlab-ci.yml",
+            ".gitlab-ci.yaml",
+            "azure-pipelines.yml",
+            "azure-pipelines.yaml",
+        }
+    )
+    _PIPELINE_KEY_PATTERN = re.compile(r"^\s*(?:-\s*)?(?:jobs|steps|run)\s*:", re.MULTILINE)
+
+    @classmethod
+    def _is_pipeline_config(cls, rel_path: str, content: str) -> bool:
+        """#4917: decides whether a YAML file is a recognized CI/CD pipeline or action definition."""
+        low_path = rel_path.lower().replace("\\", "/")
+        if not low_path.endswith((".yml", ".yaml")):
+            return False
+        filename = low_path.rsplit("/", 1)[-1]
+        if filename in cls._PIPELINE_FILENAMES:
+            return True
+        if filename.startswith("azure-pipelines") and filename.endswith((".yml", ".yaml")):
+            return True
+        if "/.github/workflows/" in ("/" + low_path):
+            return True
+        parts = set(low_path.split("/")[:-1])
+        if parts & {".gitlab", ".circleci", ".buildkite"}:
+            return True
+        # Content check: YAML with many run:/steps:/jobs: keys is workflow code
+        return len(cls._PIPELINE_KEY_PATTERN.findall(content, 0, 200_000)) >= 3
 
     # Characters that open a comment in some language (`//`, `///`, `/*`, ` *`, `#`, `--`, `;`, `%`,
     # `'`, `<!--`, `"""`) plus whitespace; stripped from the front of a line to reach its text.
