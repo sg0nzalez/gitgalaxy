@@ -305,6 +305,7 @@ public class CicsTask {
     private Runnable rollbackHook;                                          // how a rollback undoes (the root's)
     private final Map<String, Integer> faultSeen = new HashMap<>();
     private Object returnedArea;                                             // #4343: the level-1 RETURN's COMMAREA
+    private byte[] returnedBytes;                                            // #4817: its raw bytes
     private Integer returnedLength;                                          // #4449: its LENGTH (null: the whole record)
 
     /** `aid` is ENTER, CLEAR, PF1-PF24 or PA1-PA3; `received` maps a map name to its input screen. The
@@ -2595,6 +2596,14 @@ public class CicsTask {
         ended = true;
     }
 
+    /** #4817: same, taking the raw bytes of the COMMAREA to preserve non-decodable bytes. */
+    public void returnTransid(String transid, Object commarea, Integer length, byte[] area) {
+        returnTransid(transid, commarea, length);
+        if (level == 1) {
+            root().returnedBytes = area;
+        }
+    }
+
     /** RETURN TRANSID(transid) [COMMAREA(commarea) LENGTH(length)] IMMEDIATE (#4270, register X27; IBM, EXEC CICS
      *  RETURN): the next task, `transid`, is attached at once -- ahead of any terminal input and any transaction ATI
      *  enqueued for the terminal -- with the COMMAREA, and "appears to the operator as having been started by terminal
@@ -2632,6 +2641,20 @@ public class CicsTask {
         root().returnedLength = commarea == null ? null : length;
         ended = true;
         return new int[] {0, 0};
+    }
+
+    /** #4817: same, taking the raw bytes of the COMMAREA to preserve non-decodable bytes. */
+    public int[] returnImmediate(String transid, Object commarea, Integer length, byte[] area) {
+        int[] resps = returnImmediate(transid, commarea, length);
+        if (resps[0] == 0 && level == 1) {
+            root().returnedBytes = area;
+        }
+        return resps;
+    }
+
+    /** #4817: the RETURN TRANSID COMMAREA bytes, a copy */
+    public byte[] returnedBytes() {
+        return returnedBytes == null ? null : java.util.Arrays.copyOf(returnedBytes, returnedBytes.length);
     }
 
     /** The COMMAREA the task's level-1 RETURN passed on (#4343: what handleTransaction answers), as `type`; null when
@@ -2683,6 +2706,11 @@ public class CicsTask {
          *  whole record: EIBCALEN is the record's length) it goes on with the conversation: ENTER on the screen the
          *  last task sent, nothing typed. */
         CicsTask transaction(String transid, Object commarea);
+        /** #4817: same, with the raw bytes of the COMMAREA from the previous task. */
+        default CicsTask transaction(String transid, Object commarea, byte[] bytes) {
+            byte[] copy = bytes == null ? null : java.util.Arrays.copyOf(bytes, bytes.length);
+            return transaction(transid, commarea).withLinkArea(copy);
+        }
 
         /** The program level `program` runs at when another program LINKs (or XCTLs) to it with `commarea` (null:
          *  none) -- the whole record, passed by reference: what the program changes in it, the caller sees. */

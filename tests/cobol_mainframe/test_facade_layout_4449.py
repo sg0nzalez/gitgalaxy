@@ -109,6 +109,15 @@ def test_records_cut_the_same_way_convert_and_the_facade_answers_its_own_dto():
         assert f"public static {name} fromCommarea(byte[] rec) {{" in dtos[name]
 
 
+def test_the_facade_signature_is_unchanged_by_4817():
+    """#4817 carries the RETURN TRANSID COMMAREA bytes in the runtime (CicsTask.returnedBytes, Region.transaction with
+    bytes); the generated facade is unchanged for now (exposing the bytes there needs every committed port resurfaced,
+    a follow-up): one handleTransaction, the signature the harness reads."""
+    _, svc = _wizard()
+    assert svc["PCWIZ"].count("public PcwizWsState handleTransaction(") == 1
+    assert "lastAnswerBytes" not in svc["PCWIZ"]
+
+
 @pytest.mark.parametrize(
     "conf, why",
     [
