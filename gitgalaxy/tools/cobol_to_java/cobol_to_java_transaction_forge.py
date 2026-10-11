@@ -939,6 +939,24 @@ public class CicsTask {
         return this;
     }
 
+    // #4767 zECS (register X37): the server side. The task is the response to one inbound HTTP request that whoever runs it
+    // STATES (never guessed); WEB SEND's response is recorded as an event and compared.
+    /** The inbound request the task serves: scheme, host, port, method, HTTP version, path, query string (without its
+     *  '?', "" for none), headers (name, value), the body's media type and body (null: none). WEB SEND needs it stated;
+     *  the commands that read it (WEB RECEIVE, EXTRACT, READ HTTPHEADER) are not modelled yet. */
+    public record HttpRequest(String scheme, String host, int port, String method, String version, String path,
+                              String query, java.util.List<String[]> headers, String mediaType, String body) {
+    }
+
+    private HttpRequest httpRequest;
+    private boolean webSent;
+
+    /** The HTTP request this task serves (a web-attached task). Not stated (never called), WEB SEND is refused. */
+    public CicsTask withHttpRequest(HttpRequest request) {
+        this.httpRequest = request;
+        return this;
+    }
+
     private java.util.List<HttpPeer> statedPeers() {
         java.util.List<HttpPeer> p = root().httpPeers;
         if (p == null) {
@@ -1101,6 +1119,184 @@ public class CicsTask {
         CicsTask r = root();
         r.statedPeers();
         return r.webSessions.remove(token) != null ? new int[] {0, 0} : new int[] {19, 27};
+    }
+
+    /** WEB SEND FROM(area) FROMLENGTH(n) [MEDIATYPE(area)] ACTION(cvda) [STATUSCODE(n)] [STATUSTEXT(area) [STATUSLEN(n)]]
+     *  [SRVCONVERT | NOSRVCONVERT] (IBM CICS TS, EXEC CICS WEB SEND, server; register X37): the response to the stated
+     *  request, recorded as WEB-SEND (status -- 200 when STATUSCODE is not given --, reason phrase (null: not given),
+     *  media type (null: not given), body, action). `from` is FROM's area text, mediaType MEDIATYPE's area text (null: not
+     *  given), action ACTION's value (0: not given), status STATUSCODE (-1: not given), statusText STATUSTEXT's area text
+     *  (null: not given), statusLength STATUSLEN (-1: not given: the whole area, ASSUMED), conv 0 / 1 / 2 for neither /
+     *  SRVCONVERT / NOSRVCONVERT. INVREQ 11 (an action that is neither IMMEDIATE nor EVENTUAL), INVREQ 72 (status 204 /
+     *  205 / 304 with a body). Refused: no request stated, ACTION not IMMEDIATE (an EVENTUAL or omitted action sends at
+     *  the end of the task and a second send replaces it), a second send after IMMEDIATE, FROMLENGTH or STATUSLEN not
+     *  above zero, a length past its area, a blank or malformed MEDIATYPE, a status
+     *  code outside 100-599, SRVCONVERT on a media type that is not text/*, two conditions at once. */
+    public int[] webSend(String from, int fromLength, String mediaType, int action, int status, String statusText,
+                         int statusLength, int conv) {
+        CicsTask r = root();
+        if (r.httpRequest == null) {
+            throw refused("the HTTP request is not stated (withHttpRequest)");
+        }
+        if (r.webSent) {
+            throw refused("WEB SEND after a response was sent");
+        }
+        if (fromLength <= 0 || (statusText != null && statusLength == 0) || statusLength < -1) {
+            throw refused("WEB SEND FROMLENGTH or STATUSLEN not above zero");
+        }
+        if (fromLength > from.length() || (statusText != null && statusLength > statusText.length())) {
+            throw refused("WEB SEND length beyond its area");
+        }
+        if (status != -1 && (status < 100 || status > 599)) {
+            throw refused("WEB SEND STATUSCODE outside 100-599");
+        }
+        String mt = null;
+        if (mediaType != null) {
+            mt = (mediaType.length() > 56 ? mediaType.substring(0, 56) : mediaType).stripTrailing();
+            int slash = mt.indexOf('/');
+            if (slash < 1 || slash == mt.length() - 1 || mt.chars().anyMatch(c -> c <= ' ' || c > '~')) {
+                throw refused("WEB SEND MEDIATYPE blank or not type/subtype");
+            }
+        }
+        if (conv == 1 && (mt == null || !mt.toLowerCase(java.util.Locale.ROOT).startsWith("text/"))) {
+            throw refused("WEB SEND SRVCONVERT on a media type that is not text/*");
+        }
+        java.util.List<int[]> c = new java.util.ArrayList<>();
+        if (action != 0 && action != 2 && action != 3) {
+            c.add(new int[] {16, 11});
+        }
+        if (status == 204 || status == 205 || status == 304) {
+            c.add(new int[] {16, 72});
+        }
+        if (c.size() > 1) {
+            throw refused("WEB SEND with more than one condition at once");
+        }
+        if (c.size() == 1) {
+            return c.get(0);
+        }
+        if (action != 2) {
+            throw refused("WEB SEND ACTION not IMMEDIATE");
+        }
+        String st = statusText == null ? null : statusText.substring(0, statusLength < 0 ? statusText.length() : statusLength);
+        r.webSent = true;
+        event("WEB-SEND", "status", status == -1 ? 200 : status, "statustext", st, "mediatype", mt,
+                "body", from.substring(0, fromLength), "action", "IMMEDIATE", "resp", 0, "resp2", 0);
+        return new int[] {0, 0};
+    }
+
+    // #4767 zECS (register X36): WEB PARSE URL (IBM CICS TS, EXEC CICS WEB PARSE URL) -- pure: no peer is involved.
+    /** WEB PARSE URL's outcome: RESP, RESP2 and, on NORMAL, the scheme (upper case, blank-padded to SCHEMENAME's area),
+     *  host, port (explicit, else 80 for HTTP / 443 for HTTPS), path (with its leading '/') and query string (without
+     *  its '?', still escaped); else the strings are null and the port -1. */
+    public record WebParsed(int resp, int resp2, String scheme, String host, int port, String path, String query) {
+    }
+
+    /** An ASCII hex digit of either case (never another script's digits). */
+    private static boolean webHexAny(char c) {
+        return webHex(c) || (c >= 'a' && c <= 'f');
+    }
+
+    private static boolean webHex(char c) {
+        return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F');
+    }
+
+    /** WEB PARSE URL: `url` is the URL area's text and urlLength URLLENGTH; hostLength / pathLength / queryLength are the
+     *  HOSTLENGTH / PATHLENGTH / QUERYSTRLEN values (null: the option is not given) and the caps the areas' sizes (the
+     *  length options are read here, written by the caller to the piece's length). INVREQ 28 (no "scheme://", an empty
+     *  scheme or host, a port that is not 1-5 digits or above 65535: ASSUMED), INVREQ 65 (a "%" not followed by two of
+     *  0-9 A-F). Refused: a scheme other than HTTP / HTTPS, a user-info part, a fragment, an IPv6 host, an empty port or
+     *  port 0, a lowercase hex digit in an escape, a URLLENGTH not above zero, a LENGERR (host / path / query longer than
+     *  its length), a length past its area, a PATH or QUERYSTRING asked for when the URL has none, two conditions. */
+    public WebParsed webParse(String url, int urlLength, int schemeCap, Integer hostLength, int hostCap,
+                              Integer pathLength, int pathCap, Integer queryLength, int queryCap) {
+        if (urlLength <= 0 || urlLength > url.length()) {
+            throw refused(urlLength <= 0 ? "WEB PARSE URL URLLENGTH not above zero" : "WEB PARSE URL length beyond its area");
+        }
+        if ((hostLength != null && hostLength > hostCap) || (pathLength != null && pathLength > pathCap)
+                || (queryLength != null && queryLength > queryCap)) {
+            throw refused("WEB PARSE URL length beyond its area");
+        }
+        String u = url.substring(0, urlLength);
+        boolean bad28 = false;
+        boolean bad65 = false;
+        for (int i = 0; i < u.length(); i++) {
+            if (u.charAt(i) == '%') {
+                boolean ok = i + 2 < u.length() && webHex(u.charAt(i + 1)) && webHex(u.charAt(i + 2));
+                boolean lower = i + 2 < u.length() && webHexAny(u.charAt(i + 1)) && webHexAny(u.charAt(i + 2));
+                if (!ok && lower) {
+                    throw refused("WEB PARSE URL lowercase hex digit in an escape");
+                }
+                bad65 |= !ok;
+            }
+        }
+        if (u.indexOf('#') >= 0) {
+            throw refused("WEB PARSE URL fragment");
+        }
+        int sep = u.indexOf("://");
+        String scheme = sep < 0 ? "" : u.substring(0, sep).toUpperCase(java.util.Locale.ROOT);
+        if (sep <= 0) {
+            bad28 = true;
+        } else if (!scheme.equals("HTTP") && !scheme.equals("HTTPS")) {
+            throw refused("WEB PARSE URL scheme other than HTTP / HTTPS");
+        }
+        String host = "";
+        String path = "";
+        String query = "";
+        int port = -1;
+        if (!bad28) {
+            String rest = u.substring(sep + 3);
+            int e = rest.length();
+            for (int i = 0; i < rest.length(); i++) {
+                if (rest.charAt(i) == '/' || rest.charAt(i) == '?') {
+                    e = i;
+                    break;
+                }
+            }
+            String auth = rest.substring(0, e);
+            if (auth.indexOf('@') >= 0 || auth.indexOf('[') >= 0 || auth.indexOf(']') >= 0) {
+                throw refused("WEB PARSE URL user-info or IPv6 host");
+            }
+            int colon = auth.lastIndexOf(':');
+            host = colon < 0 ? auth : auth.substring(0, colon);
+            if (colon >= 0) {
+                String ps = auth.substring(colon + 1);
+                if (ps.isEmpty()) {
+                    throw refused("WEB PARSE URL empty port");
+                }
+                if (!ps.chars().allMatch(c -> c >= '0' && c <= '9') || ps.length() > 5 || Integer.parseInt(ps) > 65535) {
+                    bad28 = true;
+                } else if (Integer.parseInt(ps) == 0) {
+                    throw refused("WEB PARSE URL port 0");
+                } else {
+                    port = Integer.parseInt(ps);
+                }
+            } else {
+                port = scheme.equals("HTTPS") ? 443 : 80;
+            }
+            bad28 |= host.isEmpty();
+            String tail = rest.substring(e);
+            int q = tail.indexOf('?');
+            path = q < 0 ? tail : tail.substring(0, q);
+            query = q < 0 ? "" : tail.substring(q + 1);
+        }
+        if (bad28 && bad65) {
+            throw refused("WEB PARSE URL with more than one condition at once");
+        }
+        if (bad28 || bad65) {
+            return new WebParsed(16, bad28 ? 28 : 65, null, null, -1, null, null);
+        }
+        if ((hostLength != null && host.length() > hostLength) || (pathLength != null && path.length() > pathLength)
+                || (queryLength != null && query.length() > queryLength)) {
+            throw refused("WEB PARSE URL piece longer than its length");
+        }
+        if (schemeCap > 0 && scheme.length() > schemeCap) {
+            throw refused("WEB PARSE URL length beyond its area");
+        }
+        if ((pathLength != null && path.isEmpty()) || (queryLength != null && query.isEmpty())) {
+            throw refused("WEB PARSE URL PATH or QUERYSTRING the URL has none of");
+        }
+        String padded = schemeCap > 0 ? String.format(java.util.Locale.ROOT, "%-" + schemeCap + "s", scheme) : scheme;
+        return new WebParsed(0, 0, padded, host, port, path, query);
     }
 
     /** The transient-data queues the CSD defines; null, every queue is defined. */

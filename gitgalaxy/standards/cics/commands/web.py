@@ -24,6 +24,9 @@ CVDAs) changes nothing within the model -- the stated response is what reaches t
 BODYCHARSET are refused. Every request the program sends is recorded (a WEB-CONVERSE event: host, method, path, query, the
 media type and body when there is a body, RESP / RESP2), so a proof compares what each side sent.
 
+WEB PARSE URL (register X36) takes a URL apart, purely; WEB SEND (register X37), the server's response, is recorded as a
+WEB-SEND event on a request whoever runs the task STATES (`http_request`, a fact like the peers).
+
 Refused by name: everything the corpus does not use (CERTIFICATE, CODEPAGE, CIPHERS, HTTPVNUM / HTTPRNUM; on CONVERSE a
 URIMAP, DOCTOKEN, CONTAINER, SET, NOTRUNCATE, TOCONTAINER, ACTION, CLOSESTATUS, AUTHENTICATE ...)."""
 
@@ -245,4 +248,182 @@ WEB_CLOSE = Command(
     state=("handle_table",),
 )
 
-COMMANDS = (WEB_OPEN, WEB_CONVERSE, WEB_CLOSE)
+_PARSE_OPEN = (
+    "a scheme other than HTTP / HTTPS, a URL with a user-info part, a fragment, an IPv6 host, an empty or non-numeric "
+    "port, a port of 0, a lowercase hex digit in an escape, a URLLENGTH not above zero or past its area, a PATH or "
+    "QUERYSTRING asked for when the URL has none, two conditions at once"
+)
+
+WEB_PARSE_URL = Command(
+    key="WEB PARSE URL",
+    ibm=ibm("EXEC CICS WEB PARSE URL", "summary-web-parse-url"),
+    status="modelled",
+    register="X36",
+    options={
+        "URL": Arg("area_in"),
+        "URLLENGTH": Arg("value"),
+        "SCHEMENAME": Arg("area_out", width=16),
+        "HOST": Arg("area_out"),
+        "HOSTLENGTH": Arg("area_inout", binary=True),
+        "PORTNUMBER": Arg("area_out", width=4, binary=True),
+        "PATH": Arg("area_out"),
+        "PATHLENGTH": Arg("area_inout", binary=True),
+        "QUERYSTRING": Arg("area_out"),
+        "QUERYSTRLEN": Arg("area_inout", binary=True),
+        **RESP_OPTIONS,
+    },
+    refused={
+        "HOSTTYPE": Refusal(
+            "an IPv6 host is refused, so the host type is always HOSTNAME or IPV4: not modelled", "X36"
+        ),
+    },
+    default_refusal=Refusal(
+        "only URL / URLLENGTH, SCHEMENAME, HOST / HOSTLENGTH, PORTNUMBER, PATH / PATHLENGTH and QUERYSTRING / "
+        "QUERYSTRLEN are modelled",
+        "X36",
+    ),
+    groups=(
+        required("URL", msg="WEB PARSE URL without URL"),
+        required("URLLENGTH", msg="WEB PARSE URL without URLLENGTH"),
+        requires(("HOST",), ("HOSTLENGTH",), msg="WEB PARSE URL HOST without HOSTLENGTH", both_ways=True),
+        requires(("PATH",), ("PATHLENGTH",), msg="WEB PARSE URL PATH without PATHLENGTH", both_ways=True),
+        requires(
+            ("QUERYSTRING",), ("QUERYSTRLEN",), msg="WEB PARSE URL QUERYSTRING without QUERYSTRLEN", both_ways=True
+        ),
+    ),
+    outcomes=(
+        Outcome(
+            "NORMAL",
+            0,
+            "",
+            writes=(
+                "SCHEMENAME",
+                "HOST",
+                "HOSTLENGTH",
+                "PORTNUMBER",
+                "PATH",
+                "PATHLENGTH",
+                "QUERYSTRING",
+                "QUERYSTRLEN",
+            ),
+        ),
+        Outcome("INVREQ", 28, "Incorrect URL"),
+        Outcome("INVREQ", 65, "Bad escape sequence in the URL"),
+        Outcome("LENGERR", 8, "The query string is longer than QUERYSTRLEN", raised_by=("QUERYSTRLEN",)),
+        Outcome("LENGERR", 29, "The host name is longer than HOSTLENGTH", raised_by=("HOSTLENGTH",)),
+        Outcome("LENGERR", 30, "The path is longer than PATHLENGTH", raised_by=("PATHLENGTH",)),
+    ),
+    runtime_refusals=(
+        RuntimeRefusal(
+            "a LENGERR (a piece longer than its length option): IBM truncates but does not say what the length option "
+            "then holds",
+            "X36",
+            java="WEB PARSE URL piece longer than its length",
+            c="WEB PARSE URL piece longer than its length",
+        ),
+        RuntimeRefusal(_PARSE_OPEN, "X36", java="WEB PARSE URL", c="WEB PARSE URL"),
+        RuntimeRefusal(
+            "a length past its area (URLLENGTH, HOSTLENGTH, PATHLENGTH, QUERYSTRLEN, SCHEMENAME shorter than the scheme): "
+            "CICS reads or writes the storage that follows it, which GnuCOBOL lays out unlike IBM's compiler",
+            "X36",
+            java="WEB PARSE URL length beyond its area",
+            c="WEB PARSE URL length beyond its area",
+        ),
+    ),
+)
+
+_REQUEST = Fact(
+    "http_request",
+    java="withHttpRequest",
+    env="GGCICS_WEBREQ",
+    region_default=None,
+    options=("FROM",),
+)
+_NO_REQUEST = RuntimeRefusal(
+    "the inbound HTTP request the task serves is not stated for the task",
+    "X37",
+    java="the HTTP request is not stated (withHttpRequest)",
+    c="the HTTP request is not stated for this task",
+)
+
+WEB_SEND = Command(
+    key="WEB SEND",
+    ibm=ibm("EXEC CICS WEB SEND (server)", "summary-web-send-server"),
+    status="modelled",
+    register="X37",
+    options={
+        "FROM": Arg("area_in"),
+        "FROMLENGTH": Arg("value"),
+        "MEDIATYPE": Arg("area_in", width=56),
+        "ACTION": Arg("cvda"),
+        "STATUSCODE": Arg("value"),
+        "STATUSTEXT": Arg("area_in"),
+        "STATUSLEN": Arg("value"),
+        "SRVCONVERT": Arg("flag"),
+        "NOSRVCONVERT": Arg("flag"),
+        **RESP_OPTIONS,
+    },
+    refused={
+        "DOCTOKEN": Refusal("a document as the response body is not modelled", "X37"),
+        "CONTAINER": Refusal("a container as the response body is not modelled", "X37"),
+        "CHANNEL": Refusal("a container as the response body is not modelled", "X37"),
+        "CHUNKING": Refusal("a chunked response is not modelled", "X37"),
+        "CHARACTERSET": Refusal(
+            "code-page conversion is not modelled: the response is in the program's characters", "X37"
+        ),
+        "CLNTCODEPAGE": Refusal(
+            "code-page conversion is not modelled: the response is in the program's characters", "X37"
+        ),
+        "HOSTCODEPAGE": Refusal(
+            "code-page conversion is not modelled: the response is in the program's characters", "X37"
+        ),
+        "CLOSESTATUS": Refusal("closing the connection after the response is not modelled", "X37"),
+        "DOCSTATUS": Refusal("a document as the response body is not modelled", "X37"),
+        "LENGTH": Refusal("LENGTH is kept for upgrade only (STATUSLEN replaces it): not modelled", "X37"),
+    },
+    default_refusal=Refusal(
+        "only FROM / FROMLENGTH, MEDIATYPE, ACTION, STATUSCODE, STATUSTEXT / STATUSLEN and SRVCONVERT / NOSRVCONVERT are "
+        "modelled",
+        "X37",
+    ),
+    groups=(
+        required("FROM", msg="WEB SEND without FROM: only a response body from the program's area is modelled"),
+        requires(("FROM",), ("FROMLENGTH",), msg="WEB SEND FROM without FROMLENGTH", both_ways=True),
+        requires(("STATUSLEN",), ("STATUSTEXT",), msg="WEB SEND STATUSLEN without STATUSTEXT"),
+        at_most_one("SRVCONVERT", "NOSRVCONVERT", msg="WEB SEND with both SRVCONVERT and NOSRVCONVERT"),
+    ),
+    outcomes=(
+        Outcome("NORMAL", 0, ""),
+        Outcome("INVREQ", 11, "Action code invalid", raised_by=("ACTION",)),
+        Outcome("INVREQ", 72, "Status code does not support a message body", raised_by=("STATUSCODE",)),
+    ),
+    facts=(_REQUEST,),
+    runtime_refusals=(
+        _NO_REQUEST,
+        RuntimeRefusal(
+            "an ACTION other than IMMEDIATE (EVENTUAL, and the default, send at the end of the task and a later send "
+            "replaces them), a second send after IMMEDIATE (IBM gives no RESP2)",
+            "X37",
+            java="WEB SEND ACTION not IMMEDIATE",
+            c="WEB SEND ACTION not IMMEDIATE",
+        ),
+        RuntimeRefusal(
+            "a FROMLENGTH or STATUSLEN not above zero (IBM lists LENGERR 50 and INVREQ 131 for zero), a STATUSCODE outside "
+            "100-599, a blank or malformed MEDIATYPE, SRVCONVERT on a media type that is not text/*, more than one "
+            "condition at once",
+            "X37",
+            java="WEB SEND",
+            c="WEB SEND",
+        ),
+        RuntimeRefusal(
+            "a length past its area (FROMLENGTH, STATUSLEN): CICS reads the storage that follows it, which GnuCOBOL lays out "
+            "unlike IBM's compiler",
+            "X37",
+            java="WEB SEND length beyond its area",
+            c="WEB SEND length beyond its area",
+        ),
+    ),
+    event="WEB-SEND",
+)
+
+COMMANDS = (WEB_OPEN, WEB_CONVERSE, WEB_CLOSE, WEB_PARSE_URL, WEB_SEND)
